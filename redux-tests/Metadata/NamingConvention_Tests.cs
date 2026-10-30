@@ -6,17 +6,16 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// Naming-convention guards for Verifier/Solver/Reduction display names
-// (branch: rename/solver-reduction-verifier-names).
+// Naming-convention guards for Problem/Verifier/Solver/Reduction display names.
 //
-// Verifiers: every verifierName must be exactly "Default {problem.problemName} Verifier" —
-// this is the regression guard for the "verifier display names to Default [Problem Name]
-// Verifier instead of Default Verifier" fix on this branch.
+// Verifiers: every verifierName must be exactly "{problem.problemName} Solution Verifier"
+// or "{problem.problemName} Optimality Verifier", and names must be unique per problem.
 //
 // Solvers/Reductions: every solverName/reductionName must match one of two shapes:
 //   (a) "[Problem Name] [Approach]"        -- e.g. "Clique Brute Force", "DFA Simulation"
-//   (b) "[Person(s) Who Created It] Algorithm" (solvers) or "... Reduction" (reductions)
-//       -- e.g. "Dijkstra's Algorithm", "Karp's 3SAT Reduction", "Garey-Johnson Reduction"
+//   (b) "[Person(s) Who Created It] [Descriptive Words] Algorithm" (solvers), or the
+//       corresponding "... Reduction" shape (reductions) -- e.g. "Dijkstra's Algorithm",
+//       "Schöning's k-SAT Algorithm", "Karp's 3SAT Reduction", "Garey-Johnson Reduction"
 // Shape (a) is checked structurally (title-case, 2+ words) rather than by cross-referencing
 // the exact problemName string, because the free-form "approach" half of these names
 // legitimately diverges from the formal problemName (e.g. solver "DFA Simulation" vs.
@@ -33,8 +32,8 @@ public class NamingConvention_Tests {
     // like "Garey-Johnson", "Lawler-Karp", "Bernstein-Vazirani"), optional possessive 's.
     // It can also be followed by descriptions, such as "Schöning's k-SAT Algorithm"
     private const string PersonToken = @"\p{Lu}\p{L}*(?:-\p{Lu}\p{L}*)*'?s?";
-    private static readonly Regex PersonAlgorithmShape = new($@"^{PersonToken}(?:\s+\S+)*\s+Algorithm$");
-    private static readonly Regex PersonReductionShape = new($@"^{PersonToken}(?:\s+\S+)*\s+Reduction$");
+    private static readonly Regex PersonAlgorithmShape = new($@"^{PersonToken}(?:\s+[\p{{L}}\p{{N}}][\p{{L}}\p{{N}}'-]*)*\s+Algorithm$");
+    private static readonly Regex PersonReductionShape = new($@"^{PersonToken}(?:\s+[\p{{L}}\p{{N}}][\p{{L}}\p{{N}}'-]*)*\s+Reduction$");
 
     // Problem+Approach shape: 2+ words, each either Title-Case/ALLCAPS/digit-leading
     // (hyphens/apostrophes allowed within a word) or a lowercase connector ("and"/"of").
@@ -75,7 +74,7 @@ public class NamingConvention_Tests {
 
     [Theory]
     [MemberData(nameof(AllVerifiers))]
-    public void VerifierName_Equals_ProblemName_Plus_Verifier(Type verifierType) {
+    public void VerifierName_MatchesProblemNameAndVerifierKind(Type verifierType) {
         var generic = verifierType.GetInterfaces()
             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVerifier<>));
         Assert.True(generic != null, $"{verifierType.Name}: does not implement IVerifier<>.");
@@ -102,10 +101,43 @@ public class NamingConvention_Tests {
         }
         Assert.True(verifier != null, $"{verifierType.Name}: default-constructed but wasn't an IVerifier.");
 
-        string expected = $"Default {problem!.problemName} Verifier";
-        Assert.True(verifier!.verifierName == expected,
-            $"{verifierType.Name}.verifierName is \"{verifier.verifierName}\" — expected \"{expected}\" " +
-            $"(\"Default [Problem Name] Verifier\", matching {problemType.Name}.problemName).");
+        string solutionName = $"{problem!.problemName} Solution Verifier";
+        string optimalityName = $"{problem.problemName} Optimality Verifier";
+        Assert.True(verifier!.verifierName == solutionName || verifier.verifierName == optimalityName,
+            $"{verifierType.Name}.verifierName is \"{verifier.verifierName}\" — expected either " +
+            $"\"{solutionName}\" or \"{optimalityName}\" (matching {problemType.Name}.problemName).");
+    }
+
+    [Fact]
+    public void VerifierNames_AreUniqueWithinEachProblem_IgnoringCase() {
+        var namesByProblem = new Dictionary<Type, Dictionary<string, Type>>();
+
+        foreach (var (_, verifierType) in ProblemProvider.Verifiers) {
+            var generic = verifierType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVerifier<>));
+            Assert.True(generic != null, $"{verifierType.Name}: does not implement IVerifier<>.");
+            Type problemType = generic!.GetGenericArguments()[0];
+
+            IVerifier? verifier;
+            try {
+                verifier = Activator.CreateInstance(verifierType) as IVerifier;
+            } catch (Exception ex) {
+                var real = Unwrap(ex);
+                Assert.Fail($"{verifierType.Name}: did not default-construct ({real.GetType().Name}: {real.Message}).");
+                return;
+            }
+            Assert.True(verifier != null, $"{verifierType.Name}: default-constructed but wasn't an IVerifier.");
+
+            if (!namesByProblem.TryGetValue(problemType, out var names)) {
+                names = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+                namesByProblem.Add(problemType, names);
+            }
+
+            Assert.False(names.TryGetValue(verifier!.verifierName, out var existingType),
+                $"{verifierType.Name} and {existingType?.Name} use duplicate verifier display name " +
+                $"\"{verifier.verifierName}\" for {problemType.Name}; names must be unique ignoring case.");
+            names.Add(verifier.verifierName, verifierType);
+        }
     }
 
     // ── Solvers ──────────────────────────────────────────────────────────────

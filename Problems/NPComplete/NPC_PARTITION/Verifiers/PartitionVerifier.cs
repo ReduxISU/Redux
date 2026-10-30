@@ -5,10 +5,10 @@ namespace API.Problems.NPComplete.NPC_PARTITION.Verifiers;
 
 class PartitionVerifier : IVerifier<PARTITION> {
     public const string CertificateGrammar = "(S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2)";
-    public const string CertificateExample = "(33,21,15),(1,7,12,11,5,6,9,18)";
+    public const string CertificateExample = "(5,7,9),(3,8,10)";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Partition Verifier";
+    public string verifierName { get; } = "Partition Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the Partition problem";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

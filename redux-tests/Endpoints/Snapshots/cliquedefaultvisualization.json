@@ -1,0 +1,410 @@
+[
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "1",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "1"
+      },
+      {
+        "name": "2",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "2"
+      },
+      {
+        "name": "3",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "3"
+      },
+      {
+        "name": "4",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "4"
+      },
+      {
+        "name": "5",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "5"
+      },
+      {
+        "name": "6",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "6"
+      }
+    ],
+    "links": [
+      {
+        "source": "4",
+        "target": "1",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "4-1"
+      },
+      {
+        "source": "1",
+        "target": "2",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "1-2"
+      },
+      {
+        "source": "4",
+        "target": "3",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "4-3"
+      },
+      {
+        "source": "3",
+        "target": "2",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "3-2"
+      },
+      {
+        "source": "2",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "2-4"
+      },
+      {
+        "source": "5",
+        "target": "2",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "5-2"
+      },
+      {
+        "source": "3",
+        "target": "5",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "3-5"
+      },
+      {
+        "source": "5",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "5-4"
+      },
+      {
+        "source": "3",
+        "target": "6",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "3-6"
+      },
+      {
+        "source": "6",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "6-4"
+      },
+      {
+        "source": "1",
+        "target": "6",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "1-6"
+      }
+    ]
+  },
+  {
+    "kind": "graph",
+    "nodes": [
+      {
+        "name": "1",
+        "color": "Background",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "1"
+      },
+      {
+        "name": "2",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "2"
+      },
+      {
+        "name": "3",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "3"
+      },
+      {
+        "name": "4",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "4"
+      },
+      {
+        "name": "5",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "5"
+      },
+      {
+        "name": "6",
+        "color": "Background",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "6"
+      }
+    ],
+    "links": [
+      {
+        "source": "4",
+        "target": "1",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Background",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "4-1"
+      },
+      {
+        "source": "1",
+        "target": "2",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Background",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "1-2"
+      },
+      {
+        "source": "4",
+        "target": "3",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "4-3"
+      },
+      {
+        "source": "3",
+        "target": "2",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "3-2"
+      },
+      {
+        "source": "2",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "2-4"
+      },
+      {
+        "source": "5",
+        "target": "2",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "5-2"
+      },
+      {
+        "source": "3",
+        "target": "5",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "3-5"
+      },
+      {
+        "source": "5",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Solution",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "5-4"
+      },
+      {
+        "source": "3",
+        "target": "6",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Background",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "3-6"
+      },
+      {
+        "source": "6",
+        "target": "4",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Background",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "6-4"
+      },
+      {
+        "source": "1",
+        "target": "6",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "Background",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "1-6"
+      }
+    ]
+  }
+]

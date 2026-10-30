@@ -149,7 +149,7 @@ Paths are from the repo root (the folder that contains `Redux.slnx`), shown for 
 | `README.md` | Nowhere. It is not copied into the repo. | Reference only: a field-by-field description of every member you fill in. Read it, then leave it in the zip. |
 | `NPC_SUBSETSUM/SUBSETSUM_Class.cs` | `Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs` | The problem class. Fill in the metadata and the constructor that parses the instance (Steps 2 and 3). |
 | `NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | The default solver. Throws `NotImplementedException` until you write it ([adding-a-solver.md](adding-a-solver.md)). |
-| `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | The default verifier, already named `"Default Subset Sum Verifier"`. Throws `NotImplementedException` until you write it ([adding-a-verifier.md](adding-a-verifier.md)). |
+| `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | The default verifier, already named `"Subset Sum Solution Verifier"`. Throws `NotImplementedException` until you write it ([adding-a-verifier.md](adding-a-verifier.md)). |
 | `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | A starting visualization ([adding-a-visualization.md](adding-a-visualization.md)). **If you use `DummyVisualization` instead, delete this file and the `Visualizations` folder**, and point the class's `defaultVisualization` at `DummyVisualization`. |
 | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | Your test file. Some tests are finished and some contain a `TODO` and fail on purpose until you fill them in (section 5 below). |
 
@@ -160,7 +160,7 @@ There are separate download endpoints for just a solver, verifier, visualization
 **The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
 1. In the class, `complexityClass` and `problemType` are declared as `Unclassified` (Step 2).
-2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `complexity` are left for you to fill in. The verifier is already named `"Default <Problem Name> Verifier"`, which is what a test requires. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
+2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `complexity` are left for you to fill in. The verifier is already named `"<Problem Name> Solution Verifier"`; change it to the optimality form only if its implemented behavior proves optimality. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
 3. The generated visualization has `VisualizationType.Unimplemented`. A test rejects new classes that stay `Unimplemented`. Either finish it ([adding-a-visualization.md](adding-a-visualization.md)) or delete the generated visualization and use `DummyVisualization`.
 
 Also remove every `"TODO"` before you open the PR (the contributor name `"TODO"` is tolerated by one test, but it is not acceptable in a PR).
@@ -300,7 +300,7 @@ You do not have to register your problem with these tests. They find it automati
 | [Metadata/ProblemInstantiation_Tests.cs](../../redux-tests/Metadata/ProblemInstantiation_Tests.cs) | Your class can be built with its empty constructor, which means `defaultInstance` parses. A problem that throws here silently disappears from several endpoints. |
 | [Metadata/ComplexityClass_Tests.cs](../../redux-tests/Metadata/ComplexityClass_Tests.cs) | `complexityClass` is not `Unclassified`, and the value is served as text (`"NPComplete"`) by the API. |
 | [Metadata/ProblemType_Tests.cs](../../redux-tests/Metadata/ProblemType_Tests.cs) | `problemType` is not `Unclassified`. |
-| [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier is named exactly `"Default <problemName> Verifier"`, and your solver and reduction names match the naming shapes (see their guides). |
+| [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier uses the matching solution or optimality name and is unique within the problem ignoring case, and your solver and reduction names match the naming shapes (see their guides). |
 | [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs) | Your visualization's `visualizationType` is not `Unimplemented` (only a short list of existing classes, including `DummyVisualization`, is excused), and the list of visualization types matches the manifest [Documentation/visualization-types.json](../visualization-types.json) (only matters if you add a new type). |
 | [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and Big-O text (see [adding-a-solver.md](adding-a-solver.md)). |
 | [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) has an entry in `wwwroot/contributorInfo.json`; the file is valid; committed stats are zero; no GitHub account is shared between two people. |
@@ -437,7 +437,7 @@ A new problem is done when:
 - **A `defaultInstance` that does not parse.** The empty constructor fails, and the problem vanishes from several endpoints.
 - **Not throwing `ProblemParseException`** (or letting a weird exception escape from the solver instead of the constructor). Garbage input must give a 400, never a 500.
 - **Only checking the shape of the input.** `{1,x,3}` looks like a set. Check that each value is a number.
-- **Renaming the generated verifier away from `"Default <Problem Name> Verifier"`.** The template already uses that name, and a test requires it. If you change the problem's `problemName`, change the verifier's name to match.
+- **Giving the generated verifier a name outside the solution/optimality forms.** The template uses `"<Problem Name> Solution Verifier"`. If you change the problem's `problemName`, change the verifier's name to match; use the optimality form only when its behavior proves optimality.
 - **A generated visualization left as `Unimplemented`.** Finish it or use `DummyVisualization`.
 - **A name in `contributors` that is not in `contributorInfo.json`**, or a first name only. Use the full name as it appears in the file.
 - **Committing non-zero contributor stats.** Leave them at zero.
