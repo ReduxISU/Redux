@@ -1,14 +1,15 @@
 using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_AKARI.Solvers;
+
 class AkariSolver : ISolver<AKARI> {
 
     // --- Fields ---
-    public string solverName {get;} = "Akari Solver";
-    public string solverDefinition {get;} = "TODO";
-    public string source {get;} = "TODO";
-    public string sourceFile {get;} = SourceFile.Path();
-    public string[] contributors {get;} = { "TODO" };
+    public string solverName { get; } = "Akari Solver";
+    public string solverDefinition { get; } = "TODO";
+    public string source { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string[] contributors { get; } = { "TODO" };
     // Declared, not derived — see API.Interfaces.SolverType and
     // API.Interfaces.SolverComplexityBucket. Leave these commented out (the
     // interface defaults to Unclassified) until you've actually read the
@@ -22,9 +23,9 @@ class AkariSolver : ISolver<AKARI> {
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---
-    public AkariSolver() {}
+    public AkariSolver() { }
 
-    public string solve(AKARI problem){
+    public string solve(AKARI problem) {
         // TODO: implement Akari Solver for AKARI
 
         // To get parsed problem instance, use the problem.grid property.

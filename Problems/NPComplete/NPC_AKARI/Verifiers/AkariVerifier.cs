@@ -6,15 +6,15 @@ namespace API.Problems.NPComplete.NPC_AKARI.Verifiers;
 class AkariVerifier : IVerifier<AKARI> {
 
     // --- Fields ---
-    public string verifierName {get;} = "Akari Verifier";
-    public string verifierDefinition {get;} = "TODO";
-    public string source {get;} = " ";
-    public string sourceLink {get;} = "TODO";
-    public string sourceFile {get;} = SourceFile.Path();
-    public string[] contributors {get;} = { "TODO" };
+    public string verifierName { get; } = "Akari Verifier";
+    public string verifierDefinition { get; } = "TODO";
+    public string source { get; } = " ";
+    public string sourceLink { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string[] contributors { get; } = { "TODO" };
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? complexity { get; set; } = null;
-    private string _certificate =  "";
+    private string _certificate = "";
 
     public string certificate {
         get {
@@ -24,10 +24,10 @@ class AkariVerifier : IVerifier<AKARI> {
 
     // --- Methods Including Constructors ---
     public AkariVerifier() {
-        
+
     }
 
-    public bool verify(AKARI problem, string certificate){
+    public bool verify(AKARI problem, string certificate) {
         // On a malformed certificate, throw `CertificateParseException`
         // (see Interfaces/ParseExceptions.cs) rather than silently
         // returning false. The controller layer catches it and returns

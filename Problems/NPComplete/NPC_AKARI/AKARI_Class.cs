@@ -10,15 +10,15 @@ namespace API.Problems.NPComplete.NPC_AKARI;
 class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
 
     // --- Fields ---
-    public string problemName {get;} = "Akari (Light Up Puzzle)";
-    public string problemLink {get;} = "https://en.wikipedia.org/wiki/Light_Up_(puzzle)";
-    public string formalDefinition {get;} = "TODO"; // Consider excluding due to lack of formal definition
-    public string problemDefinition {get;} = "An Akari (Light Up) puzzle is comprised of a rectangular m x n grid containing sets of white 'unlit' cells and black 'walls'. 'Light bulbs' can be placed in white cells that illuminate their row and column, until blocked by a wall. Black wall cells may optionally include a clue in the form of integer indicating the number of expected adjacent bulbs. A puzzle instance is considered solvable if there is an arangement of 'light bulbs' that satisifes the following conditions:\n1. Every white cell has line-of-sight to a light bulb.\n2. No light bulb illuminates another bulb.\n3. Walls with clue labeling are satisfied.";
-    public string inputDescription {get;} = "An array of characters or integers corresponding to each cell in the grid. White cells are represented by 'w' or 'W'. Black cells are indicated by either 'b', 'B', or a number (0-4) representing the clue.";
-    public string outputDescription {get;} = "A boolean indicating if the puzzle instance is solvable. The solved puzzle is returned as well, if solvable.";
-    public string source {get;} = "Asaokitan. 2001. Bijutsukan. Puzzle Communication Nikoli, vol. 95. Nikoli Co., Ltd., Tokyo, Japan.";
-    public string sourceLink {get;} = "https://www.nikoli.co.jp/en/puzzles/akari/";
-    public string sourceFile {get;} = SourceFile.Path();
+    public string problemName { get; } = "Akari (Light Up Puzzle)";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Light_Up_(puzzle)";
+    public string formalDefinition { get; } = "TODO"; // Consider excluding due to lack of formal definition
+    public string problemDefinition { get; } = "An Akari (Light Up) puzzle is comprised of a rectangular m x n grid containing sets of white 'unlit' cells and black 'walls'. 'Light bulbs' can be placed in white cells that illuminate their row and column, until blocked by a wall. Black wall cells may optionally include a clue in the form of integer indicating the number of expected adjacent bulbs. A puzzle instance is considered solvable if there is an arangement of 'light bulbs' that satisifes the following conditions:\n1. Every white cell has line-of-sight to a light bulb.\n2. No light bulb illuminates another bulb.\n3. Walls with clue labeling are satisfied.";
+    public string inputDescription { get; } = "An array of characters or integers corresponding to each cell in the grid. White cells are represented by 'w' or 'W'. Black cells are indicated by either 'b', 'B', or a number (0-4) representing the clue.";
+    public string outputDescription { get; } = "A boolean indicating if the puzzle instance is solvable. The solved puzzle is returned as well, if solvable.";
+    public string source { get; } = "Asaokitan. 2001. Bijutsukan. Puzzle Communication Nikoli, vol. 95. Nikoli Co., Ltd., Tokyo, Japan.";
+    public string sourceLink { get; } = "https://www.nikoli.co.jp/en/puzzles/akari/";
+    public string sourceFile { get; } = SourceFile.Path();
     private static readonly string _defaultInstance = """
     ((W,W,B,W,W,W,B),
     (W,4,W,W,1,W,B),
@@ -28,27 +28,27 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     (B,W,B,W,W,1,W),
     (1,W,W,W,1,W,W))
     """;
-    public string defaultInstance {get;} = _defaultInstance;
+    public string defaultInstance { get; } = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat {get;} = "Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 1-4 (clue wall). Example: ((w,w,b,w),(b,w,w,1))";
-    public string certificateFormat {get;} = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
-    public string instance {get;set;} = string.Empty;
-    public string wikiName {get;} = ""; // Depreciated, do not implement
-    public AkariSolver defaultSolver {get;} = new AkariSolver();
-    public AkariVerifier defaultVerifier {get;} = new AkariVerifier();
-    public AkariVisualization defaultVisualization {get;} = new AkariVisualization();
-    public string[] contributors {get;} = { "Carter Luker", "Daniel Fawson" };
+    public string instanceFormat { get; } = "Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 1-4 (clue wall). Example: ((w,w,b,w),(b,w,w,1))";
+    public string certificateFormat { get; } = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
+    public string instance { get; set; } = string.Empty;
+    public string wikiName { get; } = ""; // Depreciated, do not implement
+    public AkariSolver defaultSolver { get; } = new AkariSolver();
+    public AkariVerifier defaultVerifier { get; } = new AkariVerifier();
+    public AkariVisualization defaultVisualization { get; } = new AkariVisualization();
+    public string[] contributors { get; } = { "Carter Luker", "Daniel Fawson" };
     // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
     // lives under. The folder is a filing convention only and is wrong for a dozen-plus
     // existing problems; declaring it explicitly here is the only source of truth the
     // API trusts. Leave as Unclassified (the default — this line can simply be deleted)
     // until someone has actually checked the literature/argued the class. Getting this
     // wrong is a public correctness claim the API will serve to callers.
-    public ComplexityClass complexityClass {get;} = ComplexityClass.NPComplete;
-    public ProblemType problemType {get;} = ProblemType.GamesAndPuzzles;
+    public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
 
     // --- Properties ---
 
@@ -71,7 +71,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         //       throw new ProblemParseException("Akari", stringInstance, "instance is empty");
         //   }
 
-        
+
         // Wall Set Version: The instance is comprised of the grid dimensions and the set of wall positions (and hints/clues).
         /*
         StringParser parser = new("{ (m, n, B) | m is int, n is int, B is set }");

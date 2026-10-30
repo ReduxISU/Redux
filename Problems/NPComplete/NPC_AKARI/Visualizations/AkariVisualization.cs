@@ -5,13 +5,12 @@ using API.Problems.NPComplete.NPC_AKARI.Solvers;
 
 namespace API.Problems.NPComplete.NPC_AKARI.Visualizations;
 
-class AkariVisualization : IVisualization<AKARI>
-{
+class AkariVisualization : IVisualization<AKARI> {
     public string visualizationName { get; } = "Akari Visualization";
     public string visualizationDefinition { get; } = "TODO";
     public string source { get; } = "";
-    public string sourceLink {get;} = "TODO";
-    public string sourceFile {get;} = SourceFile.Path();
+    public string sourceLink { get; } = "TODO";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "TODO" };
     // Pick the member matching the API_JSON shape you return below. If no renderer fits,
     // leave this as Unimplemented — the GUI shows an honest "no renderer" state instead of
@@ -21,19 +20,16 @@ class AkariVisualization : IVisualization<AKARI>
     public ISolver solver { get; } = new AkariSolver();
 
     // --- Methods Including Constructors ---
-    public AkariVisualization()
-    {
+    public AkariVisualization() {
 
     }
-    public API_JSON visualize(AKARI instance)
-    {
+    public API_JSON visualize(AKARI instance) {
         //TODO: implement visualization
-        
+
         return new API_empty();
     }
 
-    public API_JSON SolvedVisualization(AKARI instance, string solution)
-    {
+    public API_JSON SolvedVisualization(AKARI instance, string solution) {
         //TODO: implement SolvedVisualization (remove method if not implemented)
 
         return new API_empty();
