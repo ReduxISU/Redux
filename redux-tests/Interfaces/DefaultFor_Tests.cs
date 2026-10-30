@@ -134,6 +134,63 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
         Assert.IsType<AttributedFixtureVerifier>(((IProblem)new SubclassedFixture()).defaultVerifier);
     }
 
+    // A problem keeps its defaults, like a class with `= new XSolver()` initializers: repeated access returns
+    // the same objects, so state they hold survives, and separate problems never share them (#945 review).
+    [Fact]
+    public void Defaults_AreTheSameObjectsOnEveryAccess() {
+        foreach (IProblem problem in new IProblem[] { new ATTRIBUTEDFIXTURE(), new NODEFAULTSFIXTURE() }) {
+            Assert.Same(problem.defaultSolver, problem.defaultSolver);
+            Assert.Same(problem.defaultVerifier, problem.defaultVerifier);
+            Assert.Same(problem.defaultVisualization, problem.defaultVisualization);
+        }
+    }
+
+    [Fact]
+    public void DefaultVerifier_KeepsItsCertificate() {
+        IProblem problem = new ATTRIBUTEDFIXTURE();
+        var verifier = problem.defaultVerifier;
+
+        Assert.True(verifier.verify("{1,2,3}", "2"));
+
+        Assert.Same(verifier, problem.defaultVerifier);
+        Assert.Equal("2", ((AttributedFixtureVerifier)problem.defaultVerifier).certificate);
+    }
+
+    [Fact]
+    public void DefaultSolver_KeepsItsTimerState() {
+        IProblem problem = new NODEFAULTSFIXTURE();
+
+        problem.defaultSolver.timerHasExpired = true;
+
+        Assert.True(problem.defaultSolver.timerHasExpired);
+    }
+
+    [Fact]
+    public void SeparateProblems_HaveSeparateDefaults() {
+        IProblem a = new ATTRIBUTEDFIXTURE(), b = new ATTRIBUTEDFIXTURE();
+
+        Assert.NotSame(a.defaultSolver, b.defaultSolver);
+        Assert.NotSame(a.defaultVerifier, b.defaultVerifier);
+        Assert.NotSame(a.defaultVisualization, b.defaultVisualization);
+
+        a.defaultSolver.timerHasExpired = true;
+        a.defaultVerifier.verify("{1,2,3}", "3");
+        Assert.False(b.defaultSolver.timerHasExpired);
+        Assert.Equal("", ((AttributedFixtureVerifier)b.defaultVerifier).certificate);
+    }
+
+    [Fact]
+    public void Defaults_FirstAccessedFromManyThreads_AreStillOneObject() {
+        IProblem problem = new ATTRIBUTEDFIXTURE();
+        var seen = new System.Collections.Concurrent.ConcurrentBag<(ISolver, IVerifier, IVisualization)>();
+
+        Parallel.For(0, 64, _ => seen.Add((problem.defaultSolver, problem.defaultVerifier, problem.defaultVisualization)));
+
+        Assert.Single(seen.Select(s => s.Item1).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.Single(seen.Select(s => s.Item2).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.Single(seen.Select(s => s.Item3).Distinct(ReferenceEqualityComparer.Instance));
+    }
+
     // ── Through the endpoints ────────────────────────────────────────────────
 
     private async Task<(HttpStatusCode Status, string Body)> Get(string url) {
