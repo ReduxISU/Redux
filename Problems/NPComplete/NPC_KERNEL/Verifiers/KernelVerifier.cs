@@ -8,7 +8,7 @@ class KernelVerifier : IVerifier<KERNEL> {
     // --- Fields ---
     public const string CertificateGrammar = "TODO";
     public const string CertificateExample = "TODO";
-    public string verifierName { get; } = "Kernel Verifier";
+    public string verifierName { get; } = "Kernel Solution Verifier";
     public string verifierDefinition { get; } = "TODO";
     public string source { get; } = "TODO";
     public string sourceFile { get; } = SourceFile.Path();
