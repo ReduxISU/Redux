@@ -155,17 +155,6 @@ internal static class WeightedMaxSatExactSearchLimit {
 
     public static void ThrowIfExceeded(int variableCount) {
         if (variableCount > MaxVariables)
-            throw new WeightedMaxSatExactSearchLimitExceededException(variableCount, MaxVariables);
-    }
-}
-
-internal sealed class WeightedMaxSatExactSearchLimitExceededException : Exception {
-    public int VariableCount { get; }
-    public int MaxVariables { get; }
-
-    public WeightedMaxSatExactSearchLimitExceededException(int variableCount, int maxVariables)
-        : base($"Weighted Max-SAT exact search supports at most {maxVariables} variables; received {variableCount}.") {
-        VariableCount = variableCount;
-        MaxVariables = maxVariables;
+            throw new ExactSearchLimitExceededException("Weighted Max-SAT", variableCount, MaxVariables);
     }
 }

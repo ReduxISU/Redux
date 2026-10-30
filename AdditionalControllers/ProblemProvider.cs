@@ -10,7 +10,6 @@ using API.Tools;
 using Antlr4.Runtime;
 using API.Tools.ApiParameters;
 using System.Dynamic;
-using API.Problems.NPHard.NPH_WEIGHTEDMAXSAT;
 
 /// <summary>
 /// Core controller for Problems.
@@ -186,7 +185,7 @@ public class ProblemProvider : ControllerBase {
         } catch (CertificateParseException ex) {
             return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
-        } catch (WeightedMaxSatExactSearchLimitExceededException ex) {
+        } catch (ExactSearchLimitExceededException ex) {
             return ExactSearchLimitError(ex);
         }
     }
@@ -214,10 +213,10 @@ public class ProblemProvider : ControllerBase {
         Unwrap(ex) is ProblemParseException or ReductionInputException or CertificateParseException;
 
     private static bool IsExactSearchLimitError(Exception ex) =>
-        Unwrap(ex) is WeightedMaxSatExactSearchLimitExceededException;
+        Unwrap(ex) is ExactSearchLimitExceededException;
 
     private IActionResult ExactSearchLimitError(Exception ex) {
-        var limit = (WeightedMaxSatExactSearchLimitExceededException)Unwrap(ex);
+        var limit = (ExactSearchLimitExceededException)Unwrap(ex);
         return BadRequest(new {
             error = "exact_search_limit_exceeded",
             variableCount = limit.VariableCount,

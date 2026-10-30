@@ -102,11 +102,12 @@ public class WEIGHTEDMAXSAT_Tests {
     public void ExactSolvers_RejectMoreThanTwentyVariables() {
         var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(21));
 
-        var brute = Assert.Throws<WeightedMaxSatExactSearchLimitExceededException>(
+        var brute = Assert.Throws<ExactSearchLimitExceededException>(
             () => new WeightedMaxSatBruteForceSolver().solve(problem));
-        var bounded = Assert.Throws<WeightedMaxSatExactSearchLimitExceededException>(
+        var bounded = Assert.Throws<ExactSearchLimitExceededException>(
             () => new WeightedMaxSatBranchAndBoundSolver().solve(problem));
 
+        Assert.Equal("Weighted Max-SAT", brute.ProblemName);
         Assert.Equal(21, brute.VariableCount);
         Assert.Equal(20, brute.MaxVariables);
         Assert.Equal(21, bounded.VariableCount);
@@ -118,9 +119,10 @@ public class WEIGHTEDMAXSAT_Tests {
         var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(21));
         string certificate = "((" + string.Join(",", Enumerable.Range(0, 21).Select(i => $"x{i}:True")) + "),1)";
 
-        var exception = Assert.Throws<WeightedMaxSatExactSearchLimitExceededException>(
+        var exception = Assert.Throws<ExactSearchLimitExceededException>(
             () => new WeightedMaxSatOptimalityVerifier().verify(problem, certificate));
 
+        Assert.Equal("Weighted Max-SAT", exception.ProblemName);
         Assert.Equal(21, exception.VariableCount);
         Assert.Equal(20, exception.MaxVariables);
     }
