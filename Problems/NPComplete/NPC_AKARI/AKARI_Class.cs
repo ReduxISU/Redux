@@ -15,7 +15,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public string formalDefinition { get; } = "TODO"; // Consider excluding due to lack of formal definition
     public string problemDefinition { get; } = "An Akari (Light Up) puzzle is comprised of a rectangular m x n grid containing sets of white 'unlit' cells and black 'walls'. 'Light bulbs' can be placed in white cells that illuminate their row and column, until blocked by a wall. Black wall cells may optionally include a clue in the form of an integer indicating the number of expected adjacent bulbs. A puzzle instance is considered solvable if there is an arrangement of 'light bulbs' that satisfies the following conditions:\n1. Every white cell has line-of-sight to a light bulb.\n2. No light bulb illuminates another bulb.\n3. Walls with clue labeling are satisfied.";
     public string inputDescription { get; } = "An array of characters or integers corresponding to each cell in the grid. White cells are represented by 'w' or 'W'. Black cells are indicated by either 'b', 'B', or a number (0-4) representing the clue.";
-    public string outputDescription { get; } = "A boolean indicating if the puzzle instance is solvable. The solved puzzle is returned as well, if solvable.";
+    public string outputDescription { get; } = "If solvable, the orignal puzzle board is returned with a valid bulb placement.";
     public string source { get; } = "Asaokitan. 2001. Bijutsukan. Puzzle Communication Nikoli, vol. 95. Nikoli Co., Ltd., Tokyo, Japan.";
     public string sourceLink { get; } = "https://www.nikoli.co.jp/en/puzzles/akari/";
     public string sourceFile { get; } = SourceFile.Path();
