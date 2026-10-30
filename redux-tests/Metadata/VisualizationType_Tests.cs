@@ -74,11 +74,13 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
 
     // ── Manifest: enum is the source of truth, JSON is the committed mirror ───
 
+    // The manifest mirrors the members Redux_GUI is shown (VisualizationTypeCatalog.GuiWireValues), not the picture types a
+    // client sees only with includePictures=true, since Redux_GUI's manifest-drift job compares its copy against this file.
     [Fact]
     public void ManifestMatchesEnum() {
         string manifestJson = ReadManifestRaw();
         string[] manifest = ReadManifest();
-        string[] actual = VisualizationTypeCatalog.All();
+        string[] actual = VisualizationTypeCatalog.Gui();
 
         bool matches = manifest.Length == actual.Length
             && manifest.SequenceEqual(actual, StringComparer.Ordinal);

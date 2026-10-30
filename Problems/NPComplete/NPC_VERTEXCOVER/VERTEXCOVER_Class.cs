@@ -19,7 +19,7 @@ class VERTEXCOVER : IGraphProblem<VertexCoverBruteForce, VCVerifier, VertexCover
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    private static string _defaultInstance = "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)";
+    private static string _defaultInstance = "(({a,b,c,d,e,f},{{a,b},{a,c},{b,c},{c,d},{d,e},{e,f}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)";
     public string certificateFormat { get; } = "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance's node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}";

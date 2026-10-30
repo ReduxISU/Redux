@@ -24,7 +24,7 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
 
 
     public const string InstanceGrammar = "{(U,S) | U is set, S subset {a | a subset U}}";
-    private static string _defaultInstance = "({1,2,3,4},{{1,2,3},{2,3},{4,1}})";
+    private static string _defaultInstance = "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";

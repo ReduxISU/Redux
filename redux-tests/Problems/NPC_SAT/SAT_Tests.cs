@@ -20,7 +20,7 @@ public class SAT_Tests {
     [Fact]
     public void SAT_Default_Instantiation() {
         SAT sat = new SAT();
-        Assert.Equal("(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)", sat.defaultInstance);
+        Assert.Equal("(x1 | x2 | x3 | x4) & (!x1 | !x2) & (!x3 | x4) & (!x4 | x2) & (!x2 | !x3)", sat.defaultInstance);
         Assert.Equal(sat.defaultInstance, sat.instance);
     }
 

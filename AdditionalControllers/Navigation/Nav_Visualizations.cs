@@ -12,6 +12,19 @@ internal static class VisualizationTypeCatalog {
     internal static string[] All() =>
         Enum.GetNames(typeof(VisualizationType)).OrderBy(n => n, StringComparer.Ordinal).ToArray();
 
+    // The wire values Redux_GUI has a renderer for (or, for Unimplemented, an explicit "not renderable" state): the
+    // vocabulary from before the visualization redesign. Documentation/visualization-types.json mirrors this list, since
+    // Redux_GUI's manifest-drift job compares its own copy against that file. A member added since (a picture type served
+    // only under format=frames) is left out until Redux_GUI can draw it, and then added here and to the manifest together.
+    internal static readonly IReadOnlySet<string> GuiWireValues = new HashSet<string>(StringComparer.Ordinal) {
+        nameof(VisualizationType.Unimplemented), nameof(VisualizationType.GraphD3), nameof(VisualizationType.GraphLaTeX),
+        nameof(VisualizationType.SetD3), nameof(VisualizationType.BooleanSatisfiability), nameof(VisualizationType.QuantumCircuitD3),
+        nameof(VisualizationType.QuantumCircuitQjs), nameof(VisualizationType.PumpSchedule), nameof(VisualizationType.DynamicTable),
+    };
+
+    // Sorted wire values a client that has not opted in (includePictures=true) is shown: GuiWireValues.
+    internal static string[] Gui() => All().Where(GuiWireValues.Contains).ToArray();
+
     // className -> declared visualizationType's wire value: the first tag (Tags.First), the same value as the
     // deprecated single field in /info, never the comma-joined flags string. Built by instantiating every
     // reflected visualizer inside a per-type try/catch, exactly like Nav_Batch.cs's
@@ -19,6 +32,14 @@ internal static class VisualizationTypeCatalog {
     // down navigation at startup. Deliberately Lazy<>, never a static readonly field
     // initializer, for the same reason.
     internal static readonly Lazy<Dictionary<string, string>> ByClassName = new(Build);
+
+    // className -> the wire value a client that has not opted in is told (GuiView.LegacyType), for the visualizations that
+    // declare a LegacyVisualizationTypeAttribute; every other class reports its ByClassName value to every client.
+    internal static readonly Lazy<Dictionary<string, string>> LegacyByClassName = new(() =>
+        ProblemProvider.Visualizers.Values
+            .Select(t => (t.Name, Legacy: GuiView.LegacyType(t)))
+            .Where(p => p.Legacy != null)
+            .ToDictionary(p => p.Name, p => Tags.First(p.Legacy!.Value), StringComparer.OrdinalIgnoreCase));
 
     private static Dictionary<string, string> Build() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -41,8 +62,19 @@ internal static class VisualizationNavigationData {
     internal static readonly List<NavigationEntry> Entries =
         InterfaceNavigationData.Build(ProblemProvider.Visualizers, typeof(IVisualization<>));
 
-    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix) =>
-        InterfaceNavigationData.FindWithoutExtension(Entries, problemName, problemTypePrefix);
+    // Class names of the opt-in visualizations (IOptInVisualization), which a listing shows only on request.
+    internal static readonly HashSet<string> OptInClassNames = ProblemProvider.Visualizers.Values
+        .Where(OptInVisualizations.IsOptIn).Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Whether a listing shows the visualization class <paramref name="className"/> (see <see cref="IOptInVisualization"/>).</summary>
+    internal static bool Listed(string className, bool includePictures) => includePictures || !OptInClassNames.Contains(className);
+
+    /// <summary>The entries a listing shows: all of them when the client opts in, else all but the opt-in ones.</summary>
+    internal static List<NavigationEntry> ListedEntries(bool includePictures) =>
+        Entries.Where(e => Listed(e.className, includePictures)).ToList();
+
+    internal static List<string> FindWithoutExtension(string? problemName, string? problemTypePrefix, bool includePictures = false) =>
+        InterfaceNavigationData.FindWithoutExtension(ListedEntries(includePictures), problemName, problemTypePrefix);
 }
 
 // Get all Visualizations for a specific problem\
@@ -57,16 +89,17 @@ public class Problem_VisualizationsRefactorController : ControllerBase {
     ///<summary>Returns all Visualizations available for a given problem </summary>
     ///<param name="chosenProblem" example="SAT3">Problem name</param>
     ///<param name="problemType" example="NPC">Problem type (optional; ignored — problem names are unique across complexity classes)</param>
+    ///<param name="includePictures">True to also list the visualizations only picture-type clients can draw (IOptInVisualization: the Formula and Nested Set views). Default false: the list Redux_GUI reads.</param>
     ///<response code="200">Returns string array of Visualizations</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
-    public String getDefault([FromQuery] string chosenProblem, [FromQuery] string? problemType = null) {
+    public String getDefault([FromQuery] string chosenProblem, [FromQuery] string? problemType = null, [FromQuery] bool includePictures = false) {
         var options = new JsonSerializerOptions { WriteIndented = true };
 
         // Returns an empty array when the problem has no visualizations (preserved
         // not-found contract; this endpoint never returned an error string).
-        List<string> subFilesList = VisualizationNavigationData.FindWithoutExtension(chosenProblem, problemType);
+        List<string> subFilesList = VisualizationNavigationData.FindWithoutExtension(chosenProblem, problemType, includePictures);
         return JsonSerializer.Serialize(subFilesList, options);
     }
 }
@@ -80,13 +113,14 @@ public class Problem_VisualizationsRefactorController : ControllerBase {
 public class VisualizationTypesController : ControllerBase {
 #pragma warning restore CS1591
 
-    ///<summary>Returns every VisualizationType wire value, sorted. This is the closed vocabulary the GUI's renderer registry must cover.</summary>
+    ///<summary>Returns the VisualizationType wire values, sorted. By default the closed vocabulary Redux_GUI's renderer registry must cover; with includePictures=true every member, the picture types included.</summary>
+    ///<param name="includePictures">True to list every member, the picture types served under format=frames included. Default false: the list Redux_GUI reads.</param>
     ///<response code="200">Returns a sorted string array of VisualizationType member names</response>
 
     [ProducesResponseType(typeof(string[]), 200)]
     [HttpGet]
-    public IActionResult Get() {
+    public IActionResult Get([FromQuery] bool includePictures = false) {
         var options = new JsonSerializerOptions { WriteIndented = true };
-        return Content(JsonSerializer.Serialize(VisualizationTypeCatalog.All(), options), "application/json");
+        return Content(JsonSerializer.Serialize(includePictures ? VisualizationTypeCatalog.All() : VisualizationTypeCatalog.Gui(), options), "application/json");
     }
 }
