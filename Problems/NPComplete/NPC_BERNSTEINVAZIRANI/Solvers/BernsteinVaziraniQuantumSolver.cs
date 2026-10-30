@@ -51,9 +51,9 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
             if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer", out JsonElement answerElement)
                 && answerElement.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(answerElement.GetString())) {
                 string answer = answerElement.GetString()!;
-                // Anything but binary digits is not an answer: fail as a missing one does, not pass it on (#625).
-                if (answer.Any(c => c != '0' && c != '1'))
-                    throw new InvalidDataException($"its 'answer' is not a bit string: {response}");
+                // Anything but exactly NBits binary digits is not an answer: fail as a missing one does, not pass it on (#625).
+                if (answer.Length != problem.NBits || answer.Any(c => c != '0' && c != '1'))
+                    throw new InvalidDataException($"its 'answer' is not {problem.NBits} binary digits: {response}");
                 // Quantum server returns a bare bit string ("101"); translate to certificate format
                 UtilCollection result = new("()");
                 foreach (char c in answer)

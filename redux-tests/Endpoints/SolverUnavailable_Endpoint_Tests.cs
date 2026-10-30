@@ -184,11 +184,15 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Contains("'answer_bitstring' is not 2 binary digits", doc.RootElement.GetProperty("detail").GetString());
     }
 
-    // The same for Bernstein-Vazirani, which used to wrap any characters into a certificate and pass that on.
+    // The same for Bernstein-Vazirani, which used to wrap any characters, or a bit string of the wrong length, into a
+    // certificate and pass that on.
     [Theory]
     [InlineData("{\"answer\":\"xyz\"}")]
     [InlineData("{\"answer\":\"10a1\"}")]
-    public async Task Solve_BernsteinVazirani_NonBinaryAnswer_Returns503(string reply) {
+    [InlineData("{\"answer\":\"1\"}")]       // (0,1,0,1,1,0,1,0) is 8 values, so 3 bits
+    [InlineData("{\"answer\":\"10\"}")]
+    [InlineData("{\"answer\":\"1011\"}")]
+    public async Task Solve_BernsteinVazirani_MalformedAnswer_Returns503(string reply) {
         using var service = FakeQuantumService.Answering(reply);
 
         var response = await _client.PostAsync("/ProblemProvider/solve?solver=BernsteinVaziraniQuantumSolver", JsonBody("(0,1,0,1,1,0,1,0)"), TestContext.Current.CancellationToken);
@@ -197,7 +201,7 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         using var doc = JsonDocument.Parse(body);
         Assert.Equal("solver_unavailable", doc.RootElement.GetProperty("error").GetString());
-        Assert.Contains("'answer' is not a bit string", doc.RootElement.GetProperty("detail").GetString());
+        Assert.Contains("'answer' is not 3 binary digits", doc.RootElement.GetProperty("detail").GetString());
     }
 
     // The solver throws before it has an answer, so nothing after it runs: the visualization's solved picture (which
