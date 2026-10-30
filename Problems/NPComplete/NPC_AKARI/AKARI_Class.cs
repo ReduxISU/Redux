@@ -14,26 +14,26 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Light_Up_(puzzle)";
     public string formalDefinition { get; } = "TODO"; // Consider excluding due to lack of formal definition
     public string problemDefinition { get; } = "An Akari (Light Up) puzzle is comprised of a rectangular m x n grid containing sets of white 'unlit' cells and black 'walls'. 'Light bulbs' can be placed in white cells that illuminate their row and column, until blocked by a wall. Black wall cells may optionally include a clue in the form of an integer indicating the number of expected adjacent bulbs. A puzzle instance is considered solvable if there is an arrangement of 'light bulbs' that satisfies the following conditions:\n1. Every white cell has line-of-sight to a light bulb.\n2. No light bulb illuminates another bulb.\n3. Walls with clue labeling are satisfied.";
-    public string inputDescription { get; } = "An array of characters or integers corresponding to each cell in the grid. White cells are represented by 'w' or 'W'. Black cells are indicated by either 'b', 'B', or a number (0-4) representing the clue.";
+    public string inputDescription { get; } = "An array of characters or integers corresponding to each cell in the grid. White cells are represented by '_'. Black cells are indicated by either '#' or a number (0-4) representing the clue.";
     public string outputDescription { get; } = "If solvable, the orignal puzzle board is returned with a valid bulb placement.";
     public string source { get; } = "Asaokitan. 2001. Bijutsukan. Puzzle Communication Nikoli, vol. 95. Nikoli Co., Ltd., Tokyo, Japan.";
     public string sourceLink { get; } = "https://www.nikoli.co.jp/en/puzzles/akari/";
     public string sourceFile { get; } = SourceFile.Path();
     private static readonly string _defaultInstance = """
-    ((W,W,B,W,W,W,B),
-    (W,4,W,W,1,W,B),
-    (W,W,W,2,W,W,W),
-    (W,B,W,W,W,B,W),
-    (W,W,W,B,W,W,W),
-    (B,W,B,W,W,1,W),
-    (1,W,W,W,1,W,W))
+    ((_,_,#,_,_,_,#),
+    (_,4,_,_,1,_,#),
+    (_,_,_,2,_,_,_),
+    (_,#,_,_,_,#,_),
+    (_,_,_,#,_,_,_),
+    (#,_,#,_,_,1,_),
+    (1,_,_,_,1,_,_))
     """;
     public string defaultInstance { get; } = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat { get; } = $"Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 0-4 (clue wall). Example: {_defaultInstance}";
+    public string instanceFormat { get; } = $"Nested list of rows, each row a parenthesized comma-separated list of cells: _ (white), # (black wall), or 0-4 (clue wall). Example: {_defaultInstance}";
     public string certificateFormat { get; } = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = ""; // Deprecated, do not implement
@@ -52,7 +52,11 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
 
     // --- Properties ---
 
-    public char[][] grid { get; set; } = Array.Empty<char[]>();
+    // Integer encodings for non-clue cells in the parsed grid. Clue walls are stored as their value (0-4).
+    public const int EMPTY_CELL = -2;
+    public const int WALL = -1;
+
+    public int[][] grid { get; set; } = Array.Empty<int[]>();
 
     // --- Methods and Constructors ---
     public AKARI() : this(_defaultInstance) {
@@ -85,10 +89,10 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         grid = ParseGrid(stringInstance);
     }
 
-    // Parses a nested list such as "((w,w,b,w),(b,w,w,1))" into a char[][].
-    // Whitespace is ignored; valid cells are w/W/b/B and digits 0-4.
+    // Parses a nested list such as "((_,_,#,_),(#,_,_,1))" into an int[][].
+    // Whitespace is ignored; valid cells are _ (EMPTY_CELL), # (WALL), and digits 0-4 (clue value).
     // This custom parser was built since SPADE currently struggles with nested lists (as of 10-15-2026).
-    private static char[][] ParseGrid(string input) {
+    private static int[][] ParseGrid(string input) {
         if (string.IsNullOrWhiteSpace(input)) {
             throw new ProblemParseException("Akari", input, "instance is empty");
         }
@@ -104,20 +108,23 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
             pos++;
         }
 
-        var rows = new List<char[]>();
+        var rows = new List<int[]>();
         Expect('(');
         while (true) {
             Expect('(');
-            var row = new List<char>();
+            var row = new List<int>();
             while (true) {
                 if (pos >= s.Length) {
                     throw new ProblemParseException("Akari", input, "unexpected end of input inside a row");
                 }
                 char c = s[pos];
-                if (c != 'w' && c != 'W' && c != 'b' && c != 'B' && (c < '0' || c > '4')) {
-                    throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: w, W, b, B, 0-4");
-                }
-                row.Add(c);
+                int cell = c switch {
+                    '_' => EMPTY_CELL,
+                    '#' => WALL,
+                    >= '0' and <= '4' => c - '0',
+                    _ => throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: _, #, 0-4")
+                };
+                row.Add(cell);
                 pos++;
                 if (pos < s.Length && s[pos] == ',') { pos++; continue; }
                 break;
