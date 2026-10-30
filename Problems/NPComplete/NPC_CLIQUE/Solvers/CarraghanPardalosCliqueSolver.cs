@@ -47,6 +47,7 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         List<string> partial = new List<string>();
 
         HashSet<string>? found = Expand(candidates, partial, clique.K, adj, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (found == null) {
             rec.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
@@ -81,6 +82,7 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         }
 
         foreach (string v in candidates.ToList()) {
+            if (timerHasExpired) return null; // #935: unwind at the time limit; solve() returns the timed-out answer
 
             HashSet<string> newCandidates = new HashSet<string>(
                 candidates.Where(u => u != v && adj[v].Contains(u))

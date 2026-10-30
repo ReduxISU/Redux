@@ -292,7 +292,10 @@ static class GraphSubsetFrames {
             frames.Add(Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental));
             last = step;
         }
-        if (last is not { Event: StepEvent.Done }) {
+        if (last is not { Event: StepEvent.Done } && run.TimedOut) {
+            // A legacy solver stopped by the time limit has no steps and no answer: say it stopped, draw no answer.
+            frames.Add(Frame(spec, new NodeSet([]), StepEvent.Done, [], run.Answer, false));
+        } else if (last is not { Event: StepEvent.Done }) {
             NodeSet answer = parseAnswer(run.Answer);
             frames.Add(Frame(spec, answer, StepEvent.Done, [],
                 answer.Nodes.Length == 0 ? "No answer was found." : $"The answer is {Format(answer)}.",

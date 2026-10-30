@@ -35,6 +35,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var result = search(edges, G.K, new List<string>(), rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (result == null) {
             rec.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
             return "{}";
@@ -45,6 +46,10 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
 
     // 'chosen' is the cover built along the current branch (a stack); the returned list is built on the way back out.
     private List<string>? search(List<KeyValuePair<string, string>> edges, int k, List<string> chosen, StepRecorder<NodeSet> rec) {
+        // #935: at the time limit, unwind as a failed branch; Solve() reports the stop.
+        if (timerHasExpired) {
+            return null;
+        }
         if (edges.Count == 0) {
             return new List<string>();
         }

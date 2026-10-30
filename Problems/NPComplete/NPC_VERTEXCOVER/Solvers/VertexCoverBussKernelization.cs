@@ -35,6 +35,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
     // Steps: nodes forced into the cover, the size check on what is left, then the candidate sets tried on the kernel.
     // Recorder state lives only in this call.
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         var mandatory = new List<string>();
         int k = G.K;
@@ -80,6 +81,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
 
         var kernelNodes = edges.SelectMany(e => new[] { e.Key, e.Value }).Distinct().ToList();
         var kernelCover = bruteForceOnKernel(kernelNodes, edges, k, G, mandatory, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (kernelCover == null) {
             rec.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
             return "{}";
@@ -99,6 +101,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
         int limit = Math.Min(k, nodes.Count);
         for (int size = 0; size <= limit; size++) {
             foreach (var combo in combinations(nodes, size)) {
+                if (timerHasExpired) return null;
                 string[] Candidate() => mandatory.Concat(combo).ToArray();
                 if (coversAll(combo, edges)) {
                     rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. It covers every edge.", Candidate);

@@ -53,11 +53,11 @@ public class SolveOnce_Tests {
 
     [Theory]
     [MemberData(nameof(Pictures))]
-    public void Visualize_RunsTheSolverOnce(string visualization, string solver, string format) {
+    public async Task Visualize_RunsTheSolverOnce(string visualization, string solver, string format) {
         string instance = DefaultInstanceOf(visualization);
         var counts = SolveProbe.Start();
         try {
-            var result = new ProblemProvider().visualize(visualization, instance, solver: null, format: format);
+            var result = await new ProblemProvider().visualize(visualization, instance, solver: null, format: format);
             Assert.IsType<ContentResult>(result);
         } finally {
             SolveProbe.Stop();

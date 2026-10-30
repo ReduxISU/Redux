@@ -264,7 +264,8 @@ public class GraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Visualize("visualization=independentsetdefaultvisualization&format=frames&solver=independentsetbruteforce", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count <= 151, $"{frames.Count} frames");
+        // The cap's 150 steps, the winning Accept past the cap (kept since #885), and Done.
+        Assert.True(frames.Count <= 152, $"{frames.Count} frames");
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.Contains("not shown", frames[^1].GetProperty("caption").GetString());
     }

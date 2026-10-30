@@ -43,6 +43,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     public string solve(HITTINGSET hittingSet) {
         List<UtilCollection> items = hittingSet.universalSet.ToList();
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             UtilCollection certificate = new UtilCollection("{}");
             for (int i = 0; i < items.Count; i++) {
                 if (possibleSolution[i] == 1) certificate.Add(items[i]);

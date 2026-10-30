@@ -24,8 +24,10 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI> {
 
     public string solve(BERNSTEINVAZIRANI problem) {
         UtilCollection result = new("()");
-        for (int i = problem.NBits - 1; i >= 0; i--)
+        for (int i = problem.NBits - 1; i >= 0; i--) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             result.Add(new UtilCollection(problem.Func(1 << i) ? "1" : "0"));
+        }
         return result.ToString();
     }
 }

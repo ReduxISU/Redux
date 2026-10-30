@@ -36,11 +36,19 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>,
         _seed = seed;
     }
 
+    // #935: an outer solver's live time-limit flag (TwoApproximationVertexCover runs this solver).
+    private readonly Func<bool>? outerTimerHasExpired;
+    internal TwoApproximationMinimumVertexCover(int? seed, Func<bool> outerTimerHasExpired) {
+        _seed = seed;
+        this.outerTimerHasExpired = outerTimerHasExpired;
+    }
+
     public string solve(MINIMUMVERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
     // Steps: one per edge picked, taking both of its ends. Recorder state lives only in this call.
     public string Solve(MINIMUMVERTEXCOVER G, StepRecorder<NodeSet> rec) {
         var cover = Cover(G.edges, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         rec.Done(new NodeSet(cover), true, cover.Count == 0
             ? "There are no edges to cover."
             : $"Every edge is covered with {cover.Count} nodes. This method never uses more than twice the smallest cover.");
@@ -54,6 +62,8 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>,
         Random rnd = _seed is int seed ? new Random(seed) : new Random();
         List<string> leftoverNodes = new List<string>();
         while (edges.Count > 0) {
+            // #935: stop at the time limit; the caller sees its flag and returns the timed-out answer.
+            if (timerHasExpired || outerTimerHasExpired?.Invoke() == true) break;
             int index = rnd.Next(edges.Count); //gets a random edge index
             KeyValuePair<string, string> edge = edges[index]; //gets a random edge
             KeyValuePair<string, string> fullEdge = new KeyValuePair<string, string>(edge.Key, edge.Value); //makes previous line more explicit

@@ -75,6 +75,7 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
         int tried = 0;
         string[] Candidate() => combination.Select(i => clique.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, clique.nodes);
             tried++;
             if (clique.defaultVerifier.verify(clique, certificate)) {

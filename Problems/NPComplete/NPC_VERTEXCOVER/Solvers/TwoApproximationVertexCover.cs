@@ -42,8 +42,10 @@ class TwoApproximationVertexCover : ISolver<VERTEXCOVER, NodeSet>, IIncrementalS
 
     // Steps: the edges picked (as in the Minimum Vertex Cover solver this wraps), then whether the cover fits in K.
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
-        var approx = _seed is int seed ? new TwoApproximationMinimumVertexCover(seed) : new TwoApproximationMinimumVertexCover();
+        // #935: the inner solver watches this solver's flag, which only the time limit sets.
+        var approx = new TwoApproximationMinimumVertexCover(_seed, () => timerHasExpired);
         var cover = approx.Cover(G.edges, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (cover.Count > G.K) {
             rec.Done(new NodeSet([]), false, $"This cover uses {cover.Count} nodes, more than K = {G.K}.");

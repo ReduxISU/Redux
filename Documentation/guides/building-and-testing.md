@@ -352,7 +352,7 @@ Details: [adding-a-solver.md, "Tests you write yourself"](adding-a-solver.md#tes
 - [ ] An instance with **no solution** returns your documented "no solution" value (usually `"{}"`).
 - [ ] A tricky small case: the answer is the first item only, or the last item only.
 - [ ] The smallest allowed input (one item, or empty if the problem allows it).
-- [ ] The timer: with `timerHasExpired = true` before calling `solve`, it returns quickly with your documented value.
+- [ ] The timer: with `timerHasExpired = true` before calling `solve`, it returns `SolveRun.TimedOutAnswer` quickly.
 - [ ] Approximation or heuristic solvers only: the answer is either the "no solution" value or passes the verifier.
 
 <details>
@@ -413,16 +413,16 @@ public void SUBSETSUM_Solver_Handles_Single_Element_Instance() {
 }
 ```
 
-The timer: with `timerHasExpired = true`, the solver gives up and returns its documented value. Subset Sum's brute force returns `"{}"`. The template's solver returns `"timeout"`, so write whichever your solver does:
+The timer: with `timerHasExpired = true`, the solver gives up and returns `SolveRun.TimedOutAnswer`, the one timeout answer every solver uses (#935):
 
 ```csharp
 [Fact]
-public void SUBSETSUM_Solver_Returns_Empty_When_Timer_Has_Expired() {
-    // An expired timer makes the solver give up and return the "no solution" value.
+public void SUBSETSUM_Solver_Stops_When_Timer_Has_Expired() {
+    // An expired timer makes the solver give up: it has no answer, so it says it was stopped.
     SUBSETSUM problem = new SUBSETSUM();
     SubsetSumBruteForce solver = new SubsetSumBruteForce();
     solver.timerHasExpired = true;
-    Assert.Equal("{}", solver.solve(problem));
+    Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
 }
 ```
 

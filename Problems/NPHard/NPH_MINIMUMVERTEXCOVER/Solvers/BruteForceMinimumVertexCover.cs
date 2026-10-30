@@ -86,6 +86,7 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
             string[] Candidate() => combination.Select(i => G.nodes[i]).ToArray();
             BigInteger reps = factorial(n) / (factorial(k) * factorial(n - k));
             for (int i = 0; i < reps; i++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 tried++;
                 if (isCover(G, combination)) {
                     rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. It covers every edge.", Candidate);

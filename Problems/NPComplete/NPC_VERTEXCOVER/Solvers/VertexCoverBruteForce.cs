@@ -79,6 +79,7 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
         int tried = 0;
         string[] Candidate() => combination.Select(i => G.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, G.nodes);
             tried++;
             if (G.defaultVerifier.verify(G, certificate)) {
