@@ -119,8 +119,8 @@ public class Tags_Tests : IClassFixture<AppFactory> {
         ["visualizationType"] = typeof(VisualizationType),
     };
 
-    // Every object in the tree that carries a tag: its single field (if any) is one name with no comma and
-    // equals the list's first entry, and the list is non-empty, known names, strictly in enum order.
+    // Every object in the tree that carries a tag: its single field (if any) is one name with no comma, has the
+    // list beside it and equals the list's first entry, and the list is non-empty, known names, strictly in enum order.
     private static void CheckTags(JsonElement element, string path, List<string> failures, ref int checkedLists) {
         if (element.ValueKind == JsonValueKind.Array) {
             int i = 0;
@@ -135,7 +135,10 @@ public class Tags_Tests : IClassFixture<AppFactory> {
                 failures.Add($"{path}.{single} = \"{singleValue.GetString()}\" contains a comma.");
             if (single == "problemVariant" && hasSingle)
                 failures.Add($"{path} has a single problemVariant field; it is written only as problemVariants.");
-            if (!element.TryGetProperty(single + "s", out var list)) continue;
+            if (!element.TryGetProperty(single + "s", out var list)) {
+                if (hasSingle) failures.Add($"{path}.{single} has no {single}s list beside it.");
+                continue;
+            }
 
             checkedLists++;
             var names = list.EnumerateArray().Select(n => n.GetString()!).ToList();
@@ -169,6 +172,82 @@ public class Tags_Tests : IClassFixture<AppFactory> {
 
         Assert.True(checkedLists > 0, $"Found no tag lists in {url}.");
         Assert.True(failures.Count == 0, string.Join("\n", failures));
+    }
+
+    private static void AssertTags(JsonElement root, string where) {
+        var failures = new List<string>();
+        int checkedLists = 0;
+        CheckTags(root, "", failures, ref checkedLists);
+        Assert.True(checkedLists > 0, $"Found no tag lists in {where}.");
+        Assert.True(failures.Count == 0, where + ":\n" + string.Join("\n", failures));
+    }
+
+    private async Task<(HttpStatusCode Status, string Body)> Post(string url, string instance) {
+        var content = new StringContent(JsonSerializer.Serialize(instance), System.Text.Encoding.UTF8, "application/json");
+        var response = await _client.PostAsync(url, content, TestContext.Current.CancellationToken);
+        return (response.StatusCode, await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // /reduce writes the reduction through IReduction with its own options (#945 review): every tag in it, the
+    // problems' and their defaults' included, has its list, for both kinds of client.
+    [Fact]
+    public async Task Reduce_EveryReductionsTagsHaveTheirLists() {
+        int reduced = 0;
+        foreach (var (name, type) in ProblemProvider.Reductions) {
+            string instance;
+            try { instance = ((IReduction)Activator.CreateInstance(type)!).reductionFrom.defaultInstance; } catch { continue; }
+            foreach (var includePictures in new[] { false, true }) {
+                string url = $"/ProblemProvider/reduce?reduction={name}&includePictures={includePictures}";
+                var (status, body) = await Post(url, instance);
+                if (status != HttpStatusCode.OK) continue;
+                using var doc = JsonDocument.Parse(body);
+                AssertTags(doc.RootElement, url);
+                reduced++;
+            }
+        }
+        Assert.True(reduced > 20, $"Only {reduced} /reduce calls answered 200.");
+    }
+
+    [Fact]
+    public async Task Reduce_HasEveryTagListOfTheReductionAndItsProblems() {
+        var (status, body) = await Post("/ProblemProvider/reduce?reduction=SipserReduceToCliqueStandard",
+            ((IReduction)Activator.CreateInstance(ProblemProvider.Reductions["sipserreducetocliquestandard"])!).reductionFrom.defaultInstance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        var root = doc.RootElement;
+        Assert.Equal(root.GetProperty("reductionType").GetString(), root.GetProperty("reductionTypes")[0].GetString());
+        Assert.Equal(root.GetProperty("visualization").GetProperty("visualizationType").GetString(),
+            root.GetProperty("visualization").GetProperty("visualizationTypes")[0].GetString());
+        foreach (var side in new[] { "reductionFrom", "reductionTo" }) {
+            var problem = root.GetProperty(side);
+            Assert.Equal(problem.GetProperty("problemType").GetString(), problem.GetProperty("problemTypes")[0].GetString());
+            Assert.Equal(JsonValueKind.Array, problem.GetProperty("problemVariants").ValueKind);
+            Assert.False(problem.TryGetProperty("problemVariant", out _));
+            Assert.Equal(problem.GetProperty("defaultSolver").GetProperty("solverType").GetString(),
+                problem.GetProperty("defaultSolver").GetProperty("solverTypes")[0].GetString());
+        }
+    }
+
+    [Theory]
+    [InlineData("/ProblemProvider/info?interface=VERTEXCOVER")]
+    [InlineData("/ProblemProvider/info?interface=SipserReduceToCliqueStandard")]
+    [InlineData("/ProblemProvider/info?interface=BinPackingFFD")]
+    [InlineData("/ProblemProvider/info?interface=CliqueDefaultVisualization")]
+    [InlineData("/Navigation/Batch/allInfo?includePictures=true")]
+    public async Task Get_EveryTagHasItsList(string url) {
+        using var doc = await GetJson(url);
+        AssertTags(doc.RootElement, url);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ProblemInstance_EveryTagHasItsList(bool includePictures) {
+        string url = $"/ProblemProvider/problemInstance?problem=VERTEXCOVER&includePictures={includePictures}";
+        var (status, body) = await Post(url, ((IProblem)Activator.CreateInstance(ProblemProvider.Problems["vertexcover"])!).defaultInstance);
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        AssertTags(doc.RootElement, url);
     }
 
     [Fact]

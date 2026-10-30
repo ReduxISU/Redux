@@ -89,8 +89,10 @@ public class ProblemProvider : ControllerBase {
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions =
         TagListJson.Apply(ProblemDefaultsJson.Apply(new() { IncludeFields = true }));
 
-    // The reduce endpoint's options, one object so GuiView.Options makes its copy once.
-    private static readonly JsonSerializerOptions ReduceJsonOptions = new() { WriteIndented = true };
+    // The reduce endpoint's options, one object so GuiView.Options makes its copy once. No IncludeFields and no
+    // ProblemDefaultsJson (the reduction is written through IReduction, as it always was), but the tag lists, as
+    // every response that carries a tag has them beside its single field.
+    private static readonly JsonSerializerOptions ReduceJsonOptions = TagListJson.Apply(new() { WriteIndented = true });
 
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
