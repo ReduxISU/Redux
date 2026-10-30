@@ -85,27 +85,50 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         UtilCollection walls = parser["B"];
         */
 
-        // Puzzle Grid Version: 2D list of characters associated with each cell.
+        // Puzzle Grid Version: 2D array of integer-encoded cells (see EMPTY_CELL / WALL).
         grid = ParseGrid(stringInstance);
     }
 
     // Parses a nested list such as "((_,_,#,_),(#,_,_,1))" into an int[][].
-    // Whitespace is ignored; valid cells are _ (EMPTY_CELL), # (WALL), and digits 0-4 (clue value).
+    // Whitespace between tokens is ignored; valid cells are _ (EMPTY_CELL), # (WALL), and digits 0-4 (clue value).
+    // Errors report line/column in the original input, plus row/cell for bad cell characters.
     // This custom parser was built since SPADE currently struggles with nested lists (as of 10-15-2026).
     private static int[][] ParseGrid(string input) {
         if (string.IsNullOrWhiteSpace(input)) {
             throw new ProblemParseException("Akari", input, "instance is empty");
         }
 
-        string s = string.Concat(input.Where(c => !char.IsWhiteSpace(c)));
+        // The input is scanned as written (whitespace skipped between tokens) so that
+        // reported positions match what the caller sees, including multi-line instances.
         int pos = 0;
 
+        void SkipWhitespace() {
+            while (pos < input.Length && char.IsWhiteSpace(input[pos])) { pos++; }
+        }
+
+        // 1-based line and column of the current position in the original input.
+        string Location() {
+            int line = 1;
+            int lineStart = 0;
+            for (int i = 0; i < pos && i < input.Length; i++) {
+                if (input[i] == '\n') { line++; lineStart = i + 1; }
+            }
+            return $"line {line}, column {pos - lineStart + 1}";
+        }
+
         void Expect(char c) {
-            if (pos >= s.Length || s[pos] != c) {
-                string found = pos >= s.Length ? "end of input" : $"'{s[pos]}'";
-                throw new ProblemParseException("Akari", input, $"expected '{c}' but found {found} at position {pos}");
+            SkipWhitespace();
+            if (pos >= input.Length || input[pos] != c) {
+                string found = pos >= input.Length ? "end of input" : $"'{input[pos]}'";
+                throw new ProblemParseException("Akari", input, $"expected '{c}' but found {found} at {Location()}");
             }
             pos++;
+        }
+
+        bool TryConsume(char c) {
+            SkipWhitespace();
+            if (pos < input.Length && input[pos] == c) { pos++; return true; }
+            return false;
         }
 
         var rows = new List<int[]>();
@@ -114,19 +137,20 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
             Expect('(');
             var row = new List<int>();
             while (true) {
-                if (pos >= s.Length) {
-                    throw new ProblemParseException("Akari", input, "unexpected end of input inside a row");
+                SkipWhitespace();
+                if (pos >= input.Length) {
+                    throw new ProblemParseException("Akari", input, $"unexpected end of input inside row {rows.Count + 1} at {Location()}");
                 }
-                char c = s[pos];
+                char c = input[pos];
                 int cell = c switch {
                     '_' => EMPTY_CELL,
                     '#' => WALL,
                     >= '0' and <= '4' => c - '0',
-                    _ => throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at position {pos}; allowed: _, #, 0-4")
+                    _ => throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at row {rows.Count + 1}, cell {row.Count + 1} ({Location()}); allowed: _, #, 0-4")
                 };
                 row.Add(cell);
                 pos++;
-                if (pos < s.Length && s[pos] == ',') { pos++; continue; }
+                if (TryConsume(',')) { continue; }
                 break;
             }
             Expect(')');
@@ -134,12 +158,13 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
                 throw new ProblemParseException("Akari", input, $"row {rows.Count + 1} has {row.Count} cells but row 1 has {rows[0].Length}");
             }
             rows.Add(row.ToArray());
-            if (pos < s.Length && s[pos] == ',') { pos++; continue; }
+            if (TryConsume(',')) { continue; }
             break;
         }
         Expect(')');
-        if (pos != s.Length) {
-            throw new ProblemParseException("Akari", input, $"unexpected trailing characters at position {pos}");
+        SkipWhitespace();
+        if (pos != input.Length) {
+            throw new ProblemParseException("Akari", input, $"unexpected trailing characters at {Location()}");
         }
         return rows.ToArray();
     }
