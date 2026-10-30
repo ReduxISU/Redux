@@ -9,6 +9,7 @@ using API.Tools;
 using Antlr4.Runtime;
 using API.Tools.ApiParameters;
 using System.Dynamic;
+using API.Problems.NPHard.NPH_WEIGHTEDMAXSAT;
 
 /// <summary>
 /// Core controller for Problems.
@@ -171,6 +172,8 @@ public class ProblemProvider : ControllerBase {
         } catch (CertificateParseException ex) {
             return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
+        } catch (WeightedMaxSatExactSearchLimitExceededException ex) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -195,6 +198,19 @@ public class ProblemProvider : ControllerBase {
     /// <summary>True when <paramref name="ex"/> (once unwrapped) is a parse error we translate to HTTP 400.</summary>
     private static bool IsParseError(Exception ex) =>
         Unwrap(ex) is ProblemParseException or ReductionInputException or CertificateParseException;
+
+    private static bool IsExactSearchLimitError(Exception ex) =>
+        Unwrap(ex) is WeightedMaxSatExactSearchLimitExceededException;
+
+    private IActionResult ExactSearchLimitError(Exception ex) {
+        var limit = (WeightedMaxSatExactSearchLimitExceededException)Unwrap(ex);
+        return BadRequest(new {
+            error = "exact_search_limit_exceeded",
+            variableCount = limit.VariableCount,
+            maxVariables = limit.MaxVariables,
+            detail = limit.Message
+        });
+    }
 
     /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
     private IActionResult ParseError(Exception ex) => Unwrap(ex) switch {
@@ -241,12 +257,10 @@ public class ProblemProvider : ControllerBase {
                     Solver(solver).solve(problemInstance),
                     new JsonSerializerOptions { WriteIndented = true }),
                 "application/json");
-        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
-        } catch (ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -412,6 +426,8 @@ public class ProblemProvider : ControllerBase {
                 : getVisualize(vis, steps, solution, instance), "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
+        } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
+            return ExactSearchLimitError(ex);
         }
     }
 

@@ -29,6 +29,7 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT> {
 
     internal static (Dictionary<string, bool> Assignment, long Value) Optimize(
         WEIGHTEDMAXSAT problem, Func<bool>? expired = null) {
+        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count);
         var assignment = new Dictionary<string, bool>(StringComparer.Ordinal);
         var best = new Dictionary<string, bool>(StringComparer.Ordinal);
         long bestValue = -1;

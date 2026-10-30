@@ -10,6 +10,10 @@ namespace redux_tests;
 public class WeightedMaxSat_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
     private const string Instance = "(((x) & (!x)),(5,4))";
+    private static readonly string LargeInstance =
+        "((" + "(" + string.Join(" | ", Enumerable.Range(0, 21).Select(i => $"x{i}")) + ")" + "),(1))";
+    private static readonly string LargeCertificate =
+        "((" + string.Join(",", Enumerable.Range(0, 21).Select(i => $"x{i}:True")) + "),1)";
 
     public WeightedMaxSat_Endpoint_Tests(AppFactory factory) {
         _client = factory.CreateClient();
@@ -52,5 +56,58 @@ public class WeightedMaxSat_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(JsonValueKind.Array, frames.ValueKind);
         JsonElement firstClause = frames[0].GetProperty("clauses")[0];
         Assert.Equal(5, firstClause.GetProperty("weight").GetInt64());
+    }
+
+    [Fact]
+    public async Task Solve_ExactSolverOverLimit_ReturnsStructuredBadRequest() {
+        var response = await PostInstance(
+            "/ProblemProvider/solve?solver=weightedmaxsatbranchandboundsolver", LargeInstance);
+
+        await AssertLimitResponse(response);
+    }
+
+    [Fact]
+    public async Task Verify_OptimalityVerifierOverLimit_ReturnsStructuredBadRequest() {
+        var body = new { Certificate = LargeCertificate, ProblemInstance = LargeInstance };
+        var response = await _client.PostAsJsonAsync(
+            "/ProblemProvider/verify?verifier=weightedmaxsatoptimalityverifier", body,
+            TestContext.Current.CancellationToken);
+
+        await AssertLimitResponse(response);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("weightedmaxsatbranchandboundsolver")]
+    public async Task Visualize_ExactSolverOverLimit_ReturnsStructuredBadRequest(string? solver) {
+        string url = "/ProblemProvider/visualize?visualization=weightedmaxsatvisualization";
+        if (solver != null) url += $"&solver={solver}";
+
+        var response = await PostInstance(url, LargeInstance);
+
+        await AssertLimitResponse(response);
+    }
+
+    [Fact]
+    public async Task Solve_ApproximationSolverOverLimit_StillSucceeds() {
+        var response = await PostInstance(
+            "/ProblemProvider/solve?solver=weightedmaxsatconditionalexpectationssolver", LargeInstance);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private Task<HttpResponseMessage> PostInstance(string url, string instance) {
+        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
+        return _client.PostAsync(url, content, TestContext.Current.CancellationToken);
+    }
+
+    private static async Task AssertLimitResponse(HttpResponseMessage response) {
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        JsonElement body = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
+        Assert.Equal("exact_search_limit_exceeded", body.GetProperty("error").GetString());
+        Assert.Equal(21, body.GetProperty("variableCount").GetInt32());
+        Assert.Equal(20, body.GetProperty("maxVariables").GetInt32());
+        Assert.Contains("21", body.GetProperty("detail").GetString());
+        Assert.Contains("20", body.GetProperty("detail").GetString());
     }
 }

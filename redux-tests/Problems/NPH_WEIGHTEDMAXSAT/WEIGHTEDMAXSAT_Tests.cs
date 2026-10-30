@@ -15,6 +15,9 @@ public class WEIGHTEDMAXSAT_Tests {
     private static string Instance(string formula, params long[] weights) =>
         $"(({formula}),({string.Join(",", weights)}))";
 
+    private static string InstanceWithVariables(int count) =>
+        Instance("(" + string.Join(" | ", Enumerable.Range(0, count).Select(i => $"x{i}")) + ")", 1);
+
     [Fact]
     public void DefaultInstance_DeclaresCompleteMetadata() {
         var problem = new WEIGHTEDMAXSAT();
@@ -93,6 +96,42 @@ public class WEIGHTEDMAXSAT_Tests {
         var problem = new WEIGHTEDMAXSAT(Instance("(x | y) & (!x) & (!y)", 1, 1, 1));
         string result = new WeightedMaxSatBruteForceSolver().solve(problem);
         Assert.Equal(2, WeightedMaxSatSolutionVerifier.ParseCertificate(problem, result).Value);
+    }
+
+    [Fact]
+    public void ExactSolvers_RejectMoreThanTwentyVariables() {
+        var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(21));
+
+        var brute = Assert.Throws<WeightedMaxSatExactSearchLimitExceededException>(
+            () => new WeightedMaxSatBruteForceSolver().solve(problem));
+        var bounded = Assert.Throws<WeightedMaxSatExactSearchLimitExceededException>(
+            () => new WeightedMaxSatBranchAndBoundSolver().solve(problem));
+
+        Assert.Equal(21, brute.VariableCount);
+        Assert.Equal(20, brute.MaxVariables);
+        Assert.Equal(21, bounded.VariableCount);
+        Assert.Equal(20, bounded.MaxVariables);
+    }
+
+    [Fact]
+    public void OptimalityVerifier_RejectsMoreThanTwentyVariablesWithValidCertificate() {
+        var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(21));
+        string certificate = "((" + string.Join(",", Enumerable.Range(0, 21).Select(i => $"x{i}:True")) + "),1)";
+
+        var exception = Assert.Throws<WeightedMaxSatExactSearchLimitExceededException>(
+            () => new WeightedMaxSatOptimalityVerifier().verify(problem, certificate));
+
+        Assert.Equal(21, exception.VariableCount);
+        Assert.Equal(20, exception.MaxVariables);
+    }
+
+    [Fact]
+    public void ConditionalExpectations_AcceptsMoreThanTwentyVariables() {
+        var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(21));
+
+        string certificate = new WeightedMaxSatConditionalExpectationsSolver().solve(problem);
+
+        Assert.True(new WeightedMaxSatSolutionVerifier().verify(problem, certificate));
     }
 
     [Fact]
