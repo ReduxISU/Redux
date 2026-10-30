@@ -26,6 +26,7 @@ namespace redux_tests;
 //
 // *** A failing case here means a real display name needs fixing, not that this test
 // should grow an exception list. Report it. ***
+[Trait("Category", "Metadata")]
 public class NamingConvention_Tests {
 
     // Person token: one or more hyphen-joined Capitalized words (covers co-author names

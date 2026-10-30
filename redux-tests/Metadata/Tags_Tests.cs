@@ -10,6 +10,7 @@ namespace redux_tests;
 // Guards for tag sets (#914, #842): ProblemType, ProblemVariant, SolverType, ReductionType and
 // VisualizationType are [Flags] enums, written as a list in enum order (problemTypes, solverTypes, ...)
 // next to a deprecated single field that holds the first tag. See Interfaces/Tags.cs.
+[Trait("Category", "Metadata")]
 public class Tags_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

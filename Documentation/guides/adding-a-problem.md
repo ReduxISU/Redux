@@ -263,7 +263,23 @@ SPADE's own documentation lives in the [SPADE repository](https://github.com/Jet
 | Weighted undirected graph | `{(N,E) \| N is set, E subset {(e, w) \| e is N unorderedcross N, w is int}}` | [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) |
 | Unweighted undirected graph | `{(N,E) \| N is set, E subset N unorderedcross N}` | the template's comments |
 
-**Match existing formats.** If your problem is a graph, a set, or a number list, use the same instance shape as the problems above, so the GUI and reductions can share code. For graph problems, implement `IGraphProblem` and expose a `Graph graph` property (see [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs), an older problem on `IGraphProblem<...>`, and the graph helpers in [Interfaces/graphs](../../Interfaces/graphs/)).
+**Match existing formats.** If your problem is a graph, a set, or a number list, use the same instance shape as the problems above, so the GUI and reductions can share code. For graph problems, implement `IGraphProblem` and expose a `Graph graph` property (the graph helpers are in [Interfaces/graphs](../../Interfaces/graphs/)):
+
+```csharp
+class MYGRAPHPROBLEM : IGraphProblem {
+    // ...the same fields as any other problem...
+    public Graph graph { get; }
+
+    public MYGRAPHPROBLEM(string instance) {
+        this.instance = instance;
+        StringParser parser = new("{(N,E) | N is set, E subset N unorderedcross N}");
+        parser.parse(instance);
+        graph = new UtilCollectionGraph(parser["N"], parser["E"]);
+    }
+}
+```
+
+The property must be declared as `Graph`, not `UtilCollectionGraph`, or the class will not compile. Older problems such as [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) use `IGraphProblem<Solver, Verifier, Visualization, GraphType>` instead. If your branch started from that form, switch to `IGraphProblem`, change the property to `Graph`, and put `[DefaultFor(typeof(YourProblem))]` on the parts you keep.
 
 **Throw `ProblemParseException` on bad input.** [Interfaces/ParseExceptions.cs](../../Interfaces/ParseExceptions.cs) defines it. Its arguments are the problem name, the text you received, and a short reason. The controllers catch it and answer with HTTP 400 and your `instanceFormat`, so a caller can fix the input. The worked example does it twice:
 
@@ -413,6 +429,14 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM"
 ```
 
 (Replace the text after `~` with part of your test names.)
+
+**Check your problem before you push.** This runs the checks on every problem's fields, names and contributors, plus your own tests. Replace `SUBSETSUM` with your class name:
+
+```bash
+dotnet test Redux.slnx -c Release --filter "Category=Metadata|FullyQualifiedName~SUBSETSUM"
+```
+
+Each failure names your class and says what to change. CI still runs every test, so run the full commands above once before you open the PR.
 
 To see your problem working, start the API (see [setup.md](setup.md)) and call `GET /ProblemProvider/info?interface=<ClassName>`. Success looks like a JSON object with your `problemName`, `defaultInstance`, `instanceFormat`, and the declared `complexityClass` as text.
 

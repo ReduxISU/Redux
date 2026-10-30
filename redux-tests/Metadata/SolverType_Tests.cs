@@ -15,6 +15,7 @@ namespace redux_tests;
 // *** These declarations are public correctness claims the API begins serving the moment
 // this merges. Which solvers are Unclassified — on any axis — needs advisor sign-off
 // before merge, same as prior classification passes. ***
+[Trait("Category", "Metadata")]
 public class SolverType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -123,10 +124,10 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
 
         Assert.True(unexpected.Count == 0,
-            $"Solver(s) declared SolverType.Unclassified without being added to the allowlist: " +
-            $"{string.Join(", ", unexpected)}. Either declare a real SolverType (needs advisor " +
-            "sign-off — see the header of this file), or add the class to " +
-            "SolverTypeUnclassifiedAllowlist in SolverType_Tests.cs.");
+            $"Solver(s) still declared SolverType.Unclassified: {string.Join(", ", unexpected)}. " +
+            "If the solver is finished, declare its real SolverType (see Interfaces/SolverType.cs). " +
+            "If the solver is not finished, delete its file: the problem uses a placeholder solver until one is added. " +
+            "If no value fits, ask in your PR.");
     }
 
     [Fact]
@@ -177,10 +178,10 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
 
         Assert.True(unexpected.Count == 0,
-            $"Solver(s) declared SolverComplexityBucket.Unclassified without being added to the " +
-            $"allowlist: {string.Join(", ", unexpected)}. Either declare a real " +
-            "SolverComplexityBucket (needs advisor sign-off — see the header of this file), or add " +
-            "the class to ComplexityBucketUnclassifiedAllowlist in SolverType_Tests.cs.");
+            $"Solver(s) still declared SolverComplexityBucket.Unclassified: {string.Join(", ", unexpected)}. " +
+            "If the solver is finished, declare its real complexityBucket (see Interfaces/SolverComplexityBucket.cs). " +
+            "If the solver is not finished, delete its file: the problem uses a placeholder solver until one is added. " +
+            "If no value fits, ask in your PR.");
     }
 
     [Fact]
@@ -267,10 +268,10 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
 
         Assert.True(unexpected.Count == 0,
-            $"Solver(s) have an empty complexity string without being added to the allowlist: " +
-            $"{string.Join(", ", unexpected)}. Either declare a confidently-known Big-O string by reading " +
-            "solve() (needs advisor sign-off — see the header of this file), or add the class to " +
-            "ComplexityUnclassifiedAllowlist in SolverType_Tests.cs.");
+            $"Solver(s) with no time complexity: {string.Join(", ", unexpected)}. " +
+            "If the solver is finished, declare timeComplexity by reading solve() (see Interfaces/MathematicalFunction.cs). " +
+            "If the solver is not finished, delete its file: the problem uses a placeholder solver until one is added. " +
+            "If no value fits, ask in your PR.");
     }
 
     [Fact]

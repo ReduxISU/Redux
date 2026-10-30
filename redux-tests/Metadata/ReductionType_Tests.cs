@@ -11,6 +11,7 @@ namespace redux_tests;
 // Same "declared, not derived" pattern and same ratchet-pair structure as
 // SolverType_Tests.cs / ReductionCost_Tests.cs — see those files' headers for the
 // general rationale.
+[Trait("Category", "Metadata")]
 public class ReductionType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

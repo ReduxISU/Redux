@@ -8,6 +8,7 @@ namespace redux_tests;
 // Every certificate example the API publishes (a CertificateExample constant, shown in a problem's certificateFormat)
 // must be a certificate its verifier accepts on the problem's default instance, so a reader can paste the two together
 // and see it work.
+[Trait("Category", "Metadata")]
 public class CertificateExample_Tests {
     // Examples that only show the format, on an instance of their own, with why.
     private static readonly Dictionary<string, string> FormatOnlyExamples = new() {

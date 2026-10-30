@@ -119,6 +119,17 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
+    public void GraphProblemWithNoDefaults_IsAGraphProblem_AndGetsThePlaceholders() {
+        IGraphProblem problem = new GRAPHFIXTURE();
+
+        Assert.Contains(nameof(GRAPHFIXTURE).ToLower(), ProblemProvider.GraphProblems.Keys);
+        Assert.NotNull(problem.graph.ToAPIGraph());
+        Assert.IsType<DummySolver>(problem.defaultSolver);
+        Assert.IsType<DummyVerifier>(problem.defaultVerifier);
+        Assert.IsType<DummyVisualization>(problem.defaultVisualization);
+    }
+
+    [Fact]
     public void ProblemWithADefaultFor_GetsThatClass_AndPlaceholdersForTheRest() {
         IProblem problem = new ATTRIBUTEDFIXTURE();
 
@@ -248,6 +259,18 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
+    public async Task GraphProblem_ParsesThroughTheEndpoints() {
+        var (status, body) = await Post("/ProblemProvider/problemInstance?problem=GRAPHFIXTURE", "\"({1,2},{{1,2}})\"");
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal("({1,2},{{1,2}})", doc.RootElement.GetProperty("instance").GetString());
+        Assert.True(doc.RootElement.TryGetProperty("graph", out _), body);
+
+        var (infoStatus, _) = await Get("/ProblemProvider/info?interface=GRAPHFIXTURE");
+        Assert.Equal(HttpStatusCode.OK, infoStatus);
+    }
+
+    [Fact]
     public async Task ProblemInstance_Parses() {
         var (status, body) = await Post("/ProblemProvider/problemInstance?problem=NODEFAULTSFIXTURE", "\"{4,5}\"");
 
@@ -320,5 +343,6 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
         var names = JsonSerializer.Deserialize<string[]>(all)!;
         Assert.DoesNotContain(nameof(NODEFAULTSFIXTURE), names);
         Assert.DoesNotContain(nameof(ATTRIBUTEDFIXTURE), names);
+        Assert.DoesNotContain(nameof(GRAPHFIXTURE), names);
     }
 }

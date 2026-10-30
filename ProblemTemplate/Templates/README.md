@@ -4,8 +4,8 @@
 
 New problems go in the back end repository in the `Problems/NPComplete` folder. (Problems from other complexity classes live in `Problems/NPHard` and `Problems/P`; which class a problem really belongs to is decided by the `complexityClass` it declares, not by its folder.) All files relating to a problem go in a folder titled `NPC_PROBLEMNAME`. This folder should include:
 * A file named `PROBLEMNAME_Class.cs`
-* A folder named "Solvers"
-* A folder named "Verifiers"
+* A folder named "Solvers" (if the problem has a solver; otherwise it uses `DummySolver`)
+* A folder named "Verifiers" (if the problem has a verifier; otherwise it uses `DummyVerifier`)
 * A folder named "Visualizations" (if the problem has a visualization; otherwise it uses `DummyVisualization`)
 * A folder named `ReduceTo/` (if the problem has reductions). Each reduction goes in `ReduceTo/NPC_<TO>/`, where `<TO>` is the problem it reduces **to**.
 

@@ -1,9 +1,10 @@
 using API.Interfaces;
+using SPADE;
 
 namespace redux_tests.Fixtures;
 #pragma warning disable CS1591
 
-// Two problems written the #919 way: plain IProblem, with no solver, verifier or visualization named in
+// Three problems written the #919 way: plain IProblem, with no solver, verifier or visualization named in
 // the class. ProblemProvider scans every loaded assembly, so while the tests run these are served by
 // the real endpoints exactly like a problem under Problems/. Their namespace is not
 // API.Problems.<Folder>.<Problem>, so the problem listings (allProblems, ALL_ProblemsRefactor, the
@@ -75,6 +76,35 @@ internal class AttributedFixtureVerifier : IVerifier<ATTRIBUTEDFIXTURE> {
     public bool verify(ATTRIBUTEDFIXTURE problem, string certificate) {
         this.certificate = certificate;
         return problem.numbers.Contains(int.Parse(certificate.Trim()));
+    }
+}
+
+// A graph problem: IGraphProblem instead of IProblem, with nothing else named. The property's type is
+// exactly Graph, since the non-generic interface asks for that.
+internal class GRAPHFIXTURE : IGraphProblem {
+    public string problemName { get; } = "Graph Fixture";
+    public string problemLink { get; } = "";
+    public string formalDefinition { get; } = "{G | G is an undirected graph}";
+    public string problemDefinition { get; } = "Test fixture: a graph problem with no solver, verifier or visualization.";
+    public string inputDescription { get; } = "G, an undirected graph";
+    public string outputDescription { get; } = "Nothing; the fixture has no solver";
+    public string source { get; } = "";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string wikiName { get; } = "";
+    public string defaultInstance { get; } = "({1,2,3},{{1,2},{2,3}})";
+    public string instance { get; }
+    public string instanceFormat { get; } = "Undirected graph as (nodes, edges). Example: ({1,2,3},{{1,2},{2,3}})";
+    public string certificateFormat { get; } = "One node. Example: 2";
+    public string[] contributors { get; } = { "" };
+    public Graph graph { get; }
+
+    public GRAPHFIXTURE() : this("({1,2,3},{{1,2},{2,3}})") { }
+
+    public GRAPHFIXTURE(string instance) {
+        this.instance = instance;
+        StringParser parser = new("{(N,E) | N is set, E subset N unorderedcross N}");
+        parser.parse(instance);
+        graph = new UtilCollectionGraph(parser["N"], parser["E"]);
     }
 }
 
