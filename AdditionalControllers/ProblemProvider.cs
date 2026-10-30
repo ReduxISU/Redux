@@ -82,12 +82,17 @@ public class ProblemProvider : ControllerBase {
     /// Serializer options for the <c>info</c> and <c>problemInstance</c> endpoints, which reflect over an
     /// arbitrary problem/interface object. <see cref="JsonSerializerOptions.IncludeFields"/> is enabled so that
     /// public fields (e.g. <c>ARCSET.K</c>, the <c>UtilCollectionGraph.Nodes</c>/<c>Edges</c> fields) are emitted,
-    /// matching the previous Newtonsoft.Json output which serialized public fields by default.
+    /// matching the previous Newtonsoft.Json output which serialized public fields by default. Also writes the
+    /// defaults a plain-IProblem problem inherits (<see cref="ProblemDefaultsJson"/>) and the tag lists
+    /// (<see cref="TagListJson"/>).
     /// </summary>
-    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
+    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions =
+        TagListJson.Apply(ProblemDefaultsJson.Apply(new() { IncludeFields = true }));
 
-    // The reduce endpoint's options, one object so GuiView.Options makes its copy once.
-    private static readonly JsonSerializerOptions ReduceJsonOptions = new() { WriteIndented = true };
+    // The reduce endpoint's options, one object so GuiView.Options makes its copy once. No IncludeFields and no
+    // ProblemDefaultsJson (the reduction is written through IReduction, as it always was), but the tag lists, as
+    // every response that carries a tag has them beside its single field.
+    private static readonly JsonSerializerOptions ReduceJsonOptions = TagListJson.Apply(new() { WriteIndented = true });
 
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
@@ -185,6 +190,8 @@ public class ProblemProvider : ControllerBase {
         } catch (CertificateParseException ex) {
             return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
+        } catch (API.DummyClasses.NoVerifierException ex) {
+            return BadRequest(new { error = "no_verifier", received = verifier, detail = ex.Message });
         }
     }
 
@@ -364,7 +371,7 @@ public class ProblemProvider : ControllerBase {
 
     private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance) {
         var (initial, frames) = buildFrames(visualization, steps, solution, instance);
-        var body = new VisualizeFramesResponse(visualization.visualizationType.ToString(), initial, frames);
+        var body = new VisualizeFramesResponse(Tags.First(visualization.visualizationType), initial, frames);
         return JsonSerializer.Serialize(body, VisualizeJsonOptions());
     }
 

@@ -22,7 +22,9 @@ class Schoning : ISolver<SAT3> {
         "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=814612";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
-    public SolverType solverType { get; } = SolverType.Stochastic;
+    // Declared, not derived. Randomized local search: random choices make it Stochastic, and it has no
+    // worst-case guarantee of finding an assignment within its tries, which makes it a Heuristic (#842).
+    public SolverType solverType { get; } = SolverType.Heuristic | SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public MathematicalFunction timeComplexity { get; } = new("(4/3)^n", ", n = number of variables");
 

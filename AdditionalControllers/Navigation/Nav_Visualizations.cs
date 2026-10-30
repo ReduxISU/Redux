@@ -25,7 +25,8 @@ internal static class VisualizationTypeCatalog {
     // Sorted wire values a client that has not opted in (includePictures=true) is shown: GuiWireValues.
     internal static string[] Gui() => All().Where(GuiWireValues.Contains).ToArray();
 
-    // className -> declared visualizationType's wire value. Built by instantiating every
+    // className -> declared visualizationType's wire value: the first tag (Tags.First), the same value as the
+    // deprecated single field in /info, never the comma-joined flags string. Built by instantiating every
     // reflected visualizer inside a per-type try/catch, exactly like Nav_Batch.cs's
     // InfoJson: one visualizer with a throwing/missing default constructor must not take
     // down navigation at startup. Deliberately Lazy<>, never a static readonly field
@@ -38,14 +39,14 @@ internal static class VisualizationTypeCatalog {
         ProblemProvider.Visualizers.Values
             .Select(t => (t.Name, Legacy: GuiView.LegacyType(t)))
             .Where(p => p.Legacy != null)
-            .ToDictionary(p => p.Name, p => p.Legacy!.Value.ToString(), StringComparer.OrdinalIgnoreCase));
+            .ToDictionary(p => p.Name, p => Tags.First(p.Legacy!.Value), StringComparer.OrdinalIgnoreCase));
 
     private static Dictionary<string, string> Build() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (_, type) in ProblemProvider.Visualizers) {
             try {
                 if (Activator.CreateInstance(type) is IVisualization instance)
-                    result[type.Name] = instance.visualizationType.ToString();
+                    result[type.Name] = Tags.First(instance.visualizationType);
             } catch {
                 // Skip a visualizer that can't be default-constructed instead of
                 // failing the whole catalog.

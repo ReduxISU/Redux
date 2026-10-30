@@ -2,6 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Solvers;
 
+{DEFAULT_FOR}
 class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
 
     // --- Fields ---
@@ -13,11 +14,13 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     // Declared, not derived: read the algorithm below and decide; don't guess from the
     // solver's name. Getting these wrong is a public correctness claim the API serves to callers.
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/SolverType.cs for what each value means.
+    // Declare every style the algorithm uses, joined with |, e.g. SolverType.Greedy | SolverType.Approximation.
     public SolverType solverType { get; } = SolverType.Unclassified;
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/SolverComplexityBucket.cs for what each value means.
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Unclassified;
-    // TODO: replace "" with a confidently-known Big-O string such as "O(n log n)", never a guess. A test in redux-tests/Metadata fails until you do, on purpose.
-    public string complexity { get; } = "";
+    // TODO: replace null with the solver's confidently-known worst-case running time, never a guess, written
+    // without the O( ), e.g. new("n * W", ", n = items, W = capacity"). A test in redux-tests/Metadata fails until you do, on purpose.
+    public MathematicalFunction? timeComplexity { get; } = null;
     public bool timerHasExpired { get; set; }
 
     // --- Methods Including Constructors ---

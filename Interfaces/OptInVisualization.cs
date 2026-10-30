@@ -46,7 +46,7 @@ sealed class LegacyVisualizationTypeAttribute(VisualizationType type) : Attribut
 /// <item>A problem whose default visualization is opt-in shows the placeholder (<see cref="DummyClasses.DummyVisualization"/>)
 /// instead, wherever the problem is serialized (/info, allInfo, problemInstance, reduce) and wherever its default is drawn
 /// (visualizeReduction).</item>
-/// <item>A visualization with a <see cref="LegacyVisualizationTypeAttribute"/> reports that type.</item>
+/// <item>A visualization with a <see cref="LegacyVisualizationTypeAttribute"/> reports that type, in its tag list too.</item>
 /// </list>
 /// </summary>
 static class GuiView {
@@ -92,6 +92,10 @@ static class GuiView {
             if (typeof(IVisualization).IsAssignableFrom(info.Type) && property.Name == nameof(IVisualization.visualizationType)
                 && property.PropertyType == typeof(VisualizationType)) {
                 property.Get = obj => obj is IVisualization vis ? TypeOf(vis, false) : get(obj);
+            } else if (typeof(IVisualization).IsAssignableFrom(info.Type) && property.Name == nameof(IVisualization.visualizationType) + "s"
+                && property.PropertyType == typeof(List<string>)) {
+                // The tag list TagListJson added: the legacy type too, so it still starts with the single field.
+                property.Get = obj => obj is IVisualization vis ? Tags.Names(TypeOf(vis, false)) : get(obj);
             } else if (typeof(IVisualization).IsAssignableFrom(property.PropertyType)) {
                 if (property.PropertyType.IsAssignableFrom(typeof(DummyClasses.DummyVisualization))) {
                     property.Get = obj => get(obj) is IVisualization vis ? Shown(vis, false) : get(obj);

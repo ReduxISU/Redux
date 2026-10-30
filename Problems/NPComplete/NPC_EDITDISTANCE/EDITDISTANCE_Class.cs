@@ -41,6 +41,7 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, DummyV
     // makes it a machine-checkable fact instead of a comment nobody reads.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.StorageAndRetrieval;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
     public string sourceString = "";
     public string targetString = "";

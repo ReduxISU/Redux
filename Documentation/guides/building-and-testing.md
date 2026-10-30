@@ -214,8 +214,7 @@ Details: [adding-a-problem.md, "Tests you write yourself"](adding-a-problem.md#t
 
 - [ ] The default instance builds, and its fields hold the values you expect.
 - [ ] A malformed instance throws `ProblemParseException`. Use a `[Theory]` with several bad inputs: an empty string, the wrong shape, and a non-number where a number belongs.
-- [ ] The verifier tests and the solver tests below. A new problem comes with both.
-- [ ] **Edit an existing test:** add your problem's class name to the hard-coded list for its complexity class in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard). This test fails until you do.
+- [ ] The verifier tests and the solver tests below, for each one your PR includes. A problem can come without them (#919).
 
 <details>
 <summary>Example tests for a problem (copy and adapt)</summary>
@@ -265,7 +264,7 @@ public void SUBSETSUM_Constructor_Throws_On_Invalid_Instance(string instance) {
 }
 ```
 
-The "edit an existing test" item has no code: open [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) and add your class name to the list for your complexity class. The verifier and solver items are in the next two blocks.
+The verifier and solver items are in the next two blocks.
 
 </details>
 

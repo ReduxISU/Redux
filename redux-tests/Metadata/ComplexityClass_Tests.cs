@@ -14,6 +14,7 @@ namespace redux_tests;
 // a direct result — see the membership tests in Navigation_Endpoint_Tests.cs). This
 // file — specifically which problems were moved off Unclassified and onto which class
 // — needs advisor sign-off before merge, not after. ***
+[Trait("Category", "Metadata")]
 public class ComplexityClass_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

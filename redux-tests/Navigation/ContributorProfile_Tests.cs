@@ -9,6 +9,7 @@ using API.Interfaces;
 namespace redux_tests;
 #pragma warning disable CS1591
 
+[Trait("Category", "Metadata")]
 public class ContributorProfile_Tests {
 
     private readonly ContributorProfileController _controller;

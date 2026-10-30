@@ -9,14 +9,21 @@ interface ISolver {
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.
     string sourceFile { get; }
+    // Link to the formal citation in `source`. Optional, so it defaults to "". [JsonIgnore] keeps it out
+    // of JSON written through an interface-typed member (e.g. /ProblemProvider/reduce), which never had
+    // it; a class that declares its own sourceLink still shows it in /info.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string sourceLink { get => ""; }
     string[] contributors { get; }
 
     bool timerHasExpired { get; set; }
 
     /// <summary>
-    /// The algorithmic style this solver uses. Declared, not derived — see
-    /// <see cref="API.Interfaces.SolverType"/>. Defaults to
-    /// <see cref="API.Interfaces.SolverType.Unclassified"/> until a concrete solver
+    /// The algorithmic styles this solver uses. Declared, not derived — see
+    /// <see cref="API.Interfaces.SolverType"/>. A tag set: declare every style that fits, e.g.
+    /// <c>SolverType.Greedy | SolverType.Heuristic</c>. The JSON lists them as <c>solverTypes</c>; the single
+    /// <c>solverType</c> field is deprecated and holds the first of them (see <see cref="API.Interfaces.Tags"/>).
+    /// Defaults to <see cref="API.Interfaces.SolverType.Unclassified"/> until a concrete solver
     /// overrides it.
     /// </summary>
     SolverType solverType { get => SolverType.Unclassified; }

@@ -20,7 +20,9 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
     public string sourceLink { get; } = "https://dl.acm.org/doi/10.1145/800125.804034";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
-    public SolverType solverType { get; } = SolverType.Parameterized;
+    // Declared, not derived. Parameterized by the budget K, and search() branches on the two endpoints
+    // of an uncovered edge, abandoning a branch once the budget runs out, which is Backtracking (#842).
+    public SolverType solverType { get; } = SolverType.Backtracking | SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public MathematicalFunction timeComplexity { get; } = new("2^K * (n + m)", ", K = target cover size, n = |nodes|, m = |edges|");
 

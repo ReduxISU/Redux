@@ -26,6 +26,7 @@ namespace redux_tests;
 //
 // *** A failing case here means a real display name needs fixing, not that this test
 // should grow an exception list. Report it. ***
+[Trait("Category", "Metadata")]
 public class NamingConvention_Tests {
 
     // Person token: one or more hyphen-joined Capitalized words (covers co-author names
@@ -68,8 +69,12 @@ public class NamingConvention_Tests {
     // ── Verifiers ────────────────────────────────────────────────────────────
 
     public static IEnumerable<object[]> AllVerifiers() {
-        foreach (var (_, type) in ProblemProvider.Verifiers)
+        foreach (var (_, type) in ProblemProvider.Verifiers) {
+            // Placeholder for problems with no verifier (Interfaces/DummyClasses/DummyVerifier.cs); it
+            // belongs to no problem, so there is no name to match. Same precedent as AllSolvers below.
+            if (type.Name == "DummyVerifier") continue;
             yield return new object[] { type };
+        }
     }
 
     [Theory]

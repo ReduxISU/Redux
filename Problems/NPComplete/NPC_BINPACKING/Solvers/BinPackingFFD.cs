@@ -38,11 +38,10 @@ class BinPackingFFD : ISolver<BINPACKING> {
     public string[] contributors { get; } = { "Himanshu Jha", "Rakesh Itani", "Prashant Aguragai" };
 
     public bool timerHasExpired { get; set; }
-    // Declared, not derived. Tag reflects the guarantee class, not the mechanism: the algorithm's
-    // mechanism is a greedy first-fit pass, but its own doc comment claims a proven Dosa 2007
-    // approximation-ratio bound ((11/9)*OPT + 6/9) -- that guarantee makes it Approximation, not
-    // Greedy.
-    public SolverType solverType { get; } = SolverType.Approximation;
+    // Declared, not derived. Both the guarantee and the mechanism: its own doc comment claims a proven
+    // Dosa 2007 approximation-ratio bound ((11/9)*OPT + 6/9), which makes it Approximation, and it gets
+    // there with one greedy first-fit pass, which makes it Greedy (#842).
+    public SolverType solverType { get; } = SolverType.Approximation | SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
     // Much cheaper than brute force — quadratic in the number of items.

@@ -33,6 +33,11 @@ interface IReduction {
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.
     string sourceFile { get; }
+    // Link to the formal citation in `source`. Optional, so it defaults to "". [JsonIgnore] keeps it out
+    // of JSON written through an interface-typed member (e.g. /ProblemProvider/reduce), which never had
+    // it; a class that declares its own sourceLink still shows it in /info.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string sourceLink { get => ""; }
     string[] contributors { get; }
     IVisualization visualization { get; }
     List<Gadget> gadgets { get; }
@@ -51,9 +56,19 @@ interface IReduction {
     // the transformation is constructed, `complexityBucket` is how long constructing it
     // takes. Kept as separate members rather than folded into `cost` because a reduction
     // can be cheap on one axis and expensive on another — see the class docs on each enum.
+    // reductionType is a tag set (see Tags): declare every technique the construction uses. The JSON
+    // lists them as reductionTypes; the single reductionType field is deprecated and holds the first.
     ReductionType reductionType { get => ReductionType.Unclassified; }
 
     ReductionComplexityBucket complexityBucket { get => ReductionComplexityBucket.Unclassified; }
+
+    // Free-text Big-O note on how long the reduction takes, e.g. "O(n^2), n = |CLIQUE.nodes|". Every
+    // reduction declares it (the metadata tests require it non-empty), so it is required here. JsonIgnore
+    // as for sourceLink: /ProblemProvider/reduce, which writes the reduction as IReduction, never had it.
+    // #615 replaces this string with timeComplexity/spaceComplexity (MathematicalFunction), as #614 did for
+    // solvers.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string? complexity { get; }
 
     // Backward mapping: an answer for the target problem (B) turned back into an answer for the
     // source problem (A), the direction students need after solving B. Reductions that have one
