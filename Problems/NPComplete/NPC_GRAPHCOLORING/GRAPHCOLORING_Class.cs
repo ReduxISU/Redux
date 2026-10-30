@@ -23,7 +23,7 @@ class GRAPHCOLORING : IGraphProblem<GraphColoringBruteForce, GraphColoringVerifi
     public string[] contributors { get; } = { "Daniel Igbokwe", "Alex Diviney" };
 
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
-    private static string _defaultInstance = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
+    private static string _defaultInstance = "(({a,b,c,d,e,f},{{a,b},{b,c},{c,a},{a,d},{b,e},{c,f},{d,e},{e,f},{f,d}}),3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } =

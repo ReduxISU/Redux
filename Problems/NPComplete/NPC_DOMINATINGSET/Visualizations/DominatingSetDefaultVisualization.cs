@@ -1,4 +1,6 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
@@ -6,7 +8,7 @@ using API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Visualizations;
 
-class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET, API_GraphJSON> {
+class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET, API_GraphJSON>, IGraphSubsetVisualization<DOMINATINGSET> {
     public string visualizationName { get; } = "Dominating Set Visualization";
     public string visualizationDefinition { get; } =
         "This is a default visualization for dominating set";
@@ -40,4 +42,10 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET, API_Grap
         }
         return apiGraph;
     }
+
+    // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
+    Type? IVisualization.StepShape => typeof(NodeSet);
+
+    GraphSubsetSpec IGraphSubsetVisualization<DOMINATINGSET>.Describe(DOMINATINGSET dominatingSet) =>
+        new(dominatingSet.nodes, dominatingSet.edges, dominatingSet.K, SubsetRule.DominatingSet);
 }

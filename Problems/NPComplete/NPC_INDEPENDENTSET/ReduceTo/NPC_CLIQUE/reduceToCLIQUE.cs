@@ -4,13 +4,14 @@ using API.Interfaces.Graphs;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Graphs;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_INDEPENDENTSET;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.ReduceTo.NPC_CLIQUE;
 
-class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
+class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet> {
 
 
     // --- Fields ---
@@ -124,4 +125,31 @@ class reduceToCLIQUE : IReduction<INDEPENDENTSET, CLIQUE> {
         return problemFromSolution;
     }
 
+    public NodeSet EmptyAnswer() => new NodeSet([]);
+
+    // "{}" is a real answer on either side only when K = 0 (B's K is A's K). CliqueVerifier refuses
+    // empty text and IndependentSetVerifier reads "{}" as one blank node, so the rule is spelled out here.
+    public bool TargetAcceptsEmpty() => reductionTo.K == 0;
+
+    public bool SourceAcceptsEmpty() => reductionFrom.K == 0;
+
+    // Backward map: reduce() keeps the nodes and complements the edges, so a clique of the complement
+    // graph is exactly an independent set of the original. The same nodes are the answer; if the clique
+    // is larger than K, any K of its nodes are still independent, so the first K are kept.
+    public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
+        List<string> cliqueNodes = ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes);
+        int k = reductionFrom.K;
+
+        var independent = new List<string>();
+        foreach (string node in cliqueNodes) {
+            if (independent.Contains(node)) continue;
+            if (independent.Count < k) {
+                independent.Add(node);
+                rec.Accept(() => new NodeSet(independent), () => $"Node {node} is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.", node);
+            } else {
+                rec.Reject(() => new NodeSet(independent), () => $"Node {node} is in the clique, but the independent set already has {k} nodes, so it is left out.", node);
+            }
+        }
+        return (ReductionBack.FormatNodeSet(independent), new NodeSet(independent));
+    }
 }
