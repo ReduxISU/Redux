@@ -14,8 +14,8 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, Constraint
     public string problemDefinition { get; } = "Given distinct variables, an explicitly listed finite nonempty integer domain for each variable, and constraints, determine whether values can be assigned to all variables so that every constraint is satisfied.";
     public string inputDescription { get; } = "X, an ordered list of distinct variables; D, their corresponding finite integer domains; and C, a set of quoted constraint expressions";
     public string outputDescription { get; } = "True or False, whether a complete assignment from the specified domains satisfies all constraints";
-    public string source {get;} = "U. Montanari, “Networks of Constraints: Fundamental Properties and Applications to Picture Processing,” Information Sciences, vol. 7, pp. 95–132, Jan. 1974.";
-    public string sourceLink {get;} = "https://ics.uci.edu/~dechter/courses/ics-276/spring-19/reading/montanari.pdf";
+    public string source { get; } = "U. Montanari, “Networks of Constraints: Fundamental Properties and Applications to Picture Processing,” Information Sciences, vol. 7, pp. 95–132, Jan. 1974.";
+    public string sourceLink { get; } = "https://ics.uci.edu/~dechter/courses/ics-276/spring-19/reading/montanari.pdf";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Reece Foulkrod", "Gabriel Ory", "Ziming Wang" };
 
