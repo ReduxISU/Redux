@@ -33,7 +33,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat { get; } = "Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 0-4 (clue wall). Example: ((w,w,b,w),(b,w,w,1))";
+    public string instanceFormat { get; } = $"Nested list of rows, each row a parenthesized comma-separated list of cells: w/W (white), b/B (black wall), or 0-4 (clue wall). Example: {_defaultInstance}";
     public string certificateFormat { get; } = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = ""; // Deprecated, do not implement
