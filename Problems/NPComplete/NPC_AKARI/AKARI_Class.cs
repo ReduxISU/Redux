@@ -56,7 +56,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public const int EMPTY_CELL = -2;
     public const int WALL = -1;
 
-    public int[][] grid { get; set; } = Array.Empty<int[]>();
+    public int[][] grid { get; } = Array.Empty<int[]>();
 
     // --- Methods and Constructors ---
     public AKARI() : this(_defaultInstance) {
