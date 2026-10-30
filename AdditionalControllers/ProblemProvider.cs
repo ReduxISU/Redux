@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects.Graphs;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using API.Interfaces.Tools;
@@ -146,6 +147,9 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
 
+    // The reduce endpoint's options, one object so GuiView.Options makes its copy once.
+    private static readonly JsonSerializerOptions ReduceJsonOptions = new() { WriteIndented = true };
+
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
         return Activator.CreateInstance(Problems[name.ToLower()]) as IProblem; // guaranteed success by `IsAssignableFrom`
@@ -201,6 +205,16 @@ public class ProblemProvider : ControllerBase {
             return red.mapSolutions(solution);
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(red, solution, red.reductionFrom.certificateFormat, ex.Message, ex);
+        }
+    }
+
+    // The backward map reads B's answer, so malformed text is reported against B's certificate format
+    // (and B's name), not A's. Same translation as MapSolutions above.
+    static SolveRun MapSolutionsBack(IReduction red, string solution, bool withSteps) {
+        try {
+            return red.MapBackRun(solution, withSteps)!;
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(red, solution, red.reductionTo.certificateFormat, ex.Message, ex, red.reductionTo.problemName);
         }
     }
 
@@ -270,7 +284,7 @@ public class ProblemProvider : ControllerBase {
         ProblemParseException p => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
                                            LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
         ReductionInputException r => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
-                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message)),
+                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.ProblemName)),
         CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
                                            c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
         _ => throw ex,
@@ -336,17 +350,18 @@ public class ProblemProvider : ControllerBase {
     /// Gets info about a particular object
     /// </summary>
     /// <param name="interface" example = "SAT3">the name of the object to get the info of</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations: a problem's default and a visualization's type are its own. Default false, what Redux_GUI reads: what they were before the redesign (see GuiView).</param>
     /// <returns>an object instance</returns>
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(400)]
     [HttpGet("info")]
-    public IActionResult info(string @interface) {
+    public IActionResult info(string @interface, [FromQuery] bool includePictures = false) {
         if (string.IsNullOrEmpty(@interface) || !Interfaces.TryGetValue(@interface.ToLower(), out var type))
             return BadRequest(new { error = "unknown_interface", received = @interface });
         object? obj = Activator.CreateInstance(type);
         // Serialize by the runtime type: System.Text.Json serializes by the declared type, and `object`/`IProblem`
         // would emit an empty `{}` instead of the concrete object's members.
-        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, ReflectedObjectJsonOptions), "application/json");
+        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, GuiView.Options(ReflectedObjectJsonOptions, includePictures)), "application/json");
     }
 
     /// <summary>
@@ -354,16 +369,17 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="problem" example = "3SAT">problem name</param>
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance string</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>object instance</returns>
     [ProducesResponseType(typeof(IProblem), 200)]
     [ProducesResponseType(400)]
     [HttpPost("problemInstance")]
-    public IActionResult problemInstance(string problem, [FromBody] string problemInstance) {
+    public IActionResult problemInstance(string problem, [FromBody] string problemInstance, [FromQuery] bool includePictures = false) {
         try {
             IProblem p = ProblemInstance(problem, problemInstance);
             // Serialize by the runtime type; see the note in `info`.
             return Content(
-                JsonSerializer.Serialize(p, p.GetType(), ReflectedObjectJsonOptions),
+                JsonSerializer.Serialize(p, p.GetType(), GuiView.Options(ReflectedObjectJsonOptions, includePictures)),
                 "application/json");
         } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
             return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
@@ -469,7 +485,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="visualization" example = "Sat3DefaultVisualization">The visualization to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <param name="solver" example = "Sat3BacktrackingSolver">Optional. The solver whose steps and solution are visualized. Defaults to the visualization's own solver. Must solve the same problem as the visualization</param>
-    /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual)</param>
+    /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual). A picture type that builds its own frames (type "Graph") returns its own payload and frames instead</param>
     /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
     [ProducesResponseType(400)]
@@ -501,10 +517,15 @@ public class ProblemProvider : ControllerBase {
             var (finished, body) = await ComputeLimits.WithBackstop(() => {
                 var clock = System.Diagnostics.Stopwatch.StartNew();
                 var run = chosen.Run(instance, withSteps: true, limit);
+                // A picture type that builds its own frames serves them only for format=frames.
+                if (asFrames && vis is IFramesVisualization framesVis)
+                    return JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions);
                 // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what
                 // is left of the limit, so the whole request stays within it (#764).
                 TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
-                var steps = run.StepsFor(vis.StepShape);
+                // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
+                // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
+                var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
                 var solution = run.Answer;
                 return asFrames
                     ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
@@ -524,11 +545,12 @@ public class ProblemProvider : ControllerBase {
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, separated by a dash. Can use a single reduction</param>
     /// <param name="solution" example = "(x1:True,x2:True)">The solution to visualize</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations: the target's own default is drawn. Default false, what Redux_GUI reads: an opt-in default is drawn as the placeholder (see GuiView).</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
-    public async Task<IActionResult> visualizeReduction(string reduction, string solution, [FromBody] string instance) {
+    public async Task<IActionResult> visualizeReduction(string reduction, string solution, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         List<string> reds = reduction.Split("-").ToList();
         foreach (string r in reds)
             if (!Reductions.TryGetValue(r.ToLower(), out _))
@@ -546,7 +568,7 @@ public class ProblemProvider : ControllerBase {
                     solution = MapSolutions(red, solution);
                     instance = red.reductionTo.instance;
                 }
-                return red is null ? null : getVisualize(red.visualization, new List<Object>(), solution, instance);
+                return red is null ? null : getVisualize(GuiView.Shown(red.visualization, includePictures), new List<Object>(), solution, instance);
             }, limit);
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
@@ -565,11 +587,12 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">the reduction to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of a problem</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
-    public async Task<IActionResult> reduce(string reduction, [FromBody] string instance) {
+    public async Task<IActionResult> reduce(string reduction, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
@@ -577,7 +600,7 @@ public class ProblemProvider : ControllerBase {
             // inside the backstop, which is the limit itself: reductions have no time checks (see ComputeLimits).
             TimeSpan? limit = ComputeLimit;
             var (finished, body) = await ComputeLimits.WithBackstop(
-                () => JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), limit);
+                () => JsonSerializer.Serialize(Reduction(reduction, instance), GuiView.Options(ReduceJsonOptions, includePictures)), limit);
             if (!finished)
                 return ReductionTimeLimitError(limit!.Value, reduction);
             return Content(body!, "application/json");
@@ -613,11 +636,44 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
-    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail) {
+    /// <summary>
+    /// Maps an answer for the target problem back to an answer for the source problem, the direction
+    /// students need after solving the target. The body is the SOURCE instance (the reduction is rebuilt from it,
+    /// so the backward map knows the construction); <c>solution</c> is the target problem's certificate.
+    /// "{}" (no answer) maps to "{}", unless the empty set is itself a valid answer for the target instance
+    /// (e.g. the empty cover of an edgeless graph); then it is mapped like any other answer. Not every reduction has a backward map yet: those answer 400 with
+    /// <c>no_backward_map</c> (a request this reduction cannot serve, like <c>unknown_reduction</c>, rather
+    /// than a server fault). With <c>steps=true</c> the response is <c>{ answer, steps }</c> instead of the bare string.
+    /// </summary>
+    /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
+    /// <param name="solution" example = "{x1_0,x1_1,x1_2}">solution certificate of the TARGET problem</param>
+    /// <param name="steps" example = "false">true to also return the steps that mapped the answer back</param>
+    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
+    /// <returns>solution certificate of the source problem, or { answer, steps }</returns>
+    [HttpPost("mapSolutionBack")]
+    [ProducesResponseType(400)]
+    public IActionResult mapSolutionBack(string reduction, string solution, [FromBody] string instance, bool steps = false) {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
+        try {
+            IReduction red = Reduction(reduction, instance);
+            if (!red.hasBackwardMap())
+                return BadRequest(new { error = "no_backward_map", reduction });
+            SolveRun run = MapSolutionsBack(red, solution, steps);
+            object body = steps ? new { answer = run.Answer, steps = run.Steps } : run.Answer;
+            return Content(
+                JsonSerializer.Serialize(body, new JsonSerializerOptions() { WriteIndented = true }),
+                "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
+    }
+
+    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
         return new {
             error,
             reduction = reduction.reductionName,
-            problem = reduction.reductionFrom.problemName,
+            problem = problem ?? reduction.reductionFrom.problemName,
             expected,
             received,
             detail

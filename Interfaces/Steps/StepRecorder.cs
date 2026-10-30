@@ -101,7 +101,19 @@ sealed class StepRecorder<TPartial> {
     public void Reject(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Reject, partial, caption, focus);
     public void Backtrack(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Backtrack, partial, caption, focus);
 
+    // The same, with the focus built lazily too, for focus that is costly to build on every step of a hot loop.
+    public void Try(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Try, partial, caption, focus);
+    public void Accept(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Accept, partial, caption, focus);
+    public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption, focus);
+    public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption, focus);
+
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
+        // Off returns before building the closure; a deadline-only recorder still has to count the call.
+        if (!_enabled && !_deadlineOnly) return;
+        Add(kind, partial, caption, () => focus);
+    }
+
+    private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus) {
         if (!_enabled) {
             if (_deadlineOnly && (_calls++ & (ClockCheckInterval - 1)) == 0 && Now() >= _deadline)
                 throw new StepBudgetExceededException(this);
@@ -110,9 +122,9 @@ sealed class StepRecorder<TPartial> {
         _total++;
         if (_shownDecisions < _cap) {
             _shownDecisions++;
-            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus, caption()));
+            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()));
         } else if (kind == StepEvent.Accept) {
-            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus, caption());
+            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption());
         }
         // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
         if (Now() >= _deadline)

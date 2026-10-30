@@ -74,11 +74,13 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
 
     // ── Manifest: enum is the source of truth, JSON is the committed mirror ───
 
+    // The manifest mirrors the members Redux_GUI is shown (VisualizationTypeCatalog.GuiWireValues), not the picture types a
+    // client sees only with includePictures=true, since Redux_GUI's manifest-drift job compares its copy against this file.
     [Fact]
     public void ManifestMatchesEnum() {
         string manifestJson = ReadManifestRaw();
         string[] manifest = ReadManifest();
-        string[] actual = VisualizationTypeCatalog.All();
+        string[] actual = VisualizationTypeCatalog.Gui();
 
         bool matches = manifest.Length == actual.Length
             && manifest.SequenceEqual(actual, StringComparer.Ordinal);
@@ -141,5 +143,58 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
         Assert.True(stale.Count == 0,
             $"Allowlist entry no longer VisualizationType.Unimplemented (already classified, or renamed/removed) " +
             $"— delete from UnimplementedAllowlist in VisualizationType_Tests.cs: {string.Join(", ", stale)}.");
+    }
+
+    // ── A problem that has a real visualization must default to one ───────────
+    //
+    // The API reports a problem's defaultVisualization in /ProblemProvider/info, and
+    // visualizeReduction draws a reduction's target with it. A problem that defaults to
+    // DummyVisualization shows "Unimplemented" there even when a working visualization
+    // for it exists (#922: SAT and Set Cover).
+
+    private static readonly string[] DefaultsToPlaceholderAllowlist =
+    {
+        // Both Deutsch visualizations ask the external quantum server for the circuit, so
+        // making one the default would put that network call on /info's default path.
+        // Choosing Deutsch's default is a separate decision from #922.
+        "DEUTSCH",
+    };
+
+    [Fact]
+    public void ProblemsWithARealVisualization_DoNotDefaultToUnimplemented() {
+        var visTypeByClassName = VisualizationTypeCatalog.ByClassName.Value;
+        var problemsWithARealVisualization = VisualizationNavigationData.Entries
+            .Where(e => visTypeByClassName.TryGetValue(e.className, out var type)
+                && type != nameof(VisualizationType.Unimplemented))
+            .Select(e => e.problemName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var allowlist = new HashSet<string>(DefaultsToPlaceholderAllowlist, StringComparer.OrdinalIgnoreCase);
+
+        var offenders = MetadataReflection.TopLevelClassNames
+            .Where(problemsWithARealVisualization.Contains)
+            .Where(name => !allowlist.Contains(name))
+            .Where(name => MetadataReflection.Instances.TryGetValue(name, out var problem)
+                && problem.defaultVisualization.visualizationType == VisualizationType.Unimplemented)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(offenders.Count == 0,
+            $"Problem(s) with a real visualization still default to an Unimplemented one: " +
+            $"{string.Join(", ", offenders)}. Point defaultVisualization at the real visualization.");
+    }
+
+    [Theory]
+    [InlineData("SAT", "BooleanSatisfiability")]
+    [InlineData("SETCOVER", "SetD3")]
+    public async Task Info_ReportsARealDefaultVisualization(string problem, string expectedType) {
+        var response = await _client.GetAsync(
+            $"/ProblemProvider/info?interface={problem}", TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(body);
+        string? type = doc.RootElement.GetProperty("defaultVisualization").GetProperty("visualizationType").GetString();
+
+        Assert.Equal(expectedType, type);
     }
 }

@@ -1,9 +1,11 @@
 using API.Interfaces;
+using API.Interfaces.Graphs;
+using API.Interfaces.Steps;
 using System.Linq;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
-class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
+class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Minimum Vertex Cover Max-Degree Greedy";
@@ -28,12 +30,26 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
     public GreedyMinimumVertexCover() {
 
     }
-    public string solve(MINIMUMVERTEXCOVER G) {
-        var edges = new List<KeyValuePair<string, string>>(G.edges);
+    public string solve(MINIMUMVERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
+
+    // Steps: one per node taken, with how many uncovered edges it covers. Recorder state lives only in this call.
+    public string Solve(MINIMUMVERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        var cover = Cover(G.edges, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        rec.Done(new NodeSet(cover), true, cover.Count == 0
+            ? "There are no edges to cover."
+            : $"Every edge is covered with {cover.Count} nodes. Greedy isn't guaranteed to find the smallest cover.");
+        return "{" + string.Join(",", cover) + "}";
+    }
+
+    /// <summary>The greedy cover of <paramref name="allEdges"/>, in the order nodes were taken. Records a step per node taken.</summary>
+    internal List<string> Cover(IReadOnlyList<KeyValuePair<string, string>> allEdges, StepRecorder<NodeSet> rec) {
+        var edges = new List<KeyValuePair<string, string>>(allEdges);
         var cover = new List<string>();
 
         while (edges.Count > 0) {
-            if (timerHasExpired || (stop != null && stop())) return SolveRun.TimedOutAnswer;
+            // #935: stop at the time limit; the caller sees its flag and returns the timed-out answer.
+            if (timerHasExpired || (stop != null && stop())) break;
             var degree = new Dictionary<string, int>();
             foreach (var e in edges) {
                 if (!degree.ContainsKey(e.Key)) degree[e.Key] = 0;
@@ -45,8 +61,11 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER> {
             string best = degree.OrderByDescending(kv => kv.Value).First().Key;
             cover.Add(best);
             edges = edges.Where(e => e.Key != best && e.Value != best).ToList();
+            int gain = degree[best];
+            rec.Accept(() => new NodeSet(cover),
+                () => $"Take {best}: it covers {gain} more edge{(gain == 1 ? "" : "s")}, the most of any node left.", best);
         }
 
-        return "{" + string.Join(",", cover) + "}";
+        return cover;
     }
 }
