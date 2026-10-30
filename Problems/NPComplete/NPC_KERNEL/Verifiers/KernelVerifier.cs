@@ -45,6 +45,6 @@ class KernelVerifier : IVerifier<KERNEL> {
 
         // TODO: implement {VERIFIER} for {PROBLEM}
         // An unfinished verifier must fail loudly, not accept every certificate.
-            return true;
+        return true;
     }
 }
