@@ -40,7 +40,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     public AkariSolver defaultSolver { get; } = new AkariSolver();
     public AkariVerifier defaultVerifier { get; } = new AkariVerifier();
     public AkariVisualization defaultVisualization { get; } = new AkariVisualization();
-    public string[] contributors { get; } = { "Carter Luker", "Daniel Fawson" };
+    public string[] contributors { get; } = { "Carter Luker", "Danny Fawson" };
     // Declared, not derived — do NOT infer this from which Problems/<Folder>/ this file
     // lives under. The folder is a filing convention only and is wrong for a dozen-plus
     // existing problems; declaring it explicitly here is the only source of truth the
