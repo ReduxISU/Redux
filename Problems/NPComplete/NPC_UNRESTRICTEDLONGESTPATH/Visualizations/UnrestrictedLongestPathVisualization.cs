@@ -53,7 +53,7 @@ class UnrestrictedLongestPathVisualization : IVisualization<UNRESTRICTEDLONGESTP
                         node.color = "Solution";
                     }
                 }
-                
+
             }
         }
 

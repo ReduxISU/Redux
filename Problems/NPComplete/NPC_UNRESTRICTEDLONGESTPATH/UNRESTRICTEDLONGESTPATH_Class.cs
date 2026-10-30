@@ -49,7 +49,7 @@ class UNRESTRICTEDLONGESTPATH : IGraphProblem<UnrestrictedLongestPathSolver, Unr
     public UnrestrictedLongestPathVisualization defaultVisualization { get; } = new UnrestrictedLongestPathVisualization();
     public string[] contributors { get; } = { "Alice Giola", "Sadman Hasan", "Javier Rodriguez Lopez" };
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
-    
+
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
     // --- Properties ---
