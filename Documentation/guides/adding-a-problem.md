@@ -352,7 +352,7 @@ Those tests only prove the basics. They do not prove your problem, solver, or ve
 
 ### Tests you write yourself
 
-> **The build check won't tell you if you skipped this.** CI checks that every test passes, not that you wrote any. Your own tests are the only thing that proves your code gives the right answers, so reviewers will look for the ones in this guide's checklist. See [building-and-testing.md](building-and-testing.md#4-how-to-read-the-rbs-report).
+> **A problem class on its own doesn't need tests of its own.** The shared tests above already check it. They are optional but welcome. If your PR includes a solver, verifier, visualization or reduction, add tests for that part, as its guide explains. CI checks that every test passes, not that you wrote any, but your own tests are the only thing that proves that code gives the right answers, so reviewers will look for them. See [building-and-testing.md](building-and-testing.md#4-how-to-read-the-rbs-report).
 
 Problem tests live in the test project, one folder per problem:
 
@@ -360,7 +360,7 @@ Problem tests live in the test project, one folder per problem:
 redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs
 ```
 
-**If you used the template download in Step 1, you already have this file.** It is the last file in the zip, `redux-tests/Problems/NPC_<NAME>/<NAME>_Tests.cs`, and it is generated for your problem's name. The generic tests (the default instance builds, bad instances and bad certificates throw the right exceptions, the solver's answer is accepted by the verifier) pass once your code follows the rules. The stub tests (the default instance's fields, a valid certificate, a wrong certificate, no solution, the timer) contain a `TODO` and fail on purpose until you replace each `TODO` with a value you worked out by hand. Copy-paste examples of finished tests are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
+**If you used the template download in Step 1, you already have this file.** If you aren't writing tests, delete it, because its stub tests fail on purpose. If you keep it, also remove the tests for any part you deleted. It is the last file in the zip, `redux-tests/Problems/NPC_<NAME>/<NAME>_Tests.cs`, and it is generated for your problem's name. The generic tests (the default instance builds, bad instances and bad certificates throw the right exceptions, the solver's answer is accepted by the verifier) pass once your code follows the rules. The stub tests (the default instance's fields, a valid certificate, a wrong certificate, no solution, the timer) contain a `TODO` and fail on purpose until you replace each `TODO` with a value you worked out by hand. Copy-paste examples of finished tests are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
 
 If you copied the template by hand, create the file yourself at that path, using the template [PROBLEM_Tests.txt](../../ProblemTemplate/Templates/Tests/PROBLEM_Tests.txt) the same way as the other templates.
 
@@ -411,7 +411,7 @@ public void NAME_Constructor_Throws_On_Invalid_Instance(string instance) {
 }
 ```
 
-Aim for at least: one instantiation test, one bad-instance test, and the verifier and solver tests described in their guides.
+If you write tests for the problem class, a good start is one instantiation test and one bad-instance test. If your PR includes a solver or verifier, add the tests described in its guide.
 
 ## 6. Build, test, and get CI green
 
@@ -462,7 +462,7 @@ A new problem is done when:
 - [ ] Bad instances throw `ProblemParseException`.
 - [ ] Any solver, verifier or visualization you include is finished, marked `[DefaultFor(typeof(YOURPROBLEM))]`, and follows its own guide. Generated files for parts you are not writing yet are deleted.
 - [ ] Every name in every `contributors` list is one person's full name. If you edited `wwwroot/contributorInfo.json`, its stats are left at zero.
-- [ ] You added `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`.
+- [ ] If your PR includes a solver, verifier, visualization or reduction, you added tests for it in `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`. A problem class on its own doesn't need this file.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).
 - [ ] The PR targets `CSharpAPI`.

@@ -1,6 +1,7 @@
 // Put this file at redux-tests/Problems/NPC_{NAME_UPPERCASE}/{NAME_UPPERCASE}_Tests.cs
 //
 // How to use it:
+// - If your PR is only the problem class, you can delete this file. The shared tests check it.
 // - The tests marked GENERIC are finished. They pass once your problem, solver, and
 //   verifier follow the rules in the contributor guides.
 // - The tests marked STUB fail on purpose. Each one contains a "TODO" placeholder. Replace
