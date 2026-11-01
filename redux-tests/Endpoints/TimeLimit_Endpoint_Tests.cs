@@ -193,7 +193,7 @@ public class TimeLimit_NormalRequest_Tests : IClassFixture<AppFactory> {
         string instance = new API.Problems.NPComplete.NPC_SAT3.SAT3().defaultInstance;
         // Serialized as the endpoint does: by the declared type, IReduction.
         IReduction reduction = new API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE.SipserReduceToCliqueStandard(instance);
-        string expected = JsonSerializer.Serialize(reduction, new JsonSerializerOptions { WriteIndented = true });
+        string expected = JsonSerializer.Serialize(reduction, TagListJson.Apply(new JsonSerializerOptions { WriteIndented = true }));
         var (status, body) = await Post("/ProblemProvider/reduce?reduction=SipserReduceToCliqueStandard", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(expected, body);

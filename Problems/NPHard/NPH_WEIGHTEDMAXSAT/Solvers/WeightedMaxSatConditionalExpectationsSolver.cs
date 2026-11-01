@@ -20,9 +20,9 @@ class WeightedMaxSatConditionalExpectationsSolver : ISolver<WEIGHTEDMAXSAT> {
     public WeightedMaxSatConditionalExpectationsSolver() { }
 
     public string solve(WEIGHTEDMAXSAT problem) {
-        if (timerHasExpired) return "timeout";
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         var result = Optimize(problem, () => timerHasExpired);
-        if (timerHasExpired) return "timeout";
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         return WeightedMaxSatBruteForceSolver.FormatCertificate(problem.variables, result.Assignment, result.Value);
     }
 
