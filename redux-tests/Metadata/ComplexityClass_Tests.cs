@@ -100,10 +100,9 @@ public class ComplexityClass_Tests : IClassFixture<AppFactory> {
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
 
         Assert.True(unexpected.Count == 0,
-            $"Problem(s) declared ComplexityClass.Unclassified without being added to the allowlist: " +
-            $"{string.Join(", ", unexpected)}. Either declare a real ComplexityClass (needs advisor " +
-            "sign-off — see the header of this file), or add the class to UnclassifiedAllowlist in " +
-            "ComplexityClass_Tests.cs.");
+            $"Problem(s) still declared ComplexityClass.Unclassified: {string.Join(", ", unexpected)}. " +
+            "Declare the real class from the literature (see Interfaces/ComplexityClass.cs). " +
+            "If you aren't sure which, ask in your PR.");
     }
 
     [Fact]

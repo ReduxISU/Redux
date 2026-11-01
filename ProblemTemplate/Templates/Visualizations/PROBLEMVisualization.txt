@@ -4,6 +4,8 @@ using API.Problems.NPComplete.NPC_{PROBLEM};
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Visualizations;
 
+// Not finishing this visualization yet? Delete this file. A problem with no [DefaultFor] visualization
+// uses DummyVisualization, which draws nothing, until someone adds one.
 {DEFAULT_FOR}
 class {VISUALIZATION_PASCAL_CASE} : IVisualization<{PROBLEM}> {
     public string visualizationName { get; } = "{VISUALIZATION}";

@@ -405,7 +405,8 @@ public class ContributorProfile_Tests {
     }
 
     // A handful of entries are deliberate "we don't know" placeholders rather than a
-    // name that should be in contributorInfo.json — don't nag about those every run.
+    // name that should be in contributorInfo.json — don't nag about those every run. "TODO" is here
+    // for a few older classes; NoPlaceholder_Tests is what stops a new one.
     private static readonly HashSet<string> _placeholders = new(StringComparer.OrdinalIgnoreCase) {
         "", "Author Unknown", "TODO",
     };

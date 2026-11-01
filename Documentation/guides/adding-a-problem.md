@@ -171,12 +171,12 @@ The generated solver, verifier, and visualization each start with `[DefaultFor(t
 **The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
 1. In the class, `complexityClass`, `problemType` and `problemVariant` are declared as `Unclassified` (Step 2).
-2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `complexity` are left for you to fill in. The verifier is already named `"<Problem Name> Solution Verifier"`; change it to the optimality form only if its implemented behavior proves optimality. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
+2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `timeComplexity` are left for you to fill in. The verifier is already named `"<Problem Name> Solution Verifier"`; change it to the optimality form only if its implemented behavior proves optimality. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
 3. The generated visualization has `VisualizationType.Unimplemented`. A test rejects new classes that stay `Unimplemented`. Either finish it ([adding-a-visualization.md](adding-a-visualization.md)) or delete the generated visualization and use `DummyVisualization`.
 
 The same goes for the solver and verifier: if you are not writing one in this PR, delete its generated file, and the problem uses the placeholder.
 
-Also remove every `"TODO"` before you open the PR (the contributor name `"TODO"` is tolerated by one test, but it is not acceptable in a PR).
+Also remove every `"TODO"` before you open the PR. A test fails on any value that still has one, and names the class and field (section 5).
 
 ### Step 2. Fill in the members
 
@@ -306,15 +306,17 @@ If you forget, the API still protects itself. `ParseGuard` ([ParseExceptions.cs]
 
 **Hand parsing** (without SPADE) is allowed for odd formats, as long as the same rules hold: a clear error on bad input, never a crash.
 
-### Step 4. Add the solver, verifier, and visualization
+### Step 4. Add a solver, verifier, or visualization (optional)
 
-Your class does not refer to these, so it compiles without them, but the PR needs them. Mark the default one of each kind `[DefaultFor(typeof(YOURPROBLEM))]`. Follow the matching guide for each:
+Your class does not refer to these, so it compiles without them, and the PR doesn't need them. For each one you write, mark the default of its kind `[DefaultFor(typeof(YOURPROBLEM))]`. Follow the matching guide for each:
 
-1. [adding-a-solver.md](adding-a-solver.md): at least one solver, in `Solvers/`. The one marked `[DefaultFor]` becomes `defaultSolver`.
-2. [adding-a-verifier.md](adding-a-verifier.md): at least one verifier, in `Verifiers/`. The one marked `[DefaultFor]` becomes `defaultVerifier`. Its `CertificateGrammar` and `CertificateExample` constants are what your `certificateFormat` quotes, so the two stay in sync.
-3. [adding-a-visualization.md](adding-a-visualization.md): a real visualization in `Visualizations/` marked `[DefaultFor]`, or none (the problem then uses `DummyVisualization`).
+1. [adding-a-solver.md](adding-a-solver.md): a solver, in `Solvers/`. The one marked `[DefaultFor]` becomes `defaultSolver`.
+2. [adding-a-verifier.md](adding-a-verifier.md): a verifier, in `Verifiers/`. The one marked `[DefaultFor]` becomes `defaultVerifier`. Its `CertificateGrammar` and `CertificateExample` constants are what your `certificateFormat` quotes, so the two stay in sync.
+3. [adding-a-visualization.md](adding-a-visualization.md): a real visualization in `Visualizations/`.
 
-Tip: the problem class runs on its own with the placeholders, so get it parsing and serving its default instance first, then add a solver and verifier.
+For any you skip, delete the generated file and the problem uses a placeholder: `DummySolver` answers `""`, `DummyVerifier` makes the API answer 400 with "no verifier yet", and `DummyVisualization` draws nothing.
+
+Tip: the problem class runs on its own with the placeholders, so get it parsing and serving its default instance first. Then add a solver and verifier, in this PR or a later one.
 
 ### Step 5. Reductions (optional)
 
@@ -337,7 +339,8 @@ You do not have to register your problem with these tests. They find it automati
 | [Metadata/ProblemVariant_Tests.cs](../../redux-tests/Metadata/ProblemVariant_Tests.cs) | `problemVariant` is not `Unclassified`. |
 | [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier uses the matching solution or optimality name and is unique within the problem ignoring case, and your solver and reduction names match the naming shapes (see their guides). |
 | [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs) | Your visualization's `visualizationType` is not `Unimplemented` (only a short list of existing classes, including `DummyVisualization`, is excused), and the list of visualization types matches the manifest [Documentation/visualization-types.json](../visualization-types.json) (only matters if you add a new type). |
-| [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and Big-O text (see [adding-a-solver.md](adding-a-solver.md)). |
+| [Metadata/NoPlaceholder_Tests.cs](../../redux-tests/Metadata/NoPlaceholder_Tests.cs) | No value in your problem, solver, verifier, visualization, or reduction still says `TODO`, and your constructor refuses garbage instead of accepting anything. |
+| [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and `timeComplexity` (see [adding-a-solver.md](adding-a-solver.md)). |
 | [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) is one person's full name; `wwwroot/contributorInfo.json` is valid; committed stats are zero; no GitHub account is shared between two people. |
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) to `/problemInstance` for your problem, and to your solver, verifier, and visualization, **never produces a 500**. A bad instance must be a 400. |
 | [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) | The navigation lists put each problem in the list for its declared class, and find its solvers, verifiers, and visualizations. Your problem is checked automatically from the `complexityClass` you declare; you do not edit this file. |
@@ -447,7 +450,7 @@ To see your problem working, start the API (see [setup.md](setup.md)) and call `
 A new problem is done when:
 
 - It implements the interfaces correctly.
-- It has at least one solver and one verifier.
+- Any solver, verifier or visualization you include is finished. None is required: the problem class alone is a complete PR.
 - Its tests pass (including the automatic ones above).
 - Every metadata field is filled in. No `"TODO"` is left, and `complexityClass`, `problemType` and `problemVariant` are declared.
 

@@ -2,6 +2,8 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Solvers;
 
+// Not finishing this solver yet? Delete this file. A problem with no [DefaultFor] solver uses
+// DummySolver, which answers "", until someone adds one.
 {DEFAULT_FOR}
 class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
 

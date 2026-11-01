@@ -3,6 +3,8 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_{PROBLEM}.Verifiers;
 
+// Not finishing this verifier yet? Delete this file. A problem with no [DefaultFor] verifier uses
+// DummyVerifier, which makes the API answer 400 ("no verifier yet"), until someone adds one.
 {DEFAULT_FOR}
 class {VERIFIER_PASCAL_CASE} : IVerifier<{PROBLEM}> {
 
