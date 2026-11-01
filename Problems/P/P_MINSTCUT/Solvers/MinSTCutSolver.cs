@@ -26,7 +26,7 @@ class MinSTCutSolver : ISolver<MINSTCUT> {
         var residual = BuildResidual(problem.nodes, problem.edges);
 
         while (true) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             var parent = BfsAugmentingPath(residual, problem.sourceNode, problem.targetNode);
             if (parent == null) break;
