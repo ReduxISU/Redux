@@ -32,6 +32,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
     public string solve(SAT3 sat3) {
         Dictionary<string, bool>? solution = findSolution(sat3);
 
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (solution == null) {
             return "No Solution";
         }
@@ -97,6 +98,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3> {
 
         //O(n!)
         while (!solutionFound && satPQ.Count > 0) {
+            if (timerHasExpired) return null; // #935: stop at the time limit; solve() reports the stop
             curSat = satPQ.Dequeue();
             // Console.WriteLine("curSat's nextVar is : " + curSat.nextVar);
             List<SAT3PQObject> childSATs = curSat.createSATChildren(curSat.depth, totalNumberOfVariables); //ADD VARIABLE TO INPUT

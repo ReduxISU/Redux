@@ -48,6 +48,7 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01> {
             binary.Add(0);
         }
         for (int i = 0; i < Math.Pow(2, binary.Count); i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = BinaryToCertificate(binary);
             if (intPrograming.defaultVerifier.verify(intPrograming, certificate)) {
                 return certificate;

@@ -85,6 +85,7 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
         // guaranteed false on the initial all-zero binary (no digit can equal
         // numColors - 1 >= 1 yet), so this restructuring does not change behavior there.
         do {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = BinaryToCertificate(binary, gColor.nodes, numColors);
             if (gColor.defaultVerifier.verify(gColor, certificate)) {
                 return certificate;

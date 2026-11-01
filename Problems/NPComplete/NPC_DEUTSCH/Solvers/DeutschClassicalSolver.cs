@@ -22,6 +22,7 @@ class DeutschClassicalSolver : ISolver<DEUTSCH> {
     public DeutschClassicalSolver() { }
 
     public string solve(DEUTSCH problem) {
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
         if (problem.Func(false) == problem.Func(true))
             return "constant";
         return "balanced";
