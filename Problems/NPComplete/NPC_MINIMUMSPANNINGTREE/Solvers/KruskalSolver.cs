@@ -37,7 +37,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE> {
         // Deterministic tie-breaking keeps certificates stable across runs.
         foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v))) {
             if (timerHasExpired)
-                return "{}";
+                return SolveRun.TimedOutAnswer;
 
             if (uf.Find(edge.u) != uf.Find(edge.v)) {
                 uf.Union(edge.u, edge.v);

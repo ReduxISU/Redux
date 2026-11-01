@@ -61,6 +61,7 @@ class PartitionBruteForce : ISolver<PARTITION> {
         }
         string certificate = BinaryToCertificate(binary, partition.S);
         while (counter < Math.Pow(2, partition.S.Count)) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             nextBinary(binary);
             certificate = BinaryToCertificate(binary, partition.S);
             if (partition.defaultVerifier.verify(partition, certificate)) {

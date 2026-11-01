@@ -45,6 +45,7 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT> {
         List<string> order = new List<string>();
 
         while (queue.Count > 0) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string current = queue.Dequeue();
             order.Add(current);
 

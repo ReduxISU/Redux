@@ -52,6 +52,7 @@ class WalkSAT : ISolver<SAT3> {
             }
 
             for (int flip = 0; flip < maxFlips; flip++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 // Identify unsatisfied clauses
                 List<List<string>> unsatisfiedClauses = new List<List<string>>();
                 foreach (List<string> clause in sat3.clauses) {

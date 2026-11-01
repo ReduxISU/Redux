@@ -28,6 +28,7 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH> {
         // For a classical solution, we just need to loop over the values and
         // find the first non-zero value.
         for (int i = 0; i < problem.funcValues.Count; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             if (problem.funcValues[i] != 0)
                 return Convert.ToString(i);
         }
