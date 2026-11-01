@@ -573,7 +573,7 @@ You write nothing for these. They find your new class by themselves and check th
 | --- | --- |
 | Metadata is declared, not left `Unclassified` (complexity class, problem type, solver, reduction, and visualization types) | [redux-tests/Metadata/](../../redux-tests/Metadata/) |
 | Names follow the naming rules (for example, `<Problem> Solution Verifier`) | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) |
-| Every name in a `contributors` list has an entry in `wwwroot/contributorInfo.json` | [ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) |
+| Every name in a `contributors` list is one person's full name | [ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) |
 | Garbage input never causes a server error (500) | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) |
 | Every reduction builds and produces an instance the TO problem can read | [ReductionSmoke_Tests.cs](../../redux-tests/Metadata/ReductionSmoke_Tests.cs) |
 | Default instances run within a time budget (the separate "Performance" step) | [Performance_Tests.cs](../../redux-tests/Endpoints/Performance_Tests.cs) |

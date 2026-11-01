@@ -335,16 +335,14 @@ public class ContributorProfile_Tests {
     // ─── contributors[] arrays vs. contributorInfo.json ────────────────────────
 
     // Every name that shows up in a `contributors` array anywhere in the codebase
-    // (Problems, Solvers, Reductions, Verifiers, Visualizers) has to match a
-    // contributorInfo.json key exactly, or that person's work silently stops
-    // counting toward their profile. This is the failure mode that let
-    // SUDOKU_Class ("Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" as one
-    // string) and BINPACKING_Class (first names only: "Himanshu", "Rakesh",
-    // "Prashanta") go unnoticed. When this test fails, either fix the contributors[]
-    // array to use the person's full contributorInfo.json name, or add them to
-    // contributorInfo.json if they're new.
+    // (Problems, Solvers, Reductions, Verifiers, Visualizers) has to be one person's full
+    // name, or that person's work can't be matched to a profile. This is the failure mode
+    // that let SUDOKU_Class ("Eric Hill, Carter Luker, Collin Kress, & Daniel Fawson" as one
+    // string) and BINPACKING_Class (first names only: "Himanshu", "Rakesh", "Prashanta") go
+    // unnoticed. A new name doesn't need a contributorInfo.json entry yet: the weekly
+    // contributor scan adds one (Tools/ContributorStatsSync).
     [Fact]
-    public void AllDeclaredContributors_MatchAContributorInfoJsonEntry() {
+    public void AllDeclaredContributors_AreOnePersonsFullName() {
         string content = File.ReadAllText(_jsonFilePath);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var knownContributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(content, options);
@@ -357,7 +355,7 @@ public class ContributorProfile_Tests {
             try {
                 if (Activator.CreateInstance(type) is IProblem instance) {
                     foreach (var name in instance.contributors) {
-                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Problem '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                        if (!IsAcceptableContributorName(name, knownNames)) unmatched.Add($"Problem '{type.Name}' credits '{name}', which is not one person's full name");
                     }
                 }
             } catch { }
@@ -367,7 +365,7 @@ public class ContributorProfile_Tests {
             try {
                 if (Activator.CreateInstance(type) is ISolver instance) {
                     foreach (var name in instance.contributors) {
-                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Solver '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                        if (!IsAcceptableContributorName(name, knownNames)) unmatched.Add($"Solver '{type.Name}' credits '{name}', which is not one person's full name");
                     }
                 }
             } catch { }
@@ -377,7 +375,7 @@ public class ContributorProfile_Tests {
             try {
                 if (Activator.CreateInstance(type) is IReduction instance) {
                     foreach (var name in instance.contributors) {
-                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Reduction '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                        if (!IsAcceptableContributorName(name, knownNames)) unmatched.Add($"Reduction '{type.Name}' credits '{name}', which is not one person's full name");
                     }
                 }
             } catch { }
@@ -387,7 +385,7 @@ public class ContributorProfile_Tests {
             try {
                 if (Activator.CreateInstance(type) is IVerifier instance) {
                     foreach (var name in instance.contributors) {
-                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Verifier '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                        if (!IsAcceptableContributorName(name, knownNames)) unmatched.Add($"Verifier '{type.Name}' credits '{name}', which is not one person's full name");
                     }
                 }
             } catch { }
@@ -397,13 +395,13 @@ public class ContributorProfile_Tests {
             try {
                 if (Activator.CreateInstance(type) is IVisualization instance) {
                     foreach (var name in instance.contributors) {
-                        if (!IsKnownOrPlaceholder(name, knownNames)) unmatched.Add($"Visualization '{type.Name}' credits '{name}', which has no contributorInfo.json entry");
+                        if (!IsAcceptableContributorName(name, knownNames)) unmatched.Add($"Visualization '{type.Name}' credits '{name}', which is not one person's full name");
                     }
                 }
             } catch { }
         }
 
-        Assert.True(unmatched.Count == 0, "Found contributors[] entries with no matching contributorInfo.json key:\n" + string.Join("\n", unmatched));
+        Assert.True(unmatched.Count == 0, "Put one person's full name in each contributors[] entry, for example { \"Ada Lovelace\", \"Alan Turing\" }:\n" + string.Join("\n", unmatched));
     }
 
     // A handful of entries are deliberate "we don't know" placeholders rather than a
@@ -412,8 +410,32 @@ public class ContributorProfile_Tests {
         "", "Author Unknown", "TODO",
     };
 
-    private static bool IsKnownOrPlaceholder(string name, HashSet<string> knownNames) {
-        return knownNames.Contains(name) || _placeholders.Contains(name);
+    private static bool IsAcceptableContributorName(string name, HashSet<string> knownNames) {
+        return knownNames.Contains(name) || _placeholders.Contains(name) || LooksLikeOneFullName(name);
+    }
+
+    // At least two words and nothing that joins several people into one string.
+    private static bool LooksLikeOneFullName(string name) {
+        if (name.Contains(',') || name.Contains('&') || name.Contains(';')) return false;
+        var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return words.Length >= 2 && !words.Contains("and", StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("Reece Foulkrod", true)]
+    [InlineData("Javier Rodriguez Lopez", true)]
+    [InlineData("Jason L. Wright", true)]
+    [InlineData("Himanshu", false)]
+    [InlineData("Eric Hill, Carter Luker", false)]
+    [InlineData("Eric Hill & Carter Luker", false)]
+    [InlineData("Eric Hill and Carter Luker", false)]
+    public void ContributorName_MustBeOnePersonsFullName_UnlessAlreadyListed(string name, bool expected) {
+        Assert.Equal(expected, IsAcceptableContributorName(name, new HashSet<string>()));
+    }
+
+    [Fact]
+    public void ContributorName_AlreadyListed_IsAcceptedAsWritten() {
+        Assert.True(IsAcceptableContributorName("Himanshu", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "himanshu" }));
     }
 
     // ─── GET /all ─────────────────────────────────────────────────────────────

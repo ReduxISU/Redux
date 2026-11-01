@@ -8,6 +8,8 @@
 //   A test that still has a TODO in it is not finished.
 // - Add more tests of your own. Ready-to-copy examples are in
 //   Documentation/guides/building-and-testing.md, section 5 ("Required tests for each kind of change").
+// - If you deleted the solver or verifier, delete the tests that use it and its `using` line
+//   below, or the test project will not compile.
 // - Remove this comment block when you are done.
 using Xunit;
 using API.Interfaces;

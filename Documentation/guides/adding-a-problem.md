@@ -42,7 +42,7 @@ The problem class compiles on its own. Until a class declares `[DefaultFor(typeo
 | Default verifier | Optional. One class implementing `IVerifier<YourProblem>`, marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-verifier.md](adding-a-verifier.md) |
 | Default visualization | Optional. A real one marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-visualization.md](adding-a-visualization.md) |
 
-**Only commit the parts you have finished.** If you are not writing a solver, verifier or visualization yet, delete its generated file instead of leaving it half done. The placeholder takes its place, and the tests pass. A generated file left with `TODO`s, `Unclassified` values or `NotImplementedException` fails the tests on purpose.
+**Only commit the parts you have finished.** If you are not writing a solver, verifier or visualization yet, delete its generated file instead of leaving it half done. The placeholder takes its place, and the tests pass. Also delete any tests that use the deleted part and the `using` line for its folder (`...Solvers` or `...Verifiers`), or the test project will not compile. A generated file left with `TODO`s, `Unclassified` values or `NotImplementedException` fails the tests on purpose.
 
 A problem has at most one `[DefaultFor]` class of each kind; a test checks that (section 5).
 
@@ -216,13 +216,15 @@ The API returns each of these as a list in the enum's order (`problemTypes`, `pr
 
 "Declared" means a human decides. No tool computes them for you.
 
-**Contributors.** `contributors` is a list of names. Every name must match a key in [wwwroot/contributorInfo.json](../../wwwroot/contributorInfo.json) exactly (ignoring upper/lower case). A test checks every problem, solver, verifier, visualization, and reduction (section 5). If you are new:
+**Contributors.** `contributors` is a list of full names, one person per array element. A test checks every problem, solver, verifier, visualization, and reduction (section 5). You do not have to edit any other file for a new name: a weekly job adds an entry to [wwwroot/contributorInfo.json](../../wwwroot/contributorInfo.json) after your work merges, and that entry is what puts you on the About Us page.
 
-1. Add an entry for yourself to `wwwroot/contributorInfo.json`, copying the shape of an existing entry: `email`, `education`, `major`, `bio`, `githubUsername`, and the two stats objects.
+If you are already in that file, write your name exactly as it appears there, so your work counts toward your profile. If you want to add your own entry, with a bio, in your PR, you can:
+
+1. Copy the shape of an existing entry: `email`, `education`, `major`, `bio`, `githubUsername`, and the two stats objects.
 2. **Leave both stats objects at zero** (`"reduxStats": { "prsMerged": 0, "reviews": 0 }` and the same for `reduxGuiStats`). A test fails if non-zero counts are committed; the release build fills them in. The tool that does this is in [Tools/ContributorStatsSync](../../Tools/ContributorStatsSync/Program.cs).
 3. A GitHub account can belong to only one entry. If you use a second account, list the extra one under `"otherGithubUsernames"`.
 
-Use full names ("Garret Stouffer", not "Garret"), one name per array element.
+Use full names ("Garret Stouffer", not "Garret").
 
 ### Step 3. Parse the instance
 
@@ -336,7 +338,7 @@ You do not have to register your problem with these tests. They find it automati
 | [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier uses the matching solution or optimality name and is unique within the problem ignoring case, and your solver and reduction names match the naming shapes (see their guides). |
 | [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs) | Your visualization's `visualizationType` is not `Unimplemented` (only a short list of existing classes, including `DummyVisualization`, is excused), and the list of visualization types matches the manifest [Documentation/visualization-types.json](../visualization-types.json) (only matters if you add a new type). |
 | [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and Big-O text (see [adding-a-solver.md](adding-a-solver.md)). |
-| [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) has an entry in `wwwroot/contributorInfo.json`; the file is valid; committed stats are zero; no GitHub account is shared between two people. |
+| [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) is one person's full name; `wwwroot/contributorInfo.json` is valid; committed stats are zero; no GitHub account is shared between two people. |
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) to `/problemInstance` for your problem, and to your solver, verifier, and visualization, **never produces a 500**. A bad instance must be a 400. |
 | [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) | The navigation lists put each problem in the list for its declared class, and find its solvers, verifiers, and visualizations. Your problem is checked automatically from the `complexityClass` you declare; you do not edit this file. |
 | [Endpoints/ProblemProvider_Endpoint_Tests.cs](../../redux-tests/Endpoints/ProblemProvider_Endpoint_Tests.cs) | `/info` and the other `ProblemProvider` endpoints work across the discovered classes. |
@@ -459,7 +461,7 @@ A new problem is done when:
 - [ ] `complexityClass`, `problemType` and `problemVariant` are declared (not `Unclassified`), and the folder matches the class.
 - [ ] Bad instances throw `ProblemParseException`.
 - [ ] Any solver, verifier or visualization you include is finished, marked `[DefaultFor(typeof(YOURPROBLEM))]`, and follows its own guide. Generated files for parts you are not writing yet are deleted.
-- [ ] Every name in every `contributors` list is in `wwwroot/contributorInfo.json`, with stats left at zero.
+- [ ] Every name in every `contributors` list is one person's full name. If you edited `wwwroot/contributorInfo.json`, its stats are left at zero.
 - [ ] You added `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).
@@ -479,7 +481,7 @@ A new problem is done when:
 - **Only checking the shape of the input.** `{1,x,3}` looks like a set. Check that each value is a number.
 - **Giving the generated verifier a name outside the solution/optimality forms.** The template uses `"<Problem Name> Solution Verifier"`. If you change the problem's `problemName`, change the verifier's name to match; use the optimality form only when its behavior proves optimality.
 - **A generated visualization left as `Unimplemented`.** Finish it or use `DummyVisualization`.
-- **A name in `contributors` that is not in `contributorInfo.json`**, or a first name only. Use the full name as it appears in the file.
+- **A first name only, or several people in one string, in `contributors`.** Use one full name per array element, written as it appears in `contributorInfo.json` if you are already there.
 - **Committing non-zero contributor stats.** Leave them at zero.
 - **Writing a controller.** Not needed. Reflection exposes your class.
 - **Editing the test allowlists** to turn a failure green. Fix the cause.
