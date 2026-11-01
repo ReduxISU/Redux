@@ -20,7 +20,7 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT> {
 
     public string solve(WEIGHTEDMAXSAT problem) {
         var result = Optimize(problem, () => timerHasExpired);
-        return timerHasExpired ? "timeout" : FormatCertificate(problem.variables, result.Assignment, result.Value);
+        return timerHasExpired ? SolveRun.TimedOutAnswer : FormatCertificate(problem.variables, result.Assignment, result.Value);
     }
 
     internal static string FormatCertificate(

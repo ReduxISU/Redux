@@ -20,7 +20,7 @@ class WeightedMaxSatBranchAndBoundSolver : ISolver<WEIGHTEDMAXSAT> {
 
     public string solve(WEIGHTEDMAXSAT problem) {
         var result = Optimize(problem);
-        return timerHasExpired ? "timeout" : WeightedMaxSatBruteForceSolver.FormatCertificate(problem.variables, result.Assignment, result.Value);
+        return timerHasExpired ? SolveRun.TimedOutAnswer : WeightedMaxSatBruteForceSolver.FormatCertificate(problem.variables, result.Assignment, result.Value);
     }
 
     private (Dictionary<string, bool> Assignment, long Value) Optimize(WEIGHTEDMAXSAT problem) {
