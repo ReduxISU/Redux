@@ -49,6 +49,7 @@ class PUMPSCHEDULINGCM : IProblem<PumpSchedulingCMSolver, PumpSchedulingCMVerifi
     // makes the folder's claim machine-checkable instead of implicit.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
     public ProblemType problemType { get; } = ProblemType.SequencingAndScheduling;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
     // Grammar: 3-section tuple — Tank, Demand config, Pumps.
     // D nests demand curve, peak hours, and tariff rates together as one section.

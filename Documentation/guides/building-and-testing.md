@@ -188,13 +188,13 @@ The report has one line per gate. For the Redux (dotnet) setup, configured in [r
 
 **About coverage.** `rbs.toml` asks for at least 80% coverage (`coverage-min = 80`). The project is currently at about 85%, so the `unit-test` line should be green. If it turns red on your PR, the coverage dropped below 80%, which usually means new code went in without tests. Add tests for the code you write, and coverage stays above the line.
 
-**CI does not check that you wrote tests.** The required build check only makes sure every test that exists passes. A new problem, solver, verifier, or reduction with no tests of its own can still pass it, because the shared tests only check the basics (metadata, names, bad input). Coverage won't catch it either: one new class barely moves the overall number. Your own tests are the only thing that checks your code gives the *right answers*. For example, a verifier that rejects every correct answer passes every shared test. Each task guide has a "Tests you write yourself" section and a checklist saying which tests to add, and reviewers will look for them.
+**CI does not check that you wrote tests.** The required build check only makes sure every test that exists passes. A new problem, solver, verifier, or reduction with no tests of its own can still pass it, because the shared tests only check the basics (metadata, names, bad input). That is enough for a problem class on its own, but not for a solver, verifier, visualization or reduction. Coverage won't catch it either: one new class barely moves the overall number. Your own tests are the only thing that checks your code gives the *right answers*. For example, a verifier that rejects every correct answer passes every shared test. Each task guide has a "Tests you write yourself" section and a checklist saying which tests to add, and reviewers will look for them.
 
 If a gate is red and you are not sure why, paste the line into a PR comment and ask. A format or lint failure is always worth fixing before you ask for review.
 
 ## 5. Required tests for each kind of change
 
-CI does not check that these tests exist (see the note just above), so use this section as your checklist. Reviewers will look for them.
+CI does not check that these tests exist (see the note just above), so use this section as your checklist. Reviewers will look for them, with one exception: a problem class on its own doesn't need tests of its own, because the shared tests already check it. The tests under "Adding a problem" are optional for that case. A solver, verifier, visualization or reduction still needs the tests listed for it.
 
 **If you used the problem template, you already have most of these tests.** `GET /ProblemTemplate?problemName=...` also gives you a test file, `redux-tests/Problems/NPC_<NAME>/<NAME>_Tests.cs`, with the tests for a new problem already written. The generic ones pass once your code follows the rules. The stub ones contain a `TODO` and fail on purpose until you fill them in. See [adding-a-problem.md, "Where each file in the zip goes"](adding-a-problem.md#where-each-file-in-the-zip-goes). The examples below are for when you add a test by hand, or want to see a finished version of a stub.
 
@@ -214,8 +214,7 @@ Details: [adding-a-problem.md, "Tests you write yourself"](adding-a-problem.md#t
 
 - [ ] The default instance builds, and its fields hold the values you expect.
 - [ ] A malformed instance throws `ProblemParseException`. Use a `[Theory]` with several bad inputs: an empty string, the wrong shape, and a non-number where a number belongs.
-- [ ] The verifier tests and the solver tests below. A new problem comes with both.
-- [ ] **Edit an existing test:** add your problem's class name to the hard-coded list for its complexity class in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard). This test fails until you do.
+- [ ] The verifier tests and the solver tests below, for each one your PR includes. A problem can come without them (#919).
 
 <details>
 <summary>Example tests for a problem (copy and adapt)</summary>
@@ -265,7 +264,7 @@ public void SUBSETSUM_Constructor_Throws_On_Invalid_Instance(string instance) {
 }
 ```
 
-The "edit an existing test" item has no code: open [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) and add your class name to the list for your complexity class. The verifier and solver items are in the next two blocks.
+The verifier and solver items are in the next two blocks.
 
 </details>
 
@@ -352,7 +351,7 @@ Details: [adding-a-solver.md, "Tests you write yourself"](adding-a-solver.md#tes
 - [ ] An instance with **no solution** returns your documented "no solution" value (usually `"{}"`).
 - [ ] A tricky small case: the answer is the first item only, or the last item only.
 - [ ] The smallest allowed input (one item, or empty if the problem allows it).
-- [ ] The timer: with `timerHasExpired = true` before calling `solve`, it returns quickly with your documented value.
+- [ ] The timer: with `timerHasExpired = true` before calling `solve`, it returns `SolveRun.TimedOutAnswer` quickly.
 - [ ] Approximation or heuristic solvers only: the answer is either the "no solution" value or passes the verifier.
 
 <details>
@@ -413,16 +412,16 @@ public void SUBSETSUM_Solver_Handles_Single_Element_Instance() {
 }
 ```
 
-The timer: with `timerHasExpired = true`, the solver gives up and returns its documented value. Subset Sum's brute force returns `"{}"`. The template's solver returns `"timeout"`, so write whichever your solver does:
+The timer: with `timerHasExpired = true`, the solver gives up and returns `SolveRun.TimedOutAnswer`, the one timeout answer every solver uses (#935):
 
 ```csharp
 [Fact]
-public void SUBSETSUM_Solver_Returns_Empty_When_Timer_Has_Expired() {
-    // An expired timer makes the solver give up and return the "no solution" value.
+public void SUBSETSUM_Solver_Stops_When_Timer_Has_Expired() {
+    // An expired timer makes the solver give up: it has no answer, so it says it was stopped.
     SUBSETSUM problem = new SUBSETSUM();
     SubsetSumBruteForce solver = new SubsetSumBruteForce();
     solver.timerHasExpired = true;
-    Assert.Equal("{}", solver.solve(problem));
+    Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
 }
 ```
 
@@ -574,7 +573,7 @@ You write nothing for these. They find your new class by themselves and check th
 | --- | --- |
 | Metadata is declared, not left `Unclassified` (complexity class, problem type, solver, reduction, and visualization types) | [redux-tests/Metadata/](../../redux-tests/Metadata/) |
 | Names follow the naming rules (for example, `<Problem> Solution Verifier`) | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) |
-| Every name in a `contributors` list has an entry in `wwwroot/contributorInfo.json` | [ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) |
+| Every name in a `contributors` list is one person's full name | [ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) |
 | Garbage input never causes a server error (500) | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) |
 | Every reduction builds and produces an instance the TO problem can read | [ReductionSmoke_Tests.cs](../../redux-tests/Metadata/ReductionSmoke_Tests.cs) |
 | Default instances run within a time budget (the separate "Performance" step) | [Performance_Tests.cs](../../redux-tests/Endpoints/Performance_Tests.cs) |

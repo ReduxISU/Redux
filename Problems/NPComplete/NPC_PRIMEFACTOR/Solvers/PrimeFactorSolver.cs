@@ -36,7 +36,7 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR> {
         var i = new BigInteger(2);
         while (i * i <= numberToFactor) {
             if (timerHasExpired) {
-                return "TIMEOUT";
+                return SolveRun.TimedOutAnswer;
             }
 
             while (numberToFactor % i == 0) {

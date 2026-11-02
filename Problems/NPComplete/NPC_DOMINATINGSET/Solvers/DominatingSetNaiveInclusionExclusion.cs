@@ -64,6 +64,7 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
         List<int> solution = new List<int>();
 
         bool found = Branch(0, n, K, adj, chosen, ref solution, problem, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (!found) {
             rec.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.");
@@ -81,6 +82,10 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
     private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution,
         DOMINATINGSET problem, StepRecorder<NodeSet> rec) {
         string[] Names() => chosen.Select(c => problem.nodes[c]).ToArray();
+
+        // #935: unwind at the time limit; solve() then returns the timed-out answer.
+        if (timerHasExpired)
+            return false;
 
         if (chosen.Count > K) {
             rec.Reject(() => new NodeSet(Names()), () => $"{GraphSubsetFrames.Braces(Names())} has more than K = {K} vertices. Stop here.");

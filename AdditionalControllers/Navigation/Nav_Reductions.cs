@@ -40,17 +40,20 @@ internal static class ReductionCostCatalog {
 // className -> declared ReductionType / ReductionComplexityBucket wire values. Same
 // build shape as ReductionCostCatalog above (issue #376).
 internal static class ReductionTypeCatalog {
-    internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(BuildReductionType);
+    // Every declared tag, in enum order, and the deprecated single value (the first of them, Tags.First).
+    internal static readonly Lazy<Dictionary<string, List<string>>> ReductionTypesByClassName = new(BuildReductionTypes);
+    internal static readonly Lazy<Dictionary<string, string>> ReductionTypeByClassName = new(() =>
+        ReductionTypesByClassName.Value.ToDictionary(kv => kv.Key, kv => kv.Value[0], StringComparer.OrdinalIgnoreCase));
     internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
     internal static readonly Lazy<Dictionary<string, string>> NameByClassName = new(BuildName);
 
-    private static Dictionary<string, string> BuildReductionType() {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    private static Dictionary<string, List<string>> BuildReductionTypes() {
+        var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         foreach (var (_, type) in ProblemProvider.Reductions) {
             try {
                 if (Activator.CreateInstance(type) is IReduction instance)
-                    result[type.Name] = instance.reductionType.ToString();
+                    result[type.Name] = Tags.Names(instance.reductionType);
             } catch {
                 // Skip a reduction that can't be default-constructed instead of failing
                 // the whole catalog. It falls back to Unclassified at the call site.
@@ -149,9 +152,12 @@ public class ReductionEdge {
     /// <summary>The declared <see cref="ReductionCost"/> wire value: how much this reduction blows up instance size (output vs input). Already-stringified, same enum-as-int mitigation as <see cref="fromComplexity"/>/<see cref="toComplexity"/>.</summary>
     /// <example>Linear</example>
     public string cost { get; set; } = "";
-    /// <summary>The declared <see cref="ReductionType"/> wire value: the Garey &amp; Johnson proof technique this reduction uses. Additive field for issue #376; purely informational here.</summary>
+    /// <summary>Deprecated: the first of <see cref="reductionTypes"/>, kept until Redux_GUI and Redux_Frontend read the list (#914). The declared <see cref="ReductionType"/> wire value: the Garey &amp; Johnson proof technique this reduction uses. Additive field for issue #376; purely informational here.</summary>
     /// <example>ComponentDesign</example>
     public string reductionType { get; set; } = "";
+    /// <summary>Every declared <see cref="ReductionType"/> wire value, in the enum's declared order (#914).</summary>
+    /// <example>["ComponentDesign"]</example>
+    public List<string> reductionTypes { get; set; } = new();
     /// <summary>The declared <see cref="ReductionComplexityBucket"/> wire value: how long this reduction takes to run, in worst-case Big-O of input instance size. Additive field for issue #376; purely informational here.</summary>
     /// <example>Polynomial</example>
     public string complexityBucket { get; set; } = "";
@@ -228,6 +234,11 @@ public static class ReductionGraphData {
             ? reductionType
             : nameof(API.Interfaces.ReductionType.Unclassified);
 
+    private static List<string> DeclaredReductionTypes(string className) =>
+        ReductionTypeCatalog.ReductionTypesByClassName.Value.TryGetValue(className, out var reductionTypes)
+            ? reductionTypes
+            : new List<string> { nameof(API.Interfaces.ReductionType.Unclassified) };
+
     private static string DeclaredComplexityBucket(string className) =>
         ReductionTypeCatalog.ComplexityBucketByClassName.Value.TryGetValue(className, out var bucket)
             ? bucket
@@ -294,6 +305,7 @@ public static class ReductionGraphData {
                 toComplexity = DeclaredComplexity(args[1]),
                 cost = DeclaredCost(className),
                 reductionType = DeclaredReductionType(className),
+                reductionTypes = DeclaredReductionTypes(className),
                 complexityBucket = DeclaredComplexityBucket(className),
             };
             if (!graph.ContainsKey(from))

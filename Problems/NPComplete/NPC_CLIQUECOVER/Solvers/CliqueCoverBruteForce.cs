@@ -78,6 +78,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER> {
         }
 
         while (binary.Count(n => n == (clique.K - 1)) < clique.nodes.Count) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = BinaryToCertificate(binary, clique.nodes, clique.K);
             if (clique.defaultVerifier.verify(clique, certificate)) {
                 return certificate;

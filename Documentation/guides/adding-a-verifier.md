@@ -62,7 +62,7 @@ Rules that matter:
 - Your class name must be unique. Two classes with the same name (ignoring upper/lower case) crash startup.
 - You do not edit any list. Creating the class is enough.
 - The list of verifiers for a problem, at `GET /Navigation/Problem_VerifiersRefactor?chosenProblem=SUBSETSUM` ([Nav_Verifiers.cs](../../AdditionalControllers/Navigation/Nav_Verifiers.cs)), is built from the type argument of `IVerifier<PROBLEM>`. Pick it carefully.
-- Being **listed** is different from being the **default**. Every verifier class for the problem shows up in that list. The one the problem class names in its `defaultVerifier` property is the default. To make your verifier the default, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra verifier, leave `defaultVerifier` alone.
+- Being **listed** is different from being the **default**. Every verifier class for the problem shows up in that list. The default is the one marked `[DefaultFor(typeof(PROBLEM))]` ([Interfaces/DefaultFor.cs](../../Interfaces/DefaultFor.cs)), at most one per problem. Older problems on `IProblem<Solver, Verifier, Visualization>` name it in the problem class's `defaultVerifier` instead; to change one of those, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra verifier, add no attribute and leave `defaultVerifier` alone. A problem with no default verifier gets `DummyVerifier`, and the verify endpoint answers 400 `no_verifier` for it.
 
 The API endpoint you get for free: `POST /ProblemProvider/verify?verifier=<ClassName>`, with a JSON body like `{"ProblemInstance": "...", "Certificate": "..."}`. Once the API is running (it normally listens on port 27000), try the worked example:
 
@@ -114,7 +114,7 @@ Every verifier implements the members in [Interfaces/VerifierInterface.cs](../..
 | `certificate` | A string property the interface requires. Existing verifiers keep it as an empty string and never use it. | `""` |
 | `verify(PROBLEM, string)` | **The actual check.** Returns `true` or `false`, or throws for malformed input. | see Step 3 |
 
-The template also adds `sourceLink` (set to `"TODO"`) and an optional `complexity` note. They are not part of the interface, but the template includes them, so fill them in or delete them.
+The template also adds `sourceLink` (set to `"TODO"`) and an optional `complexity` note. `sourceLink` is an optional interface member that defaults to `""`; `complexity` is not part of the interface. Fill them in or delete them.
 
 Two more things you need:
 
@@ -294,7 +294,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Verifie
 - [ ] `verifierName` is `<Problem Name> Solution Verifier` or `<Problem Name> Optimality Verifier`, accurately reflects its behavior, and is unique within the problem ignoring case; `verifierDefinition`, `source`, and `contributors` are filled in (no `"TODO"` left).
 - [ ] The template's `NotImplementedException` is gone. `verify` really checks the certificate against the instance.
 - [ ] A malformed certificate throws `CertificateParseException`. A well-formed wrong one returns `false`.
-- [ ] If this is the problem's default verifier, the problem class's `defaultVerifier` points to it.
+- [ ] If this is the problem's default verifier, it is marked `[DefaultFor(typeof(PROBLEM))]` (or, for an older `IProblem<...>` problem, the problem class's `defaultVerifier` points to it).
 - [ ] You added tests for valid, invalid, malformed, and empty certificates.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).

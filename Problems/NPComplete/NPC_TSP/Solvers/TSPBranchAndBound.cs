@@ -14,7 +14,8 @@ class TSPBranchAndBound : ISolver<TSP> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning/bounding (branch-and-bound) -- distinct from
-    // TSPBruteForce, which does not prune.
+    // TSPBruteForce, which does not prune. Not DepthFirstSearch (#842 suggested it): Enqueue() orders
+    // the frontier by bound per depth in a priority queue, which is best-first, not depth-first.
     public SolverType solverType { get; } = SolverType.Backtracking;
     // Corrected from Exponential: the search tree is the same permutation tree TSPBruteForce
     // enumerates (each node is a distinct partial path with a fixed start node), so without
@@ -64,7 +65,7 @@ class TSPBranchAndBound : ISolver<TSP> {
 
     public string solve(TSP problem) {
         if (timerHasExpired)
-            return "timeout";
+            return SolveRun.TimedOutAnswer;
 
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
@@ -98,7 +99,7 @@ class TSPBranchAndBound : ISolver<TSP> {
 
         while (pq.Count > 0) {
             if (timerHasExpired)
-                return "timeout";
+                return SolveRun.TimedOutAnswer;
             SearchState current = pq.Dequeue();
             if (current.bound >= bestCost) {
                 continue; // Prune
@@ -263,14 +264,12 @@ class TSPBranchAndBound : ISolver<TSP> {
     }
 
     private List<int>? GetInitialBSSF(TSP problem, List<string> nodes) {
-        string greedyCertificate = new TSPGreedy() {
-            timerHasExpired = timerHasExpired
-        }.solve(problem);
+        string greedyCertificate = new TSPGreedy(() => timerHasExpired).solve(problem);
         return CertificateToPath(greedyCertificate, nodes);
     }
 
     private static List<int>? CertificateToPath(string certificate, List<string> nodes) {
-        if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == "timeout")
+        if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == SolveRun.TimedOutAnswer)
             return null;
         // Remove braces and split by commas
         string trimmed = certificate.Trim().TrimStart('{').TrimEnd('}');

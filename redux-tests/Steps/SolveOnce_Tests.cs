@@ -53,11 +53,11 @@ public class SolveOnce_Tests {
 
     [Theory]
     [MemberData(nameof(Pictures))]
-    public void Visualize_RunsTheSolverOnce(string visualization, string solver, string format) {
+    public async Task Visualize_RunsTheSolverOnce(string visualization, string solver, string format) {
         string instance = DefaultInstanceOf(visualization);
         var counts = SolveProbe.Start();
         try {
-            var result = new ProblemProvider().visualize(visualization, instance, solver: null, format: format);
+            var result = await new ProblemProvider().visualize(visualization, instance, solver: null, format: format);
             Assert.IsType<ContentResult>(result);
         } finally {
             SolveProbe.Stop();
@@ -82,8 +82,9 @@ public class SolveOnce_Tests {
 
     // ISolver.Run's default, for a solver without typed steps, calls GetSteps and then solve: two runs whenever
     // GetSteps does real work. So an untyped solver in the API must not have its own GetSteps, except these, whose
-    // GetSteps returns a marker step without solving. (Test doubles in this assembly are left out.)
-    private static readonly HashSet<string> MarkerGetSteps = new() { "PumpSchedulingCMSolver", "PumpSchedulingEMSolver" };
+    // GetSteps returns a marker step (or, for the DummySolver placeholder, no step) without solving. (Test doubles
+    // in this assembly are left out.)
+    private static readonly HashSet<string> MarkerGetSteps = new() { "PumpSchedulingCMSolver", "PumpSchedulingEMSolver", "DummySolver" };
 
     [Fact]
     public void UntypedSolvers_HaveNoStepsOfTheirOwn() {

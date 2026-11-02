@@ -7,15 +7,30 @@ namespace API.Interfaces;
 interface IVisualization {
     string visualizationName { get; }
     string visualizationDefinition { get; }
+    // A tag set (see Tags): every renderer that can draw this visualization's payload. The JSON lists them as
+    // visualizationTypes; the single visualizationType field is deprecated and holds the first.
     VisualizationType visualizationType { get; }
     string source { get; }
     // Repo-relative path of the file declaring this class; see SourceFile.
     string sourceFile { get; }
+    // Link to the formal citation in `source`. Optional, so it defaults to "". [JsonIgnore] keeps it out
+    // of JSON written through an interface-typed member (e.g. /ProblemProvider/reduce), which never had
+    // it; a class that declares its own sourceLink still shows it in /info.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string sourceLink { get => ""; }
     string[] contributors { get; }
     ISolver solver { get; }
     API_JSON visualize(string problem);
     API_JSON SolvedVisualization(string problem, string solution);
     List<API_JSON> StepsVisualization(string problem, List<Object> steps);
+
+    /// <summary>
+    /// <see cref="StepsVisualization(string, List{object})"/> with a time limit (null: none). A visualization that does
+    /// slow work of its own while drawing (rather than only drawing the solver's recorded steps) must stop once the limit
+    /// has passed; the visualize endpoint passes what is left of its solve time limit. Default: the untimed overload.
+    /// A method, not a property, so it never appears in a visualization's JSON.
+    /// </summary>
+    List<API_JSON> StepsVisualization(string problem, List<Object> steps, TimeSpan? timeLimit) => StepsVisualization(problem, steps);
 
     /// <summary>
     /// The answer shape (<c>TPartial</c> of <see cref="API.Interfaces.Steps.SolverStep{TPartial}"/>) this

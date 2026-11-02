@@ -19,6 +19,7 @@ namespace redux_tests;
 // either a real mislabel bug or a legitimately new complexity relationship someone needs
 // to reason about — report it, don't silently patch the assertion or the underlying
 // ComplexityClass declaration to make the failure disappear. ***
+[Trait("Category", "Metadata")]
 public class ReductionValidity_Tests {
     // Explicit rank table — deliberately NOT the enum's ordinal position (ComplexityClass
     // declares NPHard after NPComplete, which would rank them differently by ordinal even
