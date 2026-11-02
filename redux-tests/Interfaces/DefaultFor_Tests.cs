@@ -258,6 +258,38 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
         Assert.True(fixture.TryGetProperty("defaultVisualization", out _));
     }
 
+    // ProblemDefaultsJson declares defaultVisualization as object, so GuiView has to recognize it by its value.
+    [Theory]
+    [InlineData("/ProblemProvider/info?interface=OPTINFIXTURE", "")]
+    [InlineData("/ProblemProvider/info?interface=OPTINFIXTURE&includePictures=true", "Opt In Fixture Visualization")]
+    public async Task Info_HidesAnOptInDefault_UnlessAskedFor(string url, string expected) {
+        var (status, body) = await Get(url);
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal(expected, doc.RootElement.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
+    }
+
+    [Theory]
+    [InlineData("/Navigation/Batch/allInfo", "")]
+    [InlineData("/Navigation/Batch/allInfo?includePictures=true", "Opt In Fixture Visualization")]
+    public async Task AllInfo_HidesAnOptInDefault_UnlessAskedFor(string url, string expected) {
+        var (status, body) = await Get(url);
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        var fixture = doc.RootElement.GetProperty(nameof(OPTINFIXTURE));
+        Assert.Equal(expected, fixture.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
+    }
+
+    [Theory]
+    [InlineData("/ProblemProvider/problemInstance?problem=OPTINFIXTURE", "")]
+    [InlineData("/ProblemProvider/problemInstance?problem=OPTINFIXTURE&includePictures=true", "Opt In Fixture Visualization")]
+    public async Task ProblemInstance_HidesAnOptInDefault_UnlessAskedFor(string url, string expected) {
+        var (status, body) = await Post(url, "\"{1,2}\"");
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal(expected, doc.RootElement.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
+    }
+
     [Fact]
     public async Task GraphProblem_ParsesThroughTheEndpoints() {
         var (status, body) = await Post("/ProblemProvider/problemInstance?problem=GRAPHFIXTURE", "\"({1,2},{{1,2}})\"");
