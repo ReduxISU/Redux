@@ -37,6 +37,8 @@ class DEUTSCH : IProblem<DeutschClassicalSolver, DeutschClassicalVerifier, Dummy
     // — so it belongs in EQP, not the classical P/NP hierarchy. See ComplexityClass.EQP.
     public ComplexityClass complexityClass { get; } = ComplexityClass.EQP;
     public ProblemType problemType { get; } = ProblemType.Miscellaneous;
+    // Variant (#616): Judgement call: a promise problem whose answer is one of two (constant or balanced).
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Methods and Constructors ---
     public DEUTSCH() : this(_defaultInstance) {

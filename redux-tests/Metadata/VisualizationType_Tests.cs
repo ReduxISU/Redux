@@ -14,6 +14,7 @@ namespace redux_tests;
 // visualization in the app goes blank, because the GUI does
 // Visualizations.get(visualizationType) on what it expects to be a string. The first two
 // test groups below are the regression guard for that; they must never go back to failing.
+[Trait("Category", "Metadata")]
 public class VisualizationType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -130,9 +131,9 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
 
         Assert.True(unexpected.Count == 0,
-            $"Class(es) declared VisualizationType.Unimplemented without being added to the allowlist: " +
-            $"{string.Join(", ", unexpected)}. Either declare a real VisualizationType, or add the class " +
-            "to UnimplementedAllowlist in VisualizationType_Tests.cs.");
+            $"Visualization(s) still declared VisualizationType.Unimplemented: {string.Join(", ", unexpected)}. " +
+            "If the visualization is finished, declare its real type (see Interfaces/VisualizationType.cs). " +
+            "If it is not finished, delete its file: the problem uses DummyVisualization until one is added.");
     }
 
     [Fact]

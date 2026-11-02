@@ -23,7 +23,9 @@ class WalkSAT : ISolver<SAT3> {
     public string sourceLink { get; } = "https://cdn.aaai.org/AAAI/1994/AAAI94-051.pdf";
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
-    public SolverType solverType { get; } = SolverType.Stochastic;
+    // Declared, not derived. Randomized local search: random choices make it Stochastic, and it has no
+    // worst-case guarantee of finding an assignment within its tries, which makes it a Heuristic (#842).
+    public SolverType solverType { get; } = SolverType.Heuristic | SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     public MathematicalFunction timeComplexity { get; } = new("n * m", ", n = number of variables, m = number of clauses");
     // betweeen 0.5 and 0.6, empirically 0.57 proven best

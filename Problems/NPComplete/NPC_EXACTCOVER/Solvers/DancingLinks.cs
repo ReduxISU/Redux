@@ -13,8 +13,9 @@ class DancingLinks : ISolver<EXACTCOVER> {
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning (Algorithm X via dancing links) -- distinct
-    // from ExactCoverBruteForce, which does not prune.
-    public SolverType solverType { get; } = SolverType.Backtracking;
+    // from ExactCoverBruteForce, which does not prune. Also DepthFirstSearch: iterate() recurses one
+    // row choice deeper before trying the next (#842).
+    public SolverType solverType { get; } = SolverType.Backtracking | SolverType.DepthFirstSearch;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Choosing the minimum-remaining-rows column each step (iterate's OrderBy) is a heuristic that cuts
     // branching in practice, but it does not change the worst-case bound: any subset of the s = |S| rows

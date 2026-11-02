@@ -29,6 +29,7 @@ class WEIGHTEDMAXSAT : IProblem<WeightedMaxSatBruteForceSolver, WeightedMaxSatSo
     public string certificateFormat { get; } = "A tuple containing a complete comma-separated assignment and its satisfied weight. Booleans are True/False (T/F also accepted). Example: ((x1:False,x2:True,x3:True,x4:False),3)";
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
     public ProblemType problemType { get; } = ProblemType.Logic;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
     public WeightedMaxSatBruteForceSolver defaultSolver { get; } = new();
     public WeightedMaxSatSolutionVerifier defaultVerifier { get; } = new();

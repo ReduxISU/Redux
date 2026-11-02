@@ -14,7 +14,8 @@ class TSPBranchAndBound : ISolver<TSP> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning/bounding (branch-and-bound) -- distinct from
-    // TSPBruteForce, which does not prune.
+    // TSPBruteForce, which does not prune. Not DepthFirstSearch (#842 suggested it): Enqueue() orders
+    // the frontier by bound per depth in a priority queue, which is best-first, not depth-first.
     public SolverType solverType { get; } = SolverType.Backtracking;
     // Corrected from Exponential: the search tree is the same permutation tree TSPBruteForce
     // enumerates (each node is a distinct partial path with a fixed start node), so without

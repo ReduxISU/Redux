@@ -36,6 +36,7 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualiz
     // Declared, not derived. SUBSETSUM is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.SetsAndPartitions;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Properties ---
     public List<string> S {
