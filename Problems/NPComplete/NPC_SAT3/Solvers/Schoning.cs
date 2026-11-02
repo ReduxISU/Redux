@@ -49,7 +49,7 @@ class Schoning : ISolver<SAT3> {
         }
 
         for (int i = 0; i < trials; i++) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             Random rnd = new Random();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();

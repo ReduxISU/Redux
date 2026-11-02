@@ -45,6 +45,8 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
     }
 
     private IEnumerable<List<string>> PermuteWithPruning(List<string> nodes, DIRECTEDHAMILTONIAN graph, int start = 0) {
+        // #935: stop at the time limit (pruned branches can run long without yielding); solve() then returns the timed-out answer.
+        if (timerHasExpired) yield break;
         if (start == nodes.Count - 1) {
             yield return new List<string>(nodes);
         } else {
@@ -64,11 +66,13 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN> {
 
     public string solve(DIRECTEDHAMILTONIAN hamiltonian) {
         foreach (var combination in PermuteWithPruning(hamiltonian.nodes, hamiltonian)) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             string certificate = CombinationToCertificate(combination);
             if (hamiltonian.defaultVerifier.verify(hamiltonian, certificate)) {
                 return certificate;
             }
         }
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         return "{}";
     }

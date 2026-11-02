@@ -43,7 +43,7 @@ class PPZ : ISolver<SAT3> {
         Random rnd = new Random();
 
         for (int t = 0; t < trials; t++) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             List<string> order = variables.OrderBy(_ => rnd.Next()).ToList();
             Dictionary<string, bool> assignments = new Dictionary<string, bool>();
 

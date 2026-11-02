@@ -52,6 +52,7 @@ class HamiltonianBruteForce : ISolver<HAMILTONIAN> {
             yield return new List<string>(nodes);
         } else {
             for (int i = start; i < nodes.Count; i++) {
+                if (timerHasExpired) yield break; // #935: stop at the time limit (solve() then reports it)
                 (nodes[start], nodes[i]) = (nodes[i], nodes[start]);
 
                 // Early pruning: check edge between last node in partial path and current node
@@ -73,6 +74,7 @@ class HamiltonianBruteForce : ISolver<HAMILTONIAN> {
             }
         }
 
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         return "{}";
     }
 }

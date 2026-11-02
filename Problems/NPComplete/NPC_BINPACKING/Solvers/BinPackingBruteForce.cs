@@ -66,6 +66,7 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
 
         // Run the backtracking search starting from the first item.
         if (!Place(0, items, binSums, binContents, C, K)) return "";
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         return FormatCertificate(binContents);
     }
 
@@ -74,6 +75,9 @@ class BinPackingBruteForce : ISolver<BINPACKING> {
     // Tries to place items[i] into one of the K bins, then recurses on items[i+1].
     // Returns true as soon as a complete valid assignment is found.
     private bool Place(int i, List<int> items, int[] binSums, List<int>[] binContents, int C, int K) {
+
+        // #935: at the time limit, unwind as if done; solve() then returns the timed-out answer.
+        if (timerHasExpired) return true;
 
         // Base case: all items have been placed successfully.
         if (i == items.Count) return true;

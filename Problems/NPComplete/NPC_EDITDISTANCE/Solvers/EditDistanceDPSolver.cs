@@ -38,6 +38,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE> {
         for (int j = 0; j <= n; j++) dp[0, j] = j;
 
         for (int i = 1; i <= m; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             for (int j = 1; j <= n; j++) {
                 if (s1[i - 1] == s2[j - 1]) {
                     dp[i, j] = dp[i - 1, j - 1];

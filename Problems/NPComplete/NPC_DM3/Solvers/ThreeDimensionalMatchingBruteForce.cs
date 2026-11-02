@@ -69,6 +69,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3> {
         }
         BigInteger reps = factorial(problem.M.Count()) / (factorial(problem.X.Count()) * factorial(problem.M.Count() - problem.X.Count()));
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, problem.M);
             if (problem.defaultVerifier.verify(problem, certificate)) {
                 return certificate;

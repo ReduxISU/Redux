@@ -28,6 +28,7 @@ class NQueensBacktracking : ISolver<NQUEENS> {
             return formatCertificate(board);
         }
 
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: backtrack() returned false because it was stopped
         return "{}";
     }
 

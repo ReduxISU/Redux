@@ -71,6 +71,7 @@ class BinPackingFFD : ISolver<BINPACKING> {
 
         // Step 2: Place each item using the First Fit rule.
         foreach (int size in sorted) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             bool placed = false;
 
             // Scan existing bins left to right — place in the first one that fits.
