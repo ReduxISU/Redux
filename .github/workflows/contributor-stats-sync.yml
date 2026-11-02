@@ -48,13 +48,16 @@ jobs:
           body: |
             Automated update to `wwwroot/contributorInfo.json` from the weekly contributor
             scan (#565): it only adds stub entries, with zeroed counts, for GitHub accounts
-            that have committed to Redux or Redux_GUI and aren't listed yet.
+            that have committed to Redux or Redux_GUI and aren't listed yet, and for names
+            credited in a `contributors` list that have no entry.
 
             **A person must review every new entry before merging.** Check that it isn't a
             second account for someone already listed -- if it is, merge the two by hand
             instead of merging this PR as-is (see #564's audit for the identity-resolution
             conventions this file uses). A new entry keyed by a GitHub login instead of a real
-            name means no profile name could be resolved.
+            name means no profile name could be resolved. An entry with no `githubUsername` came
+            from a `contributors` list: if an account entry in this PR is the same person, keep
+            the credited name as the key and move the login onto it.
 
             PR counts are filled in at release time by the docker workflow (#613) and must not
             be committed -- leave them at 0.

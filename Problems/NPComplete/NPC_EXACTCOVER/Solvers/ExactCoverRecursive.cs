@@ -86,10 +86,15 @@ class ExactCoverRecursive : ISolver<EXACTCOVER> {
         List<string> uSet = new List<string>(exactCover.X);
         List<List<string>> subsets = new List<List<string>>(exactCover.S);
         List<List<string>> choosenSubsets = new List<List<string>>();
-        return subsetsToCertificate(solve_r(exactCover, uSet, subsets, choosenSubsets));
+        List<List<string>> solution = solve_r(exactCover, uSet, subsets, choosenSubsets);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        return subsetsToCertificate(solution);
     }
 
     public List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets) {
+        // #935: unwind at the time limit; solve() then returns the timed-out answer.
+        if (timerHasExpired)
+            return new List<List<string>>();
         //check if choosen subsets is a solution, if it is, return it
         if (exactCover.defaultVerifier.verify(exactCover, subsetsToCertificate(choosenSubsets)))
             return choosenSubsets;

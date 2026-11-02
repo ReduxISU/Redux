@@ -23,6 +23,8 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncremen
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     public MathematicalFunction timeComplexity { get; } = new("n * (n + m)", ", n = |nodes|, m = |edges|");
+    // #935: set by a solver that calls this one (GreedyVertexCover), so it stops at the caller's time limit too.
+    internal Func<bool>? stop;
 
     // --- Methods Including Constructors ---
     public GreedyMinimumVertexCover() {
@@ -33,6 +35,7 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncremen
     // Steps: one per node taken, with how many uncovered edges it covers. Recorder state lives only in this call.
     public string Solve(MINIMUMVERTEXCOVER G, StepRecorder<NodeSet> rec) {
         var cover = Cover(G.edges, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         rec.Done(new NodeSet(cover), true, cover.Count == 0
             ? "There are no edges to cover."
             : $"Every edge is covered with {cover.Count} nodes. Greedy isn't guaranteed to find the smallest cover.");
@@ -45,6 +48,8 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncremen
         var cover = new List<string>();
 
         while (edges.Count > 0) {
+            // #935: stop at the time limit; the caller sees its flag and returns the timed-out answer.
+            if (timerHasExpired || (stop != null && stop())) break;
             var degree = new Dictionary<string, int>();
             foreach (var e in edges) {
                 if (!degree.ContainsKey(e.Key)) degree[e.Key] = 0;

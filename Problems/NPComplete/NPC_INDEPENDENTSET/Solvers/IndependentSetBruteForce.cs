@@ -65,6 +65,7 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
         int tried = 0;
         string[] Candidate() => combination.Select(i => independentSet.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = indexListToCertificate(combination, independentSet.nodes);
             tried++;
             if (independentSet.defaultVerifier.verify(independentSet, certificate)) {

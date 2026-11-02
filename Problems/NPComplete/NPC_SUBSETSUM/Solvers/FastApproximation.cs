@@ -69,6 +69,7 @@ class FastApproximation : ISolver<SUBSETSUM> {
         List<SumState> L = new List<SumState> { new SumState(0, new List<int>()) };
 
         foreach (int item in numbers) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             List<SumState> LPrime = new List<SumState>(L);
             foreach (var state in L) {
                 double nextSum = state.Sum + item;

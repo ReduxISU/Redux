@@ -82,6 +82,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
         var solution = new List<int>();
 
         bool ok = SearchExact(n, K, adj, closed, dominated, chosen, out solution, problem.nodes, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (!ok) {
             rec.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.");
             return "{}";
@@ -107,6 +108,10 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
     ) {
         solution = null!;
         string[] Names(List<int> picks) => picks.Select(c => names[c]).ToArray();
+
+        // #935: unwind at the time limit; solve() then returns the timed-out answer.
+        if (timerHasExpired)
+            return false;
 
         // Fast check: are we done?
         if (AllDominated(dominated)) {

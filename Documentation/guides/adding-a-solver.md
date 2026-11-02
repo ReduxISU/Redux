@@ -64,7 +64,7 @@ Rules that matter:
 - Your class name must be unique. Two classes with the same name (ignoring upper/lower case) crash startup.
 - You do not edit any list. Creating the class is enough.
 - The list of solvers for a problem, at `GET /Navigation/Problem_SolversRefactor?chosenProblem=SUBSETSUM` ([Nav_Solvers.cs](../../AdditionalControllers/Navigation/Nav_Solvers.cs)), is built from the type argument of `ISolver<PROBLEM>`. Pick it carefully. (`Problem_SolversRefactor` is the controller name with the word "Controller" dropped.)
-- Being **listed** is different from being the **default**. Every solver class for the problem shows up in that list. The one the problem class names in its `defaultSolver` property is the default. To make your solver the default, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra solver, leave `defaultSolver` alone. Subset Sum has two solvers: the brute force one is the default, and [FastApproximation.cs](../../Problems/NPComplete/NPC_SUBSETSUM/Solvers/FastApproximation.cs) is an extra.
+- Being **listed** is different from being the **default**. Every solver class for the problem shows up in that list. The default is the one marked `[DefaultFor(typeof(PROBLEM))]` ([Interfaces/DefaultFor.cs](../../Interfaces/DefaultFor.cs)), at most one per problem. Older problems on `IProblem<Solver, Verifier, Visualization>` name it in the problem class's `defaultSolver` instead; to change one of those, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra solver, add no attribute and leave `defaultSolver` alone. Subset Sum has two solvers: the brute force one is the default, and [FastApproximation.cs](../../Problems/NPComplete/NPC_SUBSETSUM/Solvers/FastApproximation.cs) is an extra.
 
 The API endpoint you get for free: `POST /ProblemProvider/solve?solver=<ClassName>`, with the instance as a JSON string in the body. Once the API is running (it normally listens on port 27000), try the worked example:
 
@@ -110,17 +110,17 @@ Every solver implements the members in [Interfaces/SolverInterface.cs](../../Int
 | `timerHasExpired` | A true/false flag that means "stop now". See step 3. | `{ get; set; }` |
 | `solverType` | The style of algorithm (see below). | `SolverType.BruteForce` |
 | `complexityBucket` | How the worst-case work grows (see below). | `SolverComplexityBucket.Exponential` |
-| `complexity` | Free-text Big-O note. | `"O(n * 2^n), n = \|S\|"` |
+| `timeComplexity` | The worst-case running time, as a function the API can evaluate. | `new("n * 2^n", ", n = \|S\|")` |
 | `solve(PROBLEM)` | **The actual algorithm.** Takes a problem object, returns a certificate string. | see step 3 |
 | `GetSteps(PROBLEM)` | Optional. Intermediate snapshots for step-by-step visualizations. Defaults to an empty list. | not used here |
 
 The three **declared metadata** members are the ones people forget. "Declared" means a human decides. No tool works them out for you. Their rules are in [SolverType.cs](../../Interfaces/SolverType.cs) and [SolverComplexityBucket.cs](../../Interfaces/SolverComplexityBucket.cs), and the doc comments there explain every choice. Short version:
 
-- `solverType`: read your `solve()` and pick the closest style: `BruteForce` (tries everything, no pruning), `Backtracking` (searches but gives up on dead ends early), `DynamicProgramming`, `Greedy`, `Approximation`, `Heuristic`, and so on. `Quantum` means the solver calls the external quantum-simulator service (see the note at the end of this section).
+- `solverType`: read your `solve()` and pick the closest style: `BruteForce` (tries everything, no pruning), `Backtracking` (searches but gives up on dead ends early), `DynamicProgramming`, `Greedy`, `Approximation`, `Heuristic`, and so on. `Quantum` means the solver calls the external quantum-simulator service (see the note at the end of this section). If several fit, declare each, joined with `|`: First-Fit Decreasing is `SolverType.Approximation | SolverType.Greedy` (a proven ratio, reached by a greedy pass). There is no main one, and the order you write them in doesn't matter: the API lists them in the enum's order as `solverTypes`. The old single `solverType` field holds the first of that list for older clients and is deprecated.
 - `complexityBucket`: the **worst case** growth: `Polynomial`, `Exponential`, or `Factorial`. It describes the worst case even if your solver is fast on typical inputs.
-- `complexity`: a Big-O string such as `"O(n * 2^n)"`. Only write one you are confident about. Never guess.
+- `timeComplexity`: the worst-case running time, written without the `O( )`, such as `new("n * 2^n", ", n = |S|")`. See [MathematicalFunction.cs](../../Interfaces/MathematicalFunction.cs) for the notation. Only write one you are confident about. Never guess.
 
-**Do not leave any of the three as `Unclassified` (or empty).** Tests fail if you do (section 5). The template declares them as `Unclassified` and `""` with a `TODO` comment, so you replace each value. The template's `solve` also ends with a `NotImplementedException`: an unfinished solver fails loudly instead of claiming "no solution". Replace it with your real return.
+**Do not leave any of the three as `Unclassified` (or `null`).** Tests fail if you do (section 5). The template declares them as `Unclassified` and `null` with a `TODO` comment, so you replace each value. The template's `solve` also ends with a `NotImplementedException`: an unfinished solver fails loudly instead of claiming "no solution". Replace it with your real return.
 
 You also need a **public constructor with no arguments** (`public SubsetSumBruteForce() { }`). Redux builds your class this way, and so do the tests.
 
@@ -139,7 +139,7 @@ The loop at the heart of the worked example:
 
 ```csharp
 for (int mask = 1; mask < (1 << n); mask++) {
-    if (timerHasExpired) return "{}";
+    if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
     string certificate = SubsetToCertificate(mask, subsetSum.S);
     if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {
@@ -156,12 +156,14 @@ Notice two good habits here:
 
 **Why small instances matter.** Brute force doubles its work with every extra number. The default instance `({1,7,12,15},28)` has 4 numbers, so 16 subsets: instant. With 40 numbers it would be about a trillion subsets: not instant. Keep the problem's `defaultInstance` small enough to solve in well under a second, and use small instances in your tests.
 
-**Timeouts: `timerHasExpired`.** The interface has a flag, `timerHasExpired`, and two helper methods that flip it (`TimerExpired()` sets it to `true`, `ResetTimer()` sets it back to `false`). The idea: something outside the solver can run a stopwatch and, when time is up, call `TimerExpired()`. A well-behaved solver checks the flag every so often inside its main loop and stops early if it is `true`. Rules:
+**Timeouts: `timerHasExpired`.** Every compute request has a time limit (`ComputeLimits:TimeLimitSeconds` in `appsettings.json`, 10 seconds by default; #935). The interface has a flag, `timerHasExpired`, and two helper methods that flip it (`TimerExpired()` sets it to `true`, `ResetTimer()` sets it back to `false`). The API starts a timer for every solve and calls `TimerExpired()` when the limit runs out. A solver must check the flag inside its main loops and stop when it is `true`. Rules:
 
-- Check it **inside your main loop**, not just once at the start. A check that never runs again cannot stop anything.
-- Check it often enough to matter, but not so often that the checks slow the real work down.
-- When it is `true`, return a value that is safe to hand to callers (see "What to return" below).
-- Note: at the time of writing, nothing inside this API calls `TimerExpired()` (the code that would start the stopwatch is not in the repo), so the flag is never set in a normal request. You still must write the check, so the solver is ready when a timer is added, and so your own tests can set `solver.timerHasExpired = true` to prove the solver stops.
+- Check it **inside your main loop** (and inside any recursion), not just once at the start. A check that never runs again cannot stop anything. If you build a big list of candidates up front, check while building it too.
+- Check it often enough to matter, but not so often that the checks slow the real work down. Reading the flag is cheap, so once per candidate or per recursive call is fine.
+- When it is `true`, return `SolveRun.TimedOutAnswer`. Never return a made-up answer, and not `"{}"`: that means "there is no solution", which the solver does not know. The API answers such a request with HTTP 422 and the error `time_limit`, whatever the solver returned.
+- [SolverTimeLimit_Tests.cs](../../redux-tests/Steps/SolverTimeLimit_Tests.cs) checks every solver: with the flag already set, `solve` on the problem's default instance must return `SolveRun.TimedOutAnswer`. A solver that never checks the flag fails it.
+- A typed solver (`ISolver<T, TPartial>`, which reports steps to a `StepRecorder`) is stopped by its recorder instead, at the next step it reports, so it must report steps inside its loops.
+- This is not true cancellation: a solver that never reaches a check runs on. Running each job in its own process (#936) and on its own threads (#937) will stop those too.
 
 **What to return.** The interface does not define a special "no solution" or "timed out" value. The solver's result is just a string, and today Redux uses these conventions:
 
@@ -169,7 +171,7 @@ Notice two good habits here:
 | --- | --- | --- |
 | A solution was found | the certificate, in the problem's `certificateFormat` | for example `{1,12,15}` |
 | There is no solution | `"{}"` (an empty certificate) | the worked example. About 60 solvers do this. Some return `""` or other text, so the convention is not universal. |
-| The timer expired | the same value as "no solution" in the worked example (`"{}"`) | the template returns the text `"timeout"` instead, and about 8 solvers do that. |
+| The timer expired | `SolveRun.TimedOutAnswer` | the same for every solver (#935). Callers check that the run timed out, not this text. |
 
 Whatever you pick, document it in a comment, and make sure the **verifier handles it** (an empty `{}` certificate must not crash it, it should just return `false` or, if your problem's format rejects it, throw `CertificateParseException`). Prefer `"{}"` or an empty certificate in the problem's own format for "no solution", because the GUI and verifier already understand that shape.
 
@@ -202,11 +204,13 @@ You do not have to register your solver with these tests. They find it automatic
 | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) (`SolverName_MatchesNamingConvention`) | Your class builds with no arguments, and `solverName` matches one of two shapes: `"<Problem> <Approach>"` (title-case words, 2 or more, for example `"Subset Sum Brute Force"`) or `"<Person's name> ... Algorithm"` (for example `"Dijkstra's Algorithm"`). A raw class name like `SubsetSumBruteForce`, or a placeholder like `"Default Solver"`, fails. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredSolverType`) | `solverType` is not `Unclassified`. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexityBucket`) | `complexityBucket` is not `Unclassified`. |
-| [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexity`) | `complexity` is not an empty string. |
+| [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexity`) | `timeComplexity` is declared, not `null`. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`Info_...` and `AllInfo_...` tests) | The three declared values appear in the API's JSON as words (`"BruteForce"`), not numbers. |
 | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) (`Solve_GarbageInstance_IsNever500`) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) as the instance to `POST /ProblemProvider/solve` never produces an HTTP 500. A 400 with the instance format is the expected answer. Because your problem's constructor does the parsing, this normally passes without extra work. |
 
-Not checked for free: that your solver gives the **right** answer, that its answer passes the verifier, and that it stops when `timerHasExpired` is set. There is also no generic performance test over solvers (the Performance tests cover the API's endpoints and reductions), so a solver that is too slow on the default instance will only show up as a slow test of your own. Those are your job.
+Checked for free: that your solver stops when `timerHasExpired` is set, on the default instance ([SolverTimeLimit_Tests.cs](../../redux-tests/Steps/SolverTimeLimit_Tests.cs)).
+
+Not checked for free: that your solver gives the **right** answer, and that its answer passes the verifier. There is also no generic performance test over solvers (the Performance tests cover the API's endpoints and reductions), so a solver that is too slow on the default instance will only show up as a slow test of your own. Those are your job.
 
 > The three "Unclassified" tests work with an **allowlist** inside `SolverType_Tests.cs`. Do **not** add your class to it. The allowlists are meant to stay as short as possible and are only for special cases such as quantum solvers. Fix the declarations instead.
 
@@ -259,14 +263,14 @@ Things to copy from the existing tests:
 - [ ] An instance with **no solution**: the solver returns your documented "no solution" value (`"{}"` in the worked example).
 - [ ] A tricky small case: the answer is the first item only, or the last item only (the worked example has a regression test for exactly this, `SUBSETSUM_Solver_Finds_FirstElement_Only_Solution`).
 - [ ] The smallest allowed input (one item, or empty if the problem allows it).
-- [ ] The timer: set `solver.timerHasExpired = true;` before calling `solve`, and check that it returns quickly with your documented value instead of searching.
+- [ ] The timer: set `solver.timerHasExpired = true;` before calling `solve`, and check that it returns `SolveRun.TimedOutAnswer` instead of searching. (`SolverTimeLimit_Tests` already does this for every solver on the default instance; add a case of your own if the default instance does not reach your main loop.)
 
 For the timer case:
 
 ```csharp
 SubsetSumBruteForce solver = new SubsetSumBruteForce();
 solver.timerHasExpired = true;
-Assert.Equal("{}", solver.solve(new SUBSETSUM("({1,7,12,15},28)")));
+Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(new SUBSETSUM("({1,7,12,15},28)")));
 ```
 
 If you wrote an **approximation or heuristic** solver, it may legitimately return a wrong or empty answer. The worked example's second solver tests that rule: its answer is either `"{}"` or passes the verifier (`FastApproximation_NonEmptyResult_AlwaysPassesVerifier`). Copy that pattern.
@@ -297,11 +301,11 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 - [ ] The class name is unique in the whole project.
 - [ ] The class implements `ISolver<PROBLEM>` and has a public constructor with no arguments.
 - [ ] `solverName` follows `"<Problem> <Approach>"` or `"<Person> ... Algorithm"`; `solverDefinition`, `source`, and `contributors` are filled in (no `"TODO"` left).
-- [ ] `solverType`, `complexityBucket`, and `complexity` are declared (not `Unclassified`, not empty), and you are confident they are true.
+- [ ] `solverType`, `complexityBucket`, and `timeComplexity` are declared (not `Unclassified`, not `null`), and you are confident they are true.
 - [ ] `solve()` checks `timerHasExpired` inside its main loop.
 - [ ] The returned certificate matches the problem's `certificateFormat`, and a returned answer passes the problem's verifier.
 - [ ] The "no solution" and "timed out" results are documented in comments and tested.
-- [ ] If this is the problem's default solver, the problem class's `defaultSolver` points to it, and the problem's default instance solves quickly.
+- [ ] If this is the problem's default solver, it is marked `[DefaultFor(typeof(PROBLEM))]` (or, for an older `IProblem<...>` problem, the problem class's `defaultSolver` points to it), and the problem's default instance solves quickly.
 - [ ] You added tests for solved, no-solution, and timer cases.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).
@@ -309,13 +313,13 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 
 ## 8. Common mistakes
 
-- **Leaving `solverType`, `complexityBucket`, or `complexity` at the template's `Unclassified` / `""`.** Three metadata tests fail with a message naming your class, on purpose, until you declare real values.
+- **Leaving `solverType`, `complexityBucket`, or `timeComplexity` at the template's `Unclassified` / `null`.** Three metadata tests fail with a message naming your class, on purpose, until you declare real values.
 - **A `solverName` that is just the class name** (`SubsetSumBruteForce`) or a placeholder. Use `"<Problem> <Approach>"` or `"<Person> ... Algorithm"`.
 - **Never checking `timerHasExpired`**, or checking it only once before the loop. Check it inside the loop.
 - **Output that does not match `certificateFormat`.** The verifier will throw `CertificateParseException`, or the GUI will not understand it. Always test your solver's output against the verifier.
 - **Forgetting the template's placeholder return.** The template ends with `return "{}";`, which means "no solution" for every input. Replace it with the real algorithm.
 - **A default instance that takes forever.** Brute force grows exponentially. Keep the problem's `defaultInstance` small.
-- **Guessing the Big-O string.** A wrong `complexity` is a public claim. Leave out claims you are not sure about, and ask in the PR.
+- **Guessing the running time.** A wrong `timeComplexity` is a public claim. Leave out claims you are not sure about, and ask in the PR.
 - **Throwing for "no solution"** or for a timeout. Return a documented value instead.
 - **Re-writing the verifier rule inside the solver.** Reuse `problem.defaultVerifier` so the two cannot disagree.
 - **Reusing a class name.** Class names are keys, ignoring case. A duplicate crashes the registry for everyone.

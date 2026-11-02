@@ -39,6 +39,8 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     // Declared, not derived. TSP (decision version) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
+    // Variant (#616): K is a bound the verifier checks (tour weight <= K), so Decision; TSPBranchAndBound searches for the optimum, but the class has no optimization form.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     public string wikiName { get; } = "";
 

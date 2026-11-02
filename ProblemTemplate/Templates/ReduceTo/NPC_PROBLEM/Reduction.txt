@@ -20,6 +20,7 @@ class {REDUCTION_PASCAL_CASE} : IReduction<{REDUCE_FROM}, {REDUCE_TO}> {
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ReductionCost.cs for what each value means. (This is the size of the produced instance, not runtime.)
     public ReductionCost cost { get; } = ReductionCost.Unclassified;
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ReductionType.cs for what each value means.
+    // Declare every technique the construction uses, joined with | if there is more than one.
     public ReductionType reductionType { get; } = ReductionType.Unclassified;
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ReductionComplexityBucket.cs for what each value means.
     public ReductionComplexityBucket complexityBucket { get; } = ReductionComplexityBucket.Unclassified;

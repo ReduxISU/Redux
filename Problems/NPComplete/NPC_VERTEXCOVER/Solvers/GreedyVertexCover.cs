@@ -35,7 +35,9 @@ class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // Steps: the greedy picks (as in the Minimum Vertex Cover solver this wraps), then whether the cover fits in K.
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
-        var cover = new GreedyMinimumVertexCover().Cover(G.edges, rec);
+        // #935: the inner solver's own flag is never set by the timer, so it watches this one's.
+        var cover = new GreedyMinimumVertexCover { stop = () => timerHasExpired }.Cover(G.edges, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (cover.Count > G.K) {
             rec.Done(new NodeSet([]), false,
