@@ -13,7 +13,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<QuantumSolverSettings>(
     builder.Configuration.GetSection("QuantumSolver"));
 builder.Services.AddQuantumHttpClient();
-// A solver whose outside service fails answers 503 solver_unavailable on every endpoint (#625).
 // The cap on compute jobs running at once (#936); see API.Interfaces.ComputeJobLimiter.
 builder.Services.AddSingleton<API.Interfaces.ComputeJobLimiter>();
 // The warm worker processes that run each solve on its own (#936), when ComputeLimits:IsolateSolves is on; the pool
@@ -21,6 +20,7 @@ builder.Services.AddSingleton<API.Interfaces.ComputeJobLimiter>();
 builder.Services.AddSingleton<API.Interfaces.SolveWorkerPool>();
 builder.Services.AddHostedService<API.Interfaces.SolveWorkerPoolService>();
 
+// A solver whose outside service fails answers 503 solver_unavailable on every endpoint (#625).
 builder.Services.AddControllers(options => options.Filters.Add(new API.Interfaces.SolverUnavailableFilter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
