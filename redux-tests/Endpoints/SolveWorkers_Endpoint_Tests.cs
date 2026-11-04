@@ -233,7 +233,8 @@ public class SolveWorkers_Endpoint_Tests : IClassFixture<SolveWorkersAppFactory>
         Assert.Equal(ComputeLimits.CancelledDetail, body.GetProperty("detail").GetString());
         Assert.Equal("ShorsQuantumSolver", body.GetProperty("solver").GetString());
         Assert.Equal(1, body.GetProperty("limitSeconds").GetDouble());
-        Assert.False(SolveWorkerChecks.IsRunning(pid), "the killed worker is still running");
+        // Kill returns before the process is gone (on Linux it is reaped a moment later), so wait for it.
+        await SolveWorkerChecks.AssertGone(pid);
 
         // The pool replaces the killed worker, and the next solve works.
         await SolveWorkerChecks.WaitUntilWarm(Pool);
@@ -347,7 +348,8 @@ public class SolveWorkers_NoHeapLimit_Tests : IClassFixture<SolveWorkersNoHeapLi
         var body = JsonDocument.Parse(text).RootElement;
         Assert.Equal("memory_limit", body.GetProperty("error").GetString());
         Assert.Equal(ComputeLimits.MemoryWatchDetail, body.GetProperty("detail").GetString());
-        Assert.False(SolveWorkerChecks.IsRunning(pid), "the killed worker is still running");
+        // Kill returns before the process is gone (on Linux it is reaped a moment later), so wait for it.
+        await SolveWorkerChecks.AssertGone(pid);
     }
 
     [Fact]
