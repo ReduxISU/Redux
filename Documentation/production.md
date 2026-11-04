@@ -82,7 +82,7 @@ Each solve runs in a worker process of its own (`ComputeLimits:IsolateSolves`, o
 default; #936), started from the same image as `dotnet API.dll --compute-worker`. The
 Redux container keeps one warm worker per job slot (`ComputeLimits:MaxConcurrentJobs`,
 the number of processors by default) waiting for solves. An idle worker is a small .NET
-process: about 43 MB of working set (12 MB of it private), measured on Windows. A busy
+process: about 62 MB resident, measured in the Docker image (43 MB on Windows). A busy
 one may grow to the solve memory limit (`ComputeLimits:SolveMemoryMB`, 512 MB by
 default) plus about 128 MB the server allows for the runtime before it stops the worker.
 So give the Redux container at least the server itself (about 100 MB) plus, per job slot,

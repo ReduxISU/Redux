@@ -30,8 +30,8 @@ public sealed class SolveWorkerPool : IDisposable {
     /// <summary>
     /// How far past the memory limit, in megabytes, a worker's working set may go before the server kills it. The heap
     /// limit stops the solver's own allocations; this covers what the heap limit does not count: the runtime, the
-    /// loaded code, and native memory (an idle worker has about 43 MB of working set, 12 MB of it private, measured on
-    /// Windows), with room to spare, so a solver that stays under the heap limit is not killed for its runtime's overhead.
+    /// loaded code, and native memory (an idle worker has about 62 MB resident in the Linux Docker image, and 43 MB of
+    /// working set on Windows), with room to spare, so a solver that stays under the heap limit is not killed for its runtime's overhead.
     /// </summary>
     public const int MemoryAllowanceMB = 128;
 
