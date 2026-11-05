@@ -39,6 +39,7 @@ class KERNEL : IGraphProblem<KernelBruteForce, KernelVerifier, KernelDefaultVisu
     public string[] contributors { get; } = { "Prashant Pant", "Bektur Akkabakov" };
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     public UtilCollectionGraph graph { get; set; }
     public HashSet<int> vertices { get; set; }
     public List<(int u, int v)> edges { get; set; }
