@@ -6,6 +6,7 @@ using API.Problems.NPComplete.NPC_SAT;
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 #pragma warning disable CS1591
 
+// The algorithm. The steps it records for the visualizations are in SATBruteForceSolver.Steps.cs.
 public partial class SATBruteForceSolver : ISolver<SAT> {
 
 

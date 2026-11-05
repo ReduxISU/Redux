@@ -3,6 +3,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
+// The algorithm. The steps it records for the visualizations are in Schoning.Steps.cs.
 partial class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
     // --- Fields ---

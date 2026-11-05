@@ -3,6 +3,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
+// The algorithm. The steps it records for the visualizations are in PPZSat.Steps.cs.
 partial class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "PPZ Algorithm";

@@ -3,6 +3,7 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
+// The algorithm. The steps it records for the visualizations are in TSPGreedy.Steps.cs.
 partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
     // --- Fields ---

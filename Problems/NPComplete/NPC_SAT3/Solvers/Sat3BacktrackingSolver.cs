@@ -6,6 +6,7 @@ using API.Problems.NPComplete.NPC_SAT3;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
+// The algorithm. The steps it records for the visualizations are in Sat3BacktrackingSolver.Steps.cs.
 partial class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
 
     // --- Fields ---
