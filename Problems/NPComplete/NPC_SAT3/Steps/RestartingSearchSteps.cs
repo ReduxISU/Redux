@@ -224,11 +224,9 @@ abstract class RestartingSearchSteps<TMove> {
             }
             bool ends = t.Solved && !closes && i == moves - 1;
             int number = i + 1;
-            Func<Assignment> partial = () => ToAssignment(cur);
-            Func<string> caption = () => MoveCaption(t, move, cur, number);
-            string[] focus = MoveFocus(move);
-            if (ends) rec.Accept(partial, caption, focus);
-            else rec.Try(partial, caption, focus);
+            Func<Step<Assignment>> step = () => new(ToAssignment(cur), MoveCaption(t, move, cur, number)) { Focus = MoveFocus(move) };
+            if (ends) rec.Accept(step);
+            else rec.Try(step);
         }
 
         if (closes) Close(rec, t, cur);

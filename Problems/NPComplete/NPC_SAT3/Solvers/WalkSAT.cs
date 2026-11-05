@@ -1,14 +1,9 @@
 using API.Interfaces;
-using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
-using API.Problems.NPComplete.NPC_SAT3.Steps;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
+partial class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
     // --- Fields ---
     public string solverName { get; } = "WalkSAT Algorithm";
@@ -25,7 +20,7 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Randomized local search: random choices make it Stochastic, and it has no
-    // worst-case guarantee of finding an assignment within its tries, which makes it a Heuristic (#842).
+    // worst-case guarantee of finding an assignment within its tries, which makes it a Heuristic.
     public SolverType solverType { get; } = SolverType.Heuristic | SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     public MathematicalFunction timeComplexity { get; } = new("n * m", ", n = number of variables, m = number of clauses");
@@ -35,12 +30,12 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
     // MaxFlips is typically scaled with n (e.g., 100 * n to 300 * n)
     private readonly int _flipsPerVariable = 300;
 
-    // The seed of the next solve (#932); explicit, so it never appears in /info.
+    // The seed of the next solve; explicit, so it never appears in /info.
     int? IRandomizedSolver.Seed { get; set; }
 
     public WalkSAT() { }
 
-    // Fewer tries or flips, so tests can reach runs that restart (#932).
+    // Fewer tries or flips, so tests can reach runs that restart.
     internal WalkSAT(int maxTries, int flipsPerVariable) {
         _maxTries = maxTries;
         _flipsPerVariable = flipsPerVariable;
@@ -50,43 +45,31 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
     // clauses false.
     private enum FlipKind { Free, Random, Greedy }
 
-    // One flip of a try: the clause it repairs (0-based), the variable it flips (an index into the variables), how it chose
-    // it, and how many clauses it turns false.
-    private readonly record struct Flip(int Clause, int Variable, FlipKind Kind, int Breaks);
-
-    // Steps: each try starts with a Try (its random start; "Restart." for every try after the first), then one step per flip: the
-    // clause it picked (no true literal) and the variable it flips are the focus, and the partial is the whole assignment after
-    // the flip, a candidate (WalkSAT is not incremental). A failed try ends with a Reject; the flip that makes every clause true
-    // is an Accept, followed by the Done. Steps are held back while the search runs (it cannot know which try will succeed), then
-    // recorded by SatTries: the first try and the successful one in full, the tries in between as one Reject ("Tries 2–37:
-    // ..."); a try too long for the recorder's cap keeps its first and last flips and says how many it skipped. Recording draws
-    // nothing from the generator, so the answer is the same with steps or without. When every try fails, the Done says it gave
-    // up: WalkSAT can miss an answer, so that is no proof that there is none.
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
         // The order of first appearance, so the same seed gives the same run in every process (a HashSet's order would not).
         var formula = SatFormula.Of(sat3);
         int n = formula.Variables.Count;
         if (n == 0) {
-            Tries.NoVariables(rec);
+            Steps.NoVariables(rec);
             return "{}";
         }
         var clauses = formula.Clauses;
 
         int maxFlips = _flipsPerVariable * n;
         Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);
-        var tries = new Tries(formula, rec.Enabled, maxFlips);
+        var steps = new Steps(formula, rec.Enabled, maxFlips);
         bool[]? solution = null;
 
         for (int tryIdx = 0; tryIdx < _maxTries && solution == null; tryIdx++) {
-            if (timerHasExpired) break; // #935: stop at the time limit
+            if (timerHasExpired) break; // stop at the time limit
             rec.CheckTime();   // every try, so a run whose first try succeeds is still stopped at the limit
             // Generate random assignment
             bool[] assignments = new bool[n];
             for (int v = 0; v < n; v++) assignments[v] = rnd.Next(2) == 0;
-            tries.Begin(assignments);
+            steps.Begin(assignments);
 
             for (int flip = 0; flip <= maxFlips; flip++) {
-                if (timerHasExpired) break; // #935: stop at the time limit (the try ends here; see below)
+                if (timerHasExpired) break; // stop at the time limit (the try ends here; see below)
                 // Identify unsatisfied clauses
                 var unsatisfied = new List<int>();
                 for (int c = 0; c < clauses.Count; c++)
@@ -108,14 +91,14 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
                 // Flip assignment
                 assignments[varToFlip] = !assignments[varToFlip];
-                tries.Add(new Flip(clause, varToFlip, kind, breaks));
+                steps.Flipped(clause, varToFlip, kind, breaks);
             }
 
-            tries.End(assignments, solution != null);
+            steps.End(assignments, solution != null);
         }
 
-        tries.Record(rec);
-        // #935: stopped by the time limit, not out of tries: that is no verdict at all.
+        steps.Record(rec);
+        // Stopped by the time limit, not out of tries: that is no verdict at all.
         if (solution == null && timerHasExpired) return SolveRun.TimedOutAnswer;
         return solution == null ? "{}" : formula.Certificate(solution); // "{}": failure to satisfy within caps
     }
@@ -185,33 +168,5 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
         }
 
         return breaks;
-    }
-
-    // ---- Recording ----
-
-    // How WalkSAT's tries read: each move is a flip of a variable of a clause with no true literal.
-    private sealed class Tries(SatFormula formula, bool recording, int maxFlips) : RestartingSearchSteps<Flip>(formula, recording) {
-        protected override string SolverLabel => "WalkSAT";
-        protected override string MoveNoun => "flip";
-        protected override string EachTry => $"ends after {Count(maxFlips, "flip")}";
-
-        protected override void Apply(Flip f, bool?[] values) => values[f.Variable] = !values[f.Variable];
-
-        protected override string[] MoveFocus(Flip f) =>
-            [GroupedGraphFrames.ClauseId(f.Clause), GroupedGraphFrames.VariableId(Formula.Variables[f.Variable])];
-
-        // "Flip 3: C2 (x1 | !x2 | x3) has no true literal. Flip x2 to False: a free flip, no clause turns false. Now ..."
-        protected override string MoveCaption(SatTry<Flip> t, Flip f, bool?[] after, int number) {
-            string flip = $"{Formula.Variables[f.Variable]} to {after[f.Variable]}";
-            string turns = f.Breaks == 0 ? "no clause turns false" : $"{Count(f.Breaks, "clause")} {(f.Breaks == 1 ? "turns" : "turn")} false";
-            string how = f.Kind switch {
-                FlipKind.Free => $"Flip {flip}: a free flip, {turns}.",
-                FlipKind.Random => $"No variable of C{f.Clause + 1} flips free, so flip one at random: {flip}, and {turns}.",
-                _ => $"No variable of C{f.Clause + 1} flips free, so flip the one that turns the fewest clauses false: {flip}, and {turns}.",
-            };
-            var still = FalseClauses(after);
-            string now = still.Count == 0 ? "Every clause now has a true literal." : $"Now {Falsified(still, lower: true)}";
-            return $"Flip {number}: {ClauseLabel(f.Clause)} has no true literal. {how} {now}";
-        }
     }
 }
