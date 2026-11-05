@@ -84,6 +84,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
             }
 
             do {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 string certificate = indexListToCertificate(combination, steiner.edges);
                 tried++;
                 if (steiner.defaultVerifier.verify(steiner, certificate)) {

@@ -96,37 +96,38 @@ public class Gadget_Kinds_Tests {
     }
 
     // Which kinds each reduction emits on its default instance, and how many of each. Written out by hand so
-    // that a reduction switching a gadget's kind (or dropping one) fails here.
+    // that a reduction switching a gadget's kind (or dropping one) fails here. The counts follow the default instances of
+    // #938 and #957 (four 3SAT clauses, five SAT clauses, a six-node coloring graph, six Partition numbers, ...).
     private static readonly Dictionary<string, string> ExpectedKinds = new() {
         // The reductions out of 3SAT and SAT (#693) on their default formula.
-        ["GareyJohnson"] = "Element x9, Group x3, Palette x1, OrGadget x3",
-        ["GraphColoringToCliqueCover"] = "Element x9, EdgeRule x6, Bound x1",
-        ["KarpIntProgStandard"] = "Element x12, OrGadget x3, Bound x3",
-        ["KarpReduceGRAPHCOLORING"] = "Element x3, Palette x1, OrGadget x3, Bound x1",
+        ["GareyJohnson"] = "Element x12, Group x3, Palette x1, OrGadget x4",
+        ["GraphColoringToCliqueCover"] = "Element x6, EdgeRule x3, Bound x1",
+        ["KarpIntProgStandard"] = "Element x15, OrGadget x4, Bound x4",
+        ["KarpReduceGRAPHCOLORING"] = "Element x3, Palette x1, OrGadget x4, Bound x1",
         // 11 for the literals and the padding, then (#693) one per variable and one per new variable of a split.
-        ["KarpSATToSAT3"] = "Element x17, Group x3",
-        ["KarpVertexCoverToNodeSet"] = "Element x10, Bound x1",
-        ["LawlerKarp"] = "Element x10, Bound x1",
+        ["KarpSATToSAT3"] = "Element x21, Group x5",
+        ["KarpVertexCoverToNodeSet"] = "Element x12, Bound x1",
+        ["LawlerKarp"] = "Element x12, Bound x1",
         // #694: an edge rule per node that gets complement edges, and the bound.
         ["reduceToCLIQUE"] = "Element x7, EdgeRule x6, Bound x1",
         ["sipserReductionVertexCover"] = "Element x6, EdgeRule x3, Bound x1",
         // #908: an edge rule per clause (never joined inside) and per pair of nodes from different clauses, and K.
-        ["SipserReduceToCliqueStandard"] = "Element x9, Group x3, EdgeRule x30, Bound x1",
-        ["SipserReduceToSAT3"] = "Element x9, Group x3",
-        ["KarpVertexCoverToSetCover"] = "Element x10, Bound x1",
+        ["SipserReduceToCliqueStandard"] = "Element x12, Group x4, EdgeRule x58, Bound x1",
+        ["SipserReduceToSAT3"] = "Element x12, Group x4",
+        ["KarpVertexCoverToSetCover"] = "Element x12, Bound x1",
         ["KarpDirectedHamiltonianToUndirectedHamiltonian"] = "Element x11",
-        ["KarpGraphColorToExactCover"] = "Group x21",
-        ["KarpReduceSAT"] = "Element x27, Group x21",
+        ["KarpGraphColorToExactCover"] = "Group x15",
+        ["KarpReduceSAT"] = "Element x18, Group x15",
         // #695: one element per number, and the bound (the container on both sides).
         ["FengReduction"] = "Element x4, Bound x1",
         // #695: one element per number, the two added numbers, and the two sides.
         ["SubsetSumToPartitionReduction"] = "Element x4, Palette x2, Bound x1",
         // #695: one element per number, one edge rule per pair of numbers, and K.
-        ["WEIGHTEDCUTReduction"] = "Element x12, EdgeRule x66, Bound x1",
+        ["WEIGHTEDCUTReduction"] = "Element x6, EdgeRule x15, Bound x1",
         // #695: one element per subset and one per item.
         ["reduceToEXACTCOVER"] = "Element x7",
         // #695: one element per set, and the bound (T, from every element of X).
-        ["KarpExactCoverToSubsetSum"] = "Element x3, Bound x1",
+        ["KarpExactCoverToSubsetSum"] = "Element x6, Bound x1",
     };
 
     private static string KindCounts(IEnumerable<Gadget> gadgets) =>

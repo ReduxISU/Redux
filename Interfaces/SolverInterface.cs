@@ -148,18 +148,25 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
     /// <see cref="StepRecorder{TPartial}.Off"/> (no clock checks at all, as before). With a limit and no steps it uses a
     /// <see cref="StepRecorder{TPartial}.DeadlineOnly"/> recorder, which keeps nothing but checks the clock; with steps,
     /// a recording recorder with the limit that keeps <paramref name="stepCap"/> steps (null: the default cap). A run that
-    /// exceeds the limit is returned as stopped (see <see cref="TimedOut"/>) instead of throwing. When
-    /// <paramref name="solver"/> is given, its legacy <see cref="ISolver.timerHasExpired"/> flag is started too (some typed
-    /// solvers also check it), and a run during which it was set is stopped as well.
+    /// exceeds the limit is returned as stopped (see <see cref="TimedOut"/>) instead of throwing, including one whose
+    /// solver returned after the limit had passed. When <paramref name="solver"/> is given, its legacy
+    /// <see cref="ISolver.timerHasExpired"/> flag is started too (some typed solvers also check it), and a run during which
+    /// it was set is stopped as well. <paramref name="clock"/> (milliseconds) is for tests, which decide when the limit passes.
     /// </summary>
-    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve, int? stepCap = null, ISolver? solver = null) {
+    internal static SolveRun Record<TPartial>(bool withSteps, TimeSpan? timeLimit, Func<StepRecorder<TPartial>, string> solve,
+                                              int? stepCap = null, ISolver? solver = null, Func<long>? clock = null) {
         if (!withSteps && timeLimit is null)
             return new SolveRun(solve(StepRecorder<TPartial>.Off), new List<object>(), typeof(TPartial));
-        var rec = withSteps ? new StepRecorder<TPartial>(stepCap ?? StepRecorder<TPartial>.DefaultCap, timeLimit) : StepRecorder<TPartial>.DeadlineOnly(timeLimit!.Value);
+        int cap = stepCap ?? StepRecorder<TPartial>.DefaultCap;
+        var rec = !withSteps
+            ? clock != null ? StepRecorder<TPartial>.DeadlineOnlyForTest(timeLimit!.Value, clock) : StepRecorder<TPartial>.DeadlineOnly(timeLimit!.Value)
+            : clock != null && timeLimit is { } limit ? new StepRecorder<TPartial>(cap, limit, clock)
+            : new StepRecorder<TPartial>(cap, timeLimit);
         using var timer = solver != null ? SolverTimer.Start(solver, timeLimit) : null;
         try {
             string answer = solve(rec);
-            if (timeLimit != null && solver is { timerHasExpired: true })
+            // The last step can come in before the limit and the solver still finish after it.
+            if (rec.Expired || (timeLimit != null && solver is { timerHasExpired: true }))
                 return StoppedWith(rec);
             return new SolveRun(answer, rec.Steps.Cast<object>().ToList(), typeof(TPartial));
         } catch (StepBudgetExceededException ex) when (ex.Recorder == rec) {
@@ -167,8 +174,9 @@ sealed record SolveRun(string Answer, IReadOnlyList<object> Steps, Type? StepSha
         }
     }
 
+    // Ends the run with the stopped Done, in place of any Done the solver had already recorded, so there is one Done.
     private static SolveRun StoppedWith<TPartial>(StepRecorder<TPartial> rec) {
-        rec.DoneStopped();
+        rec.ReplaceDoneWithStopped();
         return new SolveRun(TimedOutAnswer, rec.Steps.Cast<object>().ToList(), typeof(TPartial)) { TimedOut = true };
     }
 

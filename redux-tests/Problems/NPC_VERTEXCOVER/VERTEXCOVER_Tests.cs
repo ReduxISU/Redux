@@ -16,7 +16,7 @@ public class VERTEXCOVER_Tests {
     public void defaultInstance_Test() {
         VERTEXCOVER vCov = new VERTEXCOVER();
         string defaultInstance = vCov.defaultInstance;
-        Assert.Equal("(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)", defaultInstance);
+        Assert.Equal("(({a,b,c,d,e,f},{{a,b},{a,c},{b,c},{c,d},{d,e},{e,f}}),3)", defaultInstance);
     }
 
 

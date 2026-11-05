@@ -54,6 +54,7 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
                 : "No node is free of incoming edges, so the graph has a cycle.");
 
         while (queue.Count > 0) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string current = queue.Dequeue();
             order.Add(current);
 

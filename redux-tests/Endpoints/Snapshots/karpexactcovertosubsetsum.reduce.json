@@ -10,6 +10,9 @@
     "visualizationName": "Subset Sum Visualization",
     "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
     "visualizationType": "SetD3",
+    "visualizationTypes": [
+      "SetD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
     "contributors": [
@@ -26,6 +29,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n * 2^n",
         "Description": ", n = |S|",
@@ -123,12 +129,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/EXACTCOVER_Class.cs",
     "wikiName": "",
-    "defaultInstance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "defaultInstance": "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})",
     "instance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
-    "instanceFormat": "Format: {(U,S) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
-    "certificateFormat": "Format: {T | T subset S, union of T = X, T pairwise disjoint} Example: {{2,3},{4,1}}",
+    "instanceFormat": "Format: {(U,S) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})",
+    "certificateFormat": "Format: {T | T subset S, union of T = X, T pairwise disjoint} Example: {{1,4},{3,5,6},{2,7}}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Caleb Eardley",
       "Alex Diviney",
@@ -144,6 +153,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^s * s^2 * n",
         "Description": ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
@@ -156,7 +168,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Exact Cover Verifier",
+      "verifierName": "Exact Cover Solution Verifier",
       "verifierDefinition": "This is a verifier for Exact Cover",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Verifiers/ExactCoverVerifier.cs",
@@ -169,6 +181,9 @@
       "visualizationName": "Exact Cover Visualization",
       "visualizationDefinition": "This is a default visualization for Exact Cover",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
       "contributors": [
@@ -184,7 +199,11 @@
           "Andrija Sevaljevic"
         ],
         "timerHasExpired": false,
-        "solverType": "Backtracking",
+        "solverType": "DepthFirstSearch",
+        "solverTypes": [
+          "DepthFirstSearch",
+          "Backtracking"
+        ],
         "timeComplexity": {
           "Function": "2^s * s^2 * x^2",
           "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
@@ -196,7 +215,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Subset Sum",
@@ -213,6 +235,9 @@
     "certificateFormat": "Format: {K | K is set} Example: {1,12,15}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Garret Stouffer",
       "Caleb Eardley"
@@ -228,6 +253,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n * 2^n",
         "Description": ", n = |S|",
@@ -239,7 +267,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Subset Sum Verifier",
+      "verifierName": "Subset Sum Solution Verifier",
       "verifierDefinition": "This is a verifier for Subset Sum",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs",
@@ -252,6 +280,9 @@
       "visualizationName": "Subset Sum Visualization",
       "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
       "contributors": [
@@ -268,6 +299,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n * 2^n",
           "Description": ", n = |S|",
@@ -278,9 +312,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Quadratic",
   "reductionType": "ComponentDesign",
+  "reductionTypes": [
+    "ComponentDesign"
+  ],
   "complexityBucket": "Polynomial"
 }

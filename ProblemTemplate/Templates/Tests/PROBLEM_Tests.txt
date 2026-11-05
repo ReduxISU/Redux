@@ -1,6 +1,7 @@
 // Put this file at redux-tests/Problems/NPC_{NAME_UPPERCASE}/{NAME_UPPERCASE}_Tests.cs
 //
 // How to use it:
+// - If your PR is only the problem class, you can delete this file. The shared tests check it.
 // - The tests marked GENERIC are finished. They pass once your problem, solver, and
 //   verifier follow the rules in the contributor guides.
 // - The tests marked STUB fail on purpose. Each one contains a "TODO" placeholder. Replace
@@ -8,6 +9,8 @@
 //   A test that still has a TODO in it is not finished.
 // - Add more tests of your own. Ready-to-copy examples are in
 //   Documentation/guides/building-and-testing.md, section 5 ("Required tests for each kind of change").
+// - If you deleted the solver or verifier, delete the tests that use it and its `using` line
+//   below, or the test project will not compile.
 // - Remove this comment block when you are done.
 using Xunit;
 using API.Interfaces;

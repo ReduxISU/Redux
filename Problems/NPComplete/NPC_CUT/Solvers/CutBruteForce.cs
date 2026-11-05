@@ -109,6 +109,7 @@ class CutBruteForce : ISolver<CUT, Groups> {
                 combination.Add(j);
             }
             do {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 string certificate = indexListToCertificate(combination, cut.nodes);
                 certificate = certificateToEdges(cut, certificate); // last two could be one function, but it is okay
                 tried++;

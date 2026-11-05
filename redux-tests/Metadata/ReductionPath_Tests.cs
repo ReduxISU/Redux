@@ -18,6 +18,7 @@ namespace redux_tests;
 // for the "minimality" requirement). There IS a real multi-hop chain to exercise the
 // happy path end-to-end: INDEPENDENTSET -> CLIQUE -> VERTEXCOVER -> SETCOVER, via
 // reduceToCLIQUE, sipserReductionVertexCover, and KarpVertexCoverToSetCover.
+[Trait("Category", "Metadata")]
 public class ReductionPath_Tests {
     /// <summary>
     /// A real 3-hop chain (INDEPENDENTSET -> CLIQUE -> VERTEXCOVER -> SETCOVER) exists

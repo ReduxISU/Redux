@@ -26,6 +26,9 @@ namespace redux_tests;
 /// and reductions treat two equal numbers as two numbers.
 /// </summary>
 public class RepeatedNumbers_Tests {
+    // Partition's default instance before #938 changed it: it has two 12s (#628).
+    private const string OldPartitionDefault = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+
 
     // -------------------------------------------------------------------------
     // RepeatedElements
@@ -68,7 +71,7 @@ public class RepeatedNumbers_Tests {
 
     [Fact]
     public void Partition_Default_Instance_Keeps_Both_12s() {
-        PARTITION problem = new PARTITION();
+        PARTITION problem = new PARTITION(OldPartitionDefault);
         Assert.Equal(12, problem.S.Count);
         Assert.Equal(2, problem.S.Count(x => x == "12"));
         Assert.Equal(150, problem.S.Sum(int.Parse));
@@ -81,8 +84,8 @@ public class RepeatedNumbers_Tests {
 
     [Fact]
     public void Partition_Old_Certificate_Example_Using_One_12_Is_No_Longer_Valid() {
-        // It leaves out the second 12 of the default instance.
-        Assert.False(new PartitionVerifier().verify(new PARTITION(), "(33,21,15),(1,7,12,11,5,6,9,18)"));
+        // It leaves out the second 12 of the old default instance.
+        Assert.False(new PartitionVerifier().verify(new PARTITION(OldPartitionDefault), "(33,21,15),(1,7,12,11,5,6,9,18)"));
     }
 
     [Theory]

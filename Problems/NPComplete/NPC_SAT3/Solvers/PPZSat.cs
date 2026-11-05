@@ -91,6 +91,8 @@ class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
         }
 
         tries.Record(rec);
+        // #935: stopped by the time limit, not out of tries: that is no verdict at all.
+        if (solution == null && timerHasExpired) return SolveRun.TimedOutAnswer;
         return solution == null ? "{}" : formula.Certificate(solution);
     }
 

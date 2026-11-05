@@ -10,6 +10,9 @@
     "visualizationName": "Partition Visualization",
     "visualizationDefinition": "This is a default visualization for Partition",
     "visualizationType": "SetD3",
+    "visualizationTypes": [
+      "SetD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
     "contributors": [
@@ -25,6 +28,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n^2 * 2^n",
         "Description": ", n = |S|",
@@ -177,6 +183,9 @@
     "certificateFormat": "Format: {K | K is set} Example: {1,12,15}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Garret Stouffer",
       "Caleb Eardley"
@@ -192,6 +201,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n * 2^n",
         "Description": ", n = |S|",
@@ -203,7 +215,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Subset Sum Verifier",
+      "verifierName": "Subset Sum Solution Verifier",
       "verifierDefinition": "This is a verifier for Subset Sum",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs",
@@ -216,6 +228,9 @@
       "visualizationName": "Subset Sum Visualization",
       "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
       "contributors": [
@@ -232,6 +247,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n * 2^n",
           "Description": ", n = |S|",
@@ -242,7 +260,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Partition",
@@ -253,12 +274,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_PARTITION/PARTITION_Class.cs",
     "wikiName": "",
-    "defaultInstance": "{1,7,12,15,33,12,11,5,6,9,21,18}",
+    "defaultInstance": "{3,5,7,8,9,10}",
     "instance": "{1,7,12,15,29,8}",
-    "instanceFormat": "Format: {N | N subset int} (a multiset of positive integers S; a number written twice counts twice) Example: {1,7,12,15,33,12,11,5,6,9,21,18}",
-    "certificateFormat": "Format: (S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2) Example: (33,21,15,6),(1,7,12,12,11,5,9,18)",
+    "instanceFormat": "Format: {N | N subset int} (a multiset of positive integers S; a number written twice counts twice) Example: {3,5,7,8,9,10}",
+    "certificateFormat": "Format: (S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2) Example: (5,7,9),(3,8,10)",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -272,6 +296,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n^2 * 2^n",
         "Description": ", n = |S|",
@@ -283,7 +310,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Partition Verifier",
+      "verifierName": "Partition Solution Verifier",
       "verifierDefinition": "This is a verifier for the Partition problem",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_PARTITION/Verifiers/PartitionVerifier.cs",
@@ -296,6 +323,9 @@
       "visualizationName": "Partition Visualization",
       "visualizationDefinition": "This is a default visualization for Partition",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
       "contributors": [
@@ -311,6 +341,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n^2 * 2^n",
           "Description": ", n = |S|",
@@ -321,9 +354,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Linear",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Linear"
 }

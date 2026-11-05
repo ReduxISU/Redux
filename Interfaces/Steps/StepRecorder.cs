@@ -19,8 +19,9 @@ namespace API.Interfaces.Steps;
 /// Accept); the lambdas of every other step past the cap are never evaluated.
 /// </para>
 /// <para>
-/// A recorder made with a time limit checks the clock on every recorded step, kept or not, and throws
-/// <see cref="StepBudgetExceededException"/> once the limit has passed. <see cref="Off"/> never checks the clock.
+/// A recorder made with a time limit checks the clock on every recorded step, kept or not, and on
+/// <see cref="Done(TPartial, bool, string)"/>, and throws <see cref="StepBudgetExceededException"/> once the limit has passed.
+/// <see cref="Off"/> never checks the clock.
 /// A <see cref="DeadlineOnly"/> recorder keeps no steps and invokes no lambda, like Off, but checks the clock on every
 /// <see cref="ClockCheckInterval"/>th step (the first included), so a solve that records nothing still stops (#935).
 /// </para>
@@ -37,6 +38,10 @@ sealed class StepRecorder<TPartial> {
     /// recording would be wasted work. Make a new one for each run; it counts calls, so it must not be shared.
     /// </summary>
     public static StepRecorder<TPartial> DeadlineOnly(TimeSpan timeLimit) => new(enabled: false, cap: 0, timeLimit, deadlineOnly: true);
+
+    /// <summary>A <see cref="DeadlineOnly"/> recorder that reads the time from <paramref name="clock"/> (milliseconds), for tests.</summary>
+    internal static StepRecorder<TPartial> DeadlineOnlyForTest(TimeSpan timeLimit, Func<long> clock) =>
+        new(enabled: false, cap: 0, timeLimit, clock, deadlineOnly: true);
 
     /// <summary>
     /// How often a <see cref="DeadlineOnly"/> recorder reads the clock: every this many steps (a power of two). Reading
@@ -93,10 +98,13 @@ sealed class StepRecorder<TPartial> {
     /// <summary>
     /// Throws <see cref="StepBudgetExceededException"/> once the time limit has passed, like recording a step would, without
     /// recording one. For a solver that holds its steps back while it runs (a randomized solver records its tries only once it
-    /// knows which one succeeds, #932), so that a long run is still stopped by the limit. Does nothing for <see cref="Off"/>.
+    /// knows which one succeeds, #932), so that a long run is still stopped by the limit. A <see cref="DeadlineOnly"/> recorder
+    /// counts it as a step, checking the clock every <see cref="ClockCheckInterval"/>th call (#935). Does nothing for
+    /// <see cref="Off"/>.
     /// </summary>
     public void CheckTime() {
-        if (_enabled && Now() >= _deadline)
+        if (!_enabled) { StepWhileOff(); return; }
+        if (Now() >= _deadline)
             throw new StepBudgetExceededException(this);
     }
 
@@ -106,6 +114,12 @@ sealed class StepRecorder<TPartial> {
     public int Total => _total;
     /// <summary>How many reported steps were not kept.</summary>
     public int Hidden => _total - _steps.Count;
+
+    /// <summary>
+    /// Whether the time limit has passed, for a recording or <see cref="DeadlineOnly"/> recorder. Always false for
+    /// <see cref="Off"/> and for a recorder with no limit, which never read the clock here.
+    /// </summary>
+    internal bool Expired => _timeLimit != null && Now() >= _deadline;
 
     public void Try(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Try, partial, caption, focus);
     public void Accept(Func<TPartial> partial, Func<string> caption, params string[] focus) => Add(StepEvent.Accept, partial, caption, focus);
@@ -152,7 +166,9 @@ sealed class StepRecorder<TPartial> {
 
     /// <summary>
     /// Records the final step. Always kept, after the last Accept past the cap if there was one; its caption gets
-    /// " (n not shown)" when steps were hidden, before its closing full stop if it has one.
+    /// " (n not shown)" when steps were hidden, before its closing full stop if it has one. Past the time limit it throws
+    /// instead and records nothing, so a run that ran out of time while working out its answer is stopped rather than
+    /// reported as finished.
     /// </summary>
     public void Done(TPartial answer, bool ok, string caption) => Done(answer, ok, caption, null);
 
@@ -163,6 +179,13 @@ sealed class StepRecorder<TPartial> {
     /// </summary>
     public void Done(TPartial answer, bool ok, string caption, Func<SearchNode[]>? tree) {
         if (!_enabled) return;
+        if (Expired)
+            throw new StepBudgetExceededException(this);
+        AddDone(answer, ok, caption, tree);
+    }
+
+    // Done without the clock check, so DoneStopped can close a run whose time has already run out.
+    private void AddDone(TPartial answer, bool ok, string caption, Func<SearchNode[]>? tree = null) {
         if (_lastAcceptPastCap != null) {
             _steps.Add(_lastAcceptPastCap);
             _lastAcceptPastCap = null;
@@ -189,7 +212,20 @@ sealed class StepRecorder<TPartial> {
             : default!;
         string seconds = (_timeLimit ?? TimeSpan.Zero).TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
         string steps = reported.ToString("N0", CultureInfo.InvariantCulture);
-        Done(last, false, $"{StepCaptions.StoppedPrefix}{seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
+        AddDone(last, false, $"{StepCaptions.StoppedPrefix}{seconds} s and {steps} {(reported == 1 ? "step" : "steps")}; the solver had not finished.");
+    }
+
+    /// <summary>
+    /// Closes a run whose solver returned after the time limit: its own Done step, if it recorded one, is taken out
+    /// and the run ends with the stopped Done of <see cref="DoneStopped"/> instead, so there is only one Done.
+    /// </summary>
+    internal void ReplaceDoneWithStopped() {
+        if (!_enabled) return;
+        if (_steps.Count > 0 && _steps[^1].Event == StepEvent.Done) {
+            _steps.RemoveAt(_steps.Count - 1);
+            _total--;
+        }
+        DoneStopped();
     }
 }
 

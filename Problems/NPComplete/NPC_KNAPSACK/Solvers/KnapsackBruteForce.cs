@@ -48,6 +48,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
         List<UtilCollection> items = knapsack.items.ToList();
         int tried = 0;
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             // Written out by position, not added to a SPADE set, so two identical items can both be taken (#628).
             List<string> chosen = new List<string>();
             for (int i = 0; i < items.Count; i++) {

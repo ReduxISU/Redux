@@ -45,7 +45,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver 
         // Deterministic tie-breaking keeps certificates stable across runs.
         foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v))) {
             if (timerHasExpired)
-                return "{}";
+                return SolveRun.TimedOutAnswer;
 
             var (u, v, weight) = edge;
             string[] focus = u == v ? [] : [GraphSubsetFrames.EdgeId(u, v)];

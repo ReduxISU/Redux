@@ -1,1 +1,1 @@
-(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)
+(({a,b,c,d,e,f},{{a,b},{b,c},{c,a},{a,d},{b,e},{c,f},{d,e},{e,f},{f,d}}),3)

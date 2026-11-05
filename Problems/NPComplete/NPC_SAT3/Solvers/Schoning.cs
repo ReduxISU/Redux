@@ -83,6 +83,7 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
         for (int i = 0; i < trials && solution == null; i++) {
             if (timerHasExpired) break;
+            rec.CheckTime();   // every try, so a run whose first try succeeds is still stopped at the limit
 
             // A uniformly random assignment.
             bool[] assignments = new bool[n];
@@ -112,6 +113,8 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
         }
 
         tries.Record(rec);
+        // #935: stopped by the time limit, not out of tries: that is no verdict at all.
+        if (solution == null && timerHasExpired) return SolveRun.TimedOutAnswer;
         return solution == null ? "{}" : formula.Certificate(solution);
     }
 

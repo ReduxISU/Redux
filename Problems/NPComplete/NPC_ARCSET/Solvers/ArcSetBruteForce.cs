@@ -54,6 +54,7 @@ class ArcSetBruteForce : ISolver<ARCSET, EdgeSet> {
         rec.Reject(() => new EdgeSet([]), () => $"Try removing nothing: the cycle {cycle([], [])} is there.");
 
         foreach (UtilCollection potentialSolution in graph.Edges.ChooseUpTo(arc.K)) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = potentialSolution.ToString();
             tried++;
             string[] Ids() => potentialSolution.ToList().Select(e => LayeredFrames.ArcId(e[0].ToString(), e[1].ToString())).ToArray();

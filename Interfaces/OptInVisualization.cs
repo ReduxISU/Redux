@@ -46,7 +46,7 @@ sealed class LegacyVisualizationTypeAttribute(VisualizationType type) : Attribut
 /// <item>A problem whose default visualization is opt-in shows the placeholder (<see cref="DummyClasses.DummyVisualization"/>)
 /// instead, wherever the problem is serialized (/info, allInfo, problemInstance, reduce) and wherever its default is drawn
 /// (visualizeReduction).</item>
-/// <item>A visualization with a <see cref="LegacyVisualizationTypeAttribute"/> reports that type.</item>
+/// <item>A visualization with a <see cref="LegacyVisualizationTypeAttribute"/> reports that type, in its tag list too.</item>
 /// </list>
 /// </summary>
 static class GuiView {
@@ -80,7 +80,8 @@ static class GuiView {
     /// <summary>
     /// A type-info modifier for the responses of clients that have not opted in: every visualization reports its legacy type,
     /// and every property that holds a visualization (a problem's <c>defaultVisualization</c>, a reduction's
-    /// <c>visualization</c>) holds the placeholder in place of an opt-in one.
+    /// <c>visualization</c>) holds the placeholder in place of an opt-in one. That includes a property declared as
+    /// <c>object</c>, which is how <see cref="ProblemDefaultsJson"/> writes the default of a plain-IProblem problem.
     /// </summary>
     public static void Modify(System.Text.Json.Serialization.Metadata.JsonTypeInfo info) {
         if (info.Kind != System.Text.Json.Serialization.Metadata.JsonTypeInfoKind.Object) return;
@@ -92,9 +93,16 @@ static class GuiView {
             if (typeof(IVisualization).IsAssignableFrom(info.Type) && property.Name == nameof(IVisualization.visualizationType)
                 && property.PropertyType == typeof(VisualizationType)) {
                 property.Get = obj => obj is IVisualization vis ? TypeOf(vis, false) : get(obj);
-            } else if (typeof(IVisualization).IsAssignableFrom(property.PropertyType)) {
+            } else if (typeof(IVisualization).IsAssignableFrom(info.Type) && property.Name == nameof(IVisualization.visualizationType) + "s"
+                && property.PropertyType == typeof(List<string>)) {
+                // The tag list TagListJson added: the legacy type too, so it still starts with the single field.
+                property.Get = obj => obj is IVisualization vis ? Tags.Names(TypeOf(vis, false)) : get(obj);
+            } else if (property.PropertyType == typeof(object) || typeof(IVisualization).IsAssignableFrom(property.PropertyType)) {
                 if (property.PropertyType.IsAssignableFrom(typeof(DummyClasses.DummyVisualization))) {
-                    property.Get = obj => get(obj) is IVisualization vis ? Shown(vis, false) : get(obj);
+                    property.Get = obj => {
+                        object? value = get(obj);
+                        return value is IVisualization vis ? Shown(vis, false) : value;
+                    };
                 } else if (OptInVisualizations.IsOptIn(property.PropertyType)) {
                     // Declared as the opt-in class itself, which cannot hold the placeholder: written as the placeholder instead.
                     var shown = info.CreateJsonPropertyInfo(typeof(DummyClasses.DummyVisualization), property.Name);

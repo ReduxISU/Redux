@@ -10,6 +10,9 @@
     "visualizationName": "Exact Cover Visualization",
     "visualizationDefinition": "This is a default visualization for Exact Cover",
     "visualizationType": "SetD3",
+    "visualizationTypes": [
+      "SetD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
     "contributors": [
@@ -25,7 +28,11 @@
         "Andrija Sevaljevic"
       ],
       "timerHasExpired": false,
-      "solverType": "Backtracking",
+      "solverType": "DepthFirstSearch",
+      "solverTypes": [
+        "DepthFirstSearch",
+        "Backtracking"
+      ],
       "timeComplexity": {
         "Function": "2^s * s^2 * x^2",
         "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
@@ -174,6 +181,9 @@
     "certificateFormat": "Format: W subset U | W intersects every subset in S in exactly one element Example: {1,2}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Russell Phillips",
       "Michael Trosper"
@@ -188,6 +198,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * s * n",
         "Description": ", n = |universalSet|, s = number of subsets in S",
@@ -200,7 +213,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Exact Hitting Set Verifier",
+      "verifierName": "Exact Hitting Set Solution Verifier",
       "verifierDefinition": "This is a verifier for Exact Hitting Set. It checks that W is a subset of U and that W intersects every subset in S in exactly one element.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Verifiers/HittingSetVerifier.cs",
@@ -213,6 +226,9 @@
       "visualizationName": "Exact Hitting Set Visualization",
       "visualizationDefinition": "This is a default visualization for Exact Hitting Set",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Visualizations/HittingSetDefaultVisualization.cs",
       "contributors": [
@@ -228,6 +244,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * s * n",
           "Description": ", n = |universalSet|, s = number of subsets in S",
@@ -239,7 +258,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Exact Cover",
@@ -250,12 +272,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/EXACTCOVER_Class.cs",
     "wikiName": "",
-    "defaultInstance": "({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
+    "defaultInstance": "({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})",
     "instance": "({1,2,3},{{1,3},{2},{1,2},{2,3}})",
-    "instanceFormat": "Format: {(U,S) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4},{{1,2,3},{2,3},{4,1}})",
-    "certificateFormat": "Format: {T | T subset S, union of T = X, T pairwise disjoint} Example: {{2,3},{4,1}}",
+    "instanceFormat": "Format: {(U,S) | U is set, S subset {a | a subset U}} Example: ({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})",
+    "certificateFormat": "Format: {T | T subset S, union of T = X, T pairwise disjoint} Example: {{1,4},{3,5,6},{2,7}}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Caleb Eardley",
       "Alex Diviney",
@@ -271,6 +296,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^s * s^2 * n",
         "Description": ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
@@ -283,7 +311,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Exact Cover Verifier",
+      "verifierName": "Exact Cover Solution Verifier",
       "verifierDefinition": "This is a verifier for Exact Cover",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Verifiers/ExactCoverVerifier.cs",
@@ -296,6 +324,9 @@
       "visualizationName": "Exact Cover Visualization",
       "visualizationDefinition": "This is a default visualization for Exact Cover",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
       "contributors": [
@@ -311,7 +342,11 @@
           "Andrija Sevaljevic"
         ],
         "timerHasExpired": false,
-        "solverType": "Backtracking",
+        "solverType": "DepthFirstSearch",
+        "solverTypes": [
+          "DepthFirstSearch",
+          "Backtracking"
+        ],
         "timeComplexity": {
           "Function": "2^s * s^2 * x^2",
           "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
@@ -323,9 +358,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Linear",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Polynomial"
 }

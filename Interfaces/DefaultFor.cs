@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using API.DummyClasses;
@@ -71,16 +72,27 @@ internal static class ProblemDefaults {
         return null;
     }
 
-    // A new instance on every call, like the `= new XSolver()` initializers it stands in for give each
-    // problem object its own.
-    internal static ISolver Solver(Type problemType) =>
-        Create<ISolver>(problemType) ?? new DummySolver();
+    // One set of defaults per problem object, made on first access and kept as long as the problem is,
+    // like the `= new XSolver()` initializers it stands in for: the same problem always hands back the same
+    // solver/verifier/visualization (so state they keep, such as a verifier's certificate or a solver's
+    // timerHasExpired, survives), and two problems never share one. Keyed by reference, and weak, so a
+    // problem's defaults are collected with it.
+    private static readonly ConditionalWeakTable<IProblem, Instances> _instances = new();
 
-    internal static IVerifier Verifier(Type problemType) =>
-        Create<IVerifier>(problemType) ?? new DummyVerifier();
+    private sealed class Instances(Type problemType) {
+        // Lazy (thread-safe by default), so each kind is made once, and only when asked for.
+        public readonly Lazy<ISolver> Solver = new(() => Create<ISolver>(problemType) ?? new DummySolver());
+        public readonly Lazy<IVerifier> Verifier = new(() => Create<IVerifier>(problemType) ?? new DummyVerifier());
+        public readonly Lazy<IVisualization> Visualization = new(() => Create<IVisualization>(problemType) ?? new DummyVisualization());
+    }
 
-    internal static IVisualization Visualization(Type problemType) =>
-        Create<IVisualization>(problemType) ?? new DummyVisualization();
+    private static Instances For(IProblem problem) => _instances.GetValue(problem, p => new Instances(p.GetType()));
+
+    internal static ISolver Solver(IProblem problem) => For(problem).Solver.Value;
+
+    internal static IVerifier Verifier(IProblem problem) => For(problem).Verifier.Value;
+
+    internal static IVisualization Visualization(IProblem problem) => For(problem).Visualization.Value;
 
     private static T? Create<T>(Type problemType) where T : class =>
         Find(problemType, typeof(T)) is Type type ? (T)Activator.CreateInstance(type)! : null;

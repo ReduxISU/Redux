@@ -48,6 +48,7 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress> {
         // For a classical solution, we just need to loop over the values and
         // find the first non-zero value.
         for (int i = 0; i < problem.funcValues.Count; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             int x = i, fx = problem.funcValues[i];
             queries.Add(new OracleQuery(x, fx));
             if (fx != 0) {

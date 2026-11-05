@@ -38,6 +38,7 @@ class BernsteinVaziraniClassicalSolver : ISolver<BERNSTEINVAZIRANI, QuantumProgr
         var s = new System.Text.StringBuilder();
         UtilCollection result = new("()");
         for (int i = problem.NBits - 1; i >= 0; i--) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             bool fx = problem.Func(1 << i);
             result.Add(new UtilCollection(fx ? "1" : "0"));
             queries.Add(new OracleQuery(1 << i, fx ? 1 : 0));

@@ -81,6 +81,7 @@ class PartitionBruteForce : ISolver<PARTITION, Placement> {
             return a == b ? $"{tried}. Equal." : $"{tried}, off by {Math.Abs(a - b)}.";
         }
         while (counter < Math.Pow(2, partition.S.Count)) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             nextBinary(binary);
             certificate = BinaryToCertificate(binary, partition.S);
             tried++;

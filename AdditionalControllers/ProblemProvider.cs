@@ -159,8 +159,10 @@ public partial class ProblemProvider : ControllerBase {
             TypeInfoResolver = PictureTypes.Resolver(),
         }));
 
-    // The reduce endpoint's options, one object so GuiView.Options makes its copy once.
-    private static readonly JsonSerializerOptions ReduceJsonOptions = new() { WriteIndented = true };
+    // The reduce endpoint's options, one object so GuiView.Options makes its copy once. No IncludeFields and no
+    // ProblemDefaultsJson (the reduction is written through IReduction, as it always was), but the tag lists, as
+    // every response that carries a tag has them beside its single field.
+    private static readonly JsonSerializerOptions ReduceJsonOptions = TagListJson.Apply(new() { WriteIndented = true });
 
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
@@ -291,6 +293,8 @@ public partial class ProblemProvider : ControllerBase {
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
         } catch (API.DummyClasses.NoVerifierException ex) {
             return BadRequest(new { error = "no_verifier", received = verifier, detail = ex.Message });
+        } catch (ExactSearchLimitExceededException ex) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -315,6 +319,19 @@ public partial class ProblemProvider : ControllerBase {
     /// <summary>True when <paramref name="ex"/> (once unwrapped) is a parse error we translate to HTTP 400.</summary>
     private static bool IsParseError(Exception ex) =>
         Unwrap(ex) is ProblemParseException or ReductionInputException or CertificateParseException;
+
+    private static bool IsExactSearchLimitError(Exception ex) =>
+        Unwrap(ex) is ExactSearchLimitExceededException;
+
+    private IActionResult ExactSearchLimitError(Exception ex) {
+        var limit = (ExactSearchLimitExceededException)Unwrap(ex);
+        return BadRequest(new {
+            error = "exact_search_limit_exceeded",
+            variableCount = limit.VariableCount,
+            maxVariables = limit.MaxVariables,
+            detail = limit.Message
+        });
+    }
 
     /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
     private IActionResult ParseError(Exception ex) => Unwrap(ex) switch {
@@ -374,12 +391,10 @@ public partial class ProblemProvider : ControllerBase {
                     run.Answer,
                     new JsonSerializerOptions { WriteIndented = true }),
                 "application/json");
-        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
-        } catch (ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -590,6 +605,8 @@ public partial class ProblemProvider : ControllerBase {
             return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
+        } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
+            return ExactSearchLimitError(ex);
         }
     }
 

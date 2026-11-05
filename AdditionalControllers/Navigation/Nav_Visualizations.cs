@@ -39,7 +39,7 @@ internal static class VisualizationTypeCatalog {
         ProblemProvider.Visualizers.Values
             .Select(t => (t.Name, Legacy: GuiView.LegacyType(t)))
             .Where(p => p.Legacy != null)
-            .ToDictionary(p => p.Name, p => p.Legacy!.Value.ToString(), StringComparer.OrdinalIgnoreCase));
+            .ToDictionary(p => p.Name, p => Tags.First(p.Legacy!.Value), StringComparer.OrdinalIgnoreCase));
 
     private static Dictionary<string, string> Build() {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

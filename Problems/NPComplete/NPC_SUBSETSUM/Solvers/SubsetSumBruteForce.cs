@@ -67,7 +67,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
         string Set() => PackingFrames.Braces(Members().Select(i => subsetSum.S[i]));
         string Adds() => PackingFrames.SumText(Members().Select(i => int.Parse(subsetSum.S[i])).ToList());
         while (NextSubset(picked)) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
 
             string certificate = SubsetToCertificate(picked, subsetSum.S);
             tried++;

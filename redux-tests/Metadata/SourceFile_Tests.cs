@@ -10,6 +10,7 @@ namespace redux_tests;
 // and reductions (Interfaces/SourceFile.cs). The value comes from [CallerFilePath], so it's right by
 // construction for a class that declares it — but a subclass that inherits the property
 // reports its base class's file, and these tests catch that.
+[Trait("Category", "Metadata")]
 public class SourceFile_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

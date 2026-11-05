@@ -20,6 +20,9 @@ namespace redux_tests;
 // separated) BEFORE the picture existed (with the #791-#796 fixes in), on its default instance, the mockup's examples,
 // hand-picked edge cases and seeded random instances.
 public class PackingSolvers_Tests {
+    // Partition's default instance before #938 changed it: it has two 12s (#628).
+    private const string OldPartitionDefault = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
 
@@ -326,7 +329,7 @@ public class PackingSolvers_Tests {
 
     [Fact]
     public void Specs_DescribeEachProblemsItemsAndLines() {
-        Assert.Equal(12, PartitionDefaultVisualization.Spec(new PARTITION()).Items.Count); // both 12s are items (#628)
+        Assert.Equal(12, PartitionDefaultVisualization.Spec(new PARTITION(OldPartitionDefault)).Items.Count); // both 12s are items (#628)
         var sum = SubsetSumVisualization.Spec(new SUBSETSUM());
         Assert.Equal((PackingRule.SubsetSum, 28, 4), (sum.Rule, sum.Target, sum.Items.Count));
         var knapsack = KnapsackVisualization.Spec(new KNAPSACK());

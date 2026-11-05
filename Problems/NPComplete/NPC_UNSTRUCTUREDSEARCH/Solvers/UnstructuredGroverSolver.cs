@@ -65,7 +65,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
 
         var satproblem = String.Join(" | ", exprs);
         var counts = new List<KeyValuePair<string, long>>();
-        string measured = SolveAsSat(problem, satproblem, counts);
+        string measured = SolveAsSat(problem, satproblem, nbits, counts);
         int index = Item(satproblem, measured);
         string answer = index.ToString();
         if (spec != null) {
@@ -138,9 +138,10 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
     }
 
     // The bits the server measured, in its variable order (see Item). On any failure of the quantum service, including a
-    // response with no bit string to read as an item (#538), this throws SolverUnavailableException (HTTP 503
-    // solver_unavailable) rather than handing Solve something that is not a bit string (#625).
-    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, List<KeyValuePair<string, long>> counts) {
+    // response with no `answer_bitstring` (#538) or one that is not `nbits` binary digits, this throws
+    // SolverUnavailableException (HTTP 503 solver_unavailable) rather than handing Solve something that is not a bit string
+    // (#625). The bit string is checked inside Ask, so a malformed one fails the same way as a missing one.
+    private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, int nbits, List<KeyValuePair<string, long>> counts) {
         var requestBody = new JSON_Sat_Problem(problemInstance);
 
         return QuantumServerAPI.Ask(this, problem.problemName, client => {
@@ -155,8 +156,11 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
             if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("qasm", out JsonElement circuitElement) && circuitElement.ValueKind == JsonValueKind.String) {
                 problem.circuit = circuitElement.GetString() ?? "";
             }
-            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer_bitstring", out JsonElement answerElement) && answerElement.ValueKind == JsonValueKind.String
-                && answerElement.GetString() is { Length: > 0 and <= 31 } bits && bits.All(c => c is '0' or '1')) {
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer_bitstring", out JsonElement answerElement)
+                && answerElement.ValueKind == JsonValueKind.String) {
+                string bits = answerElement.GetString() ?? "";
+                if (bits.Length == 0 || bits.Length != nbits || bits.Length > 31 || bits.Any(c => c != '0' && c != '1'))
+                    throw new InvalidDataException($"its 'answer_bitstring' is not {nbits} binary digits: {response}");
                 return bits;
             }
 

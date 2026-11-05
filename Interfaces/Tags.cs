@@ -91,6 +91,11 @@ public sealed class TagJsonConverter<T> : JsonConverter<T> where T : struct, Enu
 /// field, and drops the single field of a set that has none (<see cref="ProblemVariant"/>). A class that leaves a
 /// tag to its interface's default member still gets the list: System.Text.Json writes only the members a class
 /// declares, the same gap <see cref="ProblemDefaultsJson"/> fills for the default solver/verifier/visualization.
+/// <para>
+/// Every response that writes a problem, solver, reduction or visualization object applies it: /ProblemProvider/info,
+/// problemInstance and reduce, and /Navigation/Batch/allInfo (Tags_Tests checks each). A serializer without it still
+/// writes the single field (<see cref="TagJsonConverter{T}"/>), but loses every tag after the first.
+/// </para>
 /// </summary>
 internal static class TagListJson {
     // The interface members a class may leave undeclared, read through the interface.
@@ -124,7 +129,7 @@ internal static class TagListJson {
                 info.Properties.RemoveAt(i);
         }
 
-        if (info.Type.IsInterface) return;
+        // An interface counts too: /reduce writes its problems as IProblem, where problemVariant is [JsonIgnore]d.
         foreach (var (owner, name, get) in InterfaceTags) {
             if (owner.IsAssignableFrom(info.Type) && !HasProperty(info, name + "s"))
                 info.Properties.Add(List(info, name + "s", get));

@@ -122,7 +122,7 @@ public class MINIMUMTSP_Tests {
     [Fact]
     public void MINIMUMTSP_Verifier_Says_It_Checks_Validity_Not_Optimality() {
         MinimumTSPVerifier verifier = new MinimumTSPVerifier();
-        Assert.Equal("Default Minimum Traveling Salesperson Verifier", verifier.verifierName);
+        Assert.Equal("Minimum Traveling Salesperson Solution Verifier", verifier.verifierName);
         Assert.Contains("valid tour", verifier.verifierDefinition);
         Assert.Contains("does not check that the tour is the cheapest", verifier.verifierDefinition);
     }

@@ -47,7 +47,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
 
         while (selected.Count < nodes.Count - 1) {
             if (timerHasExpired)
-                return "{}";
+                return SolveRun.TimedOutAnswer;
 
             var candidateEdges = visited
                 .SelectMany(node => adjacency[node])

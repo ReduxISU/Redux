@@ -198,7 +198,7 @@ static class FactorGraphFrames {
     /// recording time limit or by the solver's own timer ends with <see cref="StoppedFrame"/>, and its answer is never read.
     /// </summary>
     public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
-        bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), GroupedGraphFrames.SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
+        bool stopped = run.TimedOut || GroupedGraphFrames.IsSolverTimeout(run.Answer);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Assignment>(run)) {

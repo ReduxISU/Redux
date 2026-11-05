@@ -73,6 +73,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE, TableCells>, IIncrementalSolv
             : "Fill row 0 and column 0 first: turning a prefix into the empty string costs one deletion or insertion per letter.");
 
         for (int i = 1; i <= m; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             for (int j = 1; j <= n; j++) {
                 int at = i, to = j;
                 if (s1[i - 1] == s2[j - 1]) {

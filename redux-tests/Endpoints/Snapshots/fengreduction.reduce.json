@@ -11,6 +11,9 @@
     "visualizationName": "Knapsack Visualization",
     "visualizationDefinition": "Draws the items with their weights and values, and the knapsack\u0027s weight against W and value against V, and shows the selected solver choosing the items.",
     "visualizationType": "SetD3",
+    "visualizationTypes": [
+      "SetD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_KNAPSACK/Visualizations/KnapsackVisualization.cs",
     "contributors": [
@@ -26,6 +29,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n",
         "Description": "",
@@ -140,6 +146,9 @@
     "certificateFormat": "Format: {K | K is set} Example: {1,12,15}",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Garret Stouffer",
       "Caleb Eardley"
@@ -155,6 +164,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n * 2^n",
         "Description": ", n = |S|",
@@ -166,7 +178,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Subset Sum Verifier",
+      "verifierName": "Subset Sum Solution Verifier",
       "verifierDefinition": "This is a verifier for Subset Sum",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs",
@@ -179,6 +191,9 @@
       "visualizationName": "Subset Sum Visualization",
       "visualizationDefinition": "Draws the numbers as items and the chosen ones as a bar against the target T, and shows the selected solver trying subsets until one adds up to exactly T.",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs",
       "contributors": [
@@ -195,6 +210,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n * 2^n",
           "Description": ", n = |S|",
@@ -205,7 +223,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Knapsack (Binary)",
@@ -222,6 +243,9 @@
     "certificateFormat": "Format: {(weight,value),...} subset i | total weight \u003C= W, total value \u003E= V Example: {(20,100),(30,120)}",
     "complexityClass": "NPComplete",
     "problemType": "MathematicalProgramming",
+    "problemTypes": [
+      "MathematicalProgramming"
+    ],
     "contributors": [
       "Garret Stouffer",
       "Daniel Igbokwe"
@@ -236,6 +260,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n",
         "Description": "",
@@ -247,7 +274,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Knapsack (Binary) Verifier",
+      "verifierName": "Knapsack (Binary) Solution Verifier",
       "verifierDefinition": "This is a verifier for Knapsack. It checks that that the weight of the chosen items do not exceed the allowed weight and that the value of the items exceed the required value",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_KNAPSACK/Verifiers/KnapsackVerifier.cs",
@@ -262,6 +289,9 @@
       "visualizationName": "Knapsack Visualization",
       "visualizationDefinition": "Draws the items with their weights and values, and the knapsack\u0027s weight against W and value against V, and shows the selected solver choosing the items.",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_KNAPSACK/Visualizations/KnapsackVisualization.cs",
       "contributors": [
@@ -277,6 +307,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n",
           "Description": "",
@@ -287,9 +320,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Linear",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Linear"
 }

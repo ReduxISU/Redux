@@ -285,7 +285,7 @@ public class FormulaProblems_Endpoint_Tests : IClassFixture<AppFactory> {
     public async Task Info_ReportsTheDefaultsLegacyType_AndTheFormulaPictureType_AndNoFramesPlumbing(string vis, string name, string legacy, string solver) {
         var json = JsonDocument.Parse(await _client.GetStringAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken)).RootElement;
         Assert.Equal(name, json.GetProperty("visualizationName").GetString());
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "visualizationTypes", "pictureType", "solver"],
             json.EnumerateObject().Select(p => p.Name));
         Assert.Equal((legacy, "Formula"), (json.GetProperty("visualizationType").GetString(), json.GetProperty("pictureType").GetString()));
         var own = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers[solver.ToLower()])!;

@@ -113,6 +113,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT, Groups> {
             }
             long reps = factorial(cut.nodes.Count) / (factorial(i + 1) * factorial(cut.nodes.Count - i - 1));
             for (int k = 0; k < reps; k++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 string certificate = indexListToCertificate(combination, cut.nodes);
                 certificate = certificateToEdges(cut, certificate);
                 tried++;

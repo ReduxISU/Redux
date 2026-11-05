@@ -31,6 +31,10 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         "Background", "ElementHighlight", "Solution", "Rejected", "Untraveled", "Covered", "Blocked", "Committed",
     };
 
+    // Graph Coloring's default instance before #938 changed it; the coloring frame tests are written for it, and the greedy
+    // solver colors it in three (the new default, a prism, is one greedy cannot).
+    private const string OldColoringDefault = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
+
     private const string ColoringVis = "graphcoloringdefaultvisualization";
     private const string CoverVis = "cliquecoverdefaultvisualization";
 
@@ -186,7 +190,7 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Coloring_BruteForce_FirstFrameIsAClash_LastIsTheMockupsColoring() {
-        var (_, body) = await Visualize($"visualization={ColoringVis}&format=frames", DefaultInstance(ColoringVis));
+        var (_, body) = await Visualize($"visualization={ColoringVis}&format=frames", OldColoringDefault);
         var frames = Frames(body);
         // First frame: every node in color 0, so the first edge of the instance clashes.
         var first = frames[0];
@@ -211,7 +215,7 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Coloring_Greedy_ColorsOneNodePerFrame_InOrder() {
-        var (status, body) = await Visualize($"visualization={ColoringVis}&format=frames&solver=graphcoloringgreedy", DefaultInstance(ColoringVis));
+        var (status, body) = await Visualize($"visualization={ColoringVis}&format=frames&solver=graphcoloringgreedy", OldColoringDefault);
         Assert.Equal(HttpStatusCode.OK, status);
         var frames = Frames(body);
         Assert.Equal(10, frames.Count);   // nine nodes, then Done
@@ -232,7 +236,7 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.True(last.GetProperty("ok").GetBoolean());
         Assert.Equal(0, last.GetProperty("groups").GetProperty("a").GetInt32());
         // Same picture as brute force: same payload.
-        var (_, brute) = await Visualize($"visualization={ColoringVis}&format=frames", DefaultInstance(ColoringVis));
+        var (_, brute) = await Visualize($"visualization={ColoringVis}&format=frames", OldColoringDefault);
         Assert.Equal(JsonDocument.Parse(brute).RootElement.GetProperty("payload").GetRawText(), JsonDocument.Parse(body).RootElement.GetProperty("payload").GetRawText());
         Assert.NotEqual(brute, body);
     }
@@ -326,7 +330,7 @@ public class GraphGroupFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     [InlineData(ColoringVis, "graphcoloringgreedy")]
     [InlineData(CoverVis, "cliquecoverbruteforce")]
     public async Task Frames_EveryCompatibleSolver_EndsInAVerifiedDoneFrame(string vis, string solver) {
-        var instance = ReadSnapshot($"{vis}.instance.txt");
+        var instance = vis == ColoringVis ? OldColoringDefault : ReadSnapshot($"{vis}.instance.txt");
         var (status, body) = await Visualize($"visualization={vis}&format=frames&solver={solver}", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         var frames = Frames(body);

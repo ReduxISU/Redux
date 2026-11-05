@@ -203,7 +203,7 @@ static class FormulaExprFrames {
     /// </summary>
     public static FramesResponse Build<TStep>(FormulaPayload payload, SolveRun run, Func<SolverStep<TStep>, bool, FormulaExprFrame> draw,
         Func<string, FormulaExprFrame> solved) {
-        bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), GroupedGraphFrames.SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
+        bool stopped = run.TimedOut || GroupedGraphFrames.IsSolverTimeout(run.Answer);
         var frames = new List<object>();
         SolverStep<TStep>? last = null;
         foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<TStep>(run)) {

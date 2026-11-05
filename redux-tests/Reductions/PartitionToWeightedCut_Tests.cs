@@ -12,6 +12,9 @@ namespace redux_tests;
 // Partition to Weighted Cut: mapSolutions returned "" (#740); an odd total gave a K that a split one apart reaches, one number
 // gave text Weighted Cut cannot read, and large numbers overflowed K without a word (#830).
 public class PartitionToWeightedCut_Tests : IClassFixture<AppFactory> {
+    // Partition's default instance before #938 changed it: it has two 12s (#628).
+    private const string OldPartitionDefault = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+
     private readonly HttpClient _client;
 
     public PartitionToWeightedCut_Tests(AppFactory factory) {
@@ -42,9 +45,9 @@ public class PartitionToWeightedCut_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void DefaultInstance_KeepsItsTarget() {
-        // Partition keeps both 12s of the default (#628), so 12 numbers summing to 150: K = 150^2 / 4 = 5625. (Before #628 the
+        // Partition keeps both 12s of the old default (#628), so 12 numbers summing to 150: K = 150^2 / 4 = 5625. (Before #628 the
         // second 12 was dropped: 11 numbers, 138, K = 4761.)
-        var red = new WEIGHTEDCUTReduction();
+        var red = new WEIGHTEDCUTReduction(OldPartitionDefault);
         Assert.StartsWith("(({1,2,3,4,5,6,7,8,9,10,11,12},{({1,2},7),({1,3},12),", red.reductionTo.instance);
         Assert.EndsWith(",({11,12},378)}),5625)", red.reductionTo.instance);
         Assert.Equal(66, red.reductionTo.edges.Count);

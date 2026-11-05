@@ -46,6 +46,7 @@ class SimonSolver : ISolver<SIMON, QuantumProgress>, IIncrementalSolver {
 
         var fmap = new Dictionary<int, HashSet<int>>();
         for (int s = 0; s < problem.funcValues.Length; s++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             int y = problem.Func(s);
             if (!fmap.ContainsKey(y))
                 fmap[y] = new HashSet<int>();

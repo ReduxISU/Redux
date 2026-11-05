@@ -9,7 +9,7 @@ class MinimumTSPVerifier : IVerifier<MINIMUMTSP> {
     public const string CertificateExample = "{a,c,b,e,d,a}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Minimum Traveling Salesperson Verifier";
+    public string verifierName { get; } = "Minimum Traveling Salesperson Solution Verifier";
     public string verifierDefinition { get; } = "Checks that the certificate is a valid tour: it lists every city of the graph exactly once (at least three cities), optionally repeating the first city at the end, and every hop, including the one from the last city back to the first, is an edge of the graph. It does not check that the tour is the cheapest one; checking optimality is as hard as solving the problem.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

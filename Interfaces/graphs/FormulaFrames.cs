@@ -185,7 +185,7 @@ static class FormulaFrames {
     /// with <see cref="StoppedFrame"/> instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
-        bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), GroupedGraphFrames.SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
+        bool stopped = run.TimedOut || GroupedGraphFrames.IsSolverTimeout(run.Answer);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Assignment>(run)) {

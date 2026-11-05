@@ -14,6 +14,9 @@ namespace redux_tests;
 
 // Construction steps (#691): what a reduction records while it builds its target.
 public class BuildSteps_Tests : IClassFixture<AppFactory> {
+    // 3SAT's default instance before #957 changed it; these steps are written for it.
+    private const string OldSat3Default = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+
     private readonly HttpClient _client;
 
     public BuildSteps_Tests(AppFactory factory) {
@@ -161,7 +164,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void ThreeSat_DefaultInstance_CaptionsUseBothProblemsWords() {
-        IReduction red = Build(Sat, new SAT3().defaultInstance);
+        IReduction red = Build(Sat, OldSat3Default);
         var steps = red.BuildRun(true)!.Steps;
         // 3 clauses, 3 pairs of clauses, then K.
         Assert.Equal(7, steps.Count);
@@ -186,7 +189,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
     // #908: each pair-of-clauses step names its pair rules, one per pair of nodes it joins or leaves out; K names the bound.
     [Fact]
     public void ThreeSat_PairStepsNameTheirEdgeRules_AndTheKStepNamesTheBound() {
-        IReduction red = Build(Sat, new SAT3().defaultInstance);
+        IReduction red = Build(Sat, OldSat3Default);
         ConstructionRun run = red.BuildRun(true)!;
         var steps = run.Steps;
         var c1c2 = steps[3];
@@ -505,7 +508,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Endpoint_Sat3ToClique_MatchesTheRecordedSteps() {
-        string instance = new SAT3().defaultInstance;
+        string instance = OldSat3Default;
         var response = await Post(Sat, instance);
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         var steps = doc.RootElement.GetProperty("steps").EnumerateArray().ToList();

@@ -61,6 +61,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
         Stack<int> selectedSets = new Stack<int>();
         bool foundSolution = false;
         iterate(Y, ref X, ref selectedSets, ref foundSolution, exactCover, rec);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (selectedSets.Any()) {
             rec.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(selectedSets).Sets)}.");
@@ -90,6 +91,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
                 rec.Reject(() => Picked(stack), () => $"No set left can cover {element} without doubling up, so undo.", BipartiteFrames.ElementId(element));
             bool first = true;
             foreach (var row in rows) {
+                if (timerHasExpired) return; // #935: unwind at the time limit; solve() returns the timed-out answer
                 solution.Push(row);
                 Stack<List<int>> columns = select(Y, ref X, row);
                 bool isFirst = first;

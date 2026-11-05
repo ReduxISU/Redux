@@ -18,6 +18,9 @@ class API_SAT : API_JSON {
     /// picture and every gadget out of a SAT or 3SAT formula use, so a gadget's ids name pieces of this picture too.
     /// </summary>
     public List<Clause> clauses { get; set; }
+    public API_SAT(List<Clause> _clauses) {
+        clauses = _clauses;
+    }
     public API_SAT(SAT3 instance) {
         clauses = instance.clauses.Select((c, i) => new Clause(c, i)).ToList();
     }
@@ -29,10 +32,13 @@ class API_SAT : API_JSON {
     public class Clause {
         public string id { get; set; }
         public List<Literal> literals { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public long? weight { get; set; }
 
-        public Clause(List<string> _literals, int index) {
+        public Clause(List<string> _literals, int index, long? _weight = null) {
             id = GroupedGraphFrames.ClauseId(index);
             literals = _literals.Select((s, j) => new Literal(s, GroupedGraphFrames.LiteralId(index, j))).ToList();
+            weight = _weight;
         }
     }
 

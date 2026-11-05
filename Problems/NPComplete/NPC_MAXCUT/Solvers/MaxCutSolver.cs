@@ -39,7 +39,7 @@ class MaxCutSolver : ISolver<MAXCUT, Groups> {
 
         int limit = 1 << n;
         for (int mask = 1; mask < limit - 1; mask++) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             HashSet<string> S = new();
             for (int i = 0; i < n; i++)

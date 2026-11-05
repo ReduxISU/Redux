@@ -10,6 +10,9 @@
     "visualizationName": "Clique Cover Visualization",
     "visualizationDefinition": "This is a default visualization for Clique Cover",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Visualizations/CliqueCoverDefaultVisualization.cs",
     "contributors": [
@@ -26,6 +29,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "(K\u002B1)^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|, K = target clique count",
@@ -146,52 +152,21 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "g"
+        "a"
       ],
       "reductionToIds": [
-        "g"
+        "a-e",
+        "a-f"
       ],
-      "gadgetKind": "element",
+      "gadgetKind": "edgeRule",
       "sourceIds": [
-        "g"
+        "a"
       ],
       "targetIds": [
-        "g"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "h"
+        "a-e",
+        "a-f"
       ],
-      "reductionToIds": [
-        "h"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "h"
-      ],
-      "targetIds": [
-        "h"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "i"
-      ],
-      "reductionToIds": [
-        "i"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "i"
-      ],
-      "targetIds": [
-        "i"
-      ]
+      "note": "a is joined to the nodes it has no edge to in the graph."
     },
     {
       "kind": "gadget",
@@ -201,11 +176,7 @@
       ],
       "reductionToIds": [
         "b-d",
-        "b-e",
-        "b-f",
-        "b-g",
-        "b-h",
-        "b-i"
+        "b-f"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -213,11 +184,7 @@
       ],
       "targetIds": [
         "b-d",
-        "b-e",
-        "b-f",
-        "b-g",
-        "b-h",
-        "b-i"
+        "b-f"
       ],
       "note": "b is joined to the nodes it has no edge to in the graph."
     },
@@ -229,11 +196,7 @@
       ],
       "reductionToIds": [
         "c-d",
-        "c-e",
-        "c-f",
-        "c-g",
-        "c-h",
-        "c-i"
+        "c-e"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -241,101 +204,9 @@
       ],
       "targetIds": [
         "c-d",
-        "c-e",
-        "c-f",
-        "c-g",
-        "c-h",
-        "c-i"
+        "c-e"
       ],
       "note": "c is joined to the nodes it has no edge to in the graph."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "d"
-      ],
-      "reductionToIds": [
-        "d-f",
-        "d-g",
-        "d-h",
-        "d-i"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "d"
-      ],
-      "targetIds": [
-        "d-f",
-        "d-g",
-        "d-h",
-        "d-i"
-      ],
-      "note": "d is joined to the nodes it has no edge to in the graph."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "e"
-      ],
-      "reductionToIds": [
-        "e-f",
-        "e-g",
-        "e-h",
-        "e-i"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "e"
-      ],
-      "targetIds": [
-        "e-f",
-        "e-g",
-        "e-h",
-        "e-i"
-      ],
-      "note": "e is joined to the nodes it has no edge to in the graph."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "f"
-      ],
-      "reductionToIds": [
-        "f-h",
-        "f-i"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "f"
-      ],
-      "targetIds": [
-        "f-h",
-        "f-i"
-      ],
-      "note": "f is joined to the nodes it has no edge to in the graph."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "g"
-      ],
-      "reductionToIds": [
-        "g-h",
-        "g-i"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "g"
-      ],
-      "targetIds": [
-        "g-h",
-        "g-i"
-      ],
-      "note": "g is joined to the nodes it has no edge to in the graph."
     },
     {
       "kind": "gadget",
@@ -357,12 +228,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/GRAPHCOLORING_Class.cs",
     "wikiName": "",
-    "defaultInstance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
-    "instance": "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
-    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)",
-    "certificateFormat": "Format: {c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class Example: {{a},{b,d,f,h},{c,e,g,i}}",
+    "defaultInstance": "(({a,b,c,d,e,f},{{a,b},{b,c},{c,a},{a,d},{b,e},{c,f},{d,e},{e,f},{f,d}}),3)",
+    "instance": "(({a,b,c,d,e,f},{{a,b},{b,c},{c,a},{a,d},{b,e},{c,f},{d,e},{e,f},{f,d}}),3)",
+    "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({a,b,c,d,e,f},{{a,b},{b,c},{c,a},{a,d},{b,e},{c,f},{d,e},{e,f},{f,d}}),3)",
+    "certificateFormat": "Format: {c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class Example: {{a,f},{b,d},{c,e}}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Daniel Igbokwe",
       "Alex Diviney"
@@ -377,6 +251,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "(numColors\u002B1)^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
@@ -390,7 +267,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Graph Coloring Verifier",
+      "verifierName": "Graph Coloring Solution Verifier",
       "verifierDefinition": "This is a verifier for Graph Coloring.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Verifiers/GraphColoringVerifier.cs",
@@ -403,6 +280,9 @@
       "visualizationName": "Graph Coloring Visualization",
       "visualizationDefinition": "This is a default visualization for Graph Coloring",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_GRAPHCOLORING/Visualizations/GraphColoringDefaultVisualization.cs",
       "contributors": [
@@ -419,6 +299,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "(numColors\u002B1)^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
@@ -431,7 +314,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Clique Cover",
@@ -443,11 +329,14 @@
     "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/CLIQUECOVER_Class.cs",
     "wikiName": "",
     "defaultInstance": "(({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)",
-    "instance": "(({a,b,c,d,e,f,g,h,i},{{b,d},{b,e},{b,f},{b,g},{b,h},{b,i},{c,d},{c,e},{c,f},{c,g},{c,h},{c,i},{d,b},{d,c},{d,f},{d,g},{d,h},{d,i},{e,b},{e,c},{e,f},{e,g},{e,h},{e,i},{f,b},{f,c},{f,d},{f,e},{f,h},{f,i},{g,b},{g,c},{g,d},{g,e},{g,h},{g,i},{h,b},{h,c},{h,d},{h,e},{h,f},{h,g},{i,b},{i,c},{i,d},{i,e},{i,f},{i,g}}),3)",
+    "instance": "(({a,b,c,d,e,f},{{a,e},{a,f},{b,d},{b,f},{c,d},{c,e},{d,b},{d,c},{e,a},{e,c},{f,a},{f,b}}),3)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6,7,8},{{2,1},{1,3},{2,3},{3,5},{2,4},{4,5},{6,7},{7,8},{6,8}}),3)",
     "certificateFormat": "Format: {clique1,...,cliqueM} | cliques partition N, M \u003C= K, each clique fully connected in E Example: {1,2,3},{4,5},{6,7,8}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -461,6 +350,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "(K\u002B1)^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|, K = target clique count",
@@ -474,7 +366,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Cover Verifier",
+      "verifierName": "Clique Cover Solution Verifier",
       "verifierDefinition": "This is a verifier for the NP-Complete Clique Cover problem",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Verifiers/CliqueCoverVerifier.cs",
@@ -487,6 +379,9 @@
       "visualizationName": "Clique Cover Visualization",
       "visualizationDefinition": "This is a default visualization for Clique Cover",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUECOVER/Visualizations/CliqueCoverDefaultVisualization.cs",
       "contributors": [
@@ -503,6 +398,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "(K\u002B1)^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|, K = target clique count",
@@ -515,9 +413,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Quadratic",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Polynomial"
 }

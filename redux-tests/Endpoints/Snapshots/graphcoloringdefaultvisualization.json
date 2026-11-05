@@ -55,33 +55,6 @@
         "dashed": "",
         "additional": "",
         "id": "f"
-      },
-      {
-        "name": "g",
-        "color": "",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "g"
-      },
-      {
-        "name": "h",
-        "color": "",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "h"
-      },
-      {
-        "name": "i",
-        "color": "",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "i"
       }
     ],
     "links": [
@@ -112,20 +85,7 @@
         "id": "b-c"
       },
       {
-        "source": "a",
-        "target": "c",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "a-c"
-      },
-      {
-        "source": "d",
+        "source": "c",
         "target": "a",
         "attribute1": "",
         "attribute2": "",
@@ -135,7 +95,46 @@
         "weight": "1",
         "weighted": false,
         "directed": false,
-        "id": "d-a"
+        "id": "c-a"
+      },
+      {
+        "source": "a",
+        "target": "d",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "a-d"
+      },
+      {
+        "source": "b",
+        "target": "e",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "b-e"
+      },
+      {
+        "source": "c",
+        "target": "f",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "c-f"
       },
       {
         "source": "d",
@@ -151,20 +150,7 @@
         "id": "d-e"
       },
       {
-        "source": "a",
-        "target": "e",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "a-e"
-      },
-      {
-        "source": "a",
+        "source": "e",
         "target": "f",
         "attribute1": "",
         "attribute2": "",
@@ -174,11 +160,11 @@
         "weight": "1",
         "weighted": false,
         "directed": false,
-        "id": "a-f"
+        "id": "e-f"
       },
       {
         "source": "f",
-        "target": "g",
+        "target": "d",
         "attribute1": "",
         "attribute2": "",
         "color": "",
@@ -187,59 +173,7 @@
         "weight": "1",
         "weighted": false,
         "directed": false,
-        "id": "f-g"
-      },
-      {
-        "source": "g",
-        "target": "a",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "g-a"
-      },
-      {
-        "source": "a",
-        "target": "h",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "a-h"
-      },
-      {
-        "source": "h",
-        "target": "i",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "h-i"
-      },
-      {
-        "source": "i",
-        "target": "a",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "i-a"
+        "id": "f-d"
       }
     ]
   },
@@ -248,7 +182,7 @@
     "nodes": [
       {
         "name": "a",
-        "color": "Sand",
+        "color": "Rose",
         "outline": "",
         "delay": "",
         "dashed": "",
@@ -257,7 +191,7 @@
       },
       {
         "name": "b",
-        "color": "Solution",
+        "color": "Sand",
         "outline": "",
         "delay": "",
         "dashed": "",
@@ -266,7 +200,7 @@
       },
       {
         "name": "c",
-        "color": "Rose",
+        "color": "Solution",
         "outline": "",
         "delay": "",
         "dashed": "",
@@ -275,7 +209,7 @@
       },
       {
         "name": "d",
-        "color": "Solution",
+        "color": "Sand",
         "outline": "",
         "delay": "",
         "dashed": "",
@@ -284,7 +218,7 @@
       },
       {
         "name": "e",
-        "color": "Rose",
+        "color": "Solution",
         "outline": "",
         "delay": "",
         "dashed": "",
@@ -293,39 +227,12 @@
       },
       {
         "name": "f",
-        "color": "Solution",
+        "color": "Rose",
         "outline": "",
         "delay": "",
         "dashed": "",
         "additional": "",
         "id": "f"
-      },
-      {
-        "name": "g",
-        "color": "Rose",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "g"
-      },
-      {
-        "name": "h",
-        "color": "Solution",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "h"
-      },
-      {
-        "name": "i",
-        "color": "Rose",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "i"
       }
     ],
     "links": [
@@ -356,20 +263,7 @@
         "id": "b-c"
       },
       {
-        "source": "a",
-        "target": "c",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "a-c"
-      },
-      {
-        "source": "d",
+        "source": "c",
         "target": "a",
         "attribute1": "",
         "attribute2": "",
@@ -379,7 +273,46 @@
         "weight": "1",
         "weighted": false,
         "directed": false,
-        "id": "d-a"
+        "id": "c-a"
+      },
+      {
+        "source": "a",
+        "target": "d",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "a-d"
+      },
+      {
+        "source": "b",
+        "target": "e",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "b-e"
+      },
+      {
+        "source": "c",
+        "target": "f",
+        "attribute1": "",
+        "attribute2": "",
+        "color": "",
+        "dashed": "",
+        "delay": "",
+        "weight": "1",
+        "weighted": false,
+        "directed": false,
+        "id": "c-f"
       },
       {
         "source": "d",
@@ -395,20 +328,7 @@
         "id": "d-e"
       },
       {
-        "source": "a",
-        "target": "e",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "a-e"
-      },
-      {
-        "source": "a",
+        "source": "e",
         "target": "f",
         "attribute1": "",
         "attribute2": "",
@@ -418,11 +338,11 @@
         "weight": "1",
         "weighted": false,
         "directed": false,
-        "id": "a-f"
+        "id": "e-f"
       },
       {
         "source": "f",
-        "target": "g",
+        "target": "d",
         "attribute1": "",
         "attribute2": "",
         "color": "",
@@ -431,59 +351,7 @@
         "weight": "1",
         "weighted": false,
         "directed": false,
-        "id": "f-g"
-      },
-      {
-        "source": "g",
-        "target": "a",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "g-a"
-      },
-      {
-        "source": "a",
-        "target": "h",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "a-h"
-      },
-      {
-        "source": "h",
-        "target": "i",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "h-i"
-      },
-      {
-        "source": "i",
-        "target": "a",
-        "attribute1": "",
-        "attribute2": "",
-        "color": "",
-        "dashed": "",
-        "delay": "",
-        "weight": "1",
-        "weighted": false,
-        "directed": false,
-        "id": "i-a"
+        "id": "f-d"
       }
     ]
   }

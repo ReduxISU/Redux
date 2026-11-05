@@ -175,7 +175,7 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync("/ProblemProvider/info?interface=nqueensvisualization", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "visualizationTypes", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("DynamicTable", root.GetProperty("visualizationType").GetString());
         Assert.Equal("N-Queens Backtracking", root.GetProperty("solver").GetProperty("solverName").GetString());

@@ -21,6 +21,8 @@ namespace redux_tests;
 // - "Hitting Set Visualization" is "Exact Hitting Set Visualization" in the snapshot: open PR #742 (fix/661) renames Hitting
 //   Set to Exact Hitting Set (#698) and ships that name to Redux_GUI itself.
 // - Fields only added (pictureType, #841) and text (definitions) are not compared.
+// - Weighted Max-SAT (#941) merged into CSharpAPI after the capture, with its own visualization (not opt-in), so Redux_GUI
+//   sees it there too. Its entries were added to the snapshot by hand when CSharpAPI was merged in (Nov 2026).
 public class GuiSnapshot_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

@@ -24,7 +24,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     // The weighted graph, shared with Minimum Traveling Salesperson, whose instance is the same graph without K.
     public const string WeightedGraphGrammar = "N is set, E subset {(e, w) | e is N unorderedcross N, w is int}";
     public const string InstanceGrammar = "{((N,E),K) | " + WeightedGraphGrammar + ", K is int}";
-    private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
+    private static string _defaultInstance { get; } = "(({New York,Los Angeles,Chicago,Miami,Denver},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),7000)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance} Parallel edges: when two edges join the same cities, the lightest one is used.";
     public string certificateFormat { get; } =

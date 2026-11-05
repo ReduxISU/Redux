@@ -86,6 +86,7 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
             rec.Done(new Placement([]), false, $"Every arrangement overflows: the {n} items don't fit in {K} {(K == 1 ? "bin" : "bins")} of {C}.");
             return "{}";
         }
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: Place unwinds as if done at the time limit
         int used = binContents.Count(b => b.Count > 0);
         rec.Done(new Placement(binOf), true, n == 0
             ? "There are no items, so no bins are needed."
@@ -98,6 +99,9 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
     // Tries to place items[i] into one of the K bins, then recurses on items[i+1].
     // Returns true as soon as a complete valid assignment is found.
     private bool Place(int i, List<int> items, int[] binSums, List<int>[] binContents, int C, int K, int[] binOf, StepRecorder<Placement> rec) {
+
+        // #935: at the time limit, unwind as if done; solve() then returns the timed-out answer.
+        if (timerHasExpired) return true;
 
         // Base case: all items have been placed successfully.
         if (i == items.Count) return true;

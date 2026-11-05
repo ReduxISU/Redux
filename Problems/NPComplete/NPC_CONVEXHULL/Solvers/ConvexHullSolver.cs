@@ -32,7 +32,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
     // with the whole hull, and Done with the verifier's verdict.
     public string Solve(CONVEXHULL problem, StepRecorder<HullBuild> rec) {
         if (timerHasExpired)
-            return "timeout";
+            return SolveRun.TimedOutAnswer;
 
         // Sort a copy by (x, then y) and drop duplicate points; the problem's own list is left untouched.
         List<(double x, double y)> points = problem.points

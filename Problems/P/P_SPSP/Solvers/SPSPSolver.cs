@@ -64,10 +64,9 @@ class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
         rec.Try(Partial, () => $"Start at {sourceNode} with distance 0. Every other node starts at ∞.", LayeredFrames.NodeId(sourceNode));
 
         while (pq.Count > 0) {
-            if (timerHasExpired) {
-                rec.Done(new Distances([], [], []), false, "The solver ran out of time.");
-                return "{}";
-            }
+            // #935: the run is stopped; SolveRun.Record adds the stopped Done step when recording.
+            if (timerHasExpired)
+                return SolveRun.TimedOutAnswer;
 
             string current = pq.Dequeue();
 

@@ -12,8 +12,9 @@ namespace ContributorStatsSync;
 // #565 and #613). Two explicit modes, exactly one required:
 //
 //   --scan-only    (weekly job) auto-detects new GitHub identities committing to either repo that
-//                  aren't tracked yet and writes them as stub entries with zeroed counts, for a
-//                  human to review. No counting happens here.
+//                  aren't tracked yet, and names credited in a `contributors` list that have no
+//                  entry, and writes them as stub entries with zeroed counts, for a human to
+//                  review. No counting happens here.
 //   --counts-only  (release build) fills prsMerged/reviews for every contributor who already has
 //                  a githubUsername, by scanning every PR of each repo once through the GraphQL
 //                  API -- a handful of requests total. (Per-contributor Search API calls took
@@ -34,7 +35,7 @@ namespace ContributorStatsSync;
 // round-tripping the whole file through a POCO) specifically so untouched entries keep their
 // exact original key order and formatting -- a run that only changes a handful of contributors
 // produces a diff touching only those contributors, not a full-file reformat.
-internal static class Program {
+internal static partial class Program {
     private const string Owner = "ReduxISU";
     private const string ReduxRepo = "Redux";
     private const string GuiRepo = "Redux_GUI";
@@ -165,6 +166,8 @@ internal static class Program {
         }
 
         if (scanOnly) {
+            AddCreditedNames(root, jsonPath, newEntryNames);
+
             // Leave the file untouched when nobody new turned up, so the weekly job has no diff
             // and opens no PR.
             if (newEntryNames.Count == 0) {
@@ -203,6 +206,51 @@ internal static class Program {
 
         return await FinishAsync(jsonPath, root, newEntryNames, dryRun);
     }
+
+    // A problem can credit someone whose commits don't lead to that name (a different GitHub
+    // profile name, or an email with no account), so the credited names are added too. They have
+    // no GitHub login: the person reviewing the weekly PR merges them with any new account entry.
+    private static void AddCreditedNames(JsonObject root, string jsonPath, List<string> newEntryNames) {
+        var repoRoot = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetFullPath(jsonPath)))!;
+        var known = root.Select(kv => kv.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(repoRoot, "Problems"), "*.cs", SearchOption.AllDirectories)) {
+            foreach (var name in CreditedNames(File.ReadAllText(file))) {
+                if (!known.Add(name)) {
+                    continue;
+                }
+
+                Console.WriteLine($"  New credited name found: {name}");
+                root[name] = new JsonObject {
+                    ["email"] = "",
+                    ["education"] = "",
+                    ["major"] = "",
+                    ["bio"] = "Auto-detected by the contributor stats sync workflow from a contributors list -- "
+                        + "bio, education, and major not yet filled in.",
+                    ["githubUsername"] = "",
+                    ["reduxStats"] = StatsToNode(default),
+                    ["reduxGuiStats"] = StatsToNode(default),
+                };
+                newEntryNames.Add(name);
+            }
+        }
+    }
+
+    // The strings in a `contributors { get; } = { "A B", "C D" }` declaration, leaving out
+    // anything that isn't one person's full name (placeholders like "TODO").
+    private static IEnumerable<string> CreditedNames(string source) =>
+        ContributorsDeclaration().Matches(source)
+            .SelectMany(declaration => QuotedString().Matches(declaration.Groups[1].Value))
+            .Select(quoted => quoted.Groups[1].Value.Trim())
+            .Where(name => name != "Author Unknown"
+                && name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 2
+                && !name.Contains(',') && !name.Contains('&'));
+
+    [GeneratedRegex(@"\bcontributors\s*(?:\{[^}]*\}\s*)?=\s*(?:new[^{]*)?\{([^}]*)\}")]
+    private static partial Regex ContributorsDeclaration();
+
+    [GeneratedRegex("\"([^\"]*)\"")]
+    private static partial Regex QuotedString();
 
     private static async Task<int> FinishAsync(string jsonPath, JsonObject root, List<string> newEntryNames, bool dryRun) {
         var entries = $"{newEntryNames.Count} new entr{(newEntryNames.Count == 1 ? "y" : "ies")}";

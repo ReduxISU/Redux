@@ -34,7 +34,7 @@ public class FormulaNestedSet_Integration_Tests : IClassFixture<AppFactory> {
     [InlineData("HittingSetNestedSetVisualization", "SetD3", "NestedSet")]
     public async Task Info_AndAllInfo_ReportTheLegacyTypeAndThePictureType(string vis, string legacy, string picture) {
         var info = JsonDocument.Parse(await _client.GetStringAsync($"/ProblemProvider/info?interface={vis}", TestContext.Current.CancellationToken)).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "visualizationTypes", "pictureType", "solver"],
             info.EnumerateObject().Select(p => p.Name));
         Assert.Equal((legacy, picture), (info.GetProperty("visualizationType").GetString(), info.GetProperty("pictureType").GetString()));
         // allInfo lists these picture-type views only for clients that opt in (#929).

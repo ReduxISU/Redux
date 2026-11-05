@@ -31,6 +31,12 @@ class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
     }
 
+    // #935: an outer solver's live time-limit flag (TSPBranchAndBound runs this for its first bound).
+    private readonly Func<bool>? outerTimerHasExpired;
+    internal TSPGreedy(Func<bool> outerTimerHasExpired) {
+        this.outerTimerHasExpired = outerTimerHasExpired;
+    }
+
     private bool getEdgeWeight(TSP tsp, string from, string to, out int weight) {
         var directEdge = tsp.edges.FirstOrDefault(edge => edge.source == from && edge.target == to);
         if (directEdge != default) {
@@ -81,6 +87,7 @@ class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
             int totalWeight = 0;
 
             while (visited.Count < tsp.nodes.Count) {
+                if (timerHasExpired || outerTimerHasExpired?.Invoke() == true) return SolveRun.TimedOutAnswer;
                 string nextNode = "";
                 int bestWeight = int.MaxValue;
 

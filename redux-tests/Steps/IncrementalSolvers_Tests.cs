@@ -323,4 +323,20 @@ public class IncrementalSolvers_Tests {
                 Assert.Equal(mark, frame.Nodes[id].State);
         }
     }
+
+    // #746 review: on the path a-b-c, a Try is a set still being built, so a vertex it doesn't dominate yet can still be
+    // taken and must not be drawn as Rejected. Only Reject and Done steps judge the set.
+    [Theory]
+    // The reviewer's path a-b-c, and for the forced-vertex search a graph where it tries after it has taken a vertex.
+    [InlineData("dominatingsetnaiveinclusionexclusion", "(({a,b,c},{{a,b},{b,c}}),1)")]
+    [InlineData("dominatingsetforcedvertex", "(({a,b,c},{{a,b},{b,c}}),1)")]
+    [InlineData("dominatingsetforcedvertex", "(({a,b,c,d,e},{{a,b},{c,d}}),2)")]
+    [InlineData("dominatingsetforcedvertex", "(({a,b,c,d,e,f},{{a,b},{b,c},{d,e},{e,f}}),2)")]
+    public void DominatingSet_Try_NeverRejectsAVertexThatCanStillBeTaken(string solverName, string instance) {
+        var (steps, frames) = SubsetRun(solverName, "dominatingsetdefaultvisualization", instance);
+        var tries = steps.Select((s, i) => (Step: s, Frame: frames[i])).Where(p => p.Step.Event == StepEvent.Try).ToList();
+        Assert.NotEmpty(tries);
+        foreach (var (_, frame) in tries)
+            Assert.DoesNotContain(frame.Nodes.Values, s => s.State == PictureState.Rejected);
+    }
 }

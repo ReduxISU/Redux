@@ -119,6 +119,17 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
     }
 
     [Fact]
+    public void GraphProblemWithNoDefaults_IsAGraphProblem_AndGetsThePlaceholders() {
+        IGraphProblem problem = new GRAPHFIXTURE();
+
+        Assert.Contains(nameof(GRAPHFIXTURE).ToLower(), ProblemProvider.GraphProblems.Keys);
+        Assert.NotNull(problem.graph.ToAPIGraph());
+        Assert.IsType<DummySolver>(problem.defaultSolver);
+        Assert.IsType<DummyVerifier>(problem.defaultVerifier);
+        Assert.IsType<DummyVisualization>(problem.defaultVisualization);
+    }
+
+    [Fact]
     public void ProblemWithADefaultFor_GetsThatClass_AndPlaceholdersForTheRest() {
         IProblem problem = new ATTRIBUTEDFIXTURE();
 
@@ -132,6 +143,63 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
     [Fact]
     public void Subclass_InheritsTheBaseProblemsDefaults() {
         Assert.IsType<AttributedFixtureVerifier>(((IProblem)new SubclassedFixture()).defaultVerifier);
+    }
+
+    // A problem keeps its defaults, like a class with `= new XSolver()` initializers: repeated access returns
+    // the same objects, so state they hold survives, and separate problems never share them (#945 review).
+    [Fact]
+    public void Defaults_AreTheSameObjectsOnEveryAccess() {
+        foreach (IProblem problem in new IProblem[] { new ATTRIBUTEDFIXTURE(), new NODEFAULTSFIXTURE() }) {
+            Assert.Same(problem.defaultSolver, problem.defaultSolver);
+            Assert.Same(problem.defaultVerifier, problem.defaultVerifier);
+            Assert.Same(problem.defaultVisualization, problem.defaultVisualization);
+        }
+    }
+
+    [Fact]
+    public void DefaultVerifier_KeepsItsCertificate() {
+        IProblem problem = new ATTRIBUTEDFIXTURE();
+        var verifier = problem.defaultVerifier;
+
+        Assert.True(verifier.verify("{1,2,3}", "2"));
+
+        Assert.Same(verifier, problem.defaultVerifier);
+        Assert.Equal("2", ((AttributedFixtureVerifier)problem.defaultVerifier).certificate);
+    }
+
+    [Fact]
+    public void DefaultSolver_KeepsItsTimerState() {
+        IProblem problem = new NODEFAULTSFIXTURE();
+
+        problem.defaultSolver.timerHasExpired = true;
+
+        Assert.True(problem.defaultSolver.timerHasExpired);
+    }
+
+    [Fact]
+    public void SeparateProblems_HaveSeparateDefaults() {
+        IProblem a = new ATTRIBUTEDFIXTURE(), b = new ATTRIBUTEDFIXTURE();
+
+        Assert.NotSame(a.defaultSolver, b.defaultSolver);
+        Assert.NotSame(a.defaultVerifier, b.defaultVerifier);
+        Assert.NotSame(a.defaultVisualization, b.defaultVisualization);
+
+        a.defaultSolver.timerHasExpired = true;
+        a.defaultVerifier.verify("{1,2,3}", "3");
+        Assert.False(b.defaultSolver.timerHasExpired);
+        Assert.Equal("", ((AttributedFixtureVerifier)b.defaultVerifier).certificate);
+    }
+
+    [Fact]
+    public void Defaults_FirstAccessedFromManyThreads_AreStillOneObject() {
+        IProblem problem = new ATTRIBUTEDFIXTURE();
+        var seen = new System.Collections.Concurrent.ConcurrentBag<(ISolver, IVerifier, IVisualization)>();
+
+        Parallel.For(0, 64, _ => seen.Add((problem.defaultSolver, problem.defaultVerifier, problem.defaultVisualization)));
+
+        Assert.Single(seen.Select(s => s.Item1).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.Single(seen.Select(s => s.Item2).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.Single(seen.Select(s => s.Item3).Distinct(ReferenceEqualityComparer.Instance));
     }
 
     // ── Through the endpoints ────────────────────────────────────────────────
@@ -188,6 +256,50 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
             fixture.GetProperty("defaultVerifier").GetProperty("verifierName").GetString());
         Assert.True(fixture.TryGetProperty("defaultSolver", out _));
         Assert.True(fixture.TryGetProperty("defaultVisualization", out _));
+    }
+
+    // ProblemDefaultsJson declares defaultVisualization as object, so GuiView has to recognize it by its value.
+    [Theory]
+    [InlineData("/ProblemProvider/info?interface=OPTINFIXTURE", "")]
+    [InlineData("/ProblemProvider/info?interface=OPTINFIXTURE&includePictures=true", "Opt In Fixture Visualization")]
+    public async Task Info_HidesAnOptInDefault_UnlessAskedFor(string url, string expected) {
+        var (status, body) = await Get(url);
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal(expected, doc.RootElement.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
+    }
+
+    [Theory]
+    [InlineData("/Navigation/Batch/allInfo", "")]
+    [InlineData("/Navigation/Batch/allInfo?includePictures=true", "Opt In Fixture Visualization")]
+    public async Task AllInfo_HidesAnOptInDefault_UnlessAskedFor(string url, string expected) {
+        var (status, body) = await Get(url);
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        var fixture = doc.RootElement.GetProperty(nameof(OPTINFIXTURE));
+        Assert.Equal(expected, fixture.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
+    }
+
+    [Theory]
+    [InlineData("/ProblemProvider/problemInstance?problem=OPTINFIXTURE", "")]
+    [InlineData("/ProblemProvider/problemInstance?problem=OPTINFIXTURE&includePictures=true", "Opt In Fixture Visualization")]
+    public async Task ProblemInstance_HidesAnOptInDefault_UnlessAskedFor(string url, string expected) {
+        var (status, body) = await Post(url, "\"{1,2}\"");
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal(expected, doc.RootElement.GetProperty("defaultVisualization").GetProperty("visualizationName").GetString());
+    }
+
+    [Fact]
+    public async Task GraphProblem_ParsesThroughTheEndpoints() {
+        var (status, body) = await Post("/ProblemProvider/problemInstance?problem=GRAPHFIXTURE", "\"({1,2},{{1,2}})\"");
+        Assert.Equal(HttpStatusCode.OK, status);
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal("({1,2},{{1,2}})", doc.RootElement.GetProperty("instance").GetString());
+        Assert.True(doc.RootElement.TryGetProperty("graph", out _), body);
+
+        var (infoStatus, _) = await Get("/ProblemProvider/info?interface=GRAPHFIXTURE");
+        Assert.Equal(HttpStatusCode.OK, infoStatus);
     }
 
     [Fact]
@@ -263,5 +375,6 @@ public class DefaultFor_Tests : IClassFixture<AppFactory> {
         var names = JsonSerializer.Deserialize<string[]>(all)!;
         Assert.DoesNotContain(nameof(NODEFAULTSFIXTURE), names);
         Assert.DoesNotContain(nameof(ATTRIBUTEDFIXTURE), names);
+        Assert.DoesNotContain(nameof(GRAPHFIXTURE), names);
     }
 }

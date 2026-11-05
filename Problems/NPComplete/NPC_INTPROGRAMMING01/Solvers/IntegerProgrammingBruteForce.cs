@@ -69,6 +69,7 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01, Assignment> {
         double total = Math.Pow(2, binary.Count);
         string last = "";
         for (int i = 0; i < total; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = BinaryToCertificate(binary);
             last = certificate;
             tried++;

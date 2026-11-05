@@ -49,7 +49,8 @@
   "TopologicalSortDefaultVisualization": "GraphD3",
   "UnstructuredSearchVisualization": "QuantumCircuitQjs",
   "VertexCoverDefaultVisualization": "GraphD3",
-  "WeightedCutDefaultVisualization": "GraphD3"
+  "WeightedCutDefaultVisualization": "GraphD3",
+  "WeightedMaxSatVisualization": "BooleanSatisfiability"
  },
  "allVisualizations": {
   "ARCSET": [
@@ -183,6 +184,9 @@
   ],
   "WEIGHTEDCUT": [
    "WeightedCutDefaultVisualization"
+  ],
+  "WEIGHTEDMAXSAT": [
+   "WeightedMaxSatVisualization"
   ]
  },
  "defaults": {
@@ -435,6 +439,11 @@
    "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Visualizations/WeightedCutDefaultVisualization.cs",
    "visualizationName": "Weighted Cut Visualization",
    "visualizationType": "GraphD3"
+  },
+  "WEIGHTEDMAXSAT": {
+   "sourceFile": "Problems/NPHard/NPH_WEIGHTEDMAXSAT/Visualizations/WeightedMaxSatVisualization.cs",
+   "visualizationName": "Weighted Max-SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
   }
  },
  "reductionDefaults": {
@@ -840,6 +849,10 @@
   "WeightedCutDefaultVisualization": {
    "visualizationName": "Weighted Cut Visualization",
    "visualizationType": "GraphD3"
+  },
+  "WeightedMaxSatVisualization": {
+   "visualizationName": "Weighted Max-SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
   }
  },
  "visualizationsCreated": {
@@ -884,7 +897,9 @@
   "Carter%20Luker": [],
   "Cole%20Campbell": [],
   "Collin%20M%20Kress": [],
-  "Corbin%20Hay": [],
+  "Corbin%20Hay": [
+   "Weighted Max-SAT Visualization"
+  ],
   "Courtney%20Bodily": [
    "Bernstein-Vazirani Quantum Circuit (D3)",
    "Bernstein-Vazirani Quantum Circuit (Q)",

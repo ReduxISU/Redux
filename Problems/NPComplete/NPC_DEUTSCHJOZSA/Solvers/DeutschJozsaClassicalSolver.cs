@@ -79,6 +79,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IInc
 
         // check the inputs
         for (int i = 1; i < queries_to_be_certain; i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             // query the oracle
             int current_value = oracle[i];
             queries.Add(new OracleQuery(i, current_value));

@@ -45,6 +45,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
         Dictionary<string, bool>? solution = Search(sat3, rec, out SearchNode[]? answerPath);
 
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (solution == null) {
             rec.Done(new Assignment([]), false, "Every branch was rejected, so there is no solution.");
             return "No Solution";
@@ -152,6 +153,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         int nextNode = 1;
         var byId = new Dictionary<int, SearchNode> { [0] = nodes[curSat] };   // the root and every queued node, to walk up from the answer
         while (!solutionFound && satPQ.Count > 0) {
+            if (timerHasExpired) return null; // #935: stop at the time limit; solve() reports the stop
             curSat = satPQ.Dequeue();
             // Console.WriteLine("curSat's nextVar is : " + curSat.nextVar);
             // The search took a branch it did not make a moment ago: say where it went back to.

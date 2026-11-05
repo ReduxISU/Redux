@@ -37,8 +37,9 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
         Dictionary<string, int> nodeIndex = BuildNodeIndex(problem.nodes);
         int[,] w = BuildAdjacencyMatrix(n, nodeIndex, problem.edges);
 
-        if (timerHasExpired) return "{}";
-        var (minWeight, minSide) = RunStoerWagner(n, w, rec, problem.nodes);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        var (minWeight, minSide) = RunStoerWagner(n, w, rec, problem.nodes, () => timerHasExpired);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         List<string> cutEdgeParts = new();
         HashSet<string> seen = new();
@@ -67,8 +68,10 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
     }
 
     // Runs Stoer-Wagner and returns (minCutWeight, one side of the min cut as original node indices).
-    // With a recorder (and the node names, to write captions), records one step per phase.
-    internal static (int weight, HashSet<int> side) RunStoerWagner(int n, int[,] wInput, StepRecorder<Groups>? rec = null, IReadOnlyList<string>? names = null) {
+    // With a recorder (and the node names, to write captions), records one step per phase. With stop, it stops between
+    // phases once stop() is true (#935: the time limit); the caller reports it.
+    internal static (int weight, HashSet<int> side) RunStoerWagner(int n, int[,] wInput, StepRecorder<Groups>? rec = null, IReadOnlyList<string>? names = null,
+        Func<bool>? stop = null) {
         int[,] w = (int[,])wInput.Clone();
         List<HashSet<int>> merged = Enumerable.Range(0, n).Select(i => new HashSet<int> { i }).ToList();
         bool[] active = Enumerable.Repeat(true, n).ToArray();
@@ -77,6 +80,7 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
         HashSet<int> bestSide = new();
 
         for (int phase = 0; phase < n - 1; phase++) {
+            if (stop != null && stop()) break; // #935: stop at the time limit; the caller reports it
             int[] key = new int[n];
             bool[] inA = new bool[n];
             int lastAdded = -1, secondLastAdded = -1;

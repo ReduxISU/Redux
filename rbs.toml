@@ -14,6 +14,12 @@ port = 27000
 # probe Redux_GUI's rbs.toml uses for this image.
 health-path = "/Navigation/Batch/allProblems"
 
+[build]
+# Fills the contributor counts before `docker build`, as docker.yml did (#880). The branch check and the reasons
+# are in the script. Optional: a failed count leaves the committed zeros, and the build row warns instead of failing.
+pre-command = "sh Tools/fill-contributor-counts.sh"
+pre-command-optional = true
+
 [integration]
 # A separate project, deliberately not in Redux.slnx: `rbs unit-test` runs `dotnet test` on the
 # solution, so this can never be collected without a container to talk to.

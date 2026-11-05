@@ -66,6 +66,7 @@ class HamiltonianBruteForce : ISolver<HAMILTONIAN, Tour>, IIncrementalSolver {
             rec.Done(GraphTourFrames.ParseTour(answer), true, $"Found the Hamiltonian cycle {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)} after checking {tried} complete {(tried == 1 ? "tour" : "tours")}.");
             return answer;
         }
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stopped by the time limit, not exhausted
         rec.Done(new Tour([]), false, order.Count == 0
             ? "The graph has no nodes, so there is no cycle."
             : "No Hamiltonian cycle: every way of walking the edges was tried, and none visits every node once and returns to its start.");
@@ -88,6 +89,7 @@ class HamiltonianBruteForce : ISolver<HAMILTONIAN, Tour>, IIncrementalSolver {
             return null;
         }
         for (int i = start; i < order.Count; i++) {
+            if (timerHasExpired) return null; // #935: stop at the time limit (Solve() then reports it)
             (order[start], order[i]) = (order[i], order[start]);
             string node = order[start];
 

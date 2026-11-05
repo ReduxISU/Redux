@@ -17,6 +17,9 @@ namespace redux_tests;
 // The pictures of Partition, Subset Sum and Knapsack with repeated numbers (#628): every copy is its own item, with its own
 // stable, position-based id, and an answer that uses a number twice places both copies.
 public class RepeatedNumbersPictures_Tests {
+    // Partition's default instance before #938 changed it: it has two 12s (#628).
+    private const string OldPartitionDefault = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+
 
     [Fact]
     public void Groups_KeepRepeats() {
@@ -31,7 +34,7 @@ public class RepeatedNumbersPictures_Tests {
 
     [Fact]
     public void Packing_Ids_ArePositions_SoRepeatsAreDistinct() {
-        var payload = PackingFrames.Payload(PartitionDefaultVisualization.Spec(new PARTITION()));
+        var payload = PackingFrames.Payload(PartitionDefaultVisualization.Spec(new PARTITION(OldPartitionDefault)));
         Assert.Equal(Enumerable.Range(1, 12).Select(i => $"I{i}"), payload.Items.Select(i => i.Id));
         Assert.Equal(["12", "12"], new[] { payload.Items[2].Label, payload.Items[5].Label });
         Assert.Equal(150, payload.Total);

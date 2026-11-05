@@ -106,6 +106,7 @@ class CliqueCoverBruteForce : ISolver<CLIQUECOVER, Groups> {
         // A do-while, so the all-zero candidate is checked even when numGroups is 1 (every digit already equals
         // numGroups - 1), as in GraphColoringBruteForce.
         do {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = BinaryToCertificate(binary, clique.nodes, numGroups);
             tried++;
             if (clique.defaultVerifier.verify(clique, certificate)) {

@@ -41,7 +41,7 @@ class MinSTCutSolver : ISolver<MINSTCUT, NetworkFlow>, IIncrementalSolver {
             () => $"No flow yet. Each step finds a path from {s} to {t} with room left and pushes as much as it can.");
 
         while (true) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             var parent = BfsAugmentingPath(residual, problem.sourceNode, problem.targetNode);
             if (parent == null) break;

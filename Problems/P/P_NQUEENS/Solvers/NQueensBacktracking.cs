@@ -48,9 +48,13 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
             return answer;
         }
 
-        rec.Done(new BoardCells([], []), false, timerHasExpired
-            ? "The solver's timer ran out before it found a placement."
-            : $"Every arrangement runs into an attack. No placement exists for n = {n}, so the solver returns {{}}.");
+        if (timerHasExpired) {
+            // #935: backtrack() returned false because it was stopped. A timed run is stopped by SolveRun.Record, which
+            // puts its stopped Done in place of this one.
+            rec.Done(new BoardCells([], []), false, "The solver's timer ran out before it found a placement.");
+            return SolveRun.TimedOutAnswer;
+        }
+        rec.Done(new BoardCells([], []), false, $"Every arrangement runs into an attack. No placement exists for n = {n}, so the solver returns {{}}.");
         return "{}";
     }
 

@@ -77,12 +77,15 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
         bool[]? solution = null;
 
         for (int tryIdx = 0; tryIdx < _maxTries && solution == null; tryIdx++) {
+            if (timerHasExpired) break; // #935: stop at the time limit
+            rec.CheckTime();   // every try, so a run whose first try succeeds is still stopped at the limit
             // Generate random assignment
             bool[] assignments = new bool[n];
             for (int v = 0; v < n; v++) assignments[v] = rnd.Next(2) == 0;
             tries.Begin(assignments);
 
             for (int flip = 0; flip <= maxFlips; flip++) {
+                if (timerHasExpired) break; // #935: stop at the time limit (the try ends here; see below)
                 // Identify unsatisfied clauses
                 var unsatisfied = new List<int>();
                 for (int c = 0; c < clauses.Count; c++)
@@ -111,6 +114,8 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
         }
 
         tries.Record(rec);
+        // #935: stopped by the time limit, not out of tries: that is no verdict at all.
+        if (solution == null && timerHasExpired) return SolveRun.TimedOutAnswer;
         return solution == null ? "{}" : formula.Certificate(solution); // "{}": failure to satisfy within caps
     }
 

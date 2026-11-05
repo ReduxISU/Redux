@@ -381,10 +381,21 @@ static class GroupedGraphFrames {
             new SortedDictionary<string, StateRef>(StringComparer.Ordinal), new SortedDictionary<string, bool>(StringComparer.Ordinal)) { Ok = false };
 
     /// <summary>
-    /// What the SAT brute force answers when its own timer (<see cref="ISolver.timerHasExpired"/>) stops it. It is not a
-    /// certificate; <see cref="Build"/> treats it like a run stopped by the recording time limit.
+    /// What the SAT brute force answers when its own timer (<see cref="ISolver.timerHasExpired"/>) stops it: the shared
+    /// <see cref="SolveRun.TimedOutAnswer"/> since #935. It is not a certificate; <see cref="Build"/> treats it like a run
+    /// stopped by the recording time limit.
     /// </summary>
-    public const string SolverTimeoutAnswer = "timeout";
+    public const string SolverTimeoutAnswer = SolveRun.TimedOutAnswer;
+
+    /// <summary>
+    /// Whether <paramref name="answer"/> says the solver was stopped by its own timer: <see cref="SolverTimeoutAnswer"/>, or
+    /// the older "timeout" some solvers answered before #935, in any case.
+    /// </summary>
+    public static bool IsSolverTimeout(string answer) {
+        string text = answer.Trim();
+        return string.Equals(text, SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(text, "timeout", StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>The caption of the Done step a solver records when its own timer stops it.</summary>
     public const string SolverTimeoutCaption = "The solver stopped without finishing: its time ran out before it found an answer or ruled one out.";
@@ -396,7 +407,7 @@ static class GroupedGraphFrames {
     /// instead, and its answer string is never read.
     /// </summary>
     public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
-        bool stopped = run.TimedOut || string.Equals(run.Answer.Trim(), SolverTimeoutAnswer, StringComparison.OrdinalIgnoreCase);
+        bool stopped = run.TimedOut || GroupedGraphFrames.IsSolverTimeout(run.Answer);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Assignment>(run)) {

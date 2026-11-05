@@ -13,6 +13,9 @@ namespace redux_tests;
 // answer; tab separated) BEFORE it recorded steps, on its default instance and on 12 seeded random graphs (including
 // ones with no answer). A row changes only when a bug fix changes that answer (#752: Clique Cover with K = 1 or K > n).
 public class GroupSolvers_Tests {
+    // Graph Coloring's default instance before #938 changed it; these steps are written for it.
+    private const string OldColoringDefault = "(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)";
+
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
 
@@ -88,7 +91,7 @@ public class GroupSolvers_Tests {
     [Fact]
     public void Greedy_ColorsOneNodePerStep_InNodeOrder_NamingTheNeighboursItAvoids() {
         // The default instance: a is joined to everyone, so a gets color 0, then b (joined to a) gets 1, c (joined to a and b) gets 2.
-        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringGreedy()).Run(new GRAPHCOLORING().defaultInstance, true);
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringGreedy()).Run(OldColoringDefault, true);
         var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
         Assert.Equal(9 + 1, steps.Count);
         Assert.All(steps.Take(9), s => Assert.Equal(StepEvent.Accept, s.Event));
@@ -115,7 +118,7 @@ public class GroupSolvers_Tests {
 
     [Fact]
     public void ColoringBruteForce_RejectsNameTheClashingNeighbours_AndStartsFromTheFirstCandidate() {
-        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringBruteForce()).Run(new GRAPHCOLORING().defaultInstance, true);
+        var run = ((ISolver)new API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers.GraphColoringBruteForce()).Run(OldColoringDefault, true);
         var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
         var rejects = steps.Where(s => s.Event == StepEvent.Reject).ToList();
         Assert.NotEmpty(rejects);

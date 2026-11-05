@@ -12,24 +12,6 @@
         "id": "New York"
       },
       {
-        "name": "Chicago",
-        "color": "",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "Chicago"
-      },
-      {
-        "name": "Denver",
-        "color": "",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "Denver"
-      },
-      {
         "name": "Los Angeles",
         "color": "",
         "outline": "",
@@ -39,6 +21,15 @@
         "id": "Los Angeles"
       },
       {
+        "name": "Chicago",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Chicago"
+      },
+      {
         "name": "Miami",
         "color": "",
         "outline": "",
@@ -46,6 +37,15 @@
         "dashed": "",
         "additional": "",
         "id": "Miami"
+      },
+      {
+        "name": "Denver",
+        "color": "",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Denver"
       }
     ],
     "links": [
@@ -194,24 +194,6 @@
         "id": "New York"
       },
       {
-        "name": "Chicago",
-        "color": "Solution",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "Chicago"
-      },
-      {
-        "name": "Denver",
-        "color": "Solution",
-        "outline": "",
-        "delay": "",
-        "dashed": "",
-        "additional": "",
-        "id": "Denver"
-      },
-      {
         "name": "Los Angeles",
         "color": "Solution",
         "outline": "",
@@ -221,6 +203,15 @@
         "id": "Los Angeles"
       },
       {
+        "name": "Chicago",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Chicago"
+      },
+      {
         "name": "Miami",
         "color": "Solution",
         "outline": "",
@@ -228,6 +219,15 @@
         "dashed": "",
         "additional": "",
         "id": "Miami"
+      },
+      {
+        "name": "Denver",
+        "color": "Solution",
+        "outline": "",
+        "delay": "",
+        "dashed": "",
+        "additional": "",
+        "id": "Denver"
       }
     ],
     "links": [

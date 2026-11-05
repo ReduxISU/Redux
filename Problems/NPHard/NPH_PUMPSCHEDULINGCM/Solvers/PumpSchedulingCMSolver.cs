@@ -88,13 +88,14 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
         var reached = new List<ReachedHour>();
 
         for (int h = 0; h < Hours; h++) {
-            if (timerHasExpired) return string.Empty;
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             var now = dp[h];
             var next = new TankLayer<Slot>(nMasks, Unreached);
 
             // Lowest level first, then masks in order: the order the per-gallon table filled in, so ties break the same way.
             foreach (int b in now.ByLevel()) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: an hour can take long with many pumps
                 long levelNow = now.Levels[b];
 
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {

@@ -125,7 +125,7 @@ public class TripartiteFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync("/ProblemProvider/info?interface=dm3visualization", TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var root = JsonDocument.Parse(body).RootElement;
-        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "pictureType", "solver"],
+        Assert.Equal(["visualizationName", "visualizationDefinition", "source", "sourceFile", "contributors", "visualizationType", "visualizationTypes", "pictureType", "solver"],
             root.EnumerateObject().Select(p => p.Name));
         Assert.Equal("DynamicTable", root.GetProperty("visualizationType").GetString());
         Assert.Equal("3-Dimensional Matching Brute Force", root.GetProperty("solver").GetProperty("solverName").GetString());

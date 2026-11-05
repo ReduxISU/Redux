@@ -97,6 +97,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
         var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
         List<List<string>> result = solve_r(exactCover, uSet, subsets, choosenSubsets, rec, index);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: solve_r unwinds at the time limit
         string certificate = subsetsToCertificate(result);
         if (result.Count > 0) {
             rec.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(result, index).Sets)}.");
@@ -120,6 +121,9 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
 
     private List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets,
         StepRecorder<ChosenSets> rec, Dictionary<List<string>, int> index) {
+        // #935: unwind at the time limit; Solve then returns the timed-out answer.
+        if (timerHasExpired)
+            return new List<List<string>>();
         //check if choosen subsets is a solution, if it is, return it
         if (exactCover.defaultVerifier.verify(exactCover, subsetsToCertificate(choosenSubsets)))
             return choosenSubsets;

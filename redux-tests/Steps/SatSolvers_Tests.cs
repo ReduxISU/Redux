@@ -20,6 +20,9 @@ namespace redux_tests;
 // randomized 3SAT solvers (PPZ, Schoning, WalkSAT) are not here: they give a different answer on every run unless given a seed
 // (they record steps and take a seed since #932; see WalkSat_Tests, Schoning_Tests and Ppz_Tests).
 public class SatSolvers_Tests {
+    // 3SAT's default instance before #957 changed it; these steps are written for it.
+    private const string OldSat3Default = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
 
@@ -188,14 +191,14 @@ public class SatSolvers_Tests {
         ((ISolver)solver).TimerExpired();
         var run = ((ISolver)solver).Run("(x1 | x2) & (!x1)", withSteps: true);
         Assert.False(run.TimedOut);
-        Assert.Equal("timeout", run.Answer);   // what solve has always answered
+        Assert.Equal(SolveRun.TimedOutAnswer, run.Answer);   // the shared stopped answer (#935)
         var done = Assert.Single(StepsOf(run));
         Assert.Equal((StepEvent.Done, (bool?)false), (done.Event, done.Ok));
         Assert.Equal(GroupedGraphFrames.SolverTimeoutCaption, done.Caption);
         Assert.Empty(done.Partial.Values);   // no candidate is shown as an answer
-        Assert.Equal("timeout", solver.solve("(x1 | x2) & (!x1)"));
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve("(x1 | x2) & (!x1)"));
 
-        // The frames end on that stopped Done, and the answer "timeout" is never read as an assignment.
+        // The frames end on that stopped Done, and the stopped answer is never read as an assignment.
         var frames = GroupedGraphFrames.Build(GroupedGraphSpec.FromLiterals(new SAT("(x1 | x2) & (!x1)").clauses), run,
             _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not verified")).Frames;
         var last = Assert.IsType<GroupedGraphFrame>(Assert.Single(frames));
@@ -225,7 +228,7 @@ public class SatSolvers_Tests {
 
     [Fact]
     public void Backtracking_TriesEachValue_AcceptsWhatKeepsEveryClauseAlive_AndEndsOnTheAssignment() {
-        var run = Create("sat3backtrackingsolver").Run(new SAT3().defaultInstance, withSteps: true);
+        var run = Create("sat3backtrackingsolver").Run(OldSat3Default, withSteps: true);
         var steps = StepsOf(run);
         Assert.Equal("(x1:True,x2:True,x3:False)", run.Answer);
         Assert.Equal(StepEvent.Try, steps[0].Event);

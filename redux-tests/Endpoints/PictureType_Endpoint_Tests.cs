@@ -38,7 +38,8 @@ public class PictureType_Endpoint_Tests : IClassFixture<AppFactory> {
         Type type = ProblemProvider.Visualizers[key];
         var info = JsonDocument.Parse(await _client.GetStringAsync($"/ProblemProvider/info?interface={key}", TestContext.Current.CancellationToken)).RootElement;
         var names = info.EnumerateObject().Select(p => p.Name).ToList();
-        Assert.Equal(names.IndexOf("visualizationType") + 1, names.IndexOf("pictureType"));
+        // Right after the legacy type and its tag list (visualizationTypes, #914), which sits beside the single field.
+        Assert.Equal(Math.Max(names.IndexOf("visualizationType"), names.IndexOf("visualizationTypes")) + 1, names.IndexOf("pictureType"));
         var pictureType = info.GetProperty("pictureType");
         bool hasHook = typeof(IFramesVisualization).IsAssignableFrom(type);
         if (!hasHook) {

@@ -20,6 +20,7 @@ namespace redux_tests;
 // *** A failing case here is the deliverable working correctly. Do not weaken these
 // assertions, do not add a skip list to force green, and do not silently patch the
 // underlying reduce() implementation to make the failure disappear. Report it. ***
+[Trait("Category", "Metadata")]
 public class ReductionSmoke_Tests {
     // One [Theory] case per graph edge (not per reduction type — a reduction type
     // could in principle appear on multiple edges if it implemented IReduction<,>

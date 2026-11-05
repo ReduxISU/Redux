@@ -57,9 +57,10 @@ interface IProblem {
     // A problem that implements IProblem<T, U, V> names its defaults itself. One that implements
     // plain IProblem gets them from [DefaultFor] on the solver/verifier/visualization classes, or a
     // placeholder for a kind with none, so a new problem compiles before those classes exist (#919).
-    ISolver defaultSolver { get => ProblemDefaults.Solver(GetType()); }
-    IVerifier defaultVerifier { get => ProblemDefaults.Verifier(GetType()); }
-    IVisualization defaultVisualization { get => ProblemDefaults.Visualization(GetType()); }
+    // Each problem object keeps its own: repeated access returns the same instances (see ProblemDefaults).
+    ISolver defaultSolver { get => ProblemDefaults.Solver(this); }
+    IVerifier defaultVerifier { get => ProblemDefaults.Verifier(this); }
+    IVisualization defaultVisualization { get => ProblemDefaults.Visualization(this); }
 }
 
 interface IProblem<T, U, V> : IProblem where T : ISolver where U : IVerifier where V : IVisualization {

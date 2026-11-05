@@ -12,6 +12,7 @@ namespace redux_tests;
 // the verifier checks, or the answer is yes/no; Optimization means it asks for the best value. A class
 // that genuinely supports both declares Decision | Optimization. Judgement calls carry a comment on the
 // declaration for review. ***
+[Trait("Category", "Metadata")]
 public class ProblemVariant_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -54,9 +55,9 @@ public class ProblemVariant_Tests : IClassFixture<AppFactory> {
         var unexpected = actual.Where(c => !allowlist.Contains(c)).OrderBy(c => c, StringComparer.Ordinal).ToList();
 
         Assert.True(unexpected.Count == 0,
-            $"Problem(s) declared ProblemVariant.Unclassified: {string.Join(", ", unexpected)}. Declare " +
-            "Decision, Optimization, or both (see Interfaces/ProblemVariant.cs), or add the class to " +
-            "UnclassifiedAllowlist in ProblemVariant_Tests.cs.");
+            $"Problem(s) still declared ProblemVariant.Unclassified: {string.Join(", ", unexpected)}. " +
+            "Declare Decision if the instance carries a bound and the answer is yes/no, Optimization if it asks for " +
+            "the best value, or both if the class supports both (see Interfaces/ProblemVariant.cs).");
     }
 
     [Fact]

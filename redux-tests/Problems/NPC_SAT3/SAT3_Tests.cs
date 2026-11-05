@@ -30,7 +30,7 @@ public class SAT3_Tests {
     [Fact]
     public void SAT3_Default_Instantiation() {
         SAT3 sat3 = new SAT3();
-        Assert.Equal("(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)", sat3.defaultInstance);
+        Assert.Equal("(x1 | x2 | x3) & (!x1 | !x2 | !x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)", sat3.defaultInstance);
         Assert.Equal(sat3.defaultInstance, sat3.instance);
     }
 
@@ -689,8 +689,8 @@ public class SAT3_Tests {
         Schoning schoning = new Schoning { timerHasExpired = true };
         PPZ ppz = new PPZ { timerHasExpired = true };
 
-        Assert.Equal("{}", ((ISolver<SAT3>)schoning).solve(sat3));
-        Assert.Equal("{}", ((ISolver<SAT3>)ppz).solve(sat3));
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, ((ISolver<SAT3>)schoning).solve(sat3));
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, ((ISolver<SAT3>)ppz).solve(sat3));
     }
 
     // -------------------------------------------------------------------------

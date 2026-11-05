@@ -10,6 +10,9 @@
     "visualizationName": "Clique Visualization",
     "visualizationDefinition": "This is a default visualization for Clique",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
     "contributors": [
@@ -28,6 +31,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -304,6 +310,9 @@
     "certificateFormat": "Format: independent set of exactly K node names | no two joined by an edge in E Example: {c,d,g}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Russell Phillips"
     ],
@@ -317,6 +326,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -329,7 +341,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Independent Set Verifier",
+      "verifierName": "Independent Set Solution Verifier",
       "verifierDefinition": "This is a verifier for Independent Set",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Verifiers/IndependentSetVerifier.cs",
@@ -342,6 +354,9 @@
       "visualizationName": "Independent Set Visualization",
       "visualizationDefinition": "This is a default visualization for Independent Set",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_INDEPENDENTSET/Visualizations/IndependentSetDefaultVisualization.cs",
       "contributors": [
@@ -357,6 +372,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -368,7 +386,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Clique",
@@ -385,6 +406,9 @@
     "certificateFormat": "Format: {K | K is set} Example: {2,3,4,5}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Kaden Marchetti",
       "Alex Diviney"
@@ -400,6 +424,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -412,7 +439,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Verifier",
+      "verifierName": "Clique Solution Verifier",
       "verifierDefinition": "This is a verifier for Clique",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
@@ -426,6 +453,9 @@
       "visualizationName": "Clique Visualization",
       "visualizationDefinition": "This is a default visualization for Clique",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
       "contributors": [
@@ -444,6 +474,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -455,9 +488,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Quadratic",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Polynomial"
 }

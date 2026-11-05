@@ -7,27 +7,22 @@
         "literals": [
           {
             "id": "c0-0",
-            "literal": "!x3",
-            "color": "Background"
-          },
-          {
-            "id": "c0-1",
-            "literal": "x4",
-            "color": "Background"
-          },
-          {
-            "id": "c0-2",
-            "literal": "!x2",
-            "color": "Background"
-          },
-          {
-            "id": "c0-3",
             "literal": "x1",
             "color": "Background"
           },
           {
-            "id": "c0-4",
+            "id": "c0-1",
             "literal": "x2",
+            "color": "Background"
+          },
+          {
+            "id": "c0-2",
+            "literal": "x3",
+            "color": "Background"
+          },
+          {
+            "id": "c0-3",
+            "literal": "x4",
             "color": "Background"
           }
         ]
@@ -37,12 +32,12 @@
         "literals": [
           {
             "id": "c1-0",
-            "literal": "!x4",
+            "literal": "!x1",
             "color": "Background"
           },
           {
             "id": "c1-1",
-            "literal": "!x1",
+            "literal": "!x2",
             "color": "Background"
           }
         ]
@@ -52,17 +47,42 @@
         "literals": [
           {
             "id": "c2-0",
-            "literal": "x4",
+            "literal": "!x3",
             "color": "Background"
           },
           {
             "id": "c2-1",
-            "literal": "x3",
+            "literal": "x4",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "c3",
+        "literals": [
+          {
+            "id": "c3-0",
+            "literal": "!x4",
             "color": "Background"
           },
           {
-            "id": "c2-2",
-            "literal": "!x1",
+            "id": "c3-1",
+            "literal": "x2",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "c4",
+        "literals": [
+          {
+            "id": "c4-0",
+            "literal": "!x2",
+            "color": "Background"
+          },
+          {
+            "id": "c4-1",
+            "literal": "!x3",
             "color": "Background"
           }
         ]
@@ -77,27 +97,22 @@
         "literals": [
           {
             "id": "c0-0",
-            "literal": "!x3",
-            "color": "Solution"
-          },
-          {
-            "id": "c0-1",
-            "literal": "x4",
-            "color": "Background"
-          },
-          {
-            "id": "c0-2",
-            "literal": "!x2",
-            "color": "Solution"
-          },
-          {
-            "id": "c0-3",
             "literal": "x1",
             "color": "Background"
           },
           {
-            "id": "c0-4",
+            "id": "c0-1",
             "literal": "x2",
+            "color": "Solution"
+          },
+          {
+            "id": "c0-2",
+            "literal": "x3",
+            "color": "Background"
+          },
+          {
+            "id": "c0-3",
+            "literal": "x4",
             "color": "Background"
           }
         ]
@@ -107,13 +122,13 @@
         "literals": [
           {
             "id": "c1-0",
-            "literal": "!x4",
+            "literal": "!x1",
             "color": "Solution"
           },
           {
             "id": "c1-1",
-            "literal": "!x1",
-            "color": "Solution"
+            "literal": "!x2",
+            "color": "Background"
           }
         ]
       },
@@ -122,17 +137,42 @@
         "literals": [
           {
             "id": "c2-0",
-            "literal": "x4",
-            "color": "Background"
+            "literal": "!x3",
+            "color": "Solution"
           },
           {
             "id": "c2-1",
-            "literal": "x3",
+            "literal": "x4",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "c3",
+        "literals": [
+          {
+            "id": "c3-0",
+            "literal": "!x4",
+            "color": "Solution"
+          },
+          {
+            "id": "c3-1",
+            "literal": "x2",
+            "color": "Solution"
+          }
+        ]
+      },
+      {
+        "id": "c4",
+        "literals": [
+          {
+            "id": "c4-0",
+            "literal": "!x2",
             "color": "Background"
           },
           {
-            "id": "c2-2",
-            "literal": "!x1",
+            "id": "c4-1",
+            "literal": "!x3",
             "color": "Solution"
           }
         ]

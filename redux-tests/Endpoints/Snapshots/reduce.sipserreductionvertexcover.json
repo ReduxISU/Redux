@@ -12,6 +12,9 @@
     "visualizationName": "Vertex Cover Visualization",
     "visualizationDefinition": "This is a default visualization for Vertex Cover",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
     "contributors": [
@@ -27,6 +30,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n * (n \u002B m)",
         "Description": ", n = |nodes|, m = |edges|",
@@ -224,6 +230,9 @@
     "certificateFormat": "Format: {K | K is set} Example: {2,3,4,5}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Kaden Marchetti",
       "Alex Diviney"
@@ -239,6 +248,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -251,7 +263,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Verifier",
+      "verifierName": "Clique Solution Verifier",
       "verifierDefinition": "This is a verifier for Clique",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
@@ -265,6 +277,9 @@
       "visualizationName": "Clique Visualization",
       "visualizationDefinition": "This is a default visualization for Clique",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
       "contributors": [
@@ -283,6 +298,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -294,7 +312,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Vertex Cover",
@@ -305,12 +326,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
     "wikiName": "",
-    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "defaultInstance": "(({a,b,c,d,e,f},{{a,b},{a,c},{b,c},{c,d},{d,e},{e,f}}),3)",
     "instance": "(({1,2,3,4,5,6},{{1,3},{1,5},{2,6},{5,6}}),2)",
     "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
     "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Janita Aamir",
       "Alex Diviney"
@@ -325,6 +349,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n * (n \u002B m)",
         "Description": ", n = |nodes|, m = |edges|",
@@ -337,7 +364,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Vertex Cover Verifier",
+      "verifierName": "Vertex Cover Solution Verifier",
       "verifierDefinition": "This is a Vertex Cover Verifier.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
@@ -351,6 +378,9 @@
       "visualizationName": "Vertex Cover Visualization",
       "visualizationDefinition": "This is a default visualization for Vertex Cover",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
       "contributors": [
@@ -366,6 +396,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n * (n \u002B m)",
           "Description": ", n = |nodes|, m = |edges|",
@@ -377,9 +410,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Quadratic",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Polynomial"
 }

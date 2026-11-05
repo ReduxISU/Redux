@@ -19,6 +19,9 @@ namespace redux_tests;
 // each solver returned (solver, instance, answer; tab separated) BEFORE it recorded steps, on its default instance and on
 // 12 seeded random graphs and 4 to 7 hand-made ones (including ones with no answer).
 public class TourSolvers_Tests {
+    // TSP's default instance before #957 changed it (K was 8000); these steps are written for it.
+    private const string OldTspDefault = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
+
     private static string SnapshotPath(string file) =>
         Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots", file);
 
@@ -192,7 +195,7 @@ public class TourSolvers_Tests {
 
     [Fact]
     public void TspGreedy_FollowsTheNearestNeighbour_WithRunningCost_AndKeepsTheBestSoFar() {
-        var run = Run(new TSPGreedy(), new TSP().defaultInstance);
+        var run = Run(new TSPGreedy(), OldTspDefault);
         var steps = StepsOf(run);
         Assert.Equal("Start at New York.", steps[0].Caption);
         Assert.Equal(StepEvent.Try, steps[0].Event);
@@ -237,7 +240,7 @@ public class TourSolvers_Tests {
 
     [Fact]
     public void TspBranchAndBound_StartsFromTheGreedyTour_ThenBranchesBestFirst_PruningByTheBound() {
-        var run = Run(new TSPBranchAndBound(), new TSP().defaultInstance);
+        var run = Run(new TSPBranchAndBound(), OldTspDefault);
         var steps = StepsOf(run);
         Assert.Equal(StepEvent.Accept, steps[0].Event);
         Assert.StartsWith("Start from the greedy tour New York → Chicago → Denver → Los Angeles → Miami → New York: total 6830, the best so far.", steps[0].Caption);
@@ -284,7 +287,7 @@ public class TourSolvers_Tests {
     public void TspBranchAndBound_ARanOutOfTimeRun_EndsWithADoneStep() {
         ISolver solver = new TSPBranchAndBound { timerHasExpired = true };
         var run = solver.Run(new TSP().defaultInstance, withSteps: true);
-        Assert.Equal("timeout", run.Answer);
+        Assert.Equal(SolveRun.TimedOutAnswer, run.Answer);
         var done = Assert.Single(StepsOf(run));
         Assert.Equal(StepEvent.Done, done.Event);
         Assert.False(done.Ok);

@@ -84,6 +84,7 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
         List<SumState> L = new List<SumState> { new SumState(0, new List<int>(), new List<int>()) };
 
         for (int position = 0; position < n; position++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             int item = numbers[position];
             List<SumState> LPrime = new List<SumState>(L);
             foreach (var state in L) {

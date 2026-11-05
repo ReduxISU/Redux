@@ -10,6 +10,9 @@
     "visualizationName": "Node Set Visualization",
     "visualizationDefinition": "This is a default visualization for Node Set",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_NODESET/Visualizations/NodeSetDefaultVisualization.cs",
     "contributors": [
@@ -25,6 +28,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -127,6 +133,23 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
+        "f"
+      ],
+      "reductionToIds": [
+        "f"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "f"
+      ],
+      "targetIds": [
+        "f"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
         "a-b"
       ],
       "reductionToIds": [
@@ -165,38 +188,19 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "a-e"
+        "b-c"
       ],
       "reductionToIds": [
-        "a\u003Ee",
-        "e\u003Ea"
+        "b\u003Ec",
+        "c\u003Eb"
       ],
       "gadgetKind": "element",
       "sourceIds": [
-        "a-e"
+        "b-c"
       ],
       "targetIds": [
-        "a\u003Ee",
-        "e\u003Ea"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "b-e"
-      ],
-      "reductionToIds": [
-        "b\u003Ee",
-        "e\u003Eb"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "b-e"
-      ],
-      "targetIds": [
-        "b\u003Ee",
-        "e\u003Eb"
+        "b\u003Ec",
+        "c\u003Eb"
       ]
     },
     {
@@ -216,6 +220,44 @@
       "targetIds": [
         "c\u003Ed",
         "d\u003Ec"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "d-e"
+      ],
+      "reductionToIds": [
+        "d\u003Ee",
+        "e\u003Ed"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "d-e"
+      ],
+      "targetIds": [
+        "d\u003Ee",
+        "e\u003Ed"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "e-f"
+      ],
+      "reductionToIds": [
+        "e\u003Ef",
+        "f\u003Ee"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "e-f"
+      ],
+      "targetIds": [
+        "e\u003Ef",
+        "f\u003Ee"
       ]
     },
     {
@@ -238,12 +280,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/VERTEXCOVER_Class.cs",
     "wikiName": "",
-    "defaultInstance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
-    "instance": "(({a,b,c,d,e},{{a,b},{a,c},{a,e},{b,e},{c,d}}),3)",
+    "defaultInstance": "(({a,b,c,d,e,f},{{a,b},{a,c},{b,c},{c,d},{d,e},{e,f}}),3)",
+    "instance": "(({a,b,c,d,e,f},{{a,b},{a,c},{b,c},{c,d},{d,e},{e,f}}),3)",
     "instanceFormat": "Graph and target cover size, shaped as ((nodes, edges), k). Nodes are a brace-delimited comma-separated list {n1,n2,...}; edges are a brace-delimited list of undirected pairs {{n1,n2},{n2,n3},...} drawn from the node set; k is the required vertex-cover size. Example: (({a,b,c,d},{{a,b},{a,c},{a,d}}),1)",
     "certificateFormat": "Comma-separated node names, optionally wrapped in braces. Must name nodes from the instance\u0027s node set such that every edge has at least one endpoint in the set (a vertex cover). Example: {a}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Janita Aamir",
       "Alex Diviney"
@@ -258,6 +303,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n * (n \u002B m)",
         "Description": ", n = |nodes|, m = |edges|",
@@ -270,7 +318,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Vertex Cover Verifier",
+      "verifierName": "Vertex Cover Solution Verifier",
       "verifierDefinition": "This is a Vertex Cover Verifier.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Verifiers/VCVerifier.cs",
@@ -284,6 +332,9 @@
       "visualizationName": "Vertex Cover Visualization",
       "visualizationDefinition": "This is a default visualization for Vertex Cover",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_VERTEXCOVER/Visualizations/VertexCoverDefaultVisualization.cs",
       "contributors": [
@@ -299,6 +350,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n * (n \u002B m)",
           "Description": ", n = |nodes|, m = |edges|",
@@ -310,7 +364,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Feedback Node Set",
@@ -322,11 +379,14 @@
     "sourceFile": "Problems/NPComplete/NPC_NODESET/NODESET_Class.cs",
     "wikiName": "",
     "defaultInstance": "(({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)",
-    "instance": "(({a,b,c,d,e},{(a,b),(b,a),(a,c),(c,a),(a,e),(e,a),(b,e),(e,b),(c,d),(d,c)}),3)",
+    "instance": "(({a,b,c,d,e,f},{(a,b),(b,a),(a,c),(c,a),(b,c),(c,b),(c,d),(d,c),(d,e),(e,d),(e,f),(f,e)}),3)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset N cross N, K is int} Example: (({1,2,3,4,5},{(1,2),(2,3),(3,1),(4,5),(5,2),(3,4)}),1)",
     "certificateFormat": "Format: D subset N | at most K nodes, removing D (and incident edges) leaves the graph acyclic Example: {3}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -340,6 +400,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -352,7 +415,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Feedback Node Set Verifier",
+      "verifierName": "Feedback Node Set Solution Verifier",
       "verifierDefinition": "This is a verifier for the Node Set problem",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_NODESET/Verifiers/NodeSetVerifier.cs",
@@ -365,6 +428,9 @@
       "visualizationName": "Node Set Visualization",
       "visualizationDefinition": "This is a default visualization for Node Set",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_NODESET/Visualizations/NodeSetDefaultVisualization.cs",
       "contributors": [
@@ -380,6 +446,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -391,9 +460,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Linear",
   "reductionType": "Restriction",
+  "reductionTypes": [
+    "Restriction"
+  ],
   "complexityBucket": "Polynomial"
 }

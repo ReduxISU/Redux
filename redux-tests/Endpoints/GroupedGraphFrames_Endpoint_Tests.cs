@@ -14,6 +14,12 @@ namespace redux_tests;
 //   - /info for every visualization, solver and reduction that was touched (info.<name>.json, captured the same way).
 // The one deliberate exception is SAT's default visualization, which moved off DummyVisualization: see the "rewire" tests.
 public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
+    // SAT's default instance before #957 changed it: all-false satisfies it (#754).
+    private const string OldSatDefault = "(!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1)";
+
+    // 3SAT's default instance before #957 changed it; the first-frame test is written for it.
+    private const string OldSat3Default = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+
     private readonly HttpClient _client;
 
     public GroupedGraphFrames_Endpoint_Tests(AppFactory factory) {
@@ -323,7 +329,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Sat3_FirstFrameTriesTheFirstVariable_AndShowsItOnEveryOccurrence() {
-        var (_, body) = await Visualize($"visualization={Sat3Vis}&format=frames", DefaultInstance(Sat3Vis));
+        var (_, body) = await Visualize($"visualization={Sat3Vis}&format=frames", OldSat3Default);
         var frames = Frames(body);
         var first = frames[0];
         Assert.Equal("Try", first.GetProperty("event").GetString());
@@ -344,7 +350,7 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Sat_FirstFrameIsTheFirstCandidate_AndTheFailedClauseIsRejected() {
-        // The default instance is satisfied by the first candidate, all-false (#754), so use one whose third clause fails it.
+        // The old default instance was satisfied by the first candidate, all-false (#754), so use one whose third clause fails it.
         var (_, body) = await Visualize($"visualization={SatVis}&format=frames", "(!x1 | x2) & (!x2 | x3) & (x1 | x2 | x3)");
         var first = Frames(body)[0];
         Assert.Equal("Reject", first.GetProperty("event").GetString());
@@ -358,8 +364,8 @@ public class GroupedGraphFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Sat_DefaultInstance_FirstCandidateIsAllFalse_AndIsAccepted() {
-        // #754: the brute force counter starts at all-false, which satisfies the default instance.
-        var (_, body) = await Visualize($"visualization={SatVis}&format=frames", DefaultInstance(SatVis));
+        // #754: the brute force counter starts at all-false, which satisfies the old default instance.
+        var (_, body) = await Visualize($"visualization={SatVis}&format=frames", OldSatDefault);
         var first = Frames(body)[0];
         Assert.Equal("Accept", first.GetProperty("event").GetString());
         Assert.Equal("Try x3 = False, x4 = False, x2 = False, x1 = False: every clause has a true literal.", first.GetProperty("caption").GetString());

@@ -83,6 +83,7 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3, ChosenTriples> {
         TripartiteSpec Spec() => spec ??= DM3Visualization.Spec(problem);
         long tried = 0;
         foreach (List<int> combination in Combinations(m, n)) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             tried++;
             string certificate = indexListToCertificate(combination, problem.M);
             if (problem.defaultVerifier.verify(problem, certificate)) {

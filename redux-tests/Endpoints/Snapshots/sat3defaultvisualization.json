@@ -12,7 +12,7 @@
           },
           {
             "id": "c0-1",
-            "literal": "!x2",
+            "literal": "x2",
             "color": "Background"
           },
           {
@@ -32,12 +32,12 @@
           },
           {
             "id": "c1-1",
-            "literal": "x3",
+            "literal": "!x2",
             "color": "Background"
           },
           {
             "id": "c1-2",
-            "literal": "x1",
+            "literal": "!x3",
             "color": "Background"
           }
         ]
@@ -47,17 +47,37 @@
         "literals": [
           {
             "id": "c2-0",
-            "literal": "x2",
+            "literal": "!x1",
             "color": "Background"
           },
           {
             "id": "c2-1",
-            "literal": "!x3",
+            "literal": "x2",
             "color": "Background"
           },
           {
             "id": "c2-2",
-            "literal": "!x1",
+            "literal": "x3",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "c3",
+        "literals": [
+          {
+            "id": "c3-0",
+            "literal": "x1",
+            "color": "Background"
+          },
+          {
+            "id": "c3-1",
+            "literal": "!x2",
+            "color": "Background"
+          },
+          {
+            "id": "c3-2",
+            "literal": "x3",
             "color": "Background"
           }
         ]
@@ -77,8 +97,8 @@
           },
           {
             "id": "c0-1",
-            "literal": "!x2",
-            "color": "Background"
+            "literal": "x2",
+            "color": "Solution"
           },
           {
             "id": "c0-2",
@@ -97,12 +117,12 @@
           },
           {
             "id": "c1-1",
-            "literal": "x3",
+            "literal": "!x2",
             "color": "Background"
           },
           {
             "id": "c1-2",
-            "literal": "x1",
+            "literal": "!x3",
             "color": "Solution"
           }
         ]
@@ -112,17 +132,37 @@
         "literals": [
           {
             "id": "c2-0",
+            "literal": "!x1",
+            "color": "Background"
+          },
+          {
+            "id": "c2-1",
             "literal": "x2",
             "color": "Solution"
           },
           {
-            "id": "c2-1",
-            "literal": "!x3",
+            "id": "c2-2",
+            "literal": "x3",
+            "color": "Background"
+          }
+        ]
+      },
+      {
+        "id": "c3",
+        "literals": [
+          {
+            "id": "c3-0",
+            "literal": "x1",
             "color": "Solution"
           },
           {
-            "id": "c2-2",
-            "literal": "!x1",
+            "id": "c3-1",
+            "literal": "!x2",
+            "color": "Background"
+          },
+          {
+            "id": "c3-2",
+            "literal": "x3",
             "color": "Background"
           }
         ]

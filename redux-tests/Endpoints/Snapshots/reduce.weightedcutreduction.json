@@ -10,6 +10,9 @@
     "visualizationName": "Weighted Cut Visualization",
     "visualizationDefinition": "This is a default visualization for Cut",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Visualizations/WeightedCutDefaultVisualization.cs",
     "contributors": [
@@ -25,6 +28,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -90,7 +96,7 @@
       "targetIds": [
         "1-2"
       ],
-      "note": "1 * 7 = 7"
+      "note": "3 * 5 = 15"
     },
     {
       "kind": "gadget",
@@ -127,7 +133,7 @@
       "targetIds": [
         "1-3"
       ],
-      "note": "1 * 12 = 12"
+      "note": "3 * 7 = 21"
     },
     {
       "kind": "gadget",
@@ -147,7 +153,7 @@
       "targetIds": [
         "2-3"
       ],
-      "note": "7 * 12 = 84"
+      "note": "5 * 7 = 35"
     },
     {
       "kind": "gadget",
@@ -184,7 +190,7 @@
       "targetIds": [
         "1-4"
       ],
-      "note": "1 * 15 = 15"
+      "note": "3 * 8 = 24"
     },
     {
       "kind": "gadget",
@@ -204,7 +210,7 @@
       "targetIds": [
         "2-4"
       ],
-      "note": "7 * 15 = 105"
+      "note": "5 * 8 = 40"
     },
     {
       "kind": "gadget",
@@ -224,7 +230,7 @@
       "targetIds": [
         "3-4"
       ],
-      "note": "12 * 15 = 180"
+      "note": "7 * 8 = 56"
     },
     {
       "kind": "gadget",
@@ -261,7 +267,7 @@
       "targetIds": [
         "1-5"
       ],
-      "note": "1 * 33 = 33"
+      "note": "3 * 9 = 27"
     },
     {
       "kind": "gadget",
@@ -280,811 +286,6 @@
       ],
       "targetIds": [
         "2-5"
-      ],
-      "note": "7 * 33 = 231"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I5"
-      ],
-      "reductionToIds": [
-        "3-5"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I5"
-      ],
-      "targetIds": [
-        "3-5"
-      ],
-      "note": "12 * 33 = 396"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I5"
-      ],
-      "reductionToIds": [
-        "4-5"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I5"
-      ],
-      "targetIds": [
-        "4-5"
-      ],
-      "note": "15 * 33 = 495"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6"
-      ],
-      "reductionToIds": [
-        "6"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "I6"
-      ],
-      "targetIds": [
-        "6"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I1",
-        "I6"
-      ],
-      "reductionToIds": [
-        "1-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I1",
-        "I6"
-      ],
-      "targetIds": [
-        "1-6"
-      ],
-      "note": "1 * 12 = 12"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I2",
-        "I6"
-      ],
-      "reductionToIds": [
-        "2-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I2",
-        "I6"
-      ],
-      "targetIds": [
-        "2-6"
-      ],
-      "note": "7 * 12 = 84"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I6"
-      ],
-      "reductionToIds": [
-        "3-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I6"
-      ],
-      "targetIds": [
-        "3-6"
-      ],
-      "note": "12 * 12 = 144"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I6"
-      ],
-      "reductionToIds": [
-        "4-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I6"
-      ],
-      "targetIds": [
-        "4-6"
-      ],
-      "note": "15 * 12 = 180"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I5",
-        "I6"
-      ],
-      "reductionToIds": [
-        "5-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I5",
-        "I6"
-      ],
-      "targetIds": [
-        "5-6"
-      ],
-      "note": "33 * 12 = 396"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I7"
-      ],
-      "reductionToIds": [
-        "7"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "I7"
-      ],
-      "targetIds": [
-        "7"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I1",
-        "I7"
-      ],
-      "reductionToIds": [
-        "1-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I1",
-        "I7"
-      ],
-      "targetIds": [
-        "1-7"
-      ],
-      "note": "1 * 11 = 11"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I2",
-        "I7"
-      ],
-      "reductionToIds": [
-        "2-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I2",
-        "I7"
-      ],
-      "targetIds": [
-        "2-7"
-      ],
-      "note": "7 * 11 = 77"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I7"
-      ],
-      "reductionToIds": [
-        "3-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I7"
-      ],
-      "targetIds": [
-        "3-7"
-      ],
-      "note": "12 * 11 = 132"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I7"
-      ],
-      "reductionToIds": [
-        "4-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I7"
-      ],
-      "targetIds": [
-        "4-7"
-      ],
-      "note": "15 * 11 = 165"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I5",
-        "I7"
-      ],
-      "reductionToIds": [
-        "5-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I5",
-        "I7"
-      ],
-      "targetIds": [
-        "5-7"
-      ],
-      "note": "33 * 11 = 363"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6",
-        "I7"
-      ],
-      "reductionToIds": [
-        "6-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I6",
-        "I7"
-      ],
-      "targetIds": [
-        "6-7"
-      ],
-      "note": "12 * 11 = 132"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I8"
-      ],
-      "reductionToIds": [
-        "8"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "I8"
-      ],
-      "targetIds": [
-        "8"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I1",
-        "I8"
-      ],
-      "reductionToIds": [
-        "1-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I1",
-        "I8"
-      ],
-      "targetIds": [
-        "1-8"
-      ],
-      "note": "1 * 5 = 5"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I2",
-        "I8"
-      ],
-      "reductionToIds": [
-        "2-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I2",
-        "I8"
-      ],
-      "targetIds": [
-        "2-8"
-      ],
-      "note": "7 * 5 = 35"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I8"
-      ],
-      "reductionToIds": [
-        "3-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I8"
-      ],
-      "targetIds": [
-        "3-8"
-      ],
-      "note": "12 * 5 = 60"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I8"
-      ],
-      "reductionToIds": [
-        "4-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I8"
-      ],
-      "targetIds": [
-        "4-8"
-      ],
-      "note": "15 * 5 = 75"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I5",
-        "I8"
-      ],
-      "reductionToIds": [
-        "5-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I5",
-        "I8"
-      ],
-      "targetIds": [
-        "5-8"
-      ],
-      "note": "33 * 5 = 165"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6",
-        "I8"
-      ],
-      "reductionToIds": [
-        "6-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I6",
-        "I8"
-      ],
-      "targetIds": [
-        "6-8"
-      ],
-      "note": "12 * 5 = 60"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I7",
-        "I8"
-      ],
-      "reductionToIds": [
-        "7-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I7",
-        "I8"
-      ],
-      "targetIds": [
-        "7-8"
-      ],
-      "note": "11 * 5 = 55"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I9"
-      ],
-      "reductionToIds": [
-        "9"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "I9"
-      ],
-      "targetIds": [
-        "9"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I1",
-        "I9"
-      ],
-      "reductionToIds": [
-        "1-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I1",
-        "I9"
-      ],
-      "targetIds": [
-        "1-9"
-      ],
-      "note": "1 * 6 = 6"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I2",
-        "I9"
-      ],
-      "reductionToIds": [
-        "2-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I2",
-        "I9"
-      ],
-      "targetIds": [
-        "2-9"
-      ],
-      "note": "7 * 6 = 42"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I9"
-      ],
-      "reductionToIds": [
-        "3-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I9"
-      ],
-      "targetIds": [
-        "3-9"
-      ],
-      "note": "12 * 6 = 72"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I9"
-      ],
-      "reductionToIds": [
-        "4-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I9"
-      ],
-      "targetIds": [
-        "4-9"
-      ],
-      "note": "15 * 6 = 90"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I5",
-        "I9"
-      ],
-      "reductionToIds": [
-        "5-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I5",
-        "I9"
-      ],
-      "targetIds": [
-        "5-9"
-      ],
-      "note": "33 * 6 = 198"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6",
-        "I9"
-      ],
-      "reductionToIds": [
-        "6-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I6",
-        "I9"
-      ],
-      "targetIds": [
-        "6-9"
-      ],
-      "note": "12 * 6 = 72"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I7",
-        "I9"
-      ],
-      "reductionToIds": [
-        "7-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I7",
-        "I9"
-      ],
-      "targetIds": [
-        "7-9"
-      ],
-      "note": "11 * 6 = 66"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I8",
-        "I9"
-      ],
-      "reductionToIds": [
-        "8-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I8",
-        "I9"
-      ],
-      "targetIds": [
-        "8-9"
-      ],
-      "note": "5 * 6 = 30"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I10"
-      ],
-      "reductionToIds": [
-        "10"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "I10"
-      ],
-      "targetIds": [
-        "10"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I1",
-        "I10"
-      ],
-      "reductionToIds": [
-        "1-10"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I1",
-        "I10"
-      ],
-      "targetIds": [
-        "1-10"
-      ],
-      "note": "1 * 9 = 9"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I2",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-2"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I2",
-        "I10"
-      ],
-      "targetIds": [
-        "10-2"
-      ],
-      "note": "7 * 9 = 63"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-3"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I10"
-      ],
-      "targetIds": [
-        "10-3"
-      ],
-      "note": "12 * 9 = 108"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-4"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I10"
-      ],
-      "targetIds": [
-        "10-4"
-      ],
-      "note": "15 * 9 = 135"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I5",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-5"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I5",
-        "I10"
-      ],
-      "targetIds": [
-        "10-5"
-      ],
-      "note": "33 * 9 = 297"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I6",
-        "I10"
-      ],
-      "targetIds": [
-        "10-6"
-      ],
-      "note": "12 * 9 = 108"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I7",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I7",
-        "I10"
-      ],
-      "targetIds": [
-        "10-7"
-      ],
-      "note": "11 * 9 = 99"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I8",
-        "I10"
-      ],
-      "reductionToIds": [
-        "10-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I8",
-        "I10"
-      ],
-      "targetIds": [
-        "10-8"
       ],
       "note": "5 * 9 = 45"
     },
@@ -1092,37 +293,57 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "I9",
-        "I10"
+        "I3",
+        "I5"
       ],
       "reductionToIds": [
-        "10-9"
+        "3-5"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
-        "I9",
-        "I10"
+        "I3",
+        "I5"
       ],
       "targetIds": [
-        "10-9"
+        "3-5"
       ],
-      "note": "6 * 9 = 54"
+      "note": "7 * 9 = 63"
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "I11"
+        "I4",
+        "I5"
       ],
       "reductionToIds": [
-        "11"
+        "4-5"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "I4",
+        "I5"
+      ],
+      "targetIds": [
+        "4-5"
+      ],
+      "note": "8 * 9 = 72"
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "I6"
+      ],
+      "reductionToIds": [
+        "6"
       ],
       "gadgetKind": "element",
       "sourceIds": [
-        "I11"
+        "I6"
       ],
       "targetIds": [
-        "11"
+        "6"
       ]
     },
     {
@@ -1130,437 +351,100 @@
       "color": "ElementHighlight",
       "reductionFromIds": [
         "I1",
-        "I11"
+        "I6"
       ],
       "reductionToIds": [
-        "1-11"
+        "1-6"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "I1",
-        "I11"
+        "I6"
       ],
       "targetIds": [
-        "1-11"
+        "1-6"
       ],
-      "note": "1 * 21 = 21"
+      "note": "3 * 10 = 30"
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "I2",
-        "I11"
+        "I6"
       ],
       "reductionToIds": [
-        "11-2"
+        "2-6"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "I2",
-        "I11"
+        "I6"
       ],
       "targetIds": [
-        "11-2"
+        "2-6"
       ],
-      "note": "7 * 21 = 147"
+      "note": "5 * 10 = 50"
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "I3",
-        "I11"
+        "I6"
       ],
       "reductionToIds": [
-        "11-3"
+        "3-6"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "I3",
-        "I11"
+        "I6"
       ],
       "targetIds": [
-        "11-3"
+        "3-6"
       ],
-      "note": "12 * 21 = 252"
+      "note": "7 * 10 = 70"
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "I4",
-        "I11"
+        "I6"
       ],
       "reductionToIds": [
-        "11-4"
+        "4-6"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "I4",
-        "I11"
+        "I6"
       ],
       "targetIds": [
-        "11-4"
+        "4-6"
       ],
-      "note": "15 * 21 = 315"
+      "note": "8 * 10 = 80"
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "I5",
-        "I11"
+        "I6"
       ],
       "reductionToIds": [
-        "11-5"
+        "5-6"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "I5",
-        "I11"
+        "I6"
       ],
       "targetIds": [
-        "11-5"
+        "5-6"
       ],
-      "note": "33 * 21 = 693"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6",
-        "I11"
-      ],
-      "reductionToIds": [
-        "11-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I6",
-        "I11"
-      ],
-      "targetIds": [
-        "11-6"
-      ],
-      "note": "12 * 21 = 252"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I7",
-        "I11"
-      ],
-      "reductionToIds": [
-        "11-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I7",
-        "I11"
-      ],
-      "targetIds": [
-        "11-7"
-      ],
-      "note": "11 * 21 = 231"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I8",
-        "I11"
-      ],
-      "reductionToIds": [
-        "11-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I8",
-        "I11"
-      ],
-      "targetIds": [
-        "11-8"
-      ],
-      "note": "5 * 21 = 105"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I9",
-        "I11"
-      ],
-      "reductionToIds": [
-        "11-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I9",
-        "I11"
-      ],
-      "targetIds": [
-        "11-9"
-      ],
-      "note": "6 * 21 = 126"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I10",
-        "I11"
-      ],
-      "reductionToIds": [
-        "10-11"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I10",
-        "I11"
-      ],
-      "targetIds": [
-        "10-11"
-      ],
-      "note": "9 * 21 = 189"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I12"
-      ],
-      "reductionToIds": [
-        "12"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "I12"
-      ],
-      "targetIds": [
-        "12"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I1",
-        "I12"
-      ],
-      "reductionToIds": [
-        "1-12"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I1",
-        "I12"
-      ],
-      "targetIds": [
-        "1-12"
-      ],
-      "note": "1 * 18 = 18"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I2",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-2"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I2",
-        "I12"
-      ],
-      "targetIds": [
-        "12-2"
-      ],
-      "note": "7 * 18 = 126"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I3",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-3"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I3",
-        "I12"
-      ],
-      "targetIds": [
-        "12-3"
-      ],
-      "note": "12 * 18 = 216"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I4",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-4"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I4",
-        "I12"
-      ],
-      "targetIds": [
-        "12-4"
-      ],
-      "note": "15 * 18 = 270"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I5",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-5"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I5",
-        "I12"
-      ],
-      "targetIds": [
-        "12-5"
-      ],
-      "note": "33 * 18 = 594"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I6",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-6"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I6",
-        "I12"
-      ],
-      "targetIds": [
-        "12-6"
-      ],
-      "note": "12 * 18 = 216"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I7",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-7"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I7",
-        "I12"
-      ],
-      "targetIds": [
-        "12-7"
-      ],
-      "note": "11 * 18 = 198"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I8",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-8"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I8",
-        "I12"
-      ],
-      "targetIds": [
-        "12-8"
-      ],
-      "note": "5 * 18 = 90"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I9",
-        "I12"
-      ],
-      "reductionToIds": [
-        "12-9"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I9",
-        "I12"
-      ],
-      "targetIds": [
-        "12-9"
-      ],
-      "note": "6 * 18 = 108"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I10",
-        "I12"
-      ],
-      "reductionToIds": [
-        "10-12"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I10",
-        "I12"
-      ],
-      "targetIds": [
-        "10-12"
-      ],
-      "note": "9 * 18 = 162"
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "I11",
-        "I12"
-      ],
-      "reductionToIds": [
-        "11-12"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "I11",
-        "I12"
-      ],
-      "targetIds": [
-        "11-12"
-      ],
-      "note": "21 * 18 = 378"
+      "note": "9 * 10 = 90"
     },
     {
       "kind": "gadget",
@@ -1576,7 +460,7 @@
         "C2"
       ],
       "targetIds": [],
-      "note": "K = 5625"
+      "note": "K = 441"
     }
   ],
   "reductionFrom": {
@@ -1588,12 +472,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_PARTITION/PARTITION_Class.cs",
     "wikiName": "",
-    "defaultInstance": "{1,7,12,15,33,12,11,5,6,9,21,18}",
-    "instance": "{1,7,12,15,33,12,11,5,6,9,21,18}",
-    "instanceFormat": "Format: {N | N subset int} (a multiset of positive integers S; a number written twice counts twice) Example: {1,7,12,15,33,12,11,5,6,9,21,18}",
-    "certificateFormat": "Format: (S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2) Example: (33,21,15,6),(1,7,12,12,11,5,9,18)",
+    "defaultInstance": "{3,5,7,8,9,10}",
+    "instance": "{3,5,7,8,9,10}",
+    "instanceFormat": "Format: {N | N subset int} (a multiset of positive integers S; a number written twice counts twice) Example: {3,5,7,8,9,10}",
+    "certificateFormat": "Format: (S1),(S2) | S1,S2 partition S exactly (each element used once), sum(S1) = sum(S2) Example: (5,7,9),(3,8,10)",
     "complexityClass": "NPComplete",
     "problemType": "SetsAndPartitions",
+    "problemTypes": [
+      "SetsAndPartitions"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -1607,6 +494,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n^2 * 2^n",
         "Description": ", n = |S|",
@@ -1618,7 +508,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Partition Verifier",
+      "verifierName": "Partition Solution Verifier",
       "verifierDefinition": "This is a verifier for the Partition problem",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_PARTITION/Verifiers/PartitionVerifier.cs",
@@ -1631,6 +521,9 @@
       "visualizationName": "Partition Visualization",
       "visualizationDefinition": "This is a default visualization for Partition",
       "visualizationType": "SetD3",
+      "visualizationTypes": [
+        "SetD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
       "contributors": [
@@ -1646,6 +539,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n^2 * 2^n",
           "Description": ", n = |S|",
@@ -1656,7 +552,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Weighted Cut",
@@ -1668,11 +567,14 @@
     "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/WEIGHTEDCUT_Class.cs",
     "wikiName": "",
     "defaultInstance": "(({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5)",
-    "instance": "(({1,2,3,4,5,6,7,8,9,10,11,12},{({1,2},7),({1,3},12),({1,4},15),({1,5},33),({1,6},12),({1,7},11),({1,8},5),({1,9},6),({1,10},9),({1,11},21),({1,12},18),({2,3},84),({2,4},105),({2,5},231),({2,6},84),({2,7},77),({2,8},35),({2,9},42),({2,10},63),({2,11},147),({2,12},126),({3,4},180),({3,5},396),({3,6},144),({3,7},132),({3,8},60),({3,9},72),({3,10},108),({3,11},252),({3,12},216),({4,5},495),({4,6},180),({4,7},165),({4,8},75),({4,9},90),({4,10},135),({4,11},315),({4,12},270),({5,6},396),({5,7},363),({5,8},165),({5,9},198),({5,10},297),({5,11},693),({5,12},594),({6,7},132),({6,8},60),({6,9},72),({6,10},108),({6,11},252),({6,12},216),({7,8},55),({7,9},66),({7,10},99),({7,11},231),({7,12},198),({8,9},30),({8,10},45),({8,11},105),({8,12},90),({9,10},54),({9,11},126),({9,12},108),({10,11},189),({10,12},162),({11,12},378)}),5625)",
+    "instance": "(({1,2,3,4,5,6},{({1,2},15),({1,3},21),({1,4},24),({1,5},27),({1,6},30),({2,3},35),({2,4},40),({2,5},45),({2,6},50),({3,4},56),({3,5},63),({3,6},70),({4,5},72),({4,6},80),({5,6},90)}),441)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int} Example: (({1,2,3,4,5},{({2,1},5),({1,3},4),({2,3},2),({3,5},1),({2,4},4),({4,5},2)}),5) Parallel edges: when two edges join the same nodes, their weights are added, and a certificate lists the pair once with the total. An edge written twice with the same weight, either way round, counts once.",
     "certificateFormat": "Format: {S | S subset E, S is exactly the set of edges crossing some partition of N into two non-empty sets, sum of edge weights in S = K} Example: {({2,4},4),({3,5},1)}",
     "complexityClass": "NPComplete",
     "problemType": "NetworkDesign",
+    "problemTypes": [
+      "NetworkDesign"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -1686,6 +588,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -1698,7 +603,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Weighted Cut Verifier",
+      "verifierName": "Weighted Cut Solution Verifier",
       "verifierDefinition": "Checks that the certificate edges all exist in G with the stated weights, are distinct, are exactly the edges crossing some partition of the vertices into two non-empty sets, and have total weight exactly K.",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Verifiers/WeightedCutVerifier.cs",
@@ -1711,6 +616,9 @@
       "visualizationName": "Weighted Cut Visualization",
       "visualizationDefinition": "This is a default visualization for Cut",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_WEIGHTEDCUT/Visualizations/WeightedCutDefaultVisualization.cs",
       "contributors": [
@@ -1726,6 +634,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -1737,9 +648,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Quadratic",
   "reductionType": "ComponentDesign",
+  "reductionTypes": [
+    "ComponentDesign"
+  ],
   "complexityBucket": "Polynomial"
 }

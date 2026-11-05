@@ -63,6 +63,7 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
             rec.Done(GraphTourFrames.ParseTour(answer), true, $"Found the Hamiltonian cycle {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)} after checking {tried} complete {(tried == 1 ? "tour" : "tours")}.");
             return answer;
         }
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: Search unwinds at the time limit
         rec.Done(new Tour([]), false, order.Count == 0
             ? "The graph has no nodes, so there is no cycle."
             : "No Hamiltonian cycle: every way of walking the edges was tried, and none visits every node once and returns to its start.");
@@ -70,6 +71,8 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
     }
 
     private string? Search(DIRECTEDHAMILTONIAN directedhamiltonian, List<string> order, int start, StepRecorder<Tour> rec, ref int tried) {
+        // #935: unwind at the time limit (pruned branches can run long); Solve then returns the timed-out answer.
+        if (timerHasExpired) return null;
         if (start == order.Count - 1) {
             tried++;
             string certificate = CombinationToCertificate(order);

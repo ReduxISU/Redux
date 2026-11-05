@@ -49,6 +49,7 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
     // for a large n would build the board n times.
     public string Solve(NQUEENS problem, StepRecorder<BoardCells> rec) {
         int n = problem.n;
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: O(n), no search loop to stop
 
         // n = 2 and n = 3 are the only sizes with no solution; n <= 0 is empty.
         if (n <= 0 || n == 2 || n == 3) {

@@ -1,10 +1,12 @@
 using API.Interfaces;
+using SPADE;
 
 namespace API.Problems.NPComplete.NPC_{NAME_UPPERCASE};
 
 // This class does not name its solver, verifier or visualization. Each of those declares
 // [DefaultFor(typeof({NAME_UPPERCASE}))] instead, so this file compiles on its own. Until one
-// exists, the problem's default is a placeholder (DummySolver, DummyVerifier, DummyVisualization).
+// exists, the problem's default is a placeholder: DummySolver answers "", DummyVerifier makes the
+// API answer 400 ("no verifier yet"), and DummyVisualization draws nothing.
 class {NAME_UPPERCASE} : IProblem {
 
     // --- Fields ---
@@ -70,7 +72,7 @@ class {NAME_UPPERCASE} : IProblem {
         //
         // Or a unidirected unweighted graph example using SPADE
         //
-        // StringParser parser = new("{(N,E) | N is set, E subset N unorderdcross N}");
+        // StringParser parser = new("{(N,E) | N is set, E subset N unorderedcross N}");
         // parser.parse(instance);
         // edges = parser["E"];
         // nodes = parser["N"];

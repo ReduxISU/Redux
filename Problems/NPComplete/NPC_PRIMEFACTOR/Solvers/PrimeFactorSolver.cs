@@ -48,7 +48,7 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
         var i = new BigInteger(2);
         while (i * i <= numberToFactor) {
             if (timerHasExpired) {
-                return "TIMEOUT";
+                return SolveRun.TimedOutAnswer;
             }
 
             if (numberToFactor % i != 0) {

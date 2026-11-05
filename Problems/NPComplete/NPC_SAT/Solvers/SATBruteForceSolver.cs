@@ -48,10 +48,10 @@ public class SATBruteForceSolver : ISolver<SAT> {
     static CnfFormula CheckedFormula(string instance) => ParseGuard.CreateProblem<SAT>(instance).formula;
 
     // Records typed steps through its own Run rather than ISolver<SAT, Assignment>, whose Solve(SAT, ...) would have
-    // to be public on this public class while SAT is internal.
+    // to be public on this public class while SAT is internal. Passing itself starts its own timer under a time limit (#935).
     SolveRun ISolver.Run(string instance, bool withSteps, TimeSpan? timeLimit, int? stepCap) {
         CnfFormula formula = CheckedFormula(instance);
-        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec), stepCap);
+        return SolveRun.Record<Assignment>(withSteps, timeLimit, rec => Solve(formula, rec), stepCap, this);
     }
 
     // Tries every assignment, counting through them like a binary number with false = 0 and
@@ -69,7 +69,7 @@ public class SATBruteForceSolver : ISolver<SAT> {
             if (timerHasExpired) {
                 // Its own timer stopped it: there is no answer, so the run ends on a Done that says so (never on a candidate).
                 rec.Done(new Assignment([]), false, GroupedGraphFrames.SolverTimeoutCaption);
-                return GroupedGraphFrames.SolverTimeoutAnswer;
+                return SolveRun.TimedOutAnswer;
             }
 
             for (int i = 0; i < variables.Count; i++) {

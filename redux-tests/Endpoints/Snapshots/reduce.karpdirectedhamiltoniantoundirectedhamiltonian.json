@@ -10,6 +10,9 @@
     "visualizationName": "Hamiltonian Cycle Visualization",
     "visualizationDefinition": "This is a default visualization for Hamiltonian Cycle",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Visualizations/HamiltonianDefaultVisualization.cs",
     "contributors": [
@@ -25,6 +28,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n! * n * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -281,6 +287,9 @@
     "certificateFormat": "Format: {q0,...,qn,q0} | Hamiltonian cycle: every node exactly once, each (qi,qi\u002B1) in E, ends by repeating q0 Example: {2,1,3,5,4,2}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -294,6 +303,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n! * n * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -306,7 +318,7 @@
       "complexityBucket": "Factorial"
     },
     "defaultVerifier": {
-      "verifierName": "Default Directed Hamiltonian Cycle Verifier",
+      "verifierName": "Directed Hamiltonian Cycle Solution Verifier",
       "verifierDefinition": "This is a verifier for Directed Hamiltonian Cycle",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Verifiers/DirectedHamiltonianVerifier.cs",
@@ -319,6 +331,9 @@
       "visualizationName": "Directed Hamiltonian Cycle Visualization",
       "visualizationDefinition": "This is a default visualization for Directed Hamiltonian Cycle",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_DIRECTEDHAMILTONIAN/Visualizations/DirectedHamiltonianDefaultVisualization.cs",
       "contributors": [
@@ -334,6 +349,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n! * n * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -345,7 +363,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Factorial"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Hamiltonian Cycle",
@@ -362,6 +383,9 @@
     "certificateFormat": "Format: {q0,...,qn} | Hamiltonian cycle: every node exactly once, each (qi,qi\u002B1) and (qn,q0) in E Example: {1,2,4,5,3}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Andrija Sevaljevic"
     ],
@@ -375,6 +399,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "n! * n * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -387,7 +414,7 @@
       "complexityBucket": "Factorial"
     },
     "defaultVerifier": {
-      "verifierName": "Default Hamiltonian Cycle Verifier",
+      "verifierName": "Hamiltonian Cycle Solution Verifier",
       "verifierDefinition": "This is a verifier for Hamiltonian Cycle",
       "source": " ",
       "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Verifiers/HamiltonianVerifier.cs",
@@ -400,6 +427,9 @@
       "visualizationName": "Hamiltonian Cycle Visualization",
       "visualizationDefinition": "This is a default visualization for Hamiltonian Cycle",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HAMILTONIAN/Visualizations/HamiltonianDefaultVisualization.cs",
       "contributors": [
@@ -415,6 +445,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "n! * n * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -426,9 +459,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Factorial"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Linear",
   "reductionType": "LocalReplacement",
+  "reductionTypes": [
+    "LocalReplacement"
+  ],
   "complexityBucket": "Linear"
 }

@@ -91,6 +91,7 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
 
         // Step 2: Place each item using the First Fit rule.
         foreach (int i in order) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             int size = problem.S[i];
             bool placed = false;
 

@@ -163,6 +163,9 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
     private bool SolveHelper(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
                               int row, int col, bool getAllSolutions, List<int[][]> solutions, Search search) {
         int gridSize = grid.Length;
+        // #935: at the time limit, unwind as if solved; SolveInternal then reports the stop.
+        if (timerHasExpired)
+            return true;
         // Base case: all rows processed
         if (row == gridSize) {
             if (getAllSolutions) {
@@ -266,6 +269,8 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
 
         var search = new Search { Rec = rec };
         SolveHelper(solution, rows, cols, blocks, 0, 0, false, new List<int[][]>(), search);
+        if (timerHasExpired)
+            return SolveRun.TimedOutAnswer;
         string tries = $"{BoardFrames.Count(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}";
 
         // If solution contains any 0s, the problem is unsolveable

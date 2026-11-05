@@ -61,6 +61,14 @@ interface IReduction {
 
     ReductionComplexityBucket complexityBucket { get => ReductionComplexityBucket.Unclassified; }
 
+    // Free-text Big-O note on how long the reduction takes, e.g. "O(n^2), n = |CLIQUE.nodes|". Every
+    // reduction declares it (the metadata tests require it non-empty), so it is required here. JsonIgnore
+    // as for sourceLink: /ProblemProvider/reduce, which writes the reduction as IReduction, never had it.
+    // #615 replaces this string with timeComplexity/spaceComplexity (MathematicalFunction), as #614 did for
+    // solvers.
+    [System.Text.Json.Serialization.JsonIgnore]
+    string? complexity { get; }
+
     // Backward mapping: an answer for the target problem (B) turned back into an answer for the
     // source problem (A), the direction students need after solving B. Reductions that have one
     // implement IReversibleReduction<T, U, TPartial>; everything else keeps these defaults.
@@ -90,13 +98,6 @@ interface IReduction {
     // for the same reason as the backward map above.
     ISolver? ReductionViewSolver() => null;
 
-    // Free-text Big-O note on how long the reduction takes, e.g. "O(n^2), n = |CLIQUE.nodes|". Every
-    // reduction declares it (the metadata tests require it non-empty), so it is required here. JsonIgnore
-    // as for sourceLink: /ProblemProvider/reduce, which writes the reduction as IReduction, never had it.
-    // #615 replaces this string with timeComplexity/spaceComplexity (MathematicalFunction), as #614 did for
-    // solvers.
-    [System.Text.Json.Serialization.JsonIgnore]
-    string? complexity { get; }
 }
 
 /// <summary>

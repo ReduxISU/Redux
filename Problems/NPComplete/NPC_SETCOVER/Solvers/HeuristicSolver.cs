@@ -73,6 +73,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
 
         Console.WriteLine(stopwatch.ElapsedMilliseconds);
 
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (selectedSets.Any()) {
             rec.Done(Picked(selectedSets), true,
                 $"{BipartiteFrames.Braces(Picked(selectedSets).Sets)} covers every element with {selectedSets.Count} {(selectedSets.Count == 1 ? "set" : "sets")}, within K = {setCover.K}.");
@@ -90,6 +91,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
 
     private void iterate(Dictionary<string, List<string>> Y, ref Dictionary<string, List<string>> X, ref Stack<string> solution, ref bool foundSolution, int K,
         SETCOVER setCover, StepRecorder<ChosenSets> rec) {
+        if (timerHasExpired) return; // #935: stop at the time limit; Solve() reports it
         if (solution.Count() > K) {
             var over = solution;
             rec.Reject(() => Picked(over), () => $"That makes {over.Count} {(over.Count == 1 ? "set" : "sets")}, more than K = {K}, so undo it.",
@@ -117,7 +119,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
                         : $"Take {BipartiteFrames.SetText(setCover.subsets, index)} for {minimumColumn} instead.",
                     BipartiteFrames.SetId(index));
                 iterate(Y, ref X, ref solution, ref foundSolution, K, setCover, rec);
-                if (foundSolution == true) return;
+                if (foundSolution == true || timerHasExpired) return;
                 deselect(Y, ref X, row, ref columns);
                 solution.Pop();
                 rec.Backtrack(() => Picked(stack), () => $"Undo {BipartiteFrames.SetId(index)}: no cover within K = {K} follows from it.", BipartiteFrames.SetId(index));

@@ -13,6 +13,9 @@
     "visualizationName": "Clique Visualization",
     "visualizationDefinition": "This is a default visualization for Clique",
     "visualizationType": "GraphD3",
+    "visualizationTypes": [
+      "GraphD3"
+    ],
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
     "contributors": [
@@ -31,6 +34,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -68,14 +74,14 @@
         "c0-1"
       ],
       "reductionToIds": [
-        "!x2_0"
+        "x2_0"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c0-1"
       ],
       "targetIds": [
-        "!x2_0"
+        "x2_0"
       ]
     },
     {
@@ -103,7 +109,7 @@
       ],
       "reductionToIds": [
         "x1_0",
-        "!x2_0",
+        "x2_0",
         "x3_0"
       ],
       "gadgetKind": "group",
@@ -112,7 +118,7 @@
       ],
       "targetIds": [
         "x1_0",
-        "!x2_0",
+        "x2_0",
         "x3_0"
       ]
     },
@@ -140,14 +146,14 @@
         "c1-1"
       ],
       "reductionToIds": [
-        "x3_1"
+        "!x2_1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c1-1"
       ],
       "targetIds": [
-        "x3_1"
+        "!x2_1"
       ]
     },
     {
@@ -157,14 +163,14 @@
         "c1-2"
       ],
       "reductionToIds": [
-        "x1_1"
+        "!x3_1"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c1-2"
       ],
       "targetIds": [
-        "x1_1"
+        "!x3_1"
       ]
     },
     {
@@ -175,8 +181,8 @@
       ],
       "reductionToIds": [
         "!x1_1",
-        "x3_1",
-        "x1_1"
+        "!x2_1",
+        "!x3_1"
       ],
       "gadgetKind": "group",
       "sourceIds": [
@@ -184,8 +190,8 @@
       ],
       "targetIds": [
         "!x1_1",
-        "x3_1",
-        "x1_1"
+        "!x2_1",
+        "!x3_1"
       ]
     },
     {
@@ -195,13 +201,30 @@
         "c2-0"
       ],
       "reductionToIds": [
-        "x2_2"
+        "!x1_2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c2-0"
       ],
       "targetIds": [
+        "!x1_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-1"
+      ],
+      "reductionToIds": [
+        "x2_2"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c2-1"
+      ],
+      "targetIds": [
         "x2_2"
       ]
     },
@@ -209,34 +232,17 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "c2-1"
-      ],
-      "reductionToIds": [
-        "!x3_2"
-      ],
-      "gadgetKind": "element",
-      "sourceIds": [
-        "c2-1"
-      ],
-      "targetIds": [
-        "!x3_2"
-      ]
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
         "c2-2"
       ],
       "reductionToIds": [
-        "!x1_2"
+        "x3_2"
       ],
       "gadgetKind": "element",
       "sourceIds": [
         "c2-2"
       ],
       "targetIds": [
-        "!x1_2"
+        "x3_2"
       ]
     },
     {
@@ -246,18 +252,90 @@
         "c2"
       ],
       "reductionToIds": [
+        "!x1_2",
         "x2_2",
-        "!x3_2",
-        "!x1_2"
+        "x3_2"
       ],
       "gadgetKind": "group",
       "sourceIds": [
         "c2"
       ],
       "targetIds": [
+        "!x1_2",
         "x2_2",
-        "!x3_2",
-        "!x1_2"
+        "x3_2"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "x1_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "!x2_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x2_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "x3_3"
+      ],
+      "gadgetKind": "element",
+      "sourceIds": [
+        "c3-2"
+      ],
+      "targetIds": [
+        "x3_3"
+      ]
+    },
+    {
+      "kind": "gadget",
+      "color": "ClauseHighlight",
+      "reductionFromIds": [
+        "c3"
+      ],
+      "reductionToIds": [
+        "x1_3",
+        "!x2_3",
+        "x3_3"
+      ],
+      "gadgetKind": "group",
+      "sourceIds": [
+        "c3"
+      ],
+      "targetIds": [
+        "x1_3",
+        "!x2_3",
+        "x3_3"
       ]
     },
     {
@@ -268,7 +346,7 @@
       ],
       "reductionToIds": [
         "x1_0",
-        "!x2_0",
+        "x2_0",
         "x3_0"
       ],
       "gadgetKind": "edgeRule",
@@ -277,7 +355,7 @@
       ],
       "targetIds": [
         "x1_0",
-        "!x2_0",
+        "x2_0",
         "x3_0"
       ],
       "note": "Nodes from the same clause, C1, are never joined."
@@ -290,8 +368,8 @@
       ],
       "reductionToIds": [
         "!x1_1",
-        "x3_1",
-        "x1_1"
+        "!x2_1",
+        "!x3_1"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -299,8 +377,8 @@
       ],
       "targetIds": [
         "!x1_1",
-        "x3_1",
-        "x1_1"
+        "!x2_1",
+        "!x3_1"
       ],
       "note": "Nodes from the same clause, C2, are never joined."
     },
@@ -311,20 +389,42 @@
         "c2"
       ],
       "reductionToIds": [
+        "!x1_2",
         "x2_2",
-        "!x3_2",
-        "!x1_2"
+        "x3_2"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c2"
       ],
       "targetIds": [
+        "!x1_2",
         "x2_2",
-        "!x3_2",
-        "!x1_2"
+        "x3_2"
       ],
       "note": "Nodes from the same clause, C3, are never joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c3"
+      ],
+      "reductionToIds": [
+        "x1_3",
+        "!x2_3",
+        "x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c3"
+      ],
+      "targetIds": [
+        "x1_3",
+        "!x2_3",
+        "x3_3"
+      ],
+      "note": "Nodes from the same clause, C4, are never joined."
     },
     {
       "kind": "gadget",
@@ -334,7 +434,7 @@
         "c1-0"
       ],
       "reductionToIds": [
-        "!x1_1-!x2_0"
+        "!x1_1-x2_0"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -342,9 +442,9 @@
         "c1-0"
       ],
       "targetIds": [
-        "!x1_1-!x2_0"
+        "!x1_1-x2_0"
       ],
-      "note": "!x2_0 and !x1_1 are from different clauses and do not contradict each other, so they are joined."
+      "note": "x2_0 and !x1_1 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
@@ -370,71 +470,11 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "c0-1",
-        "c1-2"
-      ],
-      "reductionToIds": [
-        "!x2_0-x1_1"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c0-1",
-        "c1-2"
-      ],
-      "targetIds": [
-        "!x2_0-x1_1"
-      ],
-      "note": "!x2_0 and x1_1 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c0-1",
-        "c1-1"
-      ],
-      "reductionToIds": [
-        "!x2_0-x3_1"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c0-1",
-        "c1-1"
-      ],
-      "targetIds": [
-        "!x2_0-x3_1"
-      ],
-      "note": "!x2_0 and x3_1 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c0-0",
-        "c1-2"
-      ],
-      "reductionToIds": [
-        "x1_0-x1_1"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c0-0",
-        "c1-2"
-      ],
-      "targetIds": [
-        "x1_0-x1_1"
-      ],
-      "note": "x1_0 and x1_1 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
         "c0-0",
         "c1-1"
       ],
       "reductionToIds": [
-        "x1_0-x3_1"
+        "!x2_1-x1_0"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -442,29 +482,9 @@
         "c1-1"
       ],
       "targetIds": [
-        "x1_0-x3_1"
+        "!x2_1-x1_0"
       ],
-      "note": "x1_0 and x3_1 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c0-2",
-        "c1-2"
-      ],
-      "reductionToIds": [
-        "x1_1-x3_0"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c0-2",
-        "c1-2"
-      ],
-      "targetIds": [
-        "x1_1-x3_0"
-      ],
-      "note": "x3_0 and x1_1 are from different clauses and do not contradict each other, so they are joined."
+      "note": "x1_0 and !x2_1 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
@@ -474,7 +494,7 @@
         "c1-1"
       ],
       "reductionToIds": [
-        "x3_0-x3_1"
+        "!x2_1-x3_0"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -482,9 +502,49 @@
         "c1-1"
       ],
       "targetIds": [
-        "x3_0-x3_1"
+        "!x2_1-x3_0"
       ],
-      "note": "x3_0 and x3_1 are from different clauses and do not contradict each other, so they are joined."
+      "note": "x3_0 and !x2_1 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-0",
+        "c1-2"
+      ],
+      "reductionToIds": [
+        "!x3_1-x1_0"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-0",
+        "c1-2"
+      ],
+      "targetIds": [
+        "!x3_1-x1_0"
+      ],
+      "note": "x1_0 and !x3_1 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c1-2"
+      ],
+      "reductionToIds": [
+        "!x3_1-x2_0"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c1-2"
+      ],
+      "targetIds": [
+        "!x3_1-x2_0"
+      ],
+      "note": "x2_0 and !x3_1 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
@@ -513,27 +573,71 @@
       "color": "ElementHighlight",
       "reductionFromIds": [
         "c0-1",
-        "c2-2"
+        "c1-1"
       ],
       "reductionToIds": [
-        "!x1_2-!x2_0"
+        "x2_0",
+        "!x2_1"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c0-1",
-        "c2-2"
+        "c1-1"
       ],
       "targetIds": [
-        "!x1_2-!x2_0"
+        "x2_0",
+        "!x2_1"
       ],
-      "note": "!x2_0 and !x1_2 are from different clauses and do not contradict each other, so they are joined."
+      "note": "x2_0 and !x2_1 contradict each other, so they are not joined."
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "c0-2",
-        "c2-2"
+        "c1-2"
+      ],
+      "reductionToIds": [
+        "x3_0",
+        "!x3_1"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-2",
+        "c1-2"
+      ],
+      "targetIds": [
+        "x3_0",
+        "!x3_1"
+      ],
+      "note": "x3_0 and !x3_1 contradict each other, so they are not joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c2-0"
+      ],
+      "reductionToIds": [
+        "!x1_2-x2_0"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c2-0"
+      ],
+      "targetIds": [
+        "!x1_2-x2_0"
+      ],
+      "note": "x2_0 and !x1_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-2",
+        "c2-0"
       ],
       "reductionToIds": [
         "!x1_2-x3_0"
@@ -541,7 +645,7 @@
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c0-2",
-        "c2-2"
+        "c2-0"
       ],
       "targetIds": [
         "!x1_2-x3_0"
@@ -552,48 +656,8 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "c0-1",
-        "c2-1"
-      ],
-      "reductionToIds": [
-        "!x2_0-!x3_2"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c0-1",
-        "c2-1"
-      ],
-      "targetIds": [
-        "!x2_0-!x3_2"
-      ],
-      "note": "!x2_0 and !x3_2 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
         "c0-0",
         "c2-1"
-      ],
-      "reductionToIds": [
-        "!x3_2-x1_0"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c0-0",
-        "c2-1"
-      ],
-      "targetIds": [
-        "!x3_2-x1_0"
-      ],
-      "note": "x1_0 and !x3_2 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c0-0",
-        "c2-0"
       ],
       "reductionToIds": [
         "x1_0-x2_2"
@@ -601,7 +665,7 @@
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c0-0",
-        "c2-0"
+        "c2-1"
       ],
       "targetIds": [
         "x1_0-x2_2"
@@ -612,8 +676,68 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
+        "c0-0",
+        "c2-2"
+      ],
+      "reductionToIds": [
+        "x1_0-x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-0",
+        "c2-2"
+      ],
+      "targetIds": [
+        "x1_0-x3_2"
+      ],
+      "note": "x1_0 and x3_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c2-1"
+      ],
+      "reductionToIds": [
+        "x2_0-x2_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c2-1"
+      ],
+      "targetIds": [
+        "x2_0-x2_2"
+      ],
+      "note": "x2_0 and x2_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c2-2"
+      ],
+      "reductionToIds": [
+        "x2_0-x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c2-2"
+      ],
+      "targetIds": [
+        "x2_0-x3_2"
+      ],
+      "note": "x2_0 and x3_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
         "c0-2",
-        "c2-0"
+        "c2-1"
       ],
       "reductionToIds": [
         "x2_2-x3_0"
@@ -621,7 +745,7 @@
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c0-2",
-        "c2-0"
+        "c2-1"
       ],
       "targetIds": [
         "x2_2-x3_0"
@@ -632,8 +756,28 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "c0-0",
+        "c0-2",
         "c2-2"
+      ],
+      "reductionToIds": [
+        "x3_0-x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-2",
+        "c2-2"
+      ],
+      "targetIds": [
+        "x3_0-x3_2"
+      ],
+      "note": "x3_0 and x3_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-0",
+        "c2-0"
       ],
       "reductionToIds": [
         "x1_0",
@@ -642,7 +786,7 @@
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c0-0",
-        "c2-2"
+        "c2-0"
       ],
       "targetIds": [
         "x1_0",
@@ -654,52 +798,190 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "c0-1",
-        "c2-0"
+        "c0-0",
+        "c3-1"
       ],
       "reductionToIds": [
-        "!x2_0",
-        "x2_2"
+        "!x2_3-x1_0"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
-        "c0-1",
-        "c2-0"
+        "c0-0",
+        "c3-1"
       ],
       "targetIds": [
-        "!x2_0",
-        "x2_2"
+        "!x2_3-x1_0"
       ],
-      "note": "!x2_0 and x2_2 contradict each other, so they are not joined."
+      "note": "x1_0 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "c0-2",
-        "c2-1"
+        "c3-1"
       ],
       "reductionToIds": [
-        "x3_0",
-        "!x3_2"
+        "!x2_3-x3_0"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c0-2",
-        "c2-1"
+        "c3-1"
       ],
       "targetIds": [
-        "x3_0",
-        "!x3_2"
+        "!x2_3-x3_0"
       ],
-      "note": "x3_0 and !x3_2 contradict each other, so they are not joined."
+      "note": "x3_0 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-0",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "x1_0-x1_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-0",
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_0-x1_3"
+      ],
+      "note": "x1_0 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-0",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "x1_0-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-0",
+        "c3-2"
+      ],
+      "targetIds": [
+        "x1_0-x3_3"
+      ],
+      "note": "x1_0 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "x1_3-x2_0"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_3-x2_0"
+      ],
+      "note": "x2_0 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-2",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "x1_3-x3_0"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-2",
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_3-x3_0"
+      ],
+      "note": "x3_0 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "x2_0-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c3-2"
+      ],
+      "targetIds": [
+        "x2_0-x3_3"
+      ],
+      "note": "x2_0 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-2",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "x3_0-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-2",
+        "c3-2"
+      ],
+      "targetIds": [
+        "x3_0-x3_3"
+      ],
+      "note": "x3_0 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c0-1",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "x2_0",
+        "!x2_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c0-1",
+        "c3-1"
+      ],
+      "targetIds": [
+        "x2_0",
+        "!x2_3"
+      ],
+      "note": "x2_0 and !x2_3 contradict each other, so they are not joined."
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "c1-0",
-        "c2-2"
+        "c2-0"
       ],
       "reductionToIds": [
         "!x1_1-!x1_2"
@@ -707,7 +989,7 @@
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c1-0",
-        "c2-2"
+        "c2-0"
       ],
       "targetIds": [
         "!x1_1-!x1_2"
@@ -722,32 +1004,12 @@
         "c2-1"
       ],
       "reductionToIds": [
-        "!x1_1-!x3_2"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c1-0",
-        "c2-1"
-      ],
-      "targetIds": [
-        "!x1_1-!x3_2"
-      ],
-      "note": "!x1_1 and !x3_2 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c1-0",
-        "c2-0"
-      ],
-      "reductionToIds": [
         "!x1_1-x2_2"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c1-0",
-        "c2-0"
+        "c2-1"
       ],
       "targetIds": [
         "!x1_1-x2_2"
@@ -758,61 +1020,21 @@
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
-        "c1-1",
+        "c1-0",
         "c2-2"
       ],
       "reductionToIds": [
-        "!x1_2-x3_1"
+        "!x1_1-x3_2"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
-        "c1-1",
+        "c1-0",
         "c2-2"
       ],
       "targetIds": [
-        "!x1_2-x3_1"
+        "!x1_1-x3_2"
       ],
-      "note": "x3_1 and !x1_2 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c1-2",
-        "c2-1"
-      ],
-      "reductionToIds": [
-        "!x3_2-x1_1"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c1-2",
-        "c2-1"
-      ],
-      "targetIds": [
-        "!x3_2-x1_1"
-      ],
-      "note": "x1_1 and !x3_2 are from different clauses and do not contradict each other, so they are joined."
-    },
-    {
-      "kind": "gadget",
-      "color": "ElementHighlight",
-      "reductionFromIds": [
-        "c1-2",
-        "c2-0"
-      ],
-      "reductionToIds": [
-        "x1_1-x2_2"
-      ],
-      "gadgetKind": "edgeRule",
-      "sourceIds": [
-        "c1-2",
-        "c2-0"
-      ],
-      "targetIds": [
-        "x1_1-x2_2"
-      ],
-      "note": "x1_1 and x2_2 are from different clauses and do not contradict each other, so they are joined."
+      "note": "!x1_1 and x3_2 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
@@ -822,7 +1044,7 @@
         "c2-0"
       ],
       "reductionToIds": [
-        "x2_2-x3_1"
+        "!x1_2-!x2_1"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -830,31 +1052,69 @@
         "c2-0"
       ],
       "targetIds": [
-        "x2_2-x3_1"
+        "!x1_2-!x2_1"
       ],
-      "note": "x3_1 and x2_2 are from different clauses and do not contradict each other, so they are joined."
+      "note": "!x2_1 and !x1_2 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
       "color": "ElementHighlight",
       "reductionFromIds": [
         "c1-2",
-        "c2-2"
+        "c2-0"
       ],
       "reductionToIds": [
-        "x1_1",
-        "!x1_2"
+        "!x1_2-!x3_1"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
         "c1-2",
+        "c2-0"
+      ],
+      "targetIds": [
+        "!x1_2-!x3_1"
+      ],
+      "note": "!x3_1 and !x1_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-1",
+        "c2-2"
+      ],
+      "reductionToIds": [
+        "!x2_1-x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-1",
         "c2-2"
       ],
       "targetIds": [
-        "x1_1",
-        "!x1_2"
+        "!x2_1-x3_2"
       ],
-      "note": "x1_1 and !x1_2 contradict each other, so they are not joined."
+      "note": "!x2_1 and x3_2 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-2",
+        "c2-1"
+      ],
+      "reductionToIds": [
+        "!x3_1-x2_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-2",
+        "c2-1"
+      ],
+      "targetIds": [
+        "!x3_1-x2_2"
+      ],
+      "note": "!x3_1 and x2_2 are from different clauses and do not contradict each other, so they are joined."
     },
     {
       "kind": "gadget",
@@ -864,8 +1124,8 @@
         "c2-1"
       ],
       "reductionToIds": [
-        "x3_1",
-        "!x3_2"
+        "!x2_1",
+        "x2_2"
       ],
       "gadgetKind": "edgeRule",
       "sourceIds": [
@@ -873,10 +1133,400 @@
         "c2-1"
       ],
       "targetIds": [
-        "x3_1",
-        "!x3_2"
+        "!x2_1",
+        "x2_2"
       ],
-      "note": "x3_1 and !x3_2 contradict each other, so they are not joined."
+      "note": "!x2_1 and x2_2 contradict each other, so they are not joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-2",
+        "c2-2"
+      ],
+      "reductionToIds": [
+        "!x3_1",
+        "x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-2",
+        "c2-2"
+      ],
+      "targetIds": [
+        "!x3_1",
+        "x3_2"
+      ],
+      "note": "!x3_1 and x3_2 contradict each other, so they are not joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-0",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "!x1_1-!x2_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-0",
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x1_1-!x2_3"
+      ],
+      "note": "!x1_1 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-0",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "!x1_1-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-0",
+        "c3-2"
+      ],
+      "targetIds": [
+        "!x1_1-x3_3"
+      ],
+      "note": "!x1_1 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-1",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "!x2_1-!x2_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-1",
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x2_1-!x2_3"
+      ],
+      "note": "!x2_1 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-1",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "!x2_1-x1_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-1",
+        "c3-0"
+      ],
+      "targetIds": [
+        "!x2_1-x1_3"
+      ],
+      "note": "!x2_1 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-1",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "!x2_1-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-1",
+        "c3-2"
+      ],
+      "targetIds": [
+        "!x2_1-x3_3"
+      ],
+      "note": "!x2_1 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-2",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "!x2_3-!x3_1"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-2",
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x2_3-!x3_1"
+      ],
+      "note": "!x3_1 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-2",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "!x3_1-x1_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-2",
+        "c3-0"
+      ],
+      "targetIds": [
+        "!x3_1-x1_3"
+      ],
+      "note": "!x3_1 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-0",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "!x1_1",
+        "x1_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-0",
+        "c3-0"
+      ],
+      "targetIds": [
+        "!x1_1",
+        "x1_3"
+      ],
+      "note": "!x1_1 and x1_3 contradict each other, so they are not joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c1-2",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "!x3_1",
+        "x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c1-2",
+        "c3-2"
+      ],
+      "targetIds": [
+        "!x3_1",
+        "x3_3"
+      ],
+      "note": "!x3_1 and x3_3 contradict each other, so they are not joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-0",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "!x1_2-!x2_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-0",
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x1_2-!x2_3"
+      ],
+      "note": "!x1_2 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-0",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "!x1_2-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-0",
+        "c3-2"
+      ],
+      "targetIds": [
+        "!x1_2-x3_3"
+      ],
+      "note": "!x1_2 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-2",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "!x2_3-x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-2",
+        "c3-1"
+      ],
+      "targetIds": [
+        "!x2_3-x3_2"
+      ],
+      "note": "x3_2 and !x2_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-1",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "x1_3-x2_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-1",
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_3-x2_2"
+      ],
+      "note": "x2_2 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-2",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "x1_3-x3_2"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-2",
+        "c3-0"
+      ],
+      "targetIds": [
+        "x1_3-x3_2"
+      ],
+      "note": "x3_2 and x1_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-1",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "x2_2-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-1",
+        "c3-2"
+      ],
+      "targetIds": [
+        "x2_2-x3_3"
+      ],
+      "note": "x2_2 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-2",
+        "c3-2"
+      ],
+      "reductionToIds": [
+        "x3_2-x3_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-2",
+        "c3-2"
+      ],
+      "targetIds": [
+        "x3_2-x3_3"
+      ],
+      "note": "x3_2 and x3_3 are from different clauses and do not contradict each other, so they are joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-0",
+        "c3-0"
+      ],
+      "reductionToIds": [
+        "!x1_2",
+        "x1_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-0",
+        "c3-0"
+      ],
+      "targetIds": [
+        "!x1_2",
+        "x1_3"
+      ],
+      "note": "!x1_2 and x1_3 contradict each other, so they are not joined."
+    },
+    {
+      "kind": "gadget",
+      "color": "ElementHighlight",
+      "reductionFromIds": [
+        "c2-1",
+        "c3-1"
+      ],
+      "reductionToIds": [
+        "x2_2",
+        "!x2_3"
+      ],
+      "gadgetKind": "edgeRule",
+      "sourceIds": [
+        "c2-1",
+        "c3-1"
+      ],
+      "targetIds": [
+        "x2_2",
+        "!x2_3"
+      ],
+      "note": "x2_2 and !x2_3 contradict each other, so they are not joined."
     },
     {
       "kind": "gadget",
@@ -884,17 +1534,19 @@
       "reductionFromIds": [
         "c0",
         "c1",
-        "c2"
+        "c2",
+        "c3"
       ],
       "reductionToIds": [],
       "gadgetKind": "bound",
       "sourceIds": [
         "c0",
         "c1",
-        "c2"
+        "c2",
+        "c3"
       ],
       "targetIds": [],
-      "note": "K = 3, the number of clauses"
+      "note": "K = 4, the number of clauses"
     }
   ],
   "reductionFrom": {
@@ -906,12 +1558,15 @@
     "source": "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.",
     "sourceFile": "Problems/NPComplete/NPC_SAT3/SAT3_Class.cs",
     "wikiName": "",
-    "defaultInstance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
-    "instance": "(x1 | !x2 | x3) \u0026 (!x1 | x3 | x1) \u0026 (x2 | !x3 | !x1)",
-    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) \u0026 (!x1 | x3 | x1)",
+    "defaultInstance": "(x1 | x2 | x3) \u0026 (!x1 | !x2 | !x3) \u0026 (!x1 | x2 | x3) \u0026 (x1 | !x2 | x3)",
+    "instance": "(x1 | x2 | x3) \u0026 (!x1 | !x2 | !x3) \u0026 (!x1 | x2 | x3) \u0026 (x1 | !x2 | x3)",
+    "instanceFormat": "Boolean formula in 3-CNF. Clauses joined by \u0027\u0026\u0027, literals within a clause joined by \u0027|\u0027, negation prefix \u0027!\u0027 written directly before the name. Variable names start with a letter or \u0027_\u0027 and contain only letters, digits and \u0027_\u0027. When there are several clauses, each clause with more than one literal must be in parentheses. Each clause has at most 3 literals. Example: (x1 | x2 | x3) \u0026 (!x1 | !x2 | !x3) \u0026 (!x1 | x2 | x3) \u0026 (x1 | !x2 | x3)",
     "certificateFormat": "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); \u0027:\u0027 or \u0027=\u0027 may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)",
     "complexityClass": "NPComplete",
     "problemType": "Logic",
+    "problemTypes": [
+      "Logic"
+    ],
     "contributors": [
       "Kaden Marchetti"
     ],
@@ -926,6 +1581,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "Backtracking",
+      "solverTypes": [
+        "Backtracking"
+      ],
       "timeComplexity": {
         "Function": "2^n * |phi|",
         "Description": ", n = number of variables, |phi| = formula size",
@@ -938,7 +1596,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default 3SAT Verifier",
+      "verifierName": "3SAT Solution Verifier",
       "verifierDefinition": "This is a verifier for 3SAT. It takes the certificate from the user and validates that every clause contains a true literal",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SAT3/Verifiers/SAT3Verifier.cs",
@@ -951,6 +1609,9 @@
       "visualizationName": "3SAT Visualization",
       "visualizationDefinition": "This is a default visualization for 3SAT",
       "visualizationType": "BooleanSatisfiability",
+      "visualizationTypes": [
+        "BooleanSatisfiability"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SAT3/Visualizations/Sat3DefaultVisualization.cs",
       "contributors": [
@@ -967,6 +1628,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "Backtracking",
+        "solverTypes": [
+          "Backtracking"
+        ],
         "timeComplexity": {
           "Function": "2^n * |phi|",
           "Description": ", n = number of variables, |phi| = formula size",
@@ -978,7 +1642,10 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "reductionTo": {
     "problemName": "Clique",
@@ -990,11 +1657,14 @@
     "sourceFile": "Problems/NPComplete/NPC_CLIQUE/CLIQUE_Class.cs",
     "wikiName": "",
     "defaultInstance": "(({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
-    "instance": "(({x1_0,!x2_0,x3_0,!x1_1,x3_1,x1_1,x2_2,!x3_2,!x1_2},{{x1_0,x3_1},{x1_0,x1_1},{x1_0,x2_2},{x1_0,!x3_2},{!x2_0,!x1_1},{!x2_0,x3_1},{!x2_0,x1_1},{!x2_0,!x3_2},{!x2_0,!x1_2},{x3_0,!x1_1},{x3_0,x3_1},{x3_0,x1_1},{x3_0,x2_2},{x3_0,!x1_2},{!x1_1,!x2_0},{!x1_1,x3_0},{!x1_1,x2_2},{!x1_1,!x3_2},{!x1_1,!x1_2},{x3_1,x1_0},{x3_1,!x2_0},{x3_1,x3_0},{x3_1,x2_2},{x3_1,!x1_2},{x1_1,x1_0},{x1_1,!x2_0},{x1_1,x3_0},{x1_1,x2_2},{x1_1,!x3_2},{x2_2,x1_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,x3_1},{x2_2,x1_1},{!x3_2,x1_0},{!x3_2,!x2_0},{!x3_2,!x1_1},{!x3_2,x1_1},{!x1_2,!x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,x3_1}}),3)",
+    "instance": "(({x1_0,x2_0,x3_0,!x1_1,!x2_1,!x3_1,!x1_2,x2_2,x3_2,x1_3,!x2_3,x3_3},{{x1_0,!x2_1},{x1_0,!x3_1},{x1_0,x2_2},{x1_0,x3_2},{x1_0,x1_3},{x1_0,!x2_3},{x1_0,x3_3},{x2_0,!x1_1},{x2_0,!x3_1},{x2_0,!x1_2},{x2_0,x2_2},{x2_0,x3_2},{x2_0,x1_3},{x2_0,x3_3},{x3_0,!x1_1},{x3_0,!x2_1},{x3_0,!x1_2},{x3_0,x2_2},{x3_0,x3_2},{x3_0,x1_3},{x3_0,!x2_3},{x3_0,x3_3},{!x1_1,x2_0},{!x1_1,x3_0},{!x1_1,!x1_2},{!x1_1,x2_2},{!x1_1,x3_2},{!x1_1,!x2_3},{!x1_1,x3_3},{!x2_1,x1_0},{!x2_1,x3_0},{!x2_1,!x1_2},{!x2_1,x3_2},{!x2_1,x1_3},{!x2_1,!x2_3},{!x2_1,x3_3},{!x3_1,x1_0},{!x3_1,x2_0},{!x3_1,!x1_2},{!x3_1,x2_2},{!x3_1,x1_3},{!x3_1,!x2_3},{!x1_2,x2_0},{!x1_2,x3_0},{!x1_2,!x1_1},{!x1_2,!x2_1},{!x1_2,!x3_1},{!x1_2,!x2_3},{!x1_2,x3_3},{x2_2,x1_0},{x2_2,x2_0},{x2_2,x3_0},{x2_2,!x1_1},{x2_2,!x3_1},{x2_2,x1_3},{x2_2,x3_3},{x3_2,x1_0},{x3_2,x2_0},{x3_2,x3_0},{x3_2,!x1_1},{x3_2,!x2_1},{x3_2,x1_3},{x3_2,!x2_3},{x3_2,x3_3},{x1_3,x1_0},{x1_3,x2_0},{x1_3,x3_0},{x1_3,!x2_1},{x1_3,!x3_1},{x1_3,x2_2},{x1_3,x3_2},{!x2_3,x1_0},{!x2_3,x3_0},{!x2_3,!x1_1},{!x2_3,!x2_1},{!x2_3,!x3_1},{!x2_3,!x1_2},{!x2_3,x3_2},{x3_3,x1_0},{x3_3,x2_0},{x3_3,x3_0},{x3_3,!x1_1},{x3_3,!x2_1},{x3_3,!x1_2},{x3_3,x2_2},{x3_3,x3_2}}),4)",
     "instanceFormat": "Format: {((N,E),K) | N is set, E subset N unorderedcross N, K is int} Example: (({1,2,3,4,5,6},{{4,1},{1,2},{4,3},{3,2},{2,4},{5,2},{3,5},{5,4},{3,6},{6,4},{1,6}}),4)",
     "certificateFormat": "Format: {K | K is set} Example: {2,3,4,5}",
     "complexityClass": "NPComplete",
     "problemType": "GraphTheory",
+    "problemTypes": [
+      "GraphTheory"
+    ],
     "contributors": [
       "Kaden Marchetti",
       "Alex Diviney"
@@ -1010,6 +1680,9 @@
       ],
       "timerHasExpired": false,
       "solverType": "BruteForce",
+      "solverTypes": [
+        "BruteForce"
+      ],
       "timeComplexity": {
         "Function": "2^n * n^2 * m",
         "Description": ", n = |nodes|, m = |edges|",
@@ -1022,7 +1695,7 @@
       "complexityBucket": "Exponential"
     },
     "defaultVerifier": {
-      "verifierName": "Default Clique Verifier",
+      "verifierName": "Clique Solution Verifier",
       "verifierDefinition": "This is a verifier for Clique",
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Verifiers/CliqueVerifier.cs",
@@ -1036,6 +1709,9 @@
       "visualizationName": "Clique Visualization",
       "visualizationDefinition": "This is a default visualization for Clique",
       "visualizationType": "GraphD3",
+      "visualizationTypes": [
+        "GraphD3"
+      ],
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_CLIQUE/Visualizations/CliqueDefaultVisualization.cs",
       "contributors": [
@@ -1054,6 +1730,9 @@
         ],
         "timerHasExpired": false,
         "solverType": "BruteForce",
+        "solverTypes": [
+          "BruteForce"
+        ],
         "timeComplexity": {
           "Function": "2^n * n^2 * m",
           "Description": ", n = |nodes|, m = |edges|",
@@ -1065,9 +1744,15 @@
         "spaceComplexity": null,
         "complexityBucket": "Exponential"
       }
-    }
+    },
+    "problemVariants": [
+      "Decision"
+    ]
   },
   "cost": "Quadratic",
   "reductionType": "ComponentDesign",
+  "reductionTypes": [
+    "ComponentDesign"
+  ],
   "complexityBucket": "Polynomial"
 }

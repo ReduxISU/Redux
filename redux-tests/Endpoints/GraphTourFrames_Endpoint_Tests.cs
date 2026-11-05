@@ -12,6 +12,9 @@ namespace redux_tests;
 //   - the list format (snapshots in Snapshots/, captured before the tour shape existed),
 //   - /info for every visualization and solver that was touched (info.<name>.json, captured the same way).
 public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
+    // TSP's default instance before #957 changed it (K was 8000); the cost captions are written for it.
+    private const string OldTspDefault = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
+
     private readonly HttpClient _client;
 
     public GraphTourFrames_Endpoint_Tests(AppFactory factory) {
@@ -145,7 +148,7 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         bool weighted = rule is "tsp" or "minTsp";
         bool hasK = rule == "tsp";   // Minimum Traveling Salesperson has no K
         Assert.Equal(hasK, payload.TryGetProperty("k", out var k));
-        if (hasK) Assert.Equal(8000, k.GetInt32());
+        if (hasK) Assert.Equal(7000, k.GetInt32());   // the default instance's K (#957)
 
         var nodes = payload.GetProperty("nodes").EnumerateArray().ToList();
         var nodeIds = nodes.Select(n => n.GetProperty("id").GetString()!).ToHashSet();
@@ -265,7 +268,7 @@ public class GraphTourFrames_Endpoint_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public async Task Frames_Tsp_PayloadCarriesWeights_AndTheCaptionsCarryTheCost() {
-        var (_, body) = await Visualize($"visualization={TspVis}&format=frames&solver=tspgreedy", DefaultInstance(TspVis));
+        var (_, body) = await Visualize($"visualization={TspVis}&format=frames&solver=tspgreedy", OldTspDefault);
         var root = JsonDocument.Parse(body).RootElement;
         var edges = root.GetProperty("payload").GetProperty("edges").EnumerateArray().ToList();
         Assert.Equal(10, edges.Count);

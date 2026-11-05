@@ -169,7 +169,7 @@ public class VisualizeRun_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // The default DFA and NFA runs accept, and their answers are certificates, so the verifier says ok (#896).
     [Theory]
-    [InlineData("DFASolver", "1,2")]
+    [InlineData("DFASolver", "1,3,3,2")]   // the default input is bba since #938
     [InlineData("NFASolver", "1,2,3,2\n1,2,2\n1,2")]
     [InlineData("NFASubsetSolver", "1,2")]
     public async Task AutomatonDefault_AcceptedRun_IsOk(string solver, string expected) {

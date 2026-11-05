@@ -14,6 +14,9 @@ namespace redux_tests;
 
 public class DFA_Tests {
     private const string DefaultInstance =
+        "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),bba)";
+    // The "contains an a" automaton on input "a" (the default before #938, which now runs it on "bba").
+    private const string InputAInstance =
         "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
 
     // -------------------------------------------------------------------------
@@ -60,20 +63,20 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Parses_Start_State() {
-        DFA dfa = new DFA(DefaultInstance);
+        DFA dfa = new DFA(InputAInstance);
         Assert.Equal("1", dfa.startState);
     }
 
     [Fact]
     public void DFA_Parses_Accept_States() {
-        DFA dfa = new DFA(DefaultInstance);
+        DFA dfa = new DFA(InputAInstance);
         Assert.Single(dfa.acceptStates);
         Assert.Contains("2", dfa.acceptStates);
     }
 
     [Fact]
     public void DFA_Parses_Alphabet() {
-        DFA dfa = new DFA(DefaultInstance);
+        DFA dfa = new DFA(InputAInstance);
         Assert.Equal(2, dfa.alphabet.Count);
         Assert.Contains('a', dfa.alphabet);
         Assert.Contains('b', dfa.alphabet);
@@ -81,7 +84,7 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Parses_Input_String() {
-        DFA dfa = new DFA(DefaultInstance);
+        DFA dfa = new DFA(InputAInstance);
         Assert.Equal("a", dfa.inputString);
     }
 
@@ -157,8 +160,8 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Solver_Accepts_Valid_Input() {
-        // Default instance: input "a" → 1 →a→ 2 (accept state)
-        DFA dfa = new DFA(DefaultInstance);
+        // Input "a" → 1 →a→ 2 (accept state)
+        DFA dfa = new DFA(InputAInstance);
         DFASolver solver = new DFASolver();
         string result = solver.solve(dfa);
         Assert.True(new DFAVerifier().verify(dfa, result), result);
@@ -276,7 +279,7 @@ public class DFA_Tests {
     [InlineData("1,3")]    // ends in non-accept state 3
     [InlineData("1,3,3")]  // ends in non-accept state 3 after self-loop
     public void DFA_Verifier_Rejects_Path_Not_Ending_In_Accept_State(string certificate) {
-        DFA dfa = new DFA(DefaultInstance);
+        DFA dfa = new DFA(InputAInstance);
         DFAVerifier verifier = new DFAVerifier();
         Assert.False(verifier.verify(dfa, certificate));
     }
@@ -285,7 +288,7 @@ public class DFA_Tests {
     [InlineData("2,2")]   // starts at "2", not the start state "1"
     [InlineData("3,2")]   // starts at "3", not the start state "1"
     public void DFA_Verifier_Rejects_Path_Not_Starting_At_Start_State(string certificate) {
-        DFA dfa = new DFA(DefaultInstance);
+        DFA dfa = new DFA(InputAInstance);
         DFAVerifier verifier = new DFAVerifier();
         Assert.False(verifier.verify(dfa, certificate));
     }
@@ -332,8 +335,8 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Steps_Try_Each_State_Of_Path_For_Accepted_Input() {
-        Assert.Equal(new List<string> { "1", "2" }, TriedStates(DefaultInstance));
-        var steps = Steps(DefaultInstance);
+        Assert.Equal(new List<string> { "1", "2" }, TriedStates(InputAInstance));
+        var steps = Steps(InputAInstance);
         Assert.Equal("Read 'a': move from 1 to 2.", steps[1].Caption);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.True(steps[^1].Ok);
@@ -341,7 +344,7 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Steps_Cover_Path_Then_Reject_When_No_Solution() {
-        // Input "b" from default instance: 1 →b→ 3 (non-accept).
+        // The same automaton on input "b": 1 →b→ 3 (non-accept).
         string instance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),b)";
         Assert.Equal(new List<string> { "1", "3" }, TriedStates(instance));
         var steps = Steps(instance);
@@ -351,8 +354,8 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_TableFrames_One_Frame_Per_Row_For_Accepted_Input() {
-        // Default instance, input "a": initial row (step 0) + one transition row (step 1)
-        var frames = TableFrames(DefaultInstance);
+        // Input "a": initial row (step 0) + one transition row (step 1)
+        var frames = TableFrames(InputAInstance);
 
         Assert.Equal(2, frames.Count);
         // Every frame carries the full trace; only the highlight moves.
@@ -427,7 +430,7 @@ public class DFA_Tests {
 
     [Fact]
     public void DFA_Certificate_Format_Example_Is_Actually_Valid() {
-        // The "Example: 1,2" quoted in certificateFormat must be a real, verifiable
+        // The "Example: 1,3,3,2" quoted in certificateFormat must be a real, verifiable
         // certificate for defaultInstance — not just descriptive prose.
         DFA dfa = new DFA();
         DFAVerifier verifier = new DFAVerifier();

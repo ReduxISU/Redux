@@ -29,6 +29,7 @@ class DeutschClassicalSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSo
     // Steps (the Quantum Circuit picture, which this solver never runs): a Try per oracle call, f(0) then f(1), with the
     // oracle as the focus; an Accept with the answer; Done with the verifier's verdict.
     public string Solve(DEUTSCH problem, StepRecorder<QuantumProgress> rec) {
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
         string? oracle = QuantumSteps.Recording(rec) ? QuantumCircuits.Deutsch(problem.funcValues).OracleGateId : null;
         string[] Focus() => oracle == null ? [] : [oracle];
         var queries = new List<OracleQuery>();

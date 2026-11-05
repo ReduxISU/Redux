@@ -85,8 +85,9 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
     // path again, root first, when the search found it, or the greedy tour's leaf when the search never beat it (#897).
     public string Solve(TSP problem, StepRecorder<Tour> rec) {
         if (timerHasExpired) {
+            // #935: a timed run is stopped by SolveRun.Record, which puts its stopped Done in place of this one.
             rec.Done(new Tour([]), false, "Ran out of time before the search finished.");
-            return "timeout";
+            return SolveRun.TimedOutAnswer;
         }
 
         List<string> nodes = problem.nodes;
@@ -148,7 +149,7 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
         while (pq.Count > 0) {
             if (timerHasExpired) {
                 rec.Done(new Tour([]), false, "Ran out of time before the search finished.");
-                return "timeout";
+                return SolveRun.TimedOutAnswer;
             }
             SearchState current = pq.Dequeue();
             double bestNow = bestCost;
@@ -388,14 +389,12 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
     }
 
     private List<int>? GetInitialBSSF(TSP problem, List<string> nodes) {
-        string greedyCertificate = new TSPGreedy() {
-            timerHasExpired = timerHasExpired
-        }.solve(problem);
+        string greedyCertificate = new TSPGreedy(() => timerHasExpired).solve(problem);
         return CertificateToPath(greedyCertificate, nodes);
     }
 
     private static List<int>? CertificateToPath(string certificate, List<string> nodes) {
-        if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == "timeout")
+        if (string.IsNullOrWhiteSpace(certificate) || certificate == "{}" || certificate == SolveRun.TimedOutAnswer)
             return null;
         // Remove braces and split by commas
         string trimmed = certificate.Trim().TrimStart('{').TrimEnd('}');

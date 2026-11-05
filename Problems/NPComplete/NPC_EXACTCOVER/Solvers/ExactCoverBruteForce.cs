@@ -66,6 +66,7 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER, ChosenSets> {
         int tried = 0;
         string certificate = BinaryToCertificate(binary, exactCover.S);
         for (int i = 0; i < Math.Pow(2, binary.Count); i++) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             nextBinary(binary);
             certificate = BinaryToCertificate(binary, exactCover.S);
             tried++;

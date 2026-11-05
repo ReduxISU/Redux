@@ -35,24 +35,24 @@ class TSPBruteForce : ISolver<TSP, Tour> {
         return "{" + certificate + certificate.Split(',')[0] + "}";
     }
 
-    public static List<List<int>> GenerateCombinations(int x) {
+    public static List<List<int>> GenerateCombinations(int x) => EnumerateCombinations(x).ToList();
+
+    // #935: lazy, in the same order, so a solve stopped at the time limit has not first built all n! permutations.
+    private static IEnumerable<List<int>> EnumerateCombinations(int x) {
         List<int> currentCombination = new List<int>();
         for (int i = 1; i <= x; i++) {
             currentCombination.Add(i);
         }
 
-        List<List<int>> combinations = new List<List<int>>();
-        combinations.Add(new List<int>(currentCombination));
+        yield return new List<int>(currentCombination);
 
         while (true) {
             if (GetNextCombination(currentCombination)) {
-                combinations.Add(new List<int>(currentCombination));
+                yield return new List<int>(currentCombination);
             } else {
                 break; // All combinations have been generated
             }
         }
-
-        return combinations;
     }
 
     private static bool GetNextCombination(List<int> combination) {
@@ -99,10 +99,11 @@ class TSPBruteForce : ISolver<TSP, Tour> {
             rec.Done(new Tour([]), ok, "There are no cities to tour.");
             return "{}";
         }
-        List<List<int>> combinations = GenerateCombinations(tsp.nodes.Count);
+        IEnumerable<List<int>> combinations = EnumerateCombinations(tsp.nodes.Count);
         int tried = 0;
 
         foreach (List<int> combination in combinations) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             string certificate = combinationToCertificate(combination, tsp.nodes);
             tried++;
             if (tsp.defaultVerifier.verify(tsp, certificate)) {

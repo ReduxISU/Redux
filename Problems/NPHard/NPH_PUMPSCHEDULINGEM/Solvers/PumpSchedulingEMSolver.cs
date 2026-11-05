@@ -82,12 +82,16 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
         // No schedule fits the tank limits and the budget: report "no solution" ("{}", the repo's
         // standard convention, see #605) rather than inventing an over-budget schedule.
         if (schedMasks == null) {
-            rec.Done(new PumpPlan(reached, [], budget), false, timerHasExpired
-                ? "The solver's timer ran out, so there is no answer."
-                : $"No schedule keeps the tank between {ScheduleFrames.Gallons(problem.TankMinLevel)} and {ScheduleFrames.Gallons(problem.TankCapacity)} gal "
+            // #935: a timed run is stopped by SolveRun.Record, which puts its stopped Done in place of this one.
+            if (timerHasExpired) {
+                rec.Done(new PumpPlan(reached, [], budget), false, "The solver's timer ran out, so there is no answer.");
+                return SolveRun.TimedOutAnswer;
+            }
+            rec.Done(new PumpPlan(reached, [], budget), false,
+                $"No schedule keeps the tank between {ScheduleFrames.Gallons(problem.TankMinLevel)} and {ScheduleFrames.Gallons(problem.TankCapacity)} gal "
                     + $"within the {ScheduleFrames.Money(budget)} budget for all 24 hours, so there is no answer."
                     + (tank.Rounded ? " The tank has too many levels to track exactly, so the solver rounded it to whole gallons." : ""));
-            return timerHasExpired ? "timeout" : NoSolution;
+            return NoSolution;
         }
 
         double totalCost = ComputeTotalCost(problem, schedMasks);
@@ -142,6 +146,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
             var next = new TankLayer<double>(nMasks, Inf);
 
             foreach (int b in dp.ByLevel()) {
+                if (timerHasExpired) return 0.0; // #935: an hour can take long with many pumps
                 long levelNow = dp.Levels[b];
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     double cur = dp[b, prevMask];
@@ -219,6 +224,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
             var next = new TankLayer<List<Label>?>(nMasks, null);
 
             foreach (int b in dp.ByLevel()) {
+                if (timerHasExpired) return (null, 0);
                 long levelNow = dp.Levels[b];
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     var front = dp[b, prevMask];
