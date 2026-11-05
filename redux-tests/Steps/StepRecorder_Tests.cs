@@ -406,6 +406,113 @@ public class StepRecorder_Tests {
         Assert.Equal(Nodes(), done.Partial);
     }
 
+    // ---- The one-lambda Step overloads ----
+
+    // Records the same run twice, once through the Step overloads and once through the separate-lambda ones.
+    private static (StepRecorder<NodeSet> WithStep, StepRecorder<NodeSet> WithLambdas) BothWays(int cap, Action<StepRecorder<NodeSet>, bool> run) {
+        var withStep = new StepRecorder<NodeSet>(cap);
+        var withLambdas = new StepRecorder<NodeSet>(cap);
+        run(withStep, true);
+        run(withLambdas, false);
+        return (withStep, withLambdas);
+    }
+
+    private static string Json(StepRecorder<NodeSet> rec) =>
+        System.Text.Json.JsonSerializer.Serialize(rec.Steps, ProblemProvider.VisualizeJsonOptions());
+
+    [Fact]
+    public void StepOverloads_RecordExactlyWhatTheSeparateLambdasRecord() {
+        var node = new SearchNode(1, 0, "x1=T", SearchNodeState.Pruned) { Bound = "C1 false" };
+        var (withStep, withLambdas) = BothWays(cap: 10, (rec, step) => {
+            if (step) {
+                rec.Try(() => new(Nodes("a"), "try a") { Focus = ["a"] });
+                rec.Reject(() => new(Nodes("a", "b"), "b clashes") { Focus = ["b", "a"], Tree = [node] });
+                rec.Backtrack(() => new(Nodes("a"), "drop b"));
+                rec.Accept(() => new(Nodes("a"), "keep a") { Tree = [] });
+            } else {
+                rec.Try(() => Nodes("a"), () => "try a", "a");
+                rec.Reject(() => Nodes("a", "b"), () => "b clashes", () => ["b", "a"], () => [node]);
+                rec.Backtrack(() => Nodes("a"), () => "drop b");
+                rec.Accept(() => Nodes("a"), () => "keep a", () => [], () => []);
+            }
+            rec.Done(Nodes("a"), true, "finished");
+        });
+        Assert.Equal(Json(withLambdas), Json(withStep));
+        Assert.Null(withStep.Steps[0].Tree);
+        Assert.Equal(new[] { node }, withStep.Steps[1].Tree);
+        Assert.Equal(withLambdas.Total, withStep.Total);
+        Assert.Equal(withLambdas.Hidden, withStep.Hidden);
+    }
+
+    [Fact]
+    public void StepOverloads_PastTheCap_MatchTheSeparateLambdas() {
+        var (withStep, withLambdas) = BothWays(cap: 3, (rec, step) => {
+            for (int i = 0; i < 20; i++) {
+                int n = i;
+                bool accept = n % 7 == 6;
+                if (step) {
+                    if (accept) rec.Accept(() => new(Nodes(n.ToString()), $"accept {n}") { Focus = [n.ToString()] });
+                    else rec.Reject(() => new(Nodes(n.ToString()), $"reject {n}"));
+                } else {
+                    if (accept) rec.Accept(() => Nodes(n.ToString()), () => $"accept {n}", n.ToString());
+                    else rec.Reject(() => Nodes(n.ToString()), () => $"reject {n}");
+                }
+            }
+            rec.Done(Nodes("13"), true, "found.");
+        });
+        Assert.Equal(Json(withLambdas), Json(withStep));
+        Assert.Equal("accept 13", withStep.Steps[^2].Caption);
+        Assert.Equal("found (16 not shown).", withStep.Steps[^1].Caption);
+    }
+
+    [Fact]
+    public void StepOverloads_AreNotInvoked_WhenOff_OrPastTheCap_ExceptForAnAccept() {
+        int calls = 0;
+        Step<NodeSet> Built(string caption) { calls++; return new(Nodes("a"), caption); }
+
+        var off = StepRecorder<NodeSet>.Off;
+        off.Try(() => Built("t"));
+        off.Accept(() => Built("a"));
+        off.Reject(() => Built("r"));
+        off.Backtrack(() => Built("b"));
+        Assert.Equal(0, calls);
+
+        var deadlineOnly = StepRecorder<NodeSet>.DeadlineOnly(TimeSpan.FromMinutes(5));
+        for (int i = 0; i < 100; i++) deadlineOnly.Accept(() => Built("a"));
+        Assert.Equal(0, calls);
+        Assert.Empty(deadlineOnly.Steps);
+
+        var rec = new StepRecorder<NodeSet>(cap: 2);
+        rec.Try(() => Built("t1"));
+        rec.Reject(() => Built("r1"));
+        Assert.Equal(2, calls);
+        for (int i = 0; i < 50; i++) {
+            rec.Try(() => Built("t"));
+            rec.Reject(() => Built("r"));
+            rec.Backtrack(() => Built("b"));
+        }
+        Assert.Equal(2, calls);   // past the cap, no Try, Reject or Backtrack is built
+        rec.Accept(() => Built("a"));
+        Assert.Equal(3, calls);   // an Accept past the cap is built once, when it is reported
+        rec.Done(Nodes("a"), true, "done");
+        Assert.Equal(new[] { "t1", "r1", "a", "done (150 not shown)" }, rec.Steps.Select(s => s.Caption));
+    }
+
+    [Fact]
+    public void StepOverloads_StopAtTheTimeLimit_WithoutBuildingSkippedSteps() {
+        long now = 0;
+        var rec = new StepRecorder<NodeSet>(cap: 1, timeLimit: TimeSpan.FromMilliseconds(30), clock: () => now);
+        int calls = 0;
+        void Reject() => rec.Reject(() => { calls++; return new(Nodes("x"), "r"); });
+        Reject();       // kept
+        Reject();       // past the cap: counted, not built
+        now = 30;
+        Assert.Throws<StepBudgetExceededException>(Reject);
+        Assert.Single(rec.Steps);
+        Assert.Equal(1, calls);
+        Assert.Equal(3, rec.Total);
+    }
+
     [Fact]
     public void Shapes_HaveValueEquality_IndependentOfOrder() {
         Assert.Equal(Nodes("b", "a", "a"), Nodes("a", "b"));

@@ -6,8 +6,9 @@ namespace API.Interfaces.Steps;
 /// Collects <see cref="SolverStep{TPartial}"/>s while a solver runs.
 /// <para>
 /// Guidance for solver authors: record decisions (choose, reject, back out), not loop iterations. A step's
-/// caption is one plain sentence. Pass lambdas for the partial answer and the caption so that nothing is
-/// built when recording is off or the cap has been reached.
+/// caption is one plain sentence. Pass the step as a lambda, <c>rec.Try(() =&gt; new(partial, caption) { Focus = [id] })</c>
+/// (see <see cref="Step{TPartial}"/>), or its partial answer and caption as separate lambdas, so that nothing is built when
+/// recording is off or the cap has been reached.
 /// </para>
 /// <para>
 /// Only the first <c>cap</c> non-<see cref="StepEvent.Done"/> steps are kept; the rest are counted in
@@ -139,6 +140,13 @@ sealed class StepRecorder<TPartial> {
     public void Reject(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Reject, partial, caption, focus, tree);
     public void Backtrack(Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]> tree) => Add(StepEvent.Backtrack, partial, caption, focus, tree);
 
+    // The same, with the whole step built by one lambda: rec.Reject(() => new(partial, caption) { Focus = [id] }). It is
+    // invoked at most once, only for a step that is kept, and records exactly what the overloads above record.
+    public void Try(Func<Step<TPartial>> step) => Add(StepEvent.Try, step);
+    public void Accept(Func<Step<TPartial>> step) => Add(StepEvent.Accept, step);
+    public void Reject(Func<Step<TPartial>> step) => Add(StepEvent.Reject, step);
+    public void Backtrack(Func<Step<TPartial>> step) => Add(StepEvent.Backtrack, step);
+
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
         if (!_enabled) { StepWhileOff(); return; }
         Add(kind, partial, caption, () => focus);
@@ -152,14 +160,38 @@ sealed class StepRecorder<TPartial> {
 
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, Func<string[]> focus, Func<SearchNode[]>? tree = null) {
         if (!_enabled) { StepWhileOff(); return; }
+        if (Count(kind))
+            Keep(new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() });
+        CheckDeadline();
+    }
+
+    private void Add(StepEvent kind, Func<Step<TPartial>> step) {
+        if (!_enabled) { StepWhileOff(); return; }
+        if (Count(kind)) {
+            var s = step();
+            Keep(new SolverStep<TPartial>(s.Partial, kind, s.Focus, s.Caption) { Tree = s.Tree });
+        }
+        CheckDeadline();
+    }
+
+    // Counts a reported step, and says whether it must be built: it is within the cap, or an Accept past it.
+    private bool Count(StepEvent kind) {
         _total++;
+        return _shownDecisions < _cap || kind == StepEvent.Accept;
+    }
+
+    // Keeps a built step: within the cap it is added; past it (an Accept) it replaces the last Accept past the cap.
+    private void Keep(SolverStep<TPartial> step) {
         if (_shownDecisions < _cap) {
             _shownDecisions++;
-            _steps.Add(new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() });
-        } else if (kind == StepEvent.Accept) {
-            _lastAcceptPastCap = new SolverStep<TPartial>(partial(), kind, focus(), caption()) { Tree = tree?.Invoke() };
+            _steps.Add(step);
+        } else {
+            _lastAcceptPastCap = step;
         }
-        // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
+    }
+
+    // Checked after the step is kept, so a stopped run always has at least one kept step (when cap > 0).
+    private void CheckDeadline() {
         if (Now() >= _deadline)
             throw new StepBudgetExceededException(this);
     }
