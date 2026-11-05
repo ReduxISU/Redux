@@ -1,59 +1,11 @@
 using API.Interfaces;
-using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using static API.Interfaces.Graphs.GroupedGraphFrames;
 
-namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
+namespace API.Problems.NPComplete.NPC_SAT3.Steps;
 
 /// <summary>
-/// A 3SAT formula as a randomized solver works on it (#932): its variables in order of first appearance (never a HashSet, so a
-/// seed gives the same run in every process), and each clause as (variable index, negated) pairs, in the order written.
-/// </summary>
-sealed class SatFormula {
-    public List<string> Variables { get; }
-    /// <summary>The clauses as the instance writes them, for captions.</summary>
-    public List<List<string>> Written { get; }
-    public List<(int Variable, bool Negated)[]> Clauses { get; }
-
-    private SatFormula(List<string> variables, List<List<string>> written, List<(int Variable, bool Negated)[]> clauses) {
-        Variables = variables;
-        Written = written;
-        Clauses = clauses;
-    }
-
-    public static SatFormula Of(SAT3 sat3) {
-        List<string> variables = sat3.literals.Where(l => l.Length > 0).Select(l => l.TrimStart('!')).Distinct().ToList();
-        var index = new Dictionary<string, int>(StringComparer.Ordinal);
-        for (int v = 0; v < variables.Count; v++) index[variables[v]] = v;
-        var clauses = sat3.clauses
-            .Select(c => c.Where(l => l.Length > 0).Select(l => (Variable: index[l.TrimStart('!')], Negated: l.StartsWith('!'))).ToArray())
-            .ToList();
-        return new SatFormula(variables, sat3.clauses, clauses);
-    }
-
-    /// <summary>Whether the clause has a true literal under a whole assignment.</summary>
-    public static bool Holds((int Variable, bool Negated)[] clause, bool[] values) {
-        foreach (var (variable, negated) in clause)
-            if (values[variable] != negated) return true;
-        return false;
-    }
-
-    /// <summary>Whether the clause has a true literal under a partial assignment (null: not set yet).</summary>
-    public static bool Holds((int Variable, bool Negated)[] clause, bool?[] values) {
-        foreach (var (variable, negated) in clause)
-            if (values[variable] is bool value && value != negated) return true;
-        return false;
-    }
-
-    /// <summary>The certificate of a whole assignment: "(x1:True,x2:False)".</summary>
-    public string Certificate(bool[] values) =>
-        "(" + string.Join(",", Variables.Select((name, v) => name + ":" + values[v])) + ")";
-}
-
-/// <summary>
-/// One try of a randomized SAT solver, kept only while recording (#932): its number (from 1), the values it started from (null:
+/// One try of a randomized SAT solver, kept only while recording: its number (from 1), the values it started from (null:
 /// not set), its moves in order, whether it ended on an answer, and the values it ended on.
 /// </summary>
 sealed class SatTry<TMove>(int number, bool?[] start) {
@@ -65,9 +17,9 @@ sealed class SatTry<TMove>(int number, bool?[] start) {
 }
 
 /// <summary>
-/// Records the steps of a randomized SAT solver that makes tries (WalkSAT, Schöning, PPZ; #932). The solver cannot know which
-/// try will succeed, so it reports each try here as it runs (<c>Begin</c>, <see cref="Add"/>, <c>End</c>), and
-/// this keeps only the first try, the current one and the last failed one; once the run is over, <see cref="Record"/> records
+/// Records the steps of a randomized SAT solver that restarts from a new random start until a try succeeds (WalkSAT,
+/// Schöning, PPZ). The solver cannot know which try will succeed, so it reports each try here as it runs (<c>Begin</c>,
+/// <see cref="Add"/>, <c>End</c>), and this keeps only the first try, the current one and the last failed one; once the run is over, <see cref="Record"/> records
 /// the first try and the successful one in full and the tries in between as one Reject ("Tries 2–37: ..."), all within the
 /// recorder's cap. A try too long for its share keeps its first and last moves and one step for those skipped, and the
 /// successful try gets at least half the room. The Done names the try that found the answer; when every try fails it says the
@@ -84,14 +36,14 @@ sealed class SatTry<TMove>(int number, bool?[] start) {
 /// it is on), so a run with steps and one without give the same answer.
 /// </para>
 /// </summary>
-abstract class SatTries<TMove> {
+abstract class RestartingSearchSteps<TMove> {
     protected SatFormula Formula { get; }
     private readonly bool _recording;
     private SatTry<TMove>? _first, _current;
     // The last failed try after the first, for the step that sums up the tries in between.
     private SatTry<TMove>? _lastFailed;
 
-    protected SatTries(SatFormula formula, bool recording) {
+    protected RestartingSearchSteps(SatFormula formula, bool recording) {
         Formula = formula;
         _recording = recording;
     }
@@ -225,7 +177,7 @@ abstract class SatTries<TMove> {
 
         if (solved) {
             var answer = Values(last.End);
-            rec.Done(ToAssignment(answer), true, $"Every clause has a true literal under {GroupedGraphFrames.Assigned(answer)}: found by {FoundBy(last)}.");
+            rec.Done(ToAssignment(answer), true, $"Every clause has a true literal under {Assigned(answer)}: found by {FoundBy(last)}.");
         } else {
             rec.Done(new Assignment([]), false,
                 $"Gave up after {Count(Begun, "try", "tries")}: no answer found. {SolverLabel} can miss an answer, so the formula may still have one.");
@@ -314,10 +266,10 @@ abstract class SatTries<TMove> {
 
     /// <summary>", x1 = True, x2 = False" for up to eight variables; " of the 12 variables" for more.</summary>
     protected string Listed(bool?[] values) =>
-        Formula.Variables.Count <= 8 ? $", {GroupedGraphFrames.Assigned(Values(values))}" : $" of the {Formula.Variables.Count} variables";
+        Formula.Variables.Count <= 8 ? $", {Assigned(Values(values))}" : $" of the {Formula.Variables.Count} variables";
 
     /// <summary>"C2 (x1 | !x2 | x3)".</summary>
-    protected string ClauseLabel(int clause) => $"C{clause + 1} {GroupedGraphFrames.ClauseText(Formula.Written[clause])}";
+    protected string ClauseLabel(int clause) => $"C{clause + 1} {ClauseText(Formula.Written[clause])}";
 
     protected static string Range(string plural, string singular, int from, int to) => from == to ? $"{singular} {from}" : $"{plural} {from}–{to}";
 

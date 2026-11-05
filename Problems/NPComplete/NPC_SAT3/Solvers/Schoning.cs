@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_SAT3.Steps;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
@@ -119,7 +120,7 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
     }
 
     // How Schöning's tries read: each move flips the variable of a random literal of a clause with no true literal.
-    private sealed class Tries(SatFormula formula, bool recording, int maxFlips) : SatTries<Step>(formula, recording) {
+    private sealed class Tries(SatFormula formula, bool recording, int maxFlips) : RestartingSearchSteps<Step>(formula, recording) {
         protected override string SolverLabel => "Schöning's algorithm";
         protected override string MoveNoun => "flip";
         protected override string EachTry => $"ends after {Count(maxFlips, "flip")}";

@@ -59,6 +59,8 @@ Rules that matter:
 | Implements | `ISolver<PROBLEM>` | `ISolver<SUBSETSUM>` |
 | `solverName` | Matches one of two name shapes (see section 5) | `"Subset Sum Brute Force"` |
 
+The `Solvers` folder holds only solver classes. A solver may split its class over two files with `partial` (the algorithm in `<ClassName>.cs`, the steps it records in `<ClassName>.Steps.cs`); `sourceFile` stays in `<ClassName>.cs`. A helper that is not a solver goes elsewhere: step helpers shared by several solvers in a sibling `Steps` folder (for example [NPC_SAT3/Steps/RestartingSearchSteps.cs](../../Problems/NPComplete/NPC_SAT3/Steps/RestartingSearchSteps.cs)), other shared code next to the problem class (for example [NPC_SAT3/SatFormula.cs](../../Problems/NPComplete/NPC_SAT3/SatFormula.cs)).
+
 **How Redux finds your solver.** At startup, `ProblemProvider` ([AdditionalControllers/ProblemProvider.cs](../../AdditionalControllers/ProblemProvider.cs)) scans every class in the project. Any class that implements `ISolver` is registered under its **lowercased class name**. Because of that:
 
 - Your class name must be unique. Two classes with the same name (ignoring upper/lower case) crash startup.
@@ -202,6 +204,7 @@ You do not have to register your solver with these tests. They find it automatic
 | Test file | What it checks about your solver |
 | --- | --- |
 | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) (`SolverName_MatchesNamingConvention`) | Your class builds with no arguments, and `solverName` matches one of two shapes: `"<Problem> <Approach>"` (title-case words, 2 or more, for example `"Subset Sum Brute Force"`) or `"<Person's name> ... Algorithm"` (for example `"Dijkstra's Algorithm"`). A raw class name like `SubsetSumBruteForce`, or a placeholder like `"Default Solver"`, fails. |
+| [SolverFolder_Tests.cs](../../redux-tests/Metadata/SolverFolder_Tests.cs) (`EveryTypeInASolversFolder_IsASolver`) | Every type declared in a file of a `Solvers` folder is a solver (implements `ISolver`). A helper class there fails: move it out (see section 3). |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredSolverType`) | `solverType` is not `Unclassified`. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexityBucket`) | `complexityBucket` is not `Unclassified`. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexity`) | `timeComplexity` is declared, not `null`. |

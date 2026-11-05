@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_SAT3.Steps;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -189,7 +190,7 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
     // ---- Recording ----
 
     // How WalkSAT's tries read: each move is a flip of a variable of a clause with no true literal.
-    private sealed class Tries(SatFormula formula, bool recording, int maxFlips) : SatTries<Flip>(formula, recording) {
+    private sealed class Tries(SatFormula formula, bool recording, int maxFlips) : RestartingSearchSteps<Flip>(formula, recording) {
         protected override string SolverLabel => "WalkSAT";
         protected override string MoveNoun => "flip";
         protected override string EachTry => $"ends after {Count(maxFlips, "flip")}";

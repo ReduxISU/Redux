@@ -2,6 +2,7 @@
 using API.Interfaces.Graphs;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_TSP.Steps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 

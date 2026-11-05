@@ -1,7 +1,7 @@
 using System.Globalization;
 using API.Interfaces.Graphs;
 
-namespace API.Problems.NPComplete.NPC_TSP.Solvers;
+namespace API.Problems.NPComplete.NPC_TSP.Steps;
 
 /// <summary>
 /// Caption and focus helpers shared by the three Traveling Salesperson solvers. Everything here scans the edge list, so
@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 static class TSPTourSteps {
     /// <summary>
     /// The weight of the edge between two cities, or null if there is none. The problem's edges hold one edge per pair, the
-    /// lightest of any parallel edges (#769), so this is the weight the verifier counts and the picture draws.
+    /// lightest of any parallel edges, so this is the weight the verifier counts and the picture draws.
     /// </summary>
     public static int? Weight(TSP tsp, string a, string b) {
         foreach (var e in tsp.edges)

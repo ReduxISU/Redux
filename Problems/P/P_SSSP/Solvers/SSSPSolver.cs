@@ -5,6 +5,7 @@ using API.Interfaces.JSON_Objects;
 using SPADE;
 using System;
 using System.Collections.Generic;
+using API.Problems.P.P_SSSP.Steps;
 
 namespace API.Problems.P.P_SSSP.Solvers;
 
@@ -54,7 +55,7 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
         pq = new PriorityQueue<string, int>();
-        Distances Partial() => Dijkstra.Partial(dist, prev, visited);
+        Distances Partial() => DijkstraSteps.Partial(dist, prev, visited);
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
@@ -83,13 +84,13 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
                 relaxed.Add(LayeredFrames.EdgeId(problem.isDirected, current, next));
                 int candidate = dist[current] + weight;
                 if (candidate < dist[next]) {
-                    shorter.Add($"{next}: {Dijkstra.Show(dist[next])} → {candidate}");
+                    shorter.Add($"{next}: {DijkstraSteps.Show(dist[next])} → {candidate}");
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
                 }
             }
-            rec.Accept(Partial, () => Dijkstra.SettleCaption(current, dist[current], shorter),
+            rec.Accept(Partial, () => DijkstraSteps.SettleCaption(current, dist[current], shorter),
                 () => relaxed.Distinct().Prepend(LayeredFrames.NodeId(current)).ToArray());
         }
 

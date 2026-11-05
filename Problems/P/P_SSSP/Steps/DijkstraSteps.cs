@@ -1,9 +1,9 @@
 using API.Interfaces.Steps;
 
-namespace API.Problems.P.P_SSSP.Solvers;
+namespace API.Problems.P.P_SSSP.Steps;
 
 /// <summary>What the SSSP and SPSP Dijkstra solvers share for their recorded steps.</summary>
-static class Dijkstra {
+static class DijkstraSteps {
     /// <summary>The search so far: distances of the reached nodes, their predecessors, and the settled nodes.</summary>
     public static Distances Partial(Dictionary<string, int> dist, Dictionary<string, string?> prev, IEnumerable<string> settled) =>
         new(dist.Where(p => p.Value != int.MaxValue), prev.Where(p => p.Value != null).Select(p => new KeyValuePair<string, string>(p.Key, p.Value!)), settled);

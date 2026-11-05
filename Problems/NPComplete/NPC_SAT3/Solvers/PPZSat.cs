@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_SAT3.Steps;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
@@ -122,7 +123,7 @@ class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
     }
 
     // How PPZ's tries read: each move sets the next variable of the try's order, forced by a clause or at random.
-    private sealed class Tries(SatFormula formula, bool recording) : SatTries<Set>(formula, recording) {
+    private sealed class Tries(SatFormula formula, bool recording) : RestartingSearchSteps<Set>(formula, recording) {
         protected override string SolverLabel => "PPZ";
         protected override string MoveNoun => "step";
         protected override string EachTry => "sets every variable";
