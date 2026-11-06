@@ -16,6 +16,13 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_BINPACKING.Solvers;
 
+// The steps Bin Packing Brute Force records, for the Packing picture (item i is S[i], bin b is container b):
+//   - a Reject, before the search, for an item bigger than a whole bin;
+//   - an Accept for every item it puts in a bin, saying how full the bin is now;
+//   - a Backtrack for every placement it takes back;
+//   - a Reject when an item has nowhere to go (no bin with room, or none that works for the items after it);
+//   - the Done, with the packing or why there is none.
+// It records no search tree.
 // Incremental: it places one item at a time and takes placements back, so every step's partial is what is placed so far.
 class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver {
 
@@ -44,23 +51,31 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
 
     // ── Public entry point ────────────────────────────────────────────────────
 
+    // How the steps show the search, given by the item a step is about and the bin it goes in (-1: none). binOf holds the
+    // bin of every item placed so far (-1: not placed).
+    private static RunSteps<(int Item, int Bin), Placement> NewSteps(StepRecorder<Placement> rec, int[] binOf) => new(rec,
+        // What every picture shows: the items placed so far, and the item with the bin it goes in.
+        partial: _ => new Placement(binOf),
+        focus: s => s.Bin < 0 ? [PackingFrames.ItemId(s.Item)] : [PackingFrames.ItemId(s.Item), PackingFrames.ContainerId(s.Bin)]);
+
     public string solve(BINPACKING problem) => Solve(problem, StepRecorder<Placement>.Off);
 
-    // Steps: an Accept for every item put in a bin, a Reject when an item has nowhere to go, a Backtrack for every placement
-    // taken back, then the answer. Item i of the picture is items[i]; bin b is container b.
     public string Solve(BINPACKING problem, StepRecorder<Placement> rec) {
         List<int> items = problem.S;
         int C = problem.C;
         int K = problem.K;
         int n = items.Count;
+        // The bin of every item placed so far (-1: not placed), for the picture.
+        int[] binOf = Enumerable.Repeat(-1, n).ToArray();
+        var steps = NewSteps(rec, binOf);
 
         // Fast pre-check: if any single item is larger than a bin can hold,
         // there is no valid packing regardless of how many bins we have.
         for (int i = 0; i < n; i++) {
             int size = items[i];
             if (size > C) {
-                rec.Reject(() => new Placement([]), () => $"{size} is bigger than a whole bin ({C}), so nothing can work.", PackingFrames.ItemId(i));
-                rec.Done(new Placement([]), false, $"No packing exists: {size} doesn't fit in a bin of {C}.");
+                steps.Reject((i, -1), $"{size} is bigger than a whole bin ({C}), so nothing can work.");
+                steps.Done(new Placement([]), false, $"No packing exists: {size} doesn't fit in a bin of {C}.");
                 return "{}";
             }
         }
@@ -68,29 +83,30 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
         // Edge case: no bins allowed.
         // An empty item list can be packed into zero bins; anything else cannot.
         if (K <= 0) {
-            rec.Done(new Placement([]), n == 0, n == 0
-                ? "There are no items, so no bins are needed."
-                : $"No bins are allowed (K = {K}), so the items can't be packed.");
-            return n == 0 ? "()" : "{}";
+            if (n == 0) {
+                steps.Done(new Placement([]), true, $"There are no items, so no bins are needed.");
+                return "()";
+            }
+            steps.Done(new Placement([]), false, $"No bins are allowed (K = {K}), so the items can't be packed.");
+            return "{}";
         }
 
         // Set up K empty bins — each bin tracks its running sum and its contents.
         int[] binSums = new int[K];
         List<int>[] binContents = new List<int>[K];
         for (int i = 0; i < K; i++) binContents[i] = new List<int>();
-        // The bin of every item placed so far (-1: not placed), for the picture.
-        int[] binOf = Enumerable.Repeat(-1, n).ToArray();
 
         // Run the backtracking search starting from the first item.
-        if (!Place(0, items, binSums, binContents, C, K, binOf, rec)) {
-            rec.Done(new Placement([]), false, $"Every arrangement overflows: the {n} items don't fit in {K} {(K == 1 ? "bin" : "bins")} of {C}.");
+        if (!Place(0, items, binSums, binContents, C, K, binOf, steps)) {
+            steps.Done(new Placement([]), false, $"Every arrangement overflows: the {n} items don't fit in {Words.Count(K, "bin")} of {C}.");
             return "{}";
         }
-        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: Place unwinds as if done at the time limit
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // Place unwinds as if done at the time limit
         int used = binContents.Count(b => b.Count > 0);
-        rec.Done(new Placement(binOf), true, n == 0
-            ? "There are no items, so no bins are needed."
-            : $"All {n} items fit in {used} {(used == 1 ? "bin" : "bins")} of {C}, within K = {K}.");
+        if (n == 0)
+            steps.Done(new Placement(binOf), true, $"There are no items, so no bins are needed.");
+        else
+            steps.Done(new Placement(binOf), true, $"All {n} items fit in {Words.Count(used, "bin")} of {C}, within K = {K}.");
         return FormatCertificate(binContents);
     }
 
@@ -98,9 +114,10 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
 
     // Tries to place items[i] into one of the K bins, then recurses on items[i+1].
     // Returns true as soon as a complete valid assignment is found.
-    private bool Place(int i, List<int> items, int[] binSums, List<int>[] binContents, int C, int K, int[] binOf, StepRecorder<Placement> rec) {
+    private bool Place(int i, List<int> items, int[] binSums, List<int>[] binContents, int C, int K, int[] binOf,
+        RunSteps<(int Item, int Bin), Placement> steps) {
 
-        // #935: at the time limit, unwind as if done; solve() then returns the timed-out answer.
+        // At the time limit, unwind as if done; solve() then returns the timed-out answer.
         if (timerHasExpired) return true;
 
         // Base case: all items have been placed successfully.
@@ -118,17 +135,15 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
                 binContents[b].Add(size);
                 binOf[i] = b;
                 roomSomewhere = true;
-                int bin = b, now = binSums[b];
-                rec.Accept(() => new Placement(binOf), () => $"Put {size} in bin {bin + 1}: {now} of {C} used.",
-                    PackingFrames.ItemId(i), PackingFrames.ContainerId(b));
+                steps.Accept((i, b), $"Put {size} in bin {b + 1}: {binSums[b]} of {C} used.");
 
-                if (Place(i + 1, items, binSums, binContents, C, K, binOf, rec)) return true;
+                if (Place(i + 1, items, binSums, binContents, C, K, binOf, steps)) return true;
 
                 // That branch failed — undo the placement and try the next bin.
                 binSums[b] -= size;
                 binContents[b].RemoveAt(binContents[b].Count - 1);
                 binOf[i] = -1;
-                rec.Backtrack(() => new Placement(binOf), () => $"Take {size} back out of bin {bin + 1} and try the next bin.", PackingFrames.ItemId(i));
+                steps.Backtrack((i, -1), $"Take {size} back out of bin {b + 1} and try the next bin.");
             }
 
             // Symmetry break: all empty bins are identical, so there is no point
@@ -137,10 +152,15 @@ class BinPackingBruteForce : ISolver<BINPACKING, Placement>, IIncrementalSolver 
             if (binSums[b] == 0) break;
         }
 
-        // No valid bin was found for items[i] in this branch.
-        rec.Reject(() => new Placement(binOf), () => (roomSomewhere
-            ? $"Every bin with room for {size} leaves no room for the items after it"
-            : $"No bin has room for {size}") + (i > 0 ? ", so take back the last choice." : "."), PackingFrames.ItemId(i));
+        // No valid bin was found for items[i] in this branch: back up to the item before it, if there is one.
+        if (roomSomewhere && i > 0)
+            steps.Reject((i, -1), $"Every bin with room for {size} leaves no room for the items after it, so take back the last choice.");
+        else if (roomSomewhere)
+            steps.Reject((i, -1), $"Every bin with room for {size} leaves no room for the items after it.");
+        else if (i > 0)
+            steps.Reject((i, -1), $"No bin has room for {size}, so take back the last choice.");
+        else
+            steps.Reject((i, -1), $"No bin has room for {size}.");
         return false;
     }
 

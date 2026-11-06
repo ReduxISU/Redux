@@ -22,6 +22,12 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_BINPACKING.Solvers;
 
+// The steps Bin Packing First Fit Decreasing records, for the Packing picture (item i is S[i], bin b is container b):
+//   - a Reject, before the pass, for an item bigger than a whole bin;
+//   - an Update for the sorted order (nothing placed yet);
+//   - an Accept for every item it puts in a bin, saying which bins it didn't fit in, or that it opens a new one;
+//   - a Reject for the item that would need a bin past K;
+//   - the Done, with the packing or why there is none.
 // Incremental: a greedy pass that puts each item in a bin for good, so every step's partial is what is placed so far.
 class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
 
@@ -43,7 +49,7 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Both the guarantee and the mechanism: its own doc comment claims a proven
     // Dosa 2007 approximation-ratio bound ((11/9)*OPT + 6/9), which makes it Approximation, and it gets
-    // there with one greedy first-fit pass, which makes it Greedy (#842).
+    // there with one greedy first-fit pass, which makes it Greedy.
     public SolverType solverType { get; } = SolverType.Approximation | SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
@@ -52,10 +58,15 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
 
     // ── Public entry point ────────────────────────────────────────────────────
 
+    // How the steps show the pass, given by the item a step is about (-1: none) and the bin it goes in (-1: none). binOf
+    // holds the bin of every item placed so far (-1: not placed).
+    private static RunSteps<(int Item, int Bin), Placement> NewSteps(StepRecorder<Placement> rec, int[] binOf) => new(rec,
+        // What every picture shows: the items placed so far, and the item with the bin it goes in.
+        partial: _ => new Placement(binOf),
+        focus: s => s.Item < 0 ? [] : s.Bin < 0 ? [PackingFrames.ItemId(s.Item)] : [PackingFrames.ItemId(s.Item), PackingFrames.ContainerId(s.Bin)]);
+
     public string solve(BINPACKING problem) => Solve(problem, StepRecorder<Placement>.Off);
 
-    // Steps: the sorted order (nothing placed yet), an Accept for every item put in a bin, a Reject for the item that would
-    // need a bin past K, then the answer. Item i of the picture is S[i]; bin b is container b.
     public string Solve(BINPACKING problem, StepRecorder<Placement> rec) {
         int C = problem.C;
         int K = problem.K;
@@ -66,23 +77,24 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
         List<int> order = Enumerable.Range(0, problem.S.Count).OrderByDescending(i => problem.S[i]).ToList();
         List<int> sorted = order.Select(i => problem.S[i]).ToList();
         int[] binOf = Enumerable.Repeat(-1, problem.S.Count).ToArray();
+        var steps = NewSteps(rec, binOf);
 
         // Fast pre-check: if any item exceeds bin capacity, packing is impossible
         // regardless of how many bins we have.
         foreach (int i in order) {
             int size = problem.S[i];
             if (size > C) {
-                rec.Reject(() => new Placement([]), () => $"{size} is bigger than a whole bin ({C}), so nothing can work.", PackingFrames.ItemId(i));
-                rec.Done(new Placement([]), false, $"No packing exists: {size} doesn't fit in a bin of {C}.");
+                steps.Reject((i, -1), $"{size} is bigger than a whole bin ({C}), so nothing can work.");
+                steps.Done(new Placement([]), false, $"No packing exists: {size} doesn't fit in a bin of {C}.");
                 return "{}";
             }
         }
 
         if (sorted.Count == 0) {
-            rec.Done(new Placement([]), true, "There are no items, so no bins are needed.");
+            steps.Done(new Placement([]), true, $"There are no items, so no bins are needed.");
             return FormatCertificate(new List<List<int>>());
         }
-        rec.Try(() => new Placement([]), () => $"Sort largest first: {string.Join(", ", sorted)}. Each goes in the first bin with room.");
+        steps.Update((-1, -1), $"Sort largest first: {string.Join(", ", sorted)}. Each goes in the first bin with room.");
 
         // bins holds the items placed in each bin so far.
         // binSums tracks each bin's current total — kept parallel to bins.
@@ -91,7 +103,7 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
 
         // Step 2: Place each item using the First Fit rule.
         foreach (int i in order) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             int size = problem.S[i];
             bool placed = false;
 
@@ -103,11 +115,13 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
                     binSums[b] = binSums[b] + size;
                     placed = true;
                     binOf[i] = b;
-                    int bin = b, now = binSums[b];
-                    rec.Accept(() => new Placement(binOf), () => bin == 0
-                        ? $"{size} fits in bin 1: {now} of {C} used."
-                        : $"{size} doesn't fit in {(bin == 1 ? "bin 1" : $"bins 1 to {bin}")}, so it goes in bin {bin + 1}: {now} of {C} used.",
-                        PackingFrames.ItemId(i), PackingFrames.ContainerId(b));
+                    // The why names the bins it didn't fit in: none, bin 1, or bins 1 to b.
+                    if (b == 0)
+                        steps.Accept((i, b), $"{size} fits in bin 1: {binSums[b]} of {C} used.");
+                    else if (b == 1)
+                        steps.Accept((i, b), $"{size} doesn't fit in bin 1, so it goes in bin 2: {binSums[b]} of {C} used.");
+                    else
+                        steps.Accept((i, b), $"{size} doesn't fit in bins 1 to {b}, so it goes in bin {b + 1}: {binSums[b]} of {C} used.");
                     break;
                 }
             }
@@ -118,28 +132,26 @@ class BinPackingFFD : ISolver<BINPACKING, Placement>, IIncrementalSolver {
                 // This returns "{}" which means "FFD couldn't find a packing within K bins".
                 // It does NOT mean the instance is unsolvable — use brute force to be sure.
                 if (bins.Count + 1 > K) {
-                    int open = bins.Count;
-                    rec.Reject(() => new Placement(binOf), () => open == 0
-                        ? $"There is no bin yet for {size}, and K = {K} allows none."
-                        : $"No open bin has room for {size}, and opening another would need {open + 1} bins, more than K = {K}.",
-                        PackingFrames.ItemId(i));
-                    rec.Done(new Placement([]), false,
-                        $"First Fit Decreasing needs more than {K} {(K == 1 ? "bin" : "bins")}. It is a heuristic, so the brute force may still find a packing.");
+                    if (bins.Count == 0)
+                        steps.Reject((i, -1), $"There is no bin yet for {size}, and K = {K} allows none.");
+                    else
+                        steps.Reject((i, -1), $"No open bin has room for {size}, and opening another would need {bins.Count + 1} bins, more than K = {K}.");
+                    steps.Done(new Placement([]), false,
+                        $"First Fit Decreasing needs more than {Words.Count(K, "bin")}. It is a heuristic, so the brute force may still find a packing.");
                     return "{}";
                 }
                 bins.Add(new List<int> { size });
                 binSums.Add(size);
                 binOf[i] = bins.Count - 1;
-                int opened = bins.Count;
-                rec.Accept(() => new Placement(binOf), () => opened == 1
-                    ? $"{size} goes in bin 1: {size} of {C} used."
-                    : $"No open bin has room for {size}, so open bin {opened}: {size} of {C} used.",
-                    PackingFrames.ItemId(i), PackingFrames.ContainerId(opened - 1));
+                if (bins.Count == 1)
+                    steps.Accept((i, 0), $"{size} goes in bin 1: {size} of {C} used.");
+                else
+                    steps.Accept((i, bins.Count - 1), $"No open bin has room for {size}, so open bin {bins.Count}: {size} of {C} used.");
             }
         }
 
-        rec.Done(new Placement(binOf), true,
-            $"Everything is packed into {bins.Count} {(bins.Count == 1 ? "bin" : "bins")} of {C}, within K = {K}.");
+        steps.Done(new Placement(binOf), true,
+            $"Everything is packed into {Words.Count(bins.Count, "bin")} of {C}, within K = {K}.");
         return FormatCertificate(bins);
     }
 
