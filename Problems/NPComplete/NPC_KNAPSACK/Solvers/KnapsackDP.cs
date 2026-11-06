@@ -8,9 +8,14 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 
-// Incremental: the table is filled first (one step per row, nothing taken yet), then the trace-back takes the answer's
-// items one at a time. The table itself is drawn by the Table picture (#671); the Packing picture shows the rows' items and
-// the items the trace-back commits.
+// The steps Knapsack Dynamic Programming records, for the Packing picture (item i is the instance's i-th item; the one
+// container is the knapsack):
+//   - an Update per row of the table, its item in focus and nothing taken yet, saying whether taking the item raises the
+//     best value within W;
+//   - the trace-back: an Accept per item it takes, saying why the table says to take it;
+//   - the Done, with the best value against V.
+// The fill has no verdicts (every row is simply worked out), so it is Updates; the trace-back keeps items for the answer,
+// so it is Accepts. Incremental: the table is filled first, then the trace-back takes the answer's items one at a time.
 class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
     public string solverName { get; } = "Knapsack Dynamic Programming";
     public string solverDefinition { get; } = "A pseudo-polynomial time solver for the 0-1 Knapsack decision problem using bottom-up dynamic programming. Builds an (N+1) x (W+1) table where dp[i,w] is the maximum value achievable using the first i items within capacity w, then backtracks through the table to recover the chosen subset. Runs in O(N*W) time and space.";
@@ -27,14 +32,25 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     public MathematicalFunction timeComplexity { get; } = new("n * W", "");
 
+    // How the steps show the table's work, given by the position of the item a step is about. taken holds the items the
+    // trace-back has taken so far (0: in the knapsack, -1: not), so it is empty while the table is filled.
+    private static RunSteps<int, Placement> NewSteps(StepRecorder<Placement> rec, int[] taken) => new(rec,
+        // What every picture shows: the items taken so far, and the step's item.
+        partial: _ => new Placement(taken),
+        focus: item => [PackingFrames.ItemId(item)]);
+
     public string solve(KNAPSACK knapsack) => Solve(knapsack, StepRecorder<Placement>.Off);
 
-    // Steps: a Try per row of the table (its item in focus, nothing taken yet), then an Accept per item the trace-back takes,
-    // then the answer.
+    // dp[i, w] is the best value of the first i items within weight w: either item i is left out (dp[i - 1, w]) or it is
+    // taken (its value plus dp[i - 1, w - weight]). The best value within W is the corner dp[n, W]; the trace-back walks
+    // the rows back up to find the items that make it.
     public string Solve(KNAPSACK knapsack, StepRecorder<Placement> rec) {
         List<UtilCollection> itemValues = knapsack.items.ToList();
         int n = itemValues.Count;
         int capacity = knapsack.W;
+        // The trace-back's items so far, by position: 0 (in the knapsack) or -1.
+        int[] taken = Enumerable.Repeat(-1, n).ToArray();
+        var steps = NewSteps(rec, taken);
 
         int[,] dp = new int[n + 1, capacity + 1];
 
@@ -50,25 +66,22 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
                 else
                     dp[i, w] = dp[i - 1, w];
             }
-            int row = i;
-            rec.Try(() => new Placement([]), () => dp[row, capacity] != dp[row - 1, capacity]
-                ? $"Row {row} of the table, item {PackingFrames.Key(itemValues[row - 1])}: taking it raises the best value within {capacity} to {dp[row, capacity]}."
-                : $"Row {row} of the table, item {PackingFrames.Key(itemValues[row - 1])}: it doesn't raise the best value within {capacity} above {dp[row, capacity]}.",
-                PackingFrames.ItemId(i - 1));
+            if (dp[i, capacity] != dp[i - 1, capacity])
+                steps.Update(i - 1, $"Row {i} of the table, item {PackingFrames.Key(itemValues[i - 1])}: taking it raises the best value within {capacity} to {dp[i, capacity]}.");
+            else
+                steps.Update(i - 1, $"Row {i} of the table, item {PackingFrames.Key(itemValues[i - 1])}: it doesn't raise the best value within {capacity} above {dp[i, capacity]}.");
         }
 
         if (dp[n, capacity] < knapsack.V) {
-            rec.Done(new Placement([]), false, $"The table's best value within {capacity} is {dp[n, capacity]}, short of {knapsack.V}.");
+            steps.Done(new Placement([]), false, $"The table's best value within {capacity} is {dp[n, capacity]}, short of {knapsack.V}.");
             return "{}";
         }
 
-        // A list, not a SPADE set, so two identical items the table took are both in the answer (#628).
+        // A list, not a SPADE set, so two identical items the table took are both in the answer.
         List<string> selectedItems = new List<string>();
         int remainingCapacity = capacity;
-        // The trace-back's items so far, by position: 0 (in the knapsack) or -1.
-        int[] taken = Enumerable.Repeat(-1, n).ToArray();
 
-        // Every row, even once the capacity is used up: a zero-weight item the table took still has to be picked up (#795).
+        // Every row, even once the capacity is used up: a zero-weight item the table took still has to be picked up.
         // With no room left, an item that weighs something never changes dp[i, 0], so it is not taken.
         for (int i = n; i > 0; i--) {
             if (dp[i, remainingCapacity] != dp[i - 1, remainingCapacity]) {
@@ -76,22 +89,22 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
                 selectedItems.Add(item.ToString());
 
                 int itemWeight = int.Parse(item[0].ToString());
-                int before = remainingCapacity, at = i;
+                // Row i changes the best value within the room left, so the table took item i.
+                int before = remainingCapacity;
                 remainingCapacity -= itemWeight;
                 taken[i - 1] = 0;
-                int left = remainingCapacity;
-                rec.Accept(() => new Placement(taken), () => $"Trace back: take {PackingFrames.Key(item)}. Without it the best value within {before} "
-                    + $"would be {dp[at - 1, before]}, not {dp[at, before]}. {left} of {capacity} left.", PackingFrames.ItemId(i - 1));
+                steps.Accept(i - 1, $"Trace back: take {PackingFrames.Key(item)}. Without it the best value within {before} would be {dp[i - 1, before]}, not {dp[i, before]}. {remainingCapacity} of {capacity} left.");
             }
         }
 
         string answer = "{" + string.Join(",", selectedItems) + "}";
-        if (rec != StepRecorder<Placement>.Off) {
+        // The Done says what the verifier says of the answer; a plain solve skips asking.
+        if (rec.Enabled) {
             bool ok = knapsack.defaultVerifier.verify(knapsack, answer);
-            int weightTaken = capacity - remainingCapacity;
-            rec.Done(new Placement(taken), ok, taken.All(t => t < 0)
-                ? $"The table's best value within {capacity} is {dp[n, capacity]}, at least {knapsack.V}, and the empty set is enough."
-                : $"The table's best value within {capacity} is {dp[n, capacity]}, at least {knapsack.V}. The items taken weigh {weightTaken}.");
+            if (taken.All(t => t < 0))
+                steps.Done(new Placement(taken), ok, $"The table's best value within {capacity} is {dp[n, capacity]}, at least {knapsack.V}, and the empty set is enough.");
+            else
+                steps.Done(new Placement(taken), ok, $"The table's best value within {capacity} is {dp[n, capacity]}, at least {knapsack.V}. The items taken weigh {capacity - remainingCapacity}.");
         }
         return answer;
     }

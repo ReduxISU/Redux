@@ -6,6 +6,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_KNAPSACK.Solvers;
 
+// The steps Knapsack Brute Force records: one per set of items, in mask order (the empty set first). A set is a Reject
+// saying it weighs more than W or is worth less than V, or the Accept that ends the search; then the Done. The recorder's
+// cap hides the rest of a long run.
 // Not incremental: every step judges a whole set of items.
 class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
 
@@ -24,7 +27,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
     public MathematicalFunction timeComplexity { get; } = new("2^n", "");
 
     // Every subset of len items, as 0/1 per item, in mask order: 0, 1, 2, ... with bit k picking item k. Counted with one
-    // digit per item, not an int mask, so there is no limit on the number of items (#791).
+    // digit per item, not an int mask, so there is no limit on the number of items.
     public IEnumerable<List<int>> possibleSolutions(int len) {
         int[] bits = new int[len];
         while (true) {
@@ -40,43 +43,48 @@ class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
     }
     // --- Methods Including Constructors ---
     //solver for 0-1 knapsack problem
+    // How the steps show a candidate, given by its bits, one per item (1: taken): the items taken, all in focus.
+    private static RunSteps<List<int>, Placement> NewSteps(StepRecorder<Placement> rec) => new(rec,
+        // What every picture shows: the items taken, in the one container, every one of them in focus.
+        partial: bits => new Placement(bits.Select(b => b == 1 ? 0 : -1)),
+        focus: bits => Members(bits).Select(PackingFrames.ItemId).ToArray());
+
+    // The positions of the items a candidate's bits take.
+    private static List<int> Members(List<int> bits) => Enumerable.Range(0, bits.Count).Where(i => bits[i] == 1).ToList();
+
     public string solve(KNAPSACK knapsack) => Solve(knapsack, StepRecorder<Placement>.Off);
 
-    // Steps: one per set of items tried, in mask order (the empty set first); the first set within W worth at least V is
-    // accepted.
+    // Tries every set of items until one weighs at most W and is worth at least V.
     public string Solve(KNAPSACK knapsack, StepRecorder<Placement> rec) {
         List<UtilCollection> items = knapsack.items.ToList();
+        var steps = NewSteps(rec);
         int tried = 0;
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
-            // Written out by position, not added to a SPADE set, so two identical items can both be taken (#628).
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
+            // Written out by position, not added to a SPADE set, so two identical items can both be taken.
             List<string> chosen = new List<string>();
             for (int i = 0; i < items.Count; i++) {
                 if (possibleSolution[i] == 1) chosen.Add(items[i].ToString());
             }
             string strCertificate = "{" + string.Join(",", chosen) + "}";
             tried++;
-            // Read only inside recorder lambdas (and for Done), so they cost nothing when recording is off.
-            List<int> Members() => Enumerable.Range(0, items.Count).Where(i => possibleSolution[i] == 1).ToList();
-            Placement Chosen() => new(possibleSolution.Select(b => b == 1 ? 0 : -1));
-            string[] Focus() => Members().Select(PackingFrames.ItemId).ToArray();
-            string Set() => PackingFrames.Braces(Members().Select(i => PackingFrames.Key(items[i])));
-            int Weight() => Members().Sum(i => items[i][0].parseInt());
-            int Value() => Members().Sum(i => items[i][1].parseInt());
+            // The verifier only says yes or no, so the set's weight and value are worked out for the steps alone.
+            int weight = rec.Enabled ? Members(possibleSolution).Sum(i => items[i][0].parseInt()) : 0;
+            int value = rec.Enabled ? Members(possibleSolution).Sum(i => items[i][1].parseInt()) : 0;
             if (knapsack.defaultVerifier.verify(knapsack, strCertificate)) {
-                rec.Accept(Chosen, () => $"Try {Set()}: weight {Weight()}, value {Value()}. It works.", Focus);
-                rec.Done(Chosen(), true, $"{Set()} fits in {knapsack.W} and is worth at least {knapsack.V}, found after {Tries(tried)}.");
+                steps.Accept(possibleSolution, $"Try {PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight}, value {value}. It works.");
+                steps.Done(new Placement(possibleSolution.Select(b => b == 1 ? 0 : -1)), true,
+                    $"{PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))} fits in {knapsack.W} and is worth at least {knapsack.V}, found after {Words.Count(tried, "set")}.");
                 return strCertificate;
             }
-            rec.Reject(Chosen, () => Weight() > knapsack.W
-                ? $"Try {Set()}: weight {Weight()} is over {knapsack.W}."
-                : $"Try {Set()}: weight {Weight()}, value {Value()}, short of {knapsack.V}.", Focus);
+            if (weight > knapsack.W)
+                steps.Reject(possibleSolution, $"Try {PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight} is over {knapsack.W}.");
+            else
+                steps.Reject(possibleSolution, $"Try {PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight}, value {value}, short of {knapsack.V}.");
         }
 
-        rec.Done(new Placement([]), false, $"Checked all {Tries(tried)}. None is worth {knapsack.V} within weight {knapsack.W}.");
+        steps.Done(new Placement([]), false, $"Checked all {Words.Count(tried, "set")}. None is worth {knapsack.V} within weight {knapsack.W}.");
         return "{}";
     }
-
-    private static string Tries(int n) => n == 1 ? "1 set" : $"{n} sets";
 
 }
