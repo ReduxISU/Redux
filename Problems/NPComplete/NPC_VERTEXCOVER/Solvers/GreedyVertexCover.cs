@@ -7,6 +7,8 @@ using API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
+// The steps Vertex Cover Greedy records: the Minimum Vertex Cover greedy's Accept per node taken (its steps, recorded by
+// its loop), then a Done that says whether the cover fits in K.
 class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
@@ -33,19 +35,26 @@ class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
     }
     public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
-    // Steps: the greedy picks (as in the Minimum Vertex Cover solver this wraps), then whether the cover fits in K.
+    // How the steps show the cover so far: its nodes, and the node just taken in focus (as the Minimum Vertex Cover greedy
+    // shows them; its loop records the steps).
+    private static RunSteps<(List<string> Cover, string Taken), NodeSet> NewSteps(StepRecorder<NodeSet> rec) => new(rec,
+        // What every picture shows: the cover so far, and the node just taken.
+        partial: s => new NodeSet(s.Cover),
+        focus: s => [s.Taken]);
+
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
-        // #935: the inner solver's own flag is never set by the timer, so it watches this one's.
-        var cover = new GreedyMinimumVertexCover { stop = () => timerHasExpired }.Cover(G.edges, rec);
+        var steps = NewSteps(rec);
+        // The inner solver's own flag is never set by the timer, so it watches this one's.
+        var cover = new GreedyMinimumVertexCover { stop = () => timerHasExpired }.Cover(G.edges, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (cover.Count > G.K) {
-            rec.Done(new NodeSet([]), false,
+            steps.Done(new NodeSet([]), false,
                 $"Greedy's cover uses {cover.Count} nodes, more than K = {G.K}. Greedy doesn't always find the smallest cover.");
             return "{}";
         }
 
-        rec.Done(new NodeSet(cover), true, $"Every edge is covered with {cover.Count} nodes, within K = {G.K}.");
+        steps.Done(new NodeSet(cover), true, $"Every edge is covered with {cover.Count} nodes, within K = {G.K}.");
         return "{" + string.Join(",", cover) + "}";
     }
 }

@@ -5,6 +5,9 @@ using API.Interfaces.Graphs.GraphParser;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
+// The steps Minimum Vertex Cover Approximation records: an Accept per uncovered edge picked, taking both of its ends, then
+// the Done. Vertex Cover Approximation (TwoApproximationVertexCover) runs the same loop and records the same steps, with
+// its own Done that checks the cover against K.
 class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
@@ -36,33 +39,45 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>,
         _seed = seed;
     }
 
-    // #935: an outer solver's live time-limit flag (TwoApproximationVertexCover runs this solver).
+    // An outer solver's live time-limit flag (TwoApproximationVertexCover runs this solver).
     private readonly Func<bool>? outerTimerHasExpired;
     internal TwoApproximationMinimumVertexCover(int? seed, Func<bool> outerTimerHasExpired) {
         _seed = seed;
         this.outerTimerHasExpired = outerTimerHasExpired;
     }
 
+    // How the steps show the cover so far: its nodes, with the edge just picked and its two ends in focus.
+    private static RunSteps<(List<string> Cover, KeyValuePair<string, string> Picked), NodeSet> NewSteps(StepRecorder<NodeSet> rec) => new(rec,
+        // What every picture shows: the cover so far, and the edge just picked with its ends.
+        partial: s => new NodeSet(s.Cover),
+        focus: s => [s.Picked.Key, s.Picked.Value, GraphSubsetFrames.EdgeId(s.Picked.Key, s.Picked.Value)]);
+
     public string solve(MINIMUMVERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
-    // Steps: one per edge picked, taking both of its ends. Recorder state lives only in this call.
     public string Solve(MINIMUMVERTEXCOVER G, StepRecorder<NodeSet> rec) {
-        var cover = Cover(G.edges, rec);
+        var steps = NewSteps(rec);
+        var cover = Cover(G.edges, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
-        rec.Done(new NodeSet(cover), true, cover.Count == 0
-            ? "There are no edges to cover."
-            : $"Every edge is covered with {cover.Count} nodes. This method never uses more than twice the smallest cover.");
+        if (cover.Count == 0)
+            steps.Done(new NodeSet(cover), true, $"There are no edges to cover.");
+        else
+            steps.Done(new NodeSet(cover), true, $"Every edge is covered with {cover.Count} nodes. This method never uses more than twice the smallest cover.");
         return "{" + string.Join(",", cover) + "}";
     }
 
-    /// <summary>The 2-approximation cover of <paramref name="allEdges"/>. Records a step per edge picked.</summary>
-    internal List<string> Cover(IReadOnlyList<KeyValuePair<string, string>> allEdges, StepRecorder<NodeSet> rec) {
+    /// <summary>
+    /// The 2-approximation cover of <paramref name="allEdges"/>: pick a random uncovered edge, take both of its ends, drop
+    /// every edge they touch, and repeat until none are left. The edges picked form a maximal matching, and any cover needs
+    /// one end of each, so the cover is at most twice the smallest. Records an Accept per edge picked.
+    /// </summary>
+    internal List<string> Cover(IReadOnlyList<KeyValuePair<string, string>> allEdges,
+        RunSteps<(List<string> Cover, KeyValuePair<string, string> Picked), NodeSet> steps) {
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>(allEdges);
         List<KeyValuePair<string, string>> C = new List<KeyValuePair<string, string>>(); //This becomes our maximal matching
         Random rnd = _seed is int seed ? new Random(seed) : new Random();
         List<string> leftoverNodes = new List<string>();
         while (edges.Count > 0) {
-            // #935: stop at the time limit; the caller sees its flag and returns the timed-out answer.
+            // At the time limit, stop; the caller sees its flag and returns the timed-out answer.
             if (timerHasExpired || outerTimerHasExpired?.Invoke() == true) break;
             int index = rnd.Next(edges.Count); //gets a random edge index
             KeyValuePair<string, string> edge = edges[index]; //gets a random edge
@@ -70,9 +85,7 @@ class TwoApproximationMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>,
             C.Add(fullEdge); //Adds the random edge to C. 
             if (!leftoverNodes.Contains(edge.Key)) leftoverNodes.Add(edge.Key);
             if (!leftoverNodes.Contains(edge.Value)) leftoverNodes.Add(edge.Value);
-            rec.Accept(() => new NodeSet(leftoverNodes),
-                () => $"Edge {{{edge.Key},{edge.Value}}} isn't covered yet. Take both ends.",
-                edge.Key, edge.Value, GraphSubsetFrames.EdgeId(edge.Key, edge.Value));
+            steps.Accept((leftoverNodes, edge), $"Edge {{{edge.Key},{edge.Value}}} isn't covered yet. Take both ends.");
             foreach (KeyValuePair<string, string> e in new List<KeyValuePair<string, string>>(edges)) { //For the random edge {u,v}, remove every edge in vertexcover that has a node u or v.
 
                 if (e.Key.Equals(edge.Key)) {

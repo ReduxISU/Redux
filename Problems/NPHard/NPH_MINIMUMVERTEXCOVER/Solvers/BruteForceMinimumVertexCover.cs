@@ -4,9 +4,13 @@ using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using System.Linq;
 using System.Numerics;
+using static API.Interfaces.Graphs.GraphSubsetFrames;
 
 namespace API.Problems.NPHard.NPH_MINIMUMVERTEXCOVER.Solvers;
 
+// The steps Minimum Vertex Cover Brute Force records: one per candidate set, smallest sizes first. A candidate is a Reject
+// naming an edge it leaves uncovered, or the Accept that ends the search (the first cover found is a smallest one); then
+// the Done. The recorder's cap hides the rest of a long run.
 class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
 
     // --- Fields ---
@@ -24,6 +28,12 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
     public BruteForceMinimumVertexCover() {
 
     }
+
+    // How the steps show a candidate: the indices of the nodes it picks.
+    private static RunSteps<List<int>, NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> nodes) => new(rec,
+        // What every picture shows: the candidate's nodes, every one of them in focus.
+        partial: combination => new NodeSet(combination.Select(i => nodes[i])),
+        focus: combination => combination.Select(i => nodes[i]).ToArray());
 
     private BigInteger factorial(BigInteger x) {
         BigInteger y = 1;
@@ -68,39 +78,42 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
     /// </returns>
     public string solve(MINIMUMVERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
-    // Steps: one per candidate set, smallest sizes first. Recorder state lives only in this call.
+    // Tries every set of k nodes, for k = 1, 2, ..., n in turn. The first set that covers every edge is a smallest cover,
+    // since every smaller set was tried first.
     public string Solve(MINIMUMVERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec, G.nodes);
         int n = G.nodes.Count;
 
         if (G.edges.Count == 0) {
-            rec.Done(new NodeSet([]), true, "There are no edges, so the empty set covers everything.");
+            steps.Done(new NodeSet([]), true, $"There are no edges, so the empty set covers everything.");
             return "{}";
         }
 
         int tried = 0;
         for (int k = 1; k <= n; k++) {
+            // The first set of k nodes: the first k node indices.
             List<int> combination = new List<int>();
             for (int i = 0; i < k; i++) {
                 combination.Add(i);
             }
-            string[] Candidate() => combination.Select(i => G.nodes[i]).ToArray();
             BigInteger reps = factorial(n) / (factorial(k) * factorial(n - k));
             for (int i = 0; i < reps; i++) {
-                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+                if (timerHasExpired) return SolveRun.TimedOutAnswer;
                 tried++;
                 if (isCover(G, combination)) {
-                    rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. It covers every edge.", Candidate);
-                    rec.Done(new NodeSet(Candidate()), true,
-                        $"{GraphSubsetFrames.Braces(Candidate())} covers every edge. Smaller sets were all tried first, so {k} is the smallest possible, found after {tried} tries.");
+                    string[] cover = combination.Select(c => G.nodes[c]).ToArray();
+                    steps.Accept(combination, $"Try {Braces(cover)}. It covers every edge.");
+                    steps.Done(new NodeSet(cover), true,
+                        $"{Braces(cover)} covers every edge. Smaller sets were all tried first, so {k} is the smallest possible, found after {tried} tries.");
                     return indexListToCertificate(combination, G.nodes);
                 }
-                rec.Reject(() => new NodeSet(Candidate()),
-                    () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.MinVertexCover, G.nodes, G.edges, Candidate())}.",
-                    Candidate);
+                // isCover only says no, so the uncovered edge is looked up for a kept step.
+                steps.Reject(combination,
+                    $"Try {Braces(combination.Select(c => G.nodes[c]))}: {Why(SubsetRule.MinVertexCover, G.nodes, G.edges, combination.Select(c => G.nodes[c]))}.");
                 combination = nextComb(combination, n);
             }
         }
-        rec.Done(new NodeSet([]), false, $"Checked all {tried} candidate sets. None covers every edge.");
+        steps.Done(new NodeSet([]), false, $"Checked all {tried} candidate sets. None covers every edge.");
         return "{}";
     }
 }
