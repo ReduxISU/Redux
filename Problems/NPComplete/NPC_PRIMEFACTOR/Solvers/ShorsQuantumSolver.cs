@@ -10,7 +10,15 @@ namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Solvers;
 /// Shor's algorithm solver that uses an external quantum computing API for prime factorization.
 /// Supports both ISU AWS server and local server configurations.
 /// </summary>
-// Incremental: the number is sent once and the answer read once.
+// The steps Shor's Algorithm records, for the Quantum Circuit picture:
+//   - an Update for sending the number to the quantum server;
+//   - an Update per column of the period-finding circuit the picture draws for the number (drawn, not simulated, and never
+//     asked of the server). The server picks its own base a and does not report it, so the drawn circuit is the textbook
+//     one for the smallest a that works; a number with no circuit to draw records no more steps;
+//   - an Accept with the factors the server returned, or a Reject when its answer is not a list of factors;
+//   - the Done, with the verifier's verdict, so the finished picture shows the circuit as run.
+// With no answer from the server there is no answer at all: Ask throws SolverUnavailableException (HTTP 503
+// solver_unavailable). Incremental: the number is sent once and the answer read once.
 class ShorsQuantumSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
@@ -46,35 +54,46 @@ class ShorsQuantumSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSo
 
     // --- Methods ---
 
+    // How the steps show the run: how many columns of the circuit are applied, and the factors once they are read.
+    private static RunSteps<(int Applied, string? Answer), QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec) => new(rec,
+        // What every picture shows: the circuit applied so far, and the factors.
+        partial: s => new QuantumProgress(s.Applied, result: s.Answer),
+        // The circuit's last column, where the factors are read (nothing is read before them, or from a reply that is not
+        // factors).
+        focus: s => s.Answer != null && s.Applied > 0 ? [QuantumCircuits.ColumnId(s.Applied - 1)] : []);
+
     public string solve(PRIMEFACTOR problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps: a Try that sends the number to the quantum server, a Try per column of the period-finding circuit the picture
-    // draws for the number (drawn, not simulated, and never asked of the server), an Accept with the factors the server
-    // returns (a Reject when they are not factors; with no answer at all the solver throws SolverUnavailableException,
-    // #625), and Done with the verdict, so the finished picture shows the circuit as run (#903). The server picks its own base a and reports it not, so the drawn circuit is the textbook one for the
-    // smallest a that works; a number with no circuit to draw has no column steps.
+    // Sends the number to the quantum server, which runs Shor's algorithm and returns its factors.
     public string Solve(PRIMEFACTOR problem, StepRecorder<QuantumProgress> rec) {
         string number = problem.instance.Trim();
-        rec.Try(() => new QuantumProgress(), () => $"Send {number} to the quantum server, which runs Shor's algorithm: a quantum circuit finds a period, and classical steps turn it into factors.");
+        var steps = NewSteps(rec);
+        steps.Update((0, null), $"Send {number} to the quantum server, which runs Shor's algorithm: a quantum circuit finds a period, and classical steps turn it into factors.");
+        // The circuit is built only for the steps: a plain solve never builds it.
         var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.PrimeFactorization(problem.instance) : null;
         if (spec != null) QuantumSteps.Columns(rec, spec);
         string answer = Ask(problem);
         if (spec != null) {
             int all = spec.Columns.Count;
-            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
             bool factored = answer.StartsWith('(') && answer.EndsWith(')');
             if (factored)
-                rec.Accept(() => new QuantumProgress(all, result: answer), () => $"The quantum server answered {answer}.", read);
+                steps.Accept((all, answer), $"The quantum server answered {answer}.");
             else
-                rec.Reject(() => new QuantumProgress(all), () => $"The quantum server gave no factors: {answer}");
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, result: answer),
-                ok => ok ? $"{number} = {string.Join(" × ", answer.Trim('(', ')').Split(','))}." : factored ? $"The answer {answer} is not correct." : "No answer: the quantum server did not give one.");
+                steps.Reject((all, null), $"The quantum server gave no factors: {answer}");
+
+            var final = new QuantumProgress(all, result: answer);
+            if (QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer)))
+                steps.Done(final, true, $"{number} = {string.Join(" × ", answer.Trim('(', ')').Split(','))}.");
+            else if (factored)
+                steps.Done(final, false, $"The answer {answer} is not correct.");
+            else
+                steps.Done(final, false, $"No answer: the quantum server did not give one.");
         }
         return answer;
     }
 
     // The server's answer. On any failure of the quantum service this throws SolverUnavailableException (HTTP 503
-    // solver_unavailable), never an error text in place of the factors (#625).
+    // solver_unavailable), never an error text in place of the factors.
     private string Ask(PRIMEFACTOR problem) {
         // Parse the integer from the problem instance
         int numberToFactor = int.Parse(problem.instance);

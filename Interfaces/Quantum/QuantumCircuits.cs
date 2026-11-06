@@ -130,6 +130,9 @@ static class QuantumCircuits {
     /// <summary>A count as captions write it, with thousands separators.</summary>
     public static string Count(long n) => n.ToString("N0", CultureInfo.InvariantCulture);
 
+    /// <summary>A number too big for a long (a number to factor), written as <see cref="Count(long)"/> writes one.</summary>
+    public static string Count(System.Numerics.BigInteger n) => n.ToString("N0", CultureInfo.InvariantCulture);
+
     /// <summary>log2 of <paramref name="length"/> when it is a power of two (1, 2, 4, ...), else -1.</summary>
     public static int Log2(int length) =>
         length > 0 && (length & (length - 1)) == 0 ? System.Numerics.BitOperations.Log2((uint)length) : -1;
