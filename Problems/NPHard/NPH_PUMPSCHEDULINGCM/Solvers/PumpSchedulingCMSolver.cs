@@ -141,7 +141,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
                     }
             if (states == 0) {
                 // Nothing reaches this hour, so nothing reaches hour 24: the answer is already "no answer".
-                steps.Reject(h, $"Forward pass, hour {h}: no state survives. Every pump mix either drains the tank below empty or overflows it.");
+                steps.Reject(h, $"At hour {h}, no state survives the forward pass. Every pump mix either drains the tank below empty or overflows it.");
                 if (tank.Rounded)
                     steps.Done(new PumpPlan(reached, [], null), false, $"No schedule keeps the tank between empty and full for all 24 hours, so there is no answer. The tank has too many levels to track exactly, so the solver rounded it to whole gallons.");
                 else
@@ -149,7 +149,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
                 return "{}";
             }
             reached.Add(new ReachedHour(states, low, high, cheapest));
-            steps.Update(h, $"Forward pass, hour {h}: {ScheduleFrames.ReachableStates(states)}, {ScheduleFrames.LevelRange(low, high)}, cheapest so far {ScheduleFrames.Money(cheapest)}.");
+            steps.Update(h, $"At hour {h}, the forward pass holds {ScheduleFrames.ReachableStates(states)}, {ScheduleFrames.LevelRange(low, high)}, cheapest so far {ScheduleFrames.Money(cheapest)}.");
         }
 
         var last = dp[Hours];

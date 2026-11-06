@@ -221,9 +221,9 @@ public class PackingSolvers_Tests {
     public void Knapsack_DP_FillsARowPerItem_ThenTracesBackTheItemsItTakes() {
         var steps = Steps("knapsackdp", "({(10,60),(20,100),(30,120)},50,220)");
         Assert.Equal(
-            ["Row 1 of the table, item (10,60): taking it raises the best value within 50 to 60.",
-             "Row 2 of the table, item (20,100): taking it raises the best value within 50 to 160.",
-             "Row 3 of the table, item (30,120): taking it raises the best value within 50 to 220.",
+            ["In row 1 of the table, taking item (10,60) raises the best value within 50 to 60.",
+             "In row 2 of the table, taking item (20,100) raises the best value within 50 to 160.",
+             "In row 3 of the table, taking item (30,120) raises the best value within 50 to 220.",
              "Trace back: take (30,120). Without it the best value within 50 would be 160, not 220. 20 of 50 left.",
              "Trace back: take (20,100). Without it the best value within 20 would be 60, not 100. 0 of 50 left.",
              "The table's best value within 50 is 220, at least 220. The items taken weigh 50."],

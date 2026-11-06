@@ -74,7 +74,7 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
             steps.Update(-1, $"n = {n}, so n mod 12 = {n % 12}. Write the even columns, then the odd ones: {ListText(columns.Select(c => c + 1))}. Row i gets the i-th number, minus 1.");
         // Each row's queen goes straight where the list says.
         for (int row = 0; row < n; row++)
-            steps.Update(row, $"Row {row}: column {columns[row]}, straight from the list. No checking needed.");
+            steps.Update(row, $"In row {row}, the queen goes in column {columns[row]}, straight from the list. No checking needed.");
 
         string answer = formatCertificate(columns);
         if (n == 1)

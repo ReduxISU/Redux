@@ -205,15 +205,15 @@ public class ScheduleSolvers_Tests {
     public void PumpCM_Default_ForwardPass_TraceBack_Replay_ThenDone() {
         var steps = Steps<PumpPlan>("pumpschedulingcmsolver", CmDefault);
         Assert.Equal(50, steps.Count);
-        Assert.Equal("Forward pass, hour 0: 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, cheapest so far $0.00.", steps[0].Caption);
+        Assert.Equal("At hour 0, the forward pass holds 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, cheapest so far $0.00.", steps[0].Caption);
         Assert.Equal(new ReachedHour(8, 4400, 5450, 0), steps[0].Partial.Reached.Single());
         Assert.Equal(["t0"], steps[0].Focus);
-        Assert.Equal("Forward pass, hour 23: 1,564 reachable (tank level, pumps on) states, levels 0 to 10,000 gal, cheapest so far $32.12.", steps[23].Caption);
+        Assert.Equal("At hour 23, the forward pass holds 1,564 reachable (tank level, pumps on) states, levels 0 to 10,000 gal, cheapest so far $32.12.", steps[23].Caption);
         Assert.Equal((StepEvent.Accept, "Trace back from the cheapest state at hour 24 ($32.12), following each state's parent, to recover the schedule."),
             (steps[24].Event, steps[24].Caption));
-        Assert.Equal("Hour 0: PumpA and PumpB on. In 550, out 600 gal, so the tank drops to 4,950 gal. Hour cost $7.31, including $6.50 to start PumpA and PumpB.",
+        Assert.Equal("At hour 0, PumpA and PumpB are on. In 550, out 600 gal, so the tank drops to 4,950 gal. Hour cost $7.31, including $6.50 to start PumpA and PumpB.",
             steps[25].Caption);
-        Assert.Equal("Hour 8 (peak): PumpA and PumpB on. In 550, out 1,000 gal, so the tank drops to 4,150 gal. Hour cost $1.62.", steps[33].Caption);
+        Assert.Equal("At hour 8 (peak), PumpA and PumpB are on. In 550, out 1,000 gal, so the tank drops to 4,150 gal. Hour cost $1.62.", steps[33].Caption);
         Assert.Equal((true, "Cheapest schedule: $32.12 for the day. The tank stays between 0 and 5,000 gal."), (steps[^1].Ok!.Value, steps[^1].Caption));
         Assert.Null(steps[^1].Partial.Budget);
     }
@@ -243,7 +243,7 @@ public class ScheduleSolvers_Tests {
     public void PumpCM_DemandTooHigh_RejectsTheHourNoStateSurvives_ThenAnswersNothing() {
         var steps = Steps<PumpPlan>("pumpschedulingcmsolver", CmDemandTooHigh);
         Assert.Equal(22, steps.Count);
-        Assert.Equal((StepEvent.Reject, "Forward pass, hour 20: no state survives. Every pump mix either drains the tank below empty or overflows it."),
+        Assert.Equal((StepEvent.Reject, "At hour 20, no state survives the forward pass. Every pump mix either drains the tank below empty or overflows it."),
             (steps[20].Event, steps[20].Caption));
         Assert.Equal(["t20"], steps[20].Focus);
         Assert.Equal((false, "No schedule keeps the tank between empty and full for all 24 hours, so there is no answer."), (steps[^1].Ok!.Value, steps[^1].Caption));
@@ -258,8 +258,8 @@ public class ScheduleSolvers_Tests {
         var run = Run("pumpschedulingcmsolver", CmFractional);
         var steps = run.Steps.Cast<SolverStep<PumpPlan>>().ToList();
         Assert.Equal((true, "Cheapest schedule: $10.00 for the day. The tank stays between 0 and 6 gal."), (steps[^1].Ok!.Value, steps[^1].Caption));
-        Assert.Equal("Forward pass, hour 0: 1 reachable (tank level, pumps on) state, level 0.6 gal, cheapest so far $1.00.", steps[0].Caption);
-        Assert.Equal("Hour 10: no pump on. In 0, out 0.4 gal, so the tank drops to 5.6 gal. Hour cost $0.00.", steps[24 + 1 + 10].Caption);
+        Assert.Equal("At hour 0, the forward pass holds 1 reachable (tank level, pumps on) state, level 0.6 gal, cheapest so far $1.00.", steps[0].Caption);
+        Assert.Equal("At hour 10, no pump is on. In 0, out 0.4 gal, so the tank drops to 5.6 gal. Hour cost $0.00.", steps[24 + 1 + 10].Caption);
         var (_, frames) = Picture<SchedulePumpsFrame>("pumpschedulingcmsolver", CmFractional);
         Assert.Empty(frames[^1].Hours);
         Assert.Equal(0.4, frames[^1].Schedule[23].Level);
@@ -273,14 +273,14 @@ public class ScheduleSolvers_Tests {
         Assert.Equal(false, last.Ok);
         Assert.Equal("The schedule costs $1.00, but the tank ends hour 2 at -0.2 gal, outside 0 to 10 gal: the solver rounds the tank level to whole gallons, so it did not see this.",
             last.Caption);
-        Assert.Equal("Forward pass, hour 0: 1 reachable (tank level, pumps on) state, level 1 gal, cheapest so far $1.00.", ((SolverStep<PumpPlan>)run.Steps[0]).Caption);
+        Assert.Equal("At hour 0, the forward pass holds 1 reachable (tank level, pumps on) state, level 1 gal, cheapest so far $1.00.", ((SolverStep<PumpPlan>)run.Steps[0]).Caption);
         var vis = (IFramesVisualization)Activator.CreateInstance(ProblemProvider.Visualizers[VisualizationOf["pumpschedulingcmsolver"]])!;
         var frames = vis.BuildFrames(CmFractional, run).Frames.Cast<SchedulePumpsFrame>().ToList();
         Assert.Equal(Enumerable.Range(2, 22).Select(h => $"t{h}").Order(StringComparer.Ordinal), frames[^1].Hours.Keys);
         Assert.All(frames[^1].Hours, h => Assert.Equal(PictureState.Rejected, h.Value.State));
         // While replaying hour 2, only that hour is drawn out of bounds.
         Assert.Equal("t2:Rejected", States(frames[24 + 1 + 2].Hours));
-        Assert.Equal("Hour 2: no pump on. In 0, out 0.4 gal, so the tank drops to -0.2 gal. That is below empty. Hour cost $0.00.", frames[24 + 1 + 2].Caption);
+        Assert.Equal("At hour 2, no pump is on. In 0, out 0.4 gal, so the tank drops to -0.2 gal. That is below empty. Hour cost $0.00.", frames[24 + 1 + 2].Caption);
     }
 
     [Fact]
@@ -291,8 +291,8 @@ public class ScheduleSolvers_Tests {
             steps[0].Caption);
         Assert.Equal((55.86, 0, 0), (steps[0].Partial.Budget!.Value, steps[0].Partial.Reached.Length, steps[0].Partial.On.Length));
         Assert.All(steps, s => Assert.Equal(55.86, s.Partial.Budget));
-        Assert.Equal("Forward pass, hour 0: 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, most water stored so far 5,450 gal·h.", steps[1].Caption);
-        Assert.Equal("Hour 0: PumpA, PumpB and PumpC on. In 1,050, out 600 gal, so the tank rises to 5,450 gal. Hour cost $14.03, including $12.50 to start PumpA, PumpB and PumpC. $14.03 of the $55.86 budget spent.",
+        Assert.Equal("At hour 0, the forward pass holds 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, most water stored so far 5,450 gal·h.", steps[1].Caption);
+        Assert.Equal("At hour 0, PumpA, PumpB and PumpC are on. In 1,050, out 600 gal, so the tank rises to 5,450 gal. Hour cost $14.03, including $12.50 to start PumpA, PumpB and PumpC. $14.03 of the $55.86 budget spent.",
             steps[26].Caption);
         Assert.Equal((true, "Most water stored within the $55.86 budget (1.5 times the cheapest schedule): 203,250 gal·h, for $55.55."), (steps[^1].Ok!.Value, steps[^1].Caption));
         var (payload, frames) = Picture<SchedulePumpsFrame>("pumpschedulingemsolver", EmDefault);
@@ -303,7 +303,7 @@ public class ScheduleSolvers_Tests {
     [Fact]
     public void PumpEM_ATinyBudget_RunsOutAtAnHour_ThenAnswersNothing() {
         var steps = Steps<PumpPlan>("pumpschedulingemsolver", EmTinyBudget);
-        Assert.Equal((StepEvent.Reject, "Forward pass, hour 7: no state survives. Every pump mix either breaks the tank's limits or the budget."),
+        Assert.Equal((StepEvent.Reject, "At hour 7, no state survives the forward pass. Every pump mix either breaks the tank's limits or the budget."),
             (steps[^2].Event, steps[^2].Caption));
         Assert.Equal("No schedule keeps the tank between 2,000 and 10,000 gal within the $5.00 budget for all 24 hours, so there is no answer.", steps[^1].Caption);
         Assert.All(steps, s => Assert.Equal(5, s.Partial.Budget));

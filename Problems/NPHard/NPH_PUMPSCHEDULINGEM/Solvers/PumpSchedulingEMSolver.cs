@@ -275,11 +275,11 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
                 }
             if (states == 0) {
                 // Nothing reaches this hour, so nothing reaches hour 24: the answer is already "no answer".
-                steps.Reject(h, $"Forward pass, hour {h}: no state survives. Every pump mix either breaks the tank's limits or the budget.");
+                steps.Reject(h, $"At hour {h}, no state survives the forward pass. Every pump mix either breaks the tank's limits or the budget.");
                 return (null, 0);
             }
             reached.Add(new ReachedHour(states, low, high, most));
-            steps.Update(h, $"Forward pass, hour {h}: {ScheduleFrames.ReachableStates(states)}, {ScheduleFrames.LevelRange(low, high)}, most water stored so far {ScheduleFrames.Gallons(most)} gal·h.");
+            steps.Update(h, $"At hour {h}, the forward pass holds {ScheduleFrames.ReachableStates(states)}, {ScheduleFrames.LevelRange(low, high)}, most water stored so far {ScheduleFrames.Gallons(most)} gal·h.");
         }
 
         // Pick the terminal label with the highest cumulative water score.

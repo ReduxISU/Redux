@@ -134,20 +134,20 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
             var placed = new Move(row, col, true, skipped);
             if (skipped.Count == 0) {
                 if (resumed)
-                    steps.Try(placed, $"Back in row {row}: move the queen on to column {col}.");
+                    steps.Try(placed, $"Back in row {row}, move the queen on to column {col}.");
                 else
-                    steps.Try(placed, $"Row {row}: column {col} is safe. Place the queen there.");
+                    steps.Try(placed, $"In row {row}, column {col} is safe. Place the queen there.");
             } else {
                 // The first column skipped, and the row of the queen attacking it: the why says how it attacks.
                 var (first, from, _) = skipped[0];
                 if (skipped.Count == 1 && resumed)
-                    steps.Try(placed, $"Back in row {row}: column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
+                    steps.Try(placed, $"Back in row {row}, column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
                 else if (skipped.Count == 1)
-                    steps.Try(placed, $"Row {row}: column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
+                    steps.Try(placed, $"In row {row}, column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
                 else if (resumed)
-                    steps.Try(placed, $"Back in row {row}: columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
+                    steps.Try(placed, $"Back in row {row}, columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
                 else
-                    steps.Try(placed, $"Row {row}: columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
+                    steps.Try(placed, $"In row {row}, columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
             }
             skipped.Clear();
             resumed = true;
@@ -160,11 +160,11 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
             if (row == 0)
                 steps.Reject(dead, $"Row 0 has no column left to try.");
             else if (skipped.Count == 0)
-                steps.Reject(dead, $"Row {row}: its queen was already in the last column, so back up and move the queen in row {row - 1}.");
+                steps.Reject(dead, $"Row {row}'s queen was already in the last column, so back up and move the queen in row {row - 1}.");
             else if (resumed)
-                steps.Reject(dead, $"Row {row}: the rest of the row is attacked too, so back up and move the queen in row {row - 1}.");
+                steps.Reject(dead, $"In row {row}, the rest of the row is attacked too, so back up and move the queen in row {row - 1}.");
             else
-                steps.Reject(dead, $"Row {row}: every column is attacked, so back up and move the queen in row {row - 1}.");
+                steps.Reject(dead, $"In row {row}, every column is attacked, so back up and move the queen in row {row - 1}.");
         }
         return false;
     }

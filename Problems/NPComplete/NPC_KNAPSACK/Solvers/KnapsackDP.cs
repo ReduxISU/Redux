@@ -67,9 +67,9 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
                     dp[i, w] = dp[i - 1, w];
             }
             if (dp[i, capacity] != dp[i - 1, capacity])
-                steps.Update(i - 1, $"Row {i} of the table, item {PackingFrames.Key(itemValues[i - 1])}: taking it raises the best value within {capacity} to {dp[i, capacity]}.");
+                steps.Update(i - 1, $"In row {i} of the table, taking item {PackingFrames.Key(itemValues[i - 1])} raises the best value within {capacity} to {dp[i, capacity]}.");
             else
-                steps.Update(i - 1, $"Row {i} of the table, item {PackingFrames.Key(itemValues[i - 1])}: it doesn't raise the best value within {capacity} above {dp[i, capacity]}.");
+                steps.Update(i - 1, $"In row {i} of the table, item {PackingFrames.Key(itemValues[i - 1])} doesn't raise the best value within {capacity} above {dp[i, capacity]}.");
         }
 
         if (dp[n, capacity] < knapsack.V) {

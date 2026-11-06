@@ -188,7 +188,7 @@ public class BoardFrames_Tests {
     [Fact]
     public void Build_AFramePerStep_EndingWithTheDoneStep() {
         var run = Run(true, false,
-            new SolverStep<BoardCells>(B(("r0c0", "Q")), StepEvent.Try, ["r0c0"], "Row 0: column 0 is safe. Place the queen there."),
+            new SolverStep<BoardCells>(B(("r0c0", "Q")), StepEvent.Try, ["r0c0"], "In row 0, column 0 is safe. Place the queen there."),
             new SolverStep<BoardCells>(Solved4, StepEvent.Done, [], "All 4 queens are placed.") { Ok = true });
         var response = BoardFrames.Build(Queens4, run, _ => throw new InvalidOperationException("not read"), _ => throw new InvalidOperationException("not read"));
         Assert.Equal("Board", response.Type);

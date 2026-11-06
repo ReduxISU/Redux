@@ -88,7 +88,7 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE, TableCells>, IIncrementalSolv
                     // The letters match: no edit, so the cost is the diagonal's.
                     dp[i, j] = dp[i - 1, j - 1];
                     if (byCell)
-                        steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' = '{y[j - 1]}', so copy the diagonal: {dp[i, j]}.");
+                        steps.Update((i, j, true), $"At cell ({i},{j}), '{x[i - 1]}' = '{y[j - 1]}', so copy the diagonal: {dp[i, j]}.");
                 } else {
                     // They differ: one edit more than the cheapest neighbour. Replace comes from the diagonal, delete from
                     // the cell above, insert from the cell to the left.
@@ -99,17 +99,17 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE, TableCells>, IIncrementalSolv
                     // per edit, so each reads as a plain sentence. Picking the line is skipped when nothing is recorded.
                     if (byCell && rec.Enabled) {
                         if (replace == cheapest)
-                            steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is replace, so {dp[i, j]}.");
+                            steps.Update((i, j, true), $"At cell ({i},{j}), '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is replace, so {dp[i, j]}.");
                         else if (delete == cheapest)
-                            steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is delete, so {dp[i, j]}.");
+                            steps.Update((i, j, true), $"At cell ({i},{j}), '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is delete, so {dp[i, j]}.");
                         else
-                            steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is insert, so {dp[i, j]}.");
+                            steps.Update((i, j, true), $"At cell ({i},{j}), '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is insert, so {dp[i, j]}.");
                     }
                 }
             }
             if (!byCell && n > 0) {
                 int row = i;
-                steps.Update((i, n, false), $"Row {i} ('{x[i - 1]}'): each cell copies the diagonal when the letters match, else adds 1 to the cheapest of replace, delete and insert. The row ends at {dp[i, n]}.",
+                steps.Update((i, n, false), $"In row {i} ('{x[i - 1]}'), each cell copies the diagonal when the letters match, else adds 1 to the cheapest of replace, delete and insert. The row ends at {dp[i, n]}.",
                     focus: () => Enumerable.Range(1, n).Select(j => CellId(row, j)).ToArray());
             }
         }
@@ -148,9 +148,9 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE, TableCells>, IIncrementalSolv
             if (inserted > 0) edits.Add(Words.Count(inserted, "insertion"));
             var table = new TableCells(Filled(dp, m, n), [], path.Select(p => CellId(p.I, p.J)));
             if (edits.Count == 0)
-                steps.Done(table, true, $"Edit distance {dp[m, n]}: the strings are already the same.");
+                steps.Done(table, true, $"The edit distance is {dp[m, n]}: the strings are already the same.");
             else
-                steps.Done(table, true, $"Edit distance {dp[m, n]}: one cheapest way is {string.Join(", ", edits)}.");
+                steps.Done(table, true, $"The edit distance is {dp[m, n]}: one cheapest way is {string.Join(", ", edits)}.");
         }
 
         return dp[m, n].ToString();

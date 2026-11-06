@@ -329,7 +329,7 @@ public class ScheduleFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(50, frames.Count);
         Assert.Equal(
-            "{\"event\":\"Try\",\"caption\":\"Forward pass, hour 0: 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, cheapest so far $0.00.\","
+            "{\"event\":\"Try\",\"caption\":\"At hour 0, the forward pass holds 8 reachable (tank level, pumps on) states, levels 4,400 to 5,450 gal, cheapest so far $0.00.\","
             + "\"focus\":[\"t0\"],\"reached\":[{\"states\":8,\"low\":4400,\"high\":5450,\"best\":0}],\"schedule\":[],\"upTo\":-1,\"hours\":{\"t0\":{\"state\":\"ElementHighlight\"}},\"cells\":{},\"step\":0}",
             Readable(frames[0]));
         // The mockup's solved view: PumpA 23 hours, PumpB 24, PumpC none, $32.12, the tank down to 0 at midnight.

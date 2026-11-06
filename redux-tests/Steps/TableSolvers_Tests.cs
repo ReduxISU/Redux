@@ -105,19 +105,19 @@ public class TableSolvers_Tests {
         // Cell (2,2): 'o' = 'o', so the diagonal is copied (the mockup's frame 6).
         var copy = steps[5];
         Assert.Equal(["r2c2"], copy.Focus);
-        Assert.Equal("Cell (2,2): 'o' = 'o', so copy the diagonal: 1.", copy.Caption);
+        Assert.Equal("At cell (2,2), 'o' = 'o', so copy the diagonal: 1.", copy.Caption);
         Assert.Equal(["r1c1"], copy.Partial.Reads);
         Assert.Equal("1", copy.Partial.Values["r2c2"]);
         Assert.False(copy.Partial.Values.ContainsKey("r2c3"));
 
         // Cell (1,1): 'h' ≠ 'r', three cells read, the diagonal (replace) taken first.
-        Assert.Equal("Cell (1,1): 'h' ≠ 'r'. Replace 'h' with 'r': 1 + 0. Delete 'h': 1 + 1. Insert 'r': 1 + 1. The cheapest is replace, so 1.", steps[1].Caption);
+        Assert.Equal("At cell (1,1), 'h' ≠ 'r'. Replace 'h' with 'r': 1 + 0. Delete 'h': 1 + 1. Insert 'r': 1 + 1. The cheapest is replace, so 1.", steps[1].Caption);
         Assert.Equal(["r0c0", "r0c1", "r1c0"], steps[1].Partial.Reads);
 
         Assert.Equal("Trace back from the corner (5,3), where the edit distance is 3.", steps[16].Caption);
         Assert.Equal("(5,3) came from (4,3): delete 'e'.", steps[17].Caption);
         var done = steps[^1];
-        Assert.Equal("Edit distance 3: one cheapest way is 1 replacement, 2 deletions.", done.Caption);
+        Assert.Equal("The edit distance is 3: one cheapest way is 1 replacement, 2 deletions.", done.Caption);
         Assert.Equal(["r5c3", "r4c3", "r3c2", "r2c2", "r1c1", "r0c0"], done.Partial.Path);
         Assert.Equal(24, done.Partial.Values.Count);
         Assert.Equal("3", done.Partial.Values["r5c3"]);
@@ -158,7 +158,7 @@ public class TableSolvers_Tests {
         Assert.Equal(Enumerable.Range(1, 16).Select(j => $"r3c{j}"), rows[2].Focus);
         Assert.Empty(rows[2].Partial.Reads);
         Assert.Equal(17 + 16 * 3 + 16, rows[2].Partial.Values.Count);
-        Assert.StartsWith("Row 3 ('c'): each cell copies the diagonal when the letters match", rows[2].Caption);
+        Assert.StartsWith("In row 3 ('c'), each cell copies the diagonal when the letters match", rows[2].Caption);
         // Nothing is hidden: every row, the trace-back and the answer fit in the cap.
         Assert.DoesNotContain("not shown", steps[^1].Caption);
     }

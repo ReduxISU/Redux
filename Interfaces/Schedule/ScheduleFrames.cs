@@ -524,9 +524,9 @@ static class ScheduleFrames {
     }
 
     /// <summary>
-    /// A replay caption for hour <paramref name="hour"/> of a schedule: "Hour 9 (peak): PumpA and PumpB on. In 550, out 1,000
-    /// gal, so the tank drops to 4,100 gal. Hour cost $1.62." With a <paramref name="budget"/>, it also says how much of it
-    /// the day has spent so far.
+    /// A replay caption for hour <paramref name="hour"/> of a schedule: "At hour 9 (peak), PumpA and PumpB are on. In 550,
+    /// out 1,000 gal, so the tank drops to 4,100 gal. Hour cost $1.62." With a <paramref name="budget"/>, it also says how
+    /// much of it the day has spent so far.
     /// <para>
     /// A whole caption rather than a phrase, because it describes one hour of the schedule picture from the schedule alone
     /// (its pumps, the water in and out, the tank level, the cost), not a solver's reasoning, and every clause of it branches
@@ -540,9 +540,9 @@ static class ScheduleFrames {
         decimal before = hour == 0 ? TankLevels.Exact(spec.Level) : levels[hour - 1], after = levels[hour];
         var index = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
         string Names(IEnumerable<string> ids) => AndList(ids.Select(id => spec.Pumps[index[id]].Name).ToList());
-        string pumps = r.On.Count == 0 ? "no pump on" : $"{Names(r.On)} on";
+        string pumps = r.On.Count switch { 0 => "no pump is on", 1 => $"{Names(r.On)} is on", _ => $"{Names(r.On)} are on" };
         string verb = after > before ? "rises to" : after < before ? "drops to" : "stays at";
-        string text = $"Hour {hour}{(spec.PeakHours.Contains(hour) ? " (peak)" : "")}: {pumps}. In {Gallons(r.Inflow)}, out {Gallons(spec.Demand[hour])} gal, so the tank {verb} {Gallons((double)after)} gal.";
+        string text = $"At hour {hour}{(spec.PeakHours.Contains(hour) ? " (peak)" : "")}, {pumps}. In {Gallons(r.Inflow)}, out {Gallons(spec.Demand[hour])} gal, so the tank {verb} {Gallons((double)after)} gal.";
         if (after < TankLevels.Exact(spec.Minimum))
             text += spec.Minimum == 0 ? " That is below empty." : $" That is below the {Gallons(spec.Minimum)}-gal minimum.";
         else if (after > TankLevels.Exact(spec.Capacity))
@@ -554,7 +554,7 @@ static class ScheduleFrames {
         return text;
     }
 
-    // Phrases of a forward-pass caption, which the pump-scheduling solvers share: $"Forward pass, hour {h}:
+    // Phrases of a forward-pass caption, which the pump-scheduling solvers share: $"At hour {h}, the forward pass holds
     // {ReachableStates(states)}, {LevelRange(low, high)}, cheapest so far {Money(cheapest)}." Each is a piece of the
     // sentence that would need a branch inside the why line (state or states, level or levels).
 

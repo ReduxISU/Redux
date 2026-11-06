@@ -333,14 +333,14 @@ public class BoardFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(13, frames.Count);
         Assert.Equal(
-            "{\"event\":\"Try\",\"caption\":\"Row 1: columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2.\","
+            "{\"event\":\"Try\",\"caption\":\"In row 1, columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2.\","
             + "\"focus\":[\"r1c2\"],\"values\":{},"
             + "\"pieces\":[{\"id\":\"r0c0\",\"r\":0,\"c\":0,\"kind\":\"queen\"},{\"id\":\"r1c2\",\"r\":1,\"c\":2,\"kind\":\"queen\"}],"
             + "\"cells\":{\"r0c0\":{\"state\":\"Committed\"},\"r1c0\":{\"state\":\"Rejected\"},\"r1c1\":{\"state\":\"Rejected\"},\"r1c2\":{\"state\":\"ElementHighlight\"}},"
             + "\"links\":[{\"from\":\"r1c0\",\"to\":\"r0c0\",\"state\":\"Rejected\"},{\"from\":\"r1c1\",\"to\":\"r0c0\",\"state\":\"Rejected\"}],\"step\":1}",
             Readable(frames[1]));
         Assert.Equal(
-            "{\"event\":\"Reject\",\"caption\":\"Row 2: every column is attacked, so back up and move the queen in row 1.\","
+            "{\"event\":\"Reject\",\"caption\":\"In row 2, every column is attacked, so back up and move the queen in row 1.\","
             + "\"focus\":[\"r2c0\",\"r2c1\",\"r2c2\",\"r2c3\",\"r1c2\"],\"values\":{},"
             + "\"pieces\":[{\"id\":\"r0c0\",\"r\":0,\"c\":0,\"kind\":\"queen\"},{\"id\":\"r1c2\",\"r\":1,\"c\":2,\"kind\":\"queen\"}],"
             + "\"cells\":{\"r0c0\":{\"state\":\"Committed\"},\"r1c2\":{\"state\":\"Rejected\"},\"r2c0\":{\"state\":\"Rejected\"},\"r2c1\":{\"state\":\"Rejected\"},"

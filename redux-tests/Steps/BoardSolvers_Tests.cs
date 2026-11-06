@@ -260,18 +260,18 @@ public class BoardSolvers_Tests {
     public void Backtracking_Four_PlacesTakesBackAndMoves_AsTheMockupDoes() {
         var steps = Steps("nqueensbacktracking", "4");
         Assert.Equal([
-            "Row 0: column 0 is safe. Place the queen there.",
-            "Row 1: columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2.",
-            "Row 2: every column is attacked, so back up and move the queen in row 1.",
-            "Back in row 1: move the queen on to column 3.",
-            "Row 2: column 0 is attacked (0 along its column by the queen at (0,0)). Place the queen at column 1.",
-            "Row 3: every column is attacked, so back up and move the queen in row 2.",
-            "Row 2: the rest of the row is attacked too, so back up and move the queen in row 1.",
-            "Row 1: its queen was already in the last column, so back up and move the queen in row 0.",
-            "Back in row 0: move the queen on to column 1.",
-            "Row 1: columns 0, 1 and 2 are attacked (0 diagonally by the queen at (0,1)). Place the queen at column 3.",
-            "Row 2: column 0 is safe. Place the queen there.",
-            "Row 3: columns 0 and 1 are attacked (0 along its column by the queen at (2,0)). Place the queen at column 2.",
+            "In row 0, column 0 is safe. Place the queen there.",
+            "In row 1, columns 0 and 1 are attacked (0 along its column by the queen at (0,0)). Place the queen at column 2.",
+            "In row 2, every column is attacked, so back up and move the queen in row 1.",
+            "Back in row 1, move the queen on to column 3.",
+            "In row 2, column 0 is attacked (0 along its column by the queen at (0,0)). Place the queen at column 1.",
+            "In row 3, every column is attacked, so back up and move the queen in row 2.",
+            "In row 2, the rest of the row is attacked too, so back up and move the queen in row 1.",
+            "Row 1's queen was already in the last column, so back up and move the queen in row 0.",
+            "Back in row 0, move the queen on to column 1.",
+            "In row 1, columns 0, 1 and 2 are attacked (0 diagonally by the queen at (0,1)). Place the queen at column 3.",
+            "In row 2, column 0 is safe. Place the queen there.",
+            "In row 3, columns 0 and 1 are attacked (0 along its column by the queen at (2,0)). Place the queen at column 2.",
             "All 4 queens are placed and none attacks another: {(0,1),(1,3),(2,0),(3,2)}. Found after 8 placements.",
         ], steps.Select(s => s.Caption));
         Assert.Equal([StepEvent.Try, StepEvent.Try, StepEvent.Reject, StepEvent.Try, StepEvent.Try, StepEvent.Reject, StepEvent.Reject, StepEvent.Reject,
@@ -336,7 +336,7 @@ public class BoardSolvers_Tests {
             steps[0].Caption);
         Assert.Empty(steps[0].Focus);
         Assert.Empty(steps[0].Partial.Values);
-        Assert.Equal("Row 0: column 1, straight from the list. No checking needed.", steps[1].Caption);
+        Assert.Equal("In row 0, the queen goes in column 1, straight from the list. No checking needed.", steps[1].Caption);
         Assert.Equal(["r0c1"], steps[1].Focus);
         Assert.Equal(["r0c1", "r1c3", "r2c5", "r3c7", "r4c2", "r5c0", "r6c6", "r7c4"], steps[8].Partial.Values.Keys.Order(StringComparer.Ordinal));
         Assert.Equal("All 8 queens placed in 8 steps, with no search: {(0,1),(1,3),(2,5),(3,7),(4,2),(5,0),(6,6),(7,4)}.", steps[^1].Caption);
