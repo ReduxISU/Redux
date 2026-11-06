@@ -75,26 +75,20 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
             var falseClauses = formula.FalseClauses(start);
             return falseClauses.Count == 0
                 ? $"{intro}{listed}: every clause has a true literal."
-                : $"{intro}{listed}. {ClauseNames(falseClauses)} {(falseClauses.Count == 1 ? "has" : "have")} no true literal.";
+                : $"{intro}{listed}. {NoTrueLiteral(falseClauses)}.";
         },
         // "Flip 3: C2 (x1 | !x2 | x3) has no true literal. Pick one of its literals at random and flip its variable: x2 to
         // False. Now C1 has no true literal."
         moveWhy: (t, f, after, number) => {
             var still = formula.FalseClauses(after);
-            string now = still.Count == 0 ? "Every clause now has a true literal." : $"Now {ClauseNames(still)} {(still.Count == 1 ? "has" : "have")} no true literal.";
-            return $"Flip {number}: C{f.Clause + 1} {ClauseText(formula.Written[f.Clause])} has no true literal. Pick one of its literals at random and flip its variable: "
+            string now = still.Count == 0 ? "Every clause now has a true literal." : $"Now {NoTrueLiteral(still)}.";
+            return $"Flip {number}: {FailedClause(f.Clause, formula.Written[f.Clause])}. Pick one of its literals at random and flip its variable: "
                 + $"{formula.Variables[f.Variable]} to {after[f.Variable]}. {now}";
         },
-        skippedWhy: (t, from, to, after) => {
-            var still = formula.FalseClauses(after);
-            return $"{(from == to ? $"Flip {from} of try {t.Number} is" : $"Flips {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
-                + (still.Count == 0 ? "every clause has a true literal." : $"{ClauseNames(still)} {(still.Count == 1 ? "has" : "have")} no true literal.");
-        },
-        closeWhy: (t, end) => {
-            var still = formula.FalseClauses(end);
-            return $"Try {t.Number} ends after {Count(t.Moves.Count, "flip")}: "
-                + (still.Count == 0 ? "every clause has a true literal." : $"{ClauseNames(still)} {(still.Count == 1 ? "has" : "have")} no true literal.");
-        },
+        skippedWhy: (t, from, to, after) =>
+            $"{(from == to ? $"Flip {from} of try {t.Number} is" : $"Flips {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
+                + $"{ClauseCheck(formula.FalseClauses(after))}.",
+        closeWhy: (t, end) => $"Try {t.Number} ends after {Count(t.Moves.Count, "flip")}: {ClauseCheck(formula.FalseClauses(end))}.",
         betweenWhy: (from, to) => from == to
             ? $"Try {from} ends after {Count(maxFlips, "flip")}: no satisfying assignment."
             : $"Tries {from}–{to}: no satisfying assignment (each ends after {Count(maxFlips, "flip")}).",

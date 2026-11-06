@@ -316,6 +316,51 @@ static class GroupedGraphFrames {
     /// <summary>"(x1 | !x2 | x3)": a clause as the instance writes it.</summary>
     public static string ClauseText(IEnumerable<string> literals) => "(" + string.Join(" | ", literals) + ")";
 
+    // ---- Formula wording, shared by the SAT solvers' why text ----
+    // Phrases that more than one solver says, or that would need a branch (has or have, one or many) inside a why line. Each
+    // gives a piece of a sentence, with no capital letter and no full stop, so the step line still reads as the sentence it
+    // builds: $"Try {Assigned(a)}: clause {FailedClause(c, clause)}." Call them only inside a $"..." hole, or inside a
+    // converter that runs only while recording; then a run with steps off never builds them.
+
+    /// <summary>"C3 (x1 | !x2 | x3) has no true literal": one clause (0-based), written out, that fails.</summary>
+    public static string FailedClause(int clause, IEnumerable<string> literals) =>
+        $"C{clause + 1} {ClauseText(literals)} has no true literal";
+
+    /// <summary>
+    /// "C2 has no true literal", "C2 and C3 have no true literal": the clauses (0-based) that fail, by name. Give at least
+    /// one clause; for a list that may be empty, use <see cref="ClauseCheck"/>.
+    /// </summary>
+    public static string NoTrueLiteral(IReadOnlyList<int> clauses) =>
+        $"{ClauseNames(clauses)} {(clauses.Count == 1 ? "has" : "have")} no true literal";
+
+    /// <summary>
+    /// The result of checking a whole assignment, given the clauses (0-based) it leaves false: "every clause has a true
+    /// literal" when there are none, otherwise <see cref="NoTrueLiteral"/> ("C2 has no true literal").
+    /// </summary>
+    public static string ClauseCheck(IReadOnlyList<int> falseClauses) =>
+        falseClauses.Count == 0 ? "every clause has a true literal" : NoTrueLiteral(falseClauses);
+
+    /// <summary>
+    /// A short note for a search tree node, naming the variables an answer never had to set: null when there are none,
+    /// "x1, x2 free" for one or two, and "5 free" for more (a node has little room).
+    /// </summary>
+    public static string? FreeVariables(IReadOnlyList<string> free) => free.Count switch {
+        0 => null,
+        <= 2 => $"{string.Join(", ", free)} free",
+        _ => $"{free.Count} free",
+    };
+
+    /// <summary>
+    /// What an answer does with the variables the search never had to set: " x1 is free (either value works), so the answer
+    /// sets it to False.", or " x1, x2 and x3 are free ... sets them to False." It starts with a space, so it can follow a
+    /// sentence directly, and it is empty when there are none.
+    /// </summary>
+    public static string FreeSetToFalse(IReadOnlyList<string> free) => free.Count switch {
+        0 => "",
+        1 => $" {free[0]} is free (either value works), so the answer sets it to False.",
+        _ => $" {string.Join(", ", free.SkipLast(1))} and {free[^1]} are free (either value works), so the answer sets them to False.",
+    };
+
     /// <summary>
     /// The index (0-based, formula order) of the first clause whose literals are all false under <paramref name="values"/>
     /// (a variable it does not list counts as unassigned, so it saves its clause), or -1 if there is none.

@@ -1,3 +1,4 @@
+using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using Xunit;
 
@@ -39,6 +40,23 @@ public class KeywordSteps_Tests {
             rec.Reject(() => { c.Count++; return Nodes("a"); }, $"reject {c.Hit()}");
         Assert.Equal(0, c.Count);
         Assert.Empty(rec.Steps);
+    }
+
+    // A shared wording helper called inside a hole runs only when the step is kept: with recording off, FailedClause never
+    // reads the clause it is given (each read shows in the count).
+    [Fact]
+    public void WordingHelperInAHole_RunsOnlyWhenTheStepIsKept() {
+        var c = new Counter();
+        IEnumerable<string> Clause() { c.Count++; yield return "x1"; yield return "!x2"; }
+        var clause = Clause();
+        foreach (var off in new[] { StepRecorder<NodeSet>.Off, StepRecorder<NodeSet>.DeadlineOnly(TimeSpan.FromMinutes(5)) })
+            off.Reject(() => Nodes("a"), $"Try a: clause {GroupedGraphFrames.FailedClause(0, clause)}.");
+        Assert.Equal(0, c.Count);
+
+        var on = new StepRecorder<NodeSet>();
+        on.Reject(() => Nodes("a"), $"Try a: clause {GroupedGraphFrames.FailedClause(0, clause)}.");
+        Assert.Equal(1, c.Count);
+        Assert.Equal("Try a: clause C1 (x1 | !x2) has no true literal.", on.Steps[0].Caption);
     }
 
     [Fact]

@@ -85,9 +85,7 @@ class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
         // Every variable is set: the check that ends the try.
         closeWhy: (t, end) => {
             if (t.Solved) return $"Try {t.Number} has set every variable: every clause has a true literal.";
-            var falseClauses = formula.FalseClauses(end);
-            return $"Try {t.Number} has set every variable, but "
-                + (falseClauses.Count == 0 ? "every clause has a true literal." : $"{ClauseNames(falseClauses)} {(falseClauses.Count == 1 ? "has" : "have")} no true literal.");
+            return $"Try {t.Number} has set every variable, but {ClauseCheck(formula.FalseClauses(end))}.";
         },
         closeFocus: (t, end) => t.Solved ? [] : formula.FalseClauses(end).Select(ClauseId).ToArray(),
         betweenWhy: (from, to) => from == to

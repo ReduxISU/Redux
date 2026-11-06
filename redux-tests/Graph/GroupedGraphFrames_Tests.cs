@@ -463,6 +463,23 @@ public class GroupedGraphFrames_Tests {
         Assert.Equal("x1 = True, x2 = False", GroupedGraphFrames.Assigned(new Dictionary<string, bool> { ["x1"] = true, ["x2"] = false }));
     }
 
+    // The shared formula wording: a phrase each, with has or have and one or many chosen for the caller.
+    [Fact]
+    public void FormulaWording_SaysOneClauseOrManyAndTheFreeVariables() {
+        Assert.Equal("C3 (x1 | !x2 | x3) has no true literal", GroupedGraphFrames.FailedClause(2, ["x1", "!x2", "x3"]));
+        Assert.Equal("C2 has no true literal", GroupedGraphFrames.NoTrueLiteral([1]));
+        Assert.Equal("C1 and C4 have no true literal", GroupedGraphFrames.NoTrueLiteral([0, 3]));
+        Assert.Equal("5 clauses have no true literal", GroupedGraphFrames.NoTrueLiteral([0, 1, 2, 3, 4]));
+        Assert.Equal("every clause has a true literal", GroupedGraphFrames.ClauseCheck([]));
+        Assert.Equal("C2 has no true literal", GroupedGraphFrames.ClauseCheck([1]));
+        Assert.Null(GroupedGraphFrames.FreeVariables([]));
+        Assert.Equal("x1, x2 free", GroupedGraphFrames.FreeVariables(["x1", "x2"]));
+        Assert.Equal("3 free", GroupedGraphFrames.FreeVariables(["x1", "x2", "x3"]));
+        Assert.Equal("", GroupedGraphFrames.FreeSetToFalse([]));
+        Assert.Equal(" x1 is free (either value works), so the answer sets it to False.", GroupedGraphFrames.FreeSetToFalse(["x1"]));
+        Assert.Equal(" x1, x2 and x3 are free (either value works), so the answer sets them to False.", GroupedGraphFrames.FreeSetToFalse(["x1", "x2", "x3"]));
+    }
+
     // ---- the whole response ----
 
     private static SolveRun RunOf(string answer, params object[] steps) => new(answer, steps, typeof(Assignment));

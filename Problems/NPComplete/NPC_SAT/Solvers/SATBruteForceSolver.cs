@@ -89,7 +89,7 @@ public class SATBruteForceSolver : ISolver<SAT> {
                 return "(" + string.Join(",", variables.Select(v => $"{v}:{assignment[v]}")) + ")";
             }
             steps.Reject((assignment, failed),
-                $"Try {Assigned(assignment)}: clause C{failed + 1} {ClauseText(formula.Clauses[failed].Literals.Select(l => l.ToString()))} has no true literal.");
+                $"Try {Assigned(assignment)}: clause {FailedClause(failed, formula.Clauses[failed].Literals.Select(l => l.ToString()))}.");
 
             // Advance to the next assignment; wrapping back to all-false means all were tried.
             int bit = values.Length - 1;

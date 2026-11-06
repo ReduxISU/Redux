@@ -55,6 +55,10 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     //          ...
     //          steps.Done(answer, true, $"... is a solution because ...");
     //      }
+    //
+    //      Write the why in the step line itself, not in a private helper of this solver. A shared wording helper in
+    //      Interfaces/ (such as FailedClause for SAT) is fine when the wording repeats across solvers or would branch
+    //      inside the why; call it inside a {hole}, so it runs only when the step is kept.
 
     public string solve({PROBLEM} problem) {
         // TODO: implement {SOLVER} for {PROBLEM}

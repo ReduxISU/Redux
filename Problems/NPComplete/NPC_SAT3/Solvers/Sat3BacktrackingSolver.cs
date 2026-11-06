@@ -46,11 +46,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         // The Search Tree picture's node text only.
         childLabel: (s, value) => $"{s.nextVar}={(value ? "T" : "F")}",
         rejectNote: (s, value) => FirstFalsifiedClause(sat3.clauses, WithValue(s.varStates, s.nextVar, value)) is int c and >= 0 ? $"C{c + 1} false" : null,
-        solvedNote: s => sat3.literals.Select(l => l.TrimStart('!')).Distinct().Where(v => !s.varStates.ContainsKey(v)).ToList() switch {
-            { Count: 0 } => null,
-            { Count: <= 2 } free => $"{string.Join(", ", free)} free",
-            var free => $"{free.Count} free",
-        });
+        solvedNote: s => FreeVariables(sat3.literals.Select(l => l.TrimStart('!')).Distinct().Where(v => !s.varStates.ContainsKey(v)).ToList()));
 
     public string solve(SAT3 sat3) => Solve(sat3, StepRecorder<Assignment>.Off);
 
@@ -82,11 +78,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         }
         solutionString = solutionString.TrimEnd(',');
         solutionString += ")";
-        steps.Done(ToAssignment(solution), true, $"Every clause has a true literal under {Assigned(decided)}.{(free.Count switch {
-            0 => "",
-            1 => $" {free[0]} is free (either value works), so the answer sets it to False.",
-            _ => $" {string.Join(", ", free.SkipLast(1))} and {free[^1]} are free (either value works), so the answer sets them to False.",
-        })}");
+        steps.Done(ToAssignment(solution), true, $"Every clause has a true literal under {Assigned(decided)}.{FreeSetToFalse(free)}");
         return solutionString;
     }
 
@@ -144,7 +136,10 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
                     }
                 } else {
                     //unsolvable therefore dont add
-                    steps.Reject(curSat, value, $"{curSat.nextVar} = {value} fails: {(FirstFalsifiedClause(sat3.clauses, WithValue(curSat.varStates, curSat.nextVar, value)) is int c and >= 0 ? $"clause C{c + 1} {ClauseText(sat3.clauses[c])} has no true literal left." : "a clause is left with no true literal.")}");
+                    // The child builder says only that this value empties some clause, not which one, so the step looks it up (only when the step is kept).
+                    steps.Reject(curSat, value, $"{curSat.nextVar} = {value} fails: {(FirstFalsifiedClause(sat3.clauses, WithValue(curSat.varStates, curSat.nextVar, value)) is int c and >= 0
+                        ? $"clause {FailedClause(c, sat3.clauses[c])} left."
+                        : "a clause is left with no true literal.")}");
                 }
             }
         }
