@@ -243,6 +243,17 @@ The idea is simple. You already know the algorithm, so you add one line wherever
 | branches and backtracks, so its steps form a search tree | `SearchSteps` ([SearchSteps.cs](../../Interfaces/Steps/SearchSteps.cs)) | [Sat3BacktrackingSolver.cs](../../Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs) |
 | is a local search that restarts from a random start | `RestartSteps` ([RestartSteps.cs](../../Interfaces/Steps/RestartSteps.cs)) | [WalkSAT.cs](../../Problems/NPComplete/NPC_SAT3/Solvers/WalkSAT.cs) |
 
+   **A search that keeps its own tree.** `SearchSteps` builds the search tree for you, from its `Root`, `Expand`, `Try`, `Accept` and `Reject` calls, with the node states those give. A few searches already keep a tree of their own, with node states `SearchSteps` does not give: a "start" root, squares or colors skipped as pruned nodes with a note, a choice marked failed when it is taken back. [GraphColoringBacktracking.cs](../../Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBacktracking.cs), [ThreeDimensionalMatchingBacktracking.cs](../../Problems/NPComplete/NPC_DM3/Solvers/ThreeDimensionalMatchingBacktracking.cs) and [NQueensBacktracking.cs](../../Problems/P/P_NQUEENS/Solvers/NQueensBacktracking.cs) do. They use `RunSteps` with its `tree:` option: a converter in `NewSteps` that turns a step's state into the search-tree nodes the step adds, and `Done(..., tree: () => ...)`, which names the answer's path, root first, so the tree ends on it.
+
+   ```csharp
+   // The Search Tree picture's node only: "b=1", with the clashing neighbour's color as the note of a pruned one.
+   tree: m => WithRoot(Node(m.Id, m.Parent, m.Node, m.Color, m.Tree, m.Clash < 0 ? null : $"{_nodes[m.Clash]} has {m.Color}")));
+   ...
+   steps.Done(new Groups(coloring), true, $"Every node is colored ...", tree: () => search.AnswerPath());
+   ```
+
+   Use `tree:` only when your search already keeps such a tree. A new search that branches should use `SearchSteps`, and a backtracking search that records no tree stays on plain `RunSteps`.
+
 4. Say **once**, at the top of the class, how a step shows the solver's state. This is the **set-once block**, a `NewSteps` method. It has two group comments, so a reader can see what is shared and what is per picture.
 5. In the algorithm, write **one line per step**: the keyword, then the state, then (for a search) the choice, then the why, then any extras. For example, `steps.Reject(state, $"why")` or `steps.Try(state, value, $"why")`.
 
@@ -268,10 +279,10 @@ if (failed < 0) {
     return ...;
 }
 steps.Reject((assignment, failed),
-    $"Try {Assigned(assignment)}: clause C{failed + 1} {ClauseText(...)} has no true literal.");
+    $"Try {Assigned(assignment)}: clause {FailedClause(failed, formula.Clauses[failed].Literals.Select(l => l.ToString()))}.");
 ```
 
-The facts the why needs come from the algorithm itself. The search already worked out `failed` to decide what to do, so the step reuses that number instead of looking it up again.
+The facts the why needs come from the algorithm itself. The search already worked out `failed` to decide what to do, so the step reuses that number instead of looking it up again. `FailedClause` is a shared wording helper ("C2 (x1 | !x2) has no true literal"; see rule 3).
 
 A step that is about something other than the usual state can say so for that one step. `TSPGreedy`'s dead end is about a single city:
 
@@ -293,7 +304,8 @@ Its step lines name the choice too, for example `steps.Try(curSat, value, $"Try 
 1. **Picture helpers shared per picture type are fine.** They live in `Interfaces/`, next to that picture's frames. Examples: `VariableId`, `ClauseId`, `EdgeId`, `Assigned`, `Num`, `Words.Count`.
 2. **No shared step helpers for one problem.** A problem has no `Steps` folder. An instance fact goes on the problem class. A recorder shared by a family of algorithms goes in `Interfaces/Steps`.
 3. **No private why helpers in the solver.** Write each step's why inline, in the step line. A reader should see what a step says right where it happens. One kind of helper is allowed: a **shared wording helper** in `Interfaces/`, next to the picture helpers it belongs with, when the same wording repeats across solvers or would need a branch (has or have, one or many) inside the why line. The SAT solvers share `FailedClause`, `NoTrueLiteral`, `ClauseCheck`, `FreeVariables` and `FreeSetToFalse` in [GroupedGraphFrames.cs](../../Interfaces/graphs/GroupedGraphFrames.cs). A wording helper gives a piece of a sentence, so the step line still reads as one: `$"{v} = {value} fails: clause {FailedClause(c, clauses[c])} left."`. Call it only inside a `$"..."` hole, never before the step line, so a run with recording off never calls it. A sentence only one solver says stays inline.
-   - **The exception: solvers that restart.** WalkSAT, Schöning and PPZ make random tries, and they cannot know which try will succeed until the run is over. So they do not record steps as they go. They report each try and its moves to `RestartSteps`, which records the steps after the run: the first try and the successful one in full, and the tries in between as one step. The why text for those steps is written once, in the `RestartSteps` converters of `NewSteps` (`startWhy`, `moveWhy`, `closeWhy`, and so on), not at each call, because the moves are replayed there, after the run, and not where they happen. The same rules apply inside those converters: write the text there in full, and use only shared wording helpers.
+   - **Wording built by a loop over the picture's pieces.** Some wording has to walk the picture's pieces to say anything: which elements a candidate uses too often, which sets it leaves uncovered. For 3-Dimensional Matching Brute Force's Reject, `TripartiteFrames.WhyRejected` ([TripartiteFrames.cs](../../Interfaces/Tripartite/TripartiteFrames.cs)) counts how often each element is used and says "a is used 3 times, and b and c twice". That may live as a shared helper next to the picture's other helpers even when only one solver uses it, because it explains the picture's pieces, not one solver's reasoning. Call it inside a hole as usual: `$"Try {...}: {TripartiteFrames.WhyRejected(spec!, combination)}."`. [BipartiteFrames.WhyRejected](../../Interfaces/graphs/BipartiteFrames.cs) does the same for the set problems (Exact Cover, Hitting Set, Set Cover).
+   - **The exception: solvers that restart.** WalkSAT, Schöning and PPZ make random tries, and they cannot know which try will succeed until the run is over. So they do not record steps as they go. They report each try and its moves to `RestartSteps`, which records the steps after the run: the first try and the successful one in full, and the tries in between as one step. The why text for those steps is written once, in the `RestartSteps` converters of `NewSteps` (`startWhy`, `moveWhy`, `closeWhy`, and so on), not at each call, because the moves are replayed there, after the run, and not where they happen. The same rules apply inside those converters: write the text there in full, and use only shared wording helpers. A run that ends before any try (a formula with no variables) records its Done at the call as usual, `steps.Done(new Assignment([]), false, $"The formula has no variables to set: no answer found.")`.
 4. **The facts a why needs come from the algorithm where possible.** Reuse what the algorithm already worked out, such as the clause that failed or the path's cost. Look a fact up only when the algorithm never has it, and then do it inside the step line, so it runs only when the step is kept.
 5. **The solver's own algorithm helpers stay.** Examples: `FirstFalseClause`, or the next-permutation code. Those are the algorithm, not the steps.
 6. **Plumbing is set once.** How a state becomes the partial answer and the focus is said once, in `NewSteps`. Don't pass a lambda for it on every step.
