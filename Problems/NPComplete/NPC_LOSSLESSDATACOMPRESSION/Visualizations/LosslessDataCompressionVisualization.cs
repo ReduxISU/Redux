@@ -20,7 +20,7 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "TODO";
-    public string[] contributors { get; } = { "TODO" };
+    public string[] contributors { get; } = { "Bektur Akkabakov", "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.DynamicTable;
     public ISolver solver { get; } = new LosslessDataCompressionSolver();
 

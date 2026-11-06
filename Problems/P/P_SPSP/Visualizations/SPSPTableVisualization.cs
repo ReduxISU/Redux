@@ -23,7 +23,7 @@ class SPSPTableVisualization : IVisualization<SPSP>, ITableVisualization<SPSP, D
     public string visualizationDefinition { get; } = "Displays a step-by-step table of Dijkstra's algorithm execution, showing each vertex's known status, current cost, and path at each stage of the algorithm.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
-    public string[] contributors { get; } = { "Rajit Nilkar" };
+    public string[] contributors { get; } = { "Rajit Nilkar", "Michael Trosper" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SPSPSolver();
 

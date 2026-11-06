@@ -17,7 +17,8 @@
     "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
     "contributors": [
       "Russell Phillips",
-      "Andrija Sevaljevic"
+      "Andrija Sevaljevic",
+      "Michael Trosper"
     ],
     "solver": {
       "solverName": "Knuth\u0027s Algorithm X",
@@ -232,7 +233,8 @@
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_HITTINGSET/Visualizations/HittingSetDefaultVisualization.cs",
       "contributors": [
-        "Andrija Sevaljevic"
+        "Andrija Sevaljevic",
+        "Michael Trosper"
       ],
       "solver": {
         "solverName": "Exact Hitting Set Brute Force",
@@ -331,7 +333,8 @@
       "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
       "contributors": [
         "Russell Phillips",
-        "Andrija Sevaljevic"
+        "Andrija Sevaljevic",
+        "Michael Trosper"
       ],
       "solver": {
         "solverName": "Knuth\u0027s Algorithm X",

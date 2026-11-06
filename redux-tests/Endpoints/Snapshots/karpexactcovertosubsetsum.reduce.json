@@ -188,7 +188,8 @@
       "sourceFile": "Problems/NPComplete/NPC_EXACTCOVER/Visualizations/ExactCoverDefaultVisualization.cs",
       "contributors": [
         "Russell Phillips",
-        "Andrija Sevaljevic"
+        "Andrija Sevaljevic",
+        "Michael Trosper"
       ],
       "solver": {
         "solverName": "Knuth\u0027s Algorithm X",

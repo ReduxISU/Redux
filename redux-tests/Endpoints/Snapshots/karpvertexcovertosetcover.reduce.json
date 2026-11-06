@@ -16,7 +16,8 @@
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Visualizations/SetCoverDefaultVisualization.cs",
     "contributors": [
-      "Andrija Sevaljevic"
+      "Andrija Sevaljevic",
+      "Michael Trosper"
     ],
     "solver": {
       "solverName": "Set Cover Brute Force",
@@ -388,7 +389,8 @@
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_SETCOVER/Visualizations/SetCoverDefaultVisualization.cs",
       "contributors": [
-        "Andrija Sevaljevic"
+        "Andrija Sevaljevic",
+        "Michael Trosper"
       ],
       "solver": {
         "solverName": "Set Cover Brute Force",

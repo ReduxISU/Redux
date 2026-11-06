@@ -891,7 +891,10 @@
    "Weighted Cut Visualization"
   ],
   "Beau%20Williams": [],
-  "Bektur%20Akkabakov": [],
+  "Bektur%20Akkabakov": [
+   "Convex Hull Visualization",
+   "Lossless Data Compression Visualization"
+  ],
   "Caleb%20Eardley": [],
   "Calvin%20Condie": [],
   "Carter%20Luker": [],
@@ -960,15 +963,25 @@
   ],
   "Michael%20Crapse": [],
   "Michael%20Trosper": [
+   "Convex Hull Visualization",
    "Deterministic Finite Automata Table Visualization",
    "Deterministic Finite Automata Visualization",
+   "Exact Cover Visualization",
+   "Exact Hitting Set Visualization",
+   "Lossless Data Compression Visualization",
    "Max Cut Visualization",
    "Minimum Cut Visualization",
    "Minimum S-T Cut Visualization",
    "Non-Deterministic Finite Automata Table Visualization",
    "Non-Deterministic Finite Automata Visualization",
+   "Partition Visualization",
    "Pump Scheduling Cost Minimization — DAG Animation",
-   "Pump Scheduling Emergency Resilience — DAG Animation"
+   "Pump Scheduling Emergency Resilience — DAG Animation",
+   "SSSP Table Visualization",
+   "Set Cover Visualization",
+   "Single Pair Shortest Path Table Visualization",
+   "Sudoku Visualization",
+   "Unstructured Search Quantum Circuit"
   ],
   "Musab%20Khan": [],
   "Paul%20Bodily": [],

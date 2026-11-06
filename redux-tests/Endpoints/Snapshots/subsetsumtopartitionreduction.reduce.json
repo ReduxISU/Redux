@@ -16,7 +16,8 @@
     "source": "",
     "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
     "contributors": [
-      "Andrija Sevaljevic"
+      "Andrija Sevaljevic",
+      "Michael Trosper"
     ],
     "solver": {
       "solverName": "Partition Brute Force",
@@ -329,7 +330,8 @@
       "source": "",
       "sourceFile": "Problems/NPComplete/NPC_PARTITION/Visualizations/PartitionDefaultVisualization.cs",
       "contributors": [
-        "Andrija Sevaljevic"
+        "Andrija Sevaljevic",
+        "Michael Trosper"
       ],
       "solver": {
         "solverName": "Partition Brute Force",

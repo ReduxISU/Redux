@@ -22,7 +22,7 @@ class SudokuVisualization : IVisualization<SUDOKU, API_TableJSON>, IBoardVisuali
     public string visualizationDefinition { get; } = "Draws the 9 x 9 grid as a table, rows and columns numbered from 1. The clues stand as given; once solved, every square the solver filled in is shown in the Solution color.";
     public string source { get; } = "TODO";
     public string sourceFile { get; } = SourceFile.Path();
-    public string[] contributors { get; } = { "Eric Hill" };
+    public string[] contributors { get; } = { "Eric Hill", "Michael Trosper" };
     public VisualizationType visualizationType { get; } = VisualizationType.DynamicTable;
     public ISolver solver { get; } = new SudokuSolver();
 
