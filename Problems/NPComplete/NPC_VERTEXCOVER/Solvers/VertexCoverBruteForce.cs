@@ -4,10 +4,14 @@ using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using System.Linq;
 using System.Numerics;
+using static API.Interfaces.Graphs.GraphSubsetFrames;
 
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
+// The steps Vertex Cover Brute Force records: one per candidate set of K nodes, in the order it tries them. A candidate is
+// a Reject naming an edge it leaves uncovered, or the Accept that ends the search; then the Done. The recorder's cap hides
+// the rest of a long run.
 class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
 
     // --- Fields ---
@@ -32,6 +36,12 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
     }
 
 
+
+    // How the steps show a candidate: the indices of the nodes it picks.
+    private static RunSteps<List<int>, NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> nodes) => new(rec,
+        // What every picture shows: the candidate's nodes, every one of them in focus.
+        partial: combination => new NodeSet(combination.Select(i => nodes[i])),
+        focus: combination => combination.Select(i => nodes[i]).ToArray());
 
     private BigInteger factorial(BigInteger x) {
         BigInteger y = 1;
@@ -64,8 +74,9 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
     /// </returns>
     public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
-    // Steps: one per candidate set of size K. Recorder state lives only in this call.
+    // Tries every set of K nodes in turn, the first K node indices first, until one covers every edge.
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec, G.nodes);
         // K=0: the only size-0 candidate is the empty node set, "{}", which the loop below checks like any
         // other: the verifier accepts it when G has no edges.
         List<int> combination = new List<int>();
@@ -74,23 +85,21 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
         }
         BigInteger reps = factorial(G.nodes.Count) / (factorial(G.K) * factorial(G.nodes.Count - G.K));
         int tried = 0;
-        string[] Candidate() => combination.Select(i => G.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             string certificate = indexListToCertificate(combination, G.nodes);
             tried++;
             if (G.defaultVerifier.verify(G, certificate)) {
-                rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. It covers every edge.", Candidate);
-                rec.Done(new NodeSet(Candidate()), true, $"{GraphSubsetFrames.Braces(Candidate())} covers every edge, found after {tried} tries.");
+                steps.Accept(combination, $"Try {certificate}. It covers every edge.");
+                steps.Done(new NodeSet(combination.Select(c => G.nodes[c])), true, $"{certificate} covers every edge, found after {tried} tries.");
                 return certificate;
             }
-            rec.Reject(() => new NodeSet(Candidate()),
-                () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.VertexCover, G.nodes, G.edges, Candidate())}.",
-                Candidate);
+            // The verifier only says no, so the uncovered edge is looked up for a kept step.
+            steps.Reject(combination, $"Try {certificate}: {Why(SubsetRule.VertexCover, G.nodes, G.edges, combination.Select(c => G.nodes[c]))}.");
             combination = nextComb(combination, G.nodes.Count);
 
         }
-        rec.Done(new NodeSet([]), false, $"Checked all {tried} sets of {G.K} nodes. None covers every edge.");
+        steps.Done(new NodeSet([]), false, $"Checked all {tried} sets of {G.K} nodes. None covers every edge.");
         return "{}";
     }
 

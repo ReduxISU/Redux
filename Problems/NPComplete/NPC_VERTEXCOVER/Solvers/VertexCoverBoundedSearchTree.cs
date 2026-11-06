@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 
+// The steps Vertex Cover Bounded Search Tree records, as it branches on the two ends of an uncovered edge:
+//   - an Accept for each end it takes into the cover;
+//   - a Reject when the budget runs out with edges still uncovered;
+//   - a Backtrack when it backs an end out again;
+//   - the Done, with the cover or none.
 class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
@@ -21,7 +26,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Parameterized by the budget K, and search() branches on the two endpoints
-    // of an uncovered edge, abandoning a branch once the budget runs out, which is Backtracking (#842).
+    // of an uncovered edge, abandoning a branch once the budget runs out, which is Backtracking.
     public SolverType solverType { get; } = SolverType.Backtracking | SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     public MathematicalFunction timeComplexity { get; } = new("2^K * (n + m)", ", K = target cover size, n = |nodes|, m = |edges|");
@@ -31,24 +36,34 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
 
     }
 
+    // How the steps show the search: the cover built along the current branch, and the end just taken or backed out
+    // (null: none).
+    private static RunSteps<(List<string> Chosen, string? Node), NodeSet> NewSteps(StepRecorder<NodeSet> rec) => new(rec,
+        // What every picture shows: the cover so far, and the node the step is about.
+        partial: s => new NodeSet(s.Chosen),
+        focus: s => s.Node == null ? [] : [s.Node]);
+
     public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
-    // Steps: take one end of an uncovered edge, run out of budget, back a choice out. Recorder state lives only in this call.
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec);
         var edges = new List<KeyValuePair<string, string>>(G.edges);
-        var result = search(edges, G.K, new List<string>(), rec);
+        var result = search(edges, G.K, new List<string>(), steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (result == null) {
-            rec.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
+            steps.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
             return "{}";
         }
-        rec.Done(new NodeSet(result), true, $"{GraphSubsetFrames.Braces(result)} covers every edge, within K = {G.K}.");
+        steps.Done(new NodeSet(result), true, $"{GraphSubsetFrames.Braces(result)} covers every edge, within K = {G.K}.");
         return "{" + string.Join(",", result) + "}";
     }
 
-    // 'chosen' is the cover built along the current branch (a stack); the returned list is built on the way back out.
-    private List<string>? search(List<KeyValuePair<string, string>> edges, int k, List<string> chosen, StepRecorder<NodeSet> rec) {
-        // #935: at the time limit, unwind as a failed branch; Solve() reports the stop.
+    // Every cover has one end of every edge, so for the first uncovered edge (u,v): take u and search on with one less
+    // budget; if that fails, take v instead. 'chosen' is the cover built along the current branch (a stack); the
+    // returned list is built on the way back out.
+    private List<string>? search(List<KeyValuePair<string, string>> edges, int k, List<string> chosen,
+        RunSteps<(List<string> Chosen, string? Node), NodeSet> steps) {
+        // At the time limit, unwind as a failed branch; Solve() reports the stop.
         if (timerHasExpired) {
             return null;
         }
@@ -56,7 +71,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
             return new List<string>();
         }
         if (k <= 0) {
-            rec.Reject(() => new NodeSet(chosen), () => $"Out of budget with {edges.Count} edge{(edges.Count == 1 ? "" : "s")} still uncovered.");
+            steps.Reject((chosen, null), $"Out of budget with {edges.Count} edge{(edges.Count == 1 ? "" : "s")} still uncovered.");
             return null;
         }
 
@@ -64,27 +79,25 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
 
         var withoutU = edges.Where(x => x.Key != e.Key && x.Value != e.Key).ToList();
         chosen.Add(e.Key);
-        rec.Accept(() => new NodeSet(chosen),
-            () => $"Edge {{{e.Key},{e.Value}}} isn't covered. Take {e.Key} ({k - 1} more allowed).", e.Key);
-        var resultU = search(withoutU, k - 1, chosen, rec);
+        steps.Accept((chosen, e.Key), $"Edge {{{e.Key},{e.Value}}} isn't covered. Take {e.Key} ({k - 1} more allowed).");
+        var resultU = search(withoutU, k - 1, chosen, steps);
         if (resultU != null) {
             resultU.Add(e.Key);
             return resultU;
         }
         chosen.RemoveAt(chosen.Count - 1);
-        rec.Backtrack(() => new NodeSet(chosen), () => $"Back out {e.Key}: no cover within budget follows from taking it.", e.Key);
+        steps.Backtrack((chosen, e.Key), $"Back out {e.Key}: no cover within budget follows from taking it.");
 
         var withoutV = edges.Where(x => x.Key != e.Value && x.Value != e.Value).ToList();
         chosen.Add(e.Value);
-        rec.Accept(() => new NodeSet(chosen),
-            () => $"Take {e.Value} instead, the other end of {{{e.Key},{e.Value}}} ({k - 1} more allowed).", e.Value);
-        var resultV = search(withoutV, k - 1, chosen, rec);
+        steps.Accept((chosen, e.Value), $"Take {e.Value} instead, the other end of {{{e.Key},{e.Value}}} ({k - 1} more allowed).");
+        var resultV = search(withoutV, k - 1, chosen, steps);
         if (resultV != null) {
             resultV.Add(e.Value);
             return resultV;
         }
         chosen.RemoveAt(chosen.Count - 1);
-        rec.Backtrack(() => new NodeSet(chosen), () => $"Back out {e.Value}: neither end of {{{e.Key},{e.Value}}} works here.", e.Value);
+        steps.Backtrack((chosen, e.Value), $"Back out {e.Value}: neither end of {{{e.Key},{e.Value}}} works here.");
 
         return null;
     }
