@@ -56,7 +56,9 @@ class MaxCutSolver : ISolver<MAXCUT, Groups> {
             if (w > bestWeight) {
                 bestWeight = w;
                 bestS = S;
-                steps.Accept(S, $"Put {GraphEdgeFrames.Side(S)} against {GraphEdgeFrames.Side(nodes.Where(x => !S.Contains(x)))}: the crossing edges weigh {w}, the most so far.");
+                // The other side as nodes.Except(S), not a lambda over S: a lambda would hold S in an object made on every
+                // pass of the loop, recording or not.
+                steps.Accept(S, $"Put {GraphEdgeFrames.Side(S)} against {GraphEdgeFrames.Side(nodes.Except(S))}: the crossing edges weigh {w}, the most so far.");
             }
         }
 
