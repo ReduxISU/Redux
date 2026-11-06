@@ -4,7 +4,14 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.P.P_MINSTCUT.Solvers;
 
-// Incremental: each step pushes flow along one more augmenting path, and the next path builds on the flow pushed so far.
+// The steps the Edmonds-Karp Algorithm records, for the Flow Network picture (ids from FlowFrames):
+//   - an Update for the empty flow;
+//   - an Accept per augmenting path: the flow pushed along it (focus: the path's edges and nodes), saying where it runs
+//     backward over earlier flow and which edges it fills;
+//   - the Done, with the maximum flow and the cut it proves: the nodes still reachable from s form the S side.
+// The picture draws flow on the instance's edges, which the algorithm does not keep: it works on the residual graph. A
+// ResidualFlow reads the flow back off the residual graph, and is made only when the steps are recorded. Incremental: each
+// step pushes flow along one more augmenting path, and the next path builds on the flow pushed so far.
 class MinSTCutSolver : ISolver<MINSTCUT, NetworkFlow>, IIncrementalSolver {
     public string solverName { get; } = "Edmonds-Karp Algorithm";
     public string solverDefinition { get; } = "Uses the Edmonds-Karp algorithm (BFS-based Ford-Fulkerson max-flow) to find the maximum s-t flow, then identifies the minimum cut S side via BFS on the residual graph from the source. Certificate format: {node1,node2,...} representing the S side of the minimum cut.";
@@ -23,138 +30,63 @@ class MinSTCutSolver : ISolver<MINSTCUT, NetworkFlow>, IIncrementalSolver {
 
     public MinSTCutSolver() { }
 
+    // How the steps show the flow: what the push just made did (none before the first), and the flow's value. The flow on
+    // each edge is read off the residual graph as it is at the step.
+    private static RunSteps<(FlowPush Push, int Value), NetworkFlow> NewSteps(StepRecorder<NetworkFlow> rec,
+        Lazy<ResidualFlow> flow, Dictionary<string, Dictionary<string, int>> residual) => new(rec,
+        // What every picture shows: the flow on every edge, the path just pushed along, and the flow's value.
+        partial: s => flow.Value.Snapshot(residual, s.Push.Legs, s.Value, []),
+        // The path just pushed along.
+        focus: s => s.Push.Focus);
+
     public string solve(MINSTCUT problem) => Solve(problem, StepRecorder<NetworkFlow>.Off);
 
+    // Edmonds-Karp: while a breadth-first search finds a path from s to t with room left on every hop (an augmenting path),
+    // push as much as its tightest hop allows (the bottleneck), and update the room left both ways. When no such path is
+    // left the flow is maximum, and the nodes the search still reaches from s are the S side of a minimum cut.
     public string Solve(MINSTCUT problem, StepRecorder<NetworkFlow> rec) {
+        string s = problem.sourceNode, t = problem.targetNode;
+        var residual = BuildResidual(problem.nodes, problem.edges);
+        // Reads the flow off the residual graph for the picture; made only when a step is kept.
+        var flow = new Lazy<ResidualFlow>(() => new ResidualFlow(problem.edges));
+        var steps = NewSteps(rec, flow, residual);
+
         if (problem.nodes.Count == 0) {
-            rec.Done(new NetworkFlow([], [], 0, []), false, "There are no nodes, so there is no cut.");
+            steps.Done(new NetworkFlow([], [], 0, []), false, $"There are no nodes, so there is no cut.");
             return "{}";
         }
 
-        string s = problem.sourceNode, t = problem.targetNode;
-        var residual = BuildResidual(problem.nodes, problem.edges);
-        // Read only inside recorder lambdas and for the Done step, so it costs nothing when recording is off.
-        var reader = new Lazy<FlowReader>(() => new FlowReader(problem));
         int value = 0, paths = 0;
-
-        rec.Try(() => reader.Value.Snapshot(residual, [], 0, []),
-            () => $"No flow yet. Each step finds a path from {s} to {t} with room left and pushes as much as it can.");
+        steps.Update((FlowPush.None, 0), $"No flow yet. Each step finds a path from {s} to {t} with room left and pushes as much as it can.");
 
         while (true) {
             if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
-            var parent = BfsAugmentingPath(residual, problem.sourceNode, problem.targetNode);
+            var parent = BfsAugmentingPath(residual, s, t);
             if (parent == null) break;
 
-            int bottleneck = FindBottleneck(residual, parent, problem.sourceNode, problem.targetNode);
-            Augment(residual, parent, problem.sourceNode, problem.targetNode, bottleneck);
+            int bottleneck = FindBottleneck(residual, parent, s, t);
+            Augment(residual, parent, s, t, bottleneck);
             value += bottleneck;
             paths++;
-            int n = paths, flowValue = value;
-            rec.Accept(() => reader.Value.Snapshot(residual, reader.Value.Legs(residual, parent, s, t, bottleneck), flowValue, []),
-                () => reader.Value.PathCaption(residual, parent, s, t, bottleneck, n, flowValue),
-                () => reader.Value.PathFocus(residual, parent, s, t, bottleneck));
+            // What the push did on the instance's edges, for the step (worked out only while recording).
+            FlowPush push = rec.Enabled ? flow.Value.Push(residual, parent, s, t, bottleneck) : FlowPush.None;
+            steps.Accept((push, value), $"Path {paths}: push {bottleneck} along {push.Along}.{(push.Back.Count > 0 ? $" It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier." : "")}{(push.Full.Count > 0 ? $" {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full." : "")} Flow is now {value}.");
         }
 
-        HashSet<string> sSide = BfsReachable(residual, problem.sourceNode);
-        if (rec != StepRecorder<NetworkFlow>.Off)
-            rec.Done(reader.Value.Snapshot(residual, [], value, sSide), true, reader.Value.DoneCaption(sSide, value, paths));
+        HashSet<string> sSide = BfsReachable(residual, s);
+        // The last step is only for the steps: a plain solve skips it.
+        if (rec.Enabled) {
+            var answer = flow.Value.Snapshot(residual, [], value, sSide);
+            int cut = flow.Value.EdgesLeaving(sSide);
+            if (paths == 0)
+                steps.Done(answer, true, $"There is no path from {s} to {t} with room, so the maximum flow and the minimum cut are both 0.");
+            else if (cut == 1)
+                steps.Done(answer, true, $"No augmenting path is left. The nodes still reachable from {s} form S = {FlowFrames.Braces(problem.nodes.Where(sSide.Contains))}. The only edge from S to T is full, and its capacity, {value}, equals the maximum flow.");
+            else
+                steps.Done(answer, true, $"No augmenting path is left. The nodes still reachable from {s} form S = {FlowFrames.Braces(problem.nodes.Where(sSide.Contains))}. The {cut} edges from S to T are full and add up to {value}, equal to the maximum flow.");
+        }
         return "{" + string.Join(",", sSide) + "}";
-    }
-
-    /// <summary>
-    /// Reads the flow off the residual graph for the picture. The residual graph merges parallel edges and both directions
-    /// of a pair, so it holds only the net flow from u to v: capacity(u,v) - residual[u][v]. That net flow is drawn on the
-    /// edge it runs along (u to v when positive, v to u when negative), which is a valid flow since 0 &lt;= net &lt;=
-    /// capacity(u,v) and 0 &lt;= -net &lt;= capacity(v,u).
-    /// </summary>
-    private sealed class FlowReader {
-        private readonly MINSTCUT _problem;
-        // The summed capacity of every listed (from, to) pair, in listed order.
-        private readonly Dictionary<(string From, string To), int> _capacity = new();
-
-        public FlowReader(MINSTCUT problem) {
-            _problem = problem;
-            foreach (var (from, to, weight) in problem.edges)
-                _capacity[(from, to)] = _capacity.GetValueOrDefault((from, to)) + weight;
-        }
-
-        private int Capacity(string from, string to) => _capacity.GetValueOrDefault((from, to));
-
-        // The net flow from u to v.
-        private int Net(Dictionary<string, Dictionary<string, int>> residual, string u, string v) =>
-            Capacity(u, v) - residual[u].GetValueOrDefault(v);
-
-        private int Units(Dictionary<string, Dictionary<string, int>> residual, string from, string to) =>
-            from == to ? 0 : Math.Max(0, Net(residual, from, to));
-
-        public NetworkFlow Snapshot(Dictionary<string, Dictionary<string, int>> residual, IEnumerable<FlowArc> legs, int value, IEnumerable<string> side) =>
-            new(_capacity.Keys.Select(e => KeyValuePair.Create(FlowFrames.ArcId(e.From, e.To), Units(residual, e.From, e.To))), legs, value, side);
-
-        private static List<string> PathNodes(Dictionary<string, string> parent, string s, string t) {
-            var nodes = new List<string>();
-            for (string node = t; node != s; node = parent[node]) nodes.Add(node);
-            nodes.Add(s);
-            nodes.Reverse();
-            return nodes;
-        }
-
-        // Each hop x to y of the path just pushed moved `pushed` units: first taking back what y had sent to x, then along x
-        // to y. Read after the push, when the net flow from x to y is `pushed` more than it was.
-        private List<(string X, string Y, int Back, int Ahead)> Hops(Dictionary<string, Dictionary<string, int>> residual,
-            Dictionary<string, string> parent, string s, string t, int pushed) {
-            var nodes = PathNodes(parent, s, t);
-            var hops = new List<(string, string, int, int)>();
-            for (int i = 1; i < nodes.Count; i++) {
-                string x = nodes[i - 1], y = nodes[i];
-                int before = Net(residual, x, y) - pushed;
-                int back = Math.Min(pushed, Math.Max(0, -before));
-                hops.Add((x, y, back, pushed - back));
-            }
-            return hops;
-        }
-
-        public List<FlowArc> Legs(Dictionary<string, Dictionary<string, int>> residual, Dictionary<string, string> parent, string s, string t, int pushed) {
-            var legs = new List<FlowArc>();
-            foreach (var (x, y, back, ahead) in Hops(residual, parent, s, t, pushed)) {
-                if (back > 0) legs.Add(new FlowArc(FlowFrames.ArcId(y, x), false, back));
-                if (ahead > 0) legs.Add(new FlowArc(FlowFrames.ArcId(x, y), true, ahead));
-            }
-            return legs;
-        }
-
-        public string[] PathFocus(Dictionary<string, Dictionary<string, int>> residual, Dictionary<string, string> parent, string s, string t, int pushed) {
-            var focus = new List<string> { FlowFrames.NodeId(s) };
-            foreach (var (x, y, back, ahead) in Hops(residual, parent, s, t, pushed)) {
-                if (back > 0) focus.Add(FlowFrames.ArcId(y, x));
-                if (ahead > 0) focus.Add(FlowFrames.ArcId(x, y));
-                focus.Add(FlowFrames.NodeId(y));
-            }
-            return focus.ToArray();
-        }
-
-        public string PathCaption(Dictionary<string, Dictionary<string, int>> residual, Dictionary<string, string> parent, string s, string t,
-            int pushed, int n, int value) {
-            var hops = Hops(residual, parent, s, t, pushed);
-            string along = s + string.Concat(hops.Select(h => (h.Ahead > 0 ? " → " : " ⇠ ") + h.Y));
-            var back = hops.Where(h => h.Back > 0).Select(h => $"{h.Y} → {h.X}").ToList();
-            var full = hops.Where(h => h.Ahead > 0 && Units(residual, h.X, h.Y) == Capacity(h.X, h.Y)).Select(h => $"{h.X} → {h.Y}").ToList();
-            return $"Path {n}: push {pushed} along {along}."
-                + (back.Count > 0 ? $" It runs backward over {FlowFrames.List(back)}, taking back flow sent there earlier." : "")
-                + (full.Count > 0 ? $" {FlowFrames.List(full)} {(full.Count == 1 ? "is" : "are")} now full." : "")
-                + $" Flow is now {value}.";
-        }
-
-        public string DoneCaption(HashSet<string> side, int value, int paths) {
-            string s = _problem.sourceNode, t = _problem.targetNode;
-            if (paths == 0) return $"There is no path from {s} to {t} with room, so the maximum flow and the minimum cut are both 0.";
-            string sSide = FlowFrames.Braces(_problem.nodes.Where(side.Contains));
-            int cut = _capacity.Keys.Count(e => side.Contains(e.From) && !side.Contains(e.To));
-            return $"No augmenting path is left. The nodes still reachable from {s} form S = {sSide}. "
-                + (cut == 1
-                    ? $"The only edge from S to T is full, and its capacity, {value}, equals the maximum flow."
-                    : $"The {cut} edges from S to T are full and add up to {value}, equal to the maximum flow.");
-        }
     }
 
     internal static int GetMinCutCapacity(MINSTCUT problem) {
