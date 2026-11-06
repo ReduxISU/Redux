@@ -4,6 +4,14 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPHard.NPH_MINIMUMTSP.Solvers;
 
+// The steps Minimum Traveling Salesperson Brute Force records: one per ordering, in the order the solver tries them, each
+// a whole closed tour (the solver judges whole candidates, so the picture shows each one as tried, never as built up).
+//   - an Accept for an ordering that is a tour and is cheaper than every tour before it: the best so far, and the last
+//     Accept is the answer. Past the recorder's cap the most recent Accept is still kept, just before the Done, so a long
+//     run always shows the step that found the cheapest tour;
+//   - a Reject for an ordering with a hop that is not an edge (about that hop's two cities), or for a tour that costs no
+//     less than the best so far (about the whole tour);
+//   - the Done, with the cheapest tour or none.
 class BruteForceMinimumTSP : ISolver<MINIMUMTSP, Tour> {
 
     // --- Fields ---
@@ -24,6 +32,17 @@ class BruteForceMinimumTSP : ISolver<MINIMUMTSP, Tour> {
 
     }
 
+    // How the steps show an ordering: the closed tour through it (the first city repeated at the end), and, given as the
+    // state, the hop of it that is not an edge: from order[missing] to the city after it (-1: none, so the step is about
+    // the whole tour). An Accept says its own focus, none, so the picture draws the new best tour as taken rather than as
+    // looked at.
+    private static RunSteps<int, Tour> NewSteps(List<string> nodes, int[] order, StepRecorder<Tour> rec) => new(rec,
+        // What every picture shows: the closed tour, and its missing hop or its edges.
+        partial: _ => new Tour(Closed(nodes, order)),
+        focus: missing => missing >= 0
+            ? [nodes[order[missing]], nodes[order[(missing + 1) % order.Length]]]
+            : EdgeIds(Closed(nodes, order)));
+
     /// <summary>
     /// A cheapest tour, as <c>{a,c,b,e,d,a}</c> (the closing repeat of the first city included, as Traveling
     /// Salesperson's solvers write it), or <c>{}</c> when there is none: fewer than three cities, or no ordering whose
@@ -31,79 +50,58 @@ class BruteForceMinimumTSP : ISolver<MINIMUMTSP, Tour> {
     /// </summary>
     public string solve(MINIMUMTSP problem) => Solve(problem, StepRecorder<Tour>.Off);
 
-    // Steps: one per ordering, in the order the solver tries them, each a whole closed tour (the solver judges whole
-    // candidates, so the picture shows each one as tried, never as built up). An ordering that is a tour and is cheaper
-    // than every tour before it is an Accept: the solver takes it as its best so far, and the last Accept is the answer.
-    // That is also why it is an Accept: past the recorder's cap the most recent Accept is still kept, just before Done,
-    // so a long run always shows the step that found the cheapest tour. An ordering with a hop that is not an edge, or
-    // one that costs no less than the best so far, is a Reject that says why: its focus is the missing hop's two cities,
-    // or the whole tour. An Accept has no focus, so the picture draws the new best tour as taken (its hops Solution)
-    // rather than as looked at. Recorder state lives only in this call.
+    // Keeps the first city fixed and tries every ordering of the others, each a whole closed tour, keeping the cheapest
+    // one found (the first of several equally cheap ones).
     public string Solve(MINIMUMTSP problem, StepRecorder<Tour> rec) {
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
+        // order[0] stays 0; order[1..] runs through every permutation of 1..n-1 in lexicographic order.
+        int[] order = Enumerable.Range(0, n).ToArray();
+        var steps = NewSteps(nodes, order, rec);
+        if (n == 0) {
+            steps.Done(new Tour([]), false, $"There are no cities to tour.");
+            return "{}";
+        }
         if (n < 3) {
-            rec.Done(new Tour([]), false, n == 0 ? "There are no cities to tour."
-                : $"A tour needs at least three cities, and there {(n == 1 ? "is one" : "are two")}.");
+            steps.Done(new Tour([]), false, $"A tour needs at least three cities, and there {(n == 1 ? "is one" : "are two")}.");
             return "{}";
         }
 
         int?[,] weight = WeightTable(problem);
-        // order[0] stays 0; order[1..] runs through every permutation of 1..n-1 in lexicographic order.
-        int[] order = Enumerable.Range(0, n).ToArray();
         int[]? best = null;
         long bestCost = long.MaxValue;
         int tried = 0;
-        // The closed tour (first city repeated at the end) of the current ordering, for captions and pictures.
-        string[] Closed() => order.Append(order[0]).Select(i => nodes[i]).ToArray();
         do {
             tried++;
-            long? cost = Cost(weight, order);
+            long? cost = Cost(weight, order, out int missing);
             if (cost is not long c) {
-                rec.Reject(() => new Tour(Closed()),
-                    () => {
-                        var (from, to) = FirstMissingHop(weight, order, nodes);
-                        return $"Try {GraphTourFrames.Arrows(Closed())}: there is no edge between {from} and {to}.";
-                    },
-                    () => {
-                        var (from, to) = FirstMissingHop(weight, order, nodes);
-                        return new[] { from, to };
-                    });
+                steps.Reject(missing, $"Try {GraphTourFrames.Arrows(Closed(nodes, order))}: there is no edge between {nodes[order[missing]]} and {nodes[order[(missing + 1) % n]]}.");
             } else if (c < bestCost) {
                 // Strictly cheaper, so the first of several equally cheap tours is kept.
                 long previous = bestCost;
                 bestCost = c;
                 best = (int[])order.Clone();
-                rec.Accept(() => new Tour(Closed()),
-                    () => previous == long.MaxValue
-                        ? $"Try {GraphTourFrames.Arrows(Closed())}: cost {c}, the first tour found, so the best so far."
-                        : $"Try {GraphTourFrames.Arrows(Closed())}: cost {c}, a new best tour (it beats {previous}).");
+                if (previous == long.MaxValue)
+                    steps.Accept(-1, $"Try {GraphTourFrames.Arrows(Closed(nodes, order))}: cost {c}, the first tour found, so the best so far.", focus: () => []);
+                else
+                    steps.Accept(-1, $"Try {GraphTourFrames.Arrows(Closed(nodes, order))}: cost {c}, a new best tour (it beats {previous}).", focus: () => []);
             } else {
-                rec.Reject(() => new Tour(Closed()),
-                    () => $"Try {GraphTourFrames.Arrows(Closed())}: cost {c}, not better than the best so far ({bestCost}).",
-                    () => EdgeIds(Closed()));
+                steps.Reject(-1, $"Try {GraphTourFrames.Arrows(Closed(nodes, order))}: cost {c}, not better than the best so far ({bestCost}).");
             }
         } while (NextPermutation(order, 1));
 
-        string orderings = $"{tried} {(tried == 1 ? "ordering" : "orderings")} of the cities after {nodes[0]}";
         if (best == null) {
-            rec.Done(new Tour([]), false, $"Tried all {orderings}. None is a tour.");
+            steps.Done(new Tour([]), false, $"Tried all {Words.Count(tried, "ordering")} of the cities after {nodes[0]}. None is a tour.");
             return "{}";
         }
         string answer = ToCertificate(best, nodes);
-        rec.Done(GraphTourFrames.ParseTour(answer), true,
-            $"Tried all {orderings}. The cheapest tour is {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)}, cost {bestCost}.");
+        steps.Done(GraphTourFrames.ParseTour(answer), true,
+            $"Tried all {Words.Count(tried, "ordering")} of the cities after {nodes[0]}. The cheapest tour is {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)}, cost {bestCost}.");
         return answer;
     }
 
-    // The first hop of the closed tour through order that is not an edge, by name.
-    private static (string From, string To) FirstMissingHop(int?[,] weight, int[] order, List<string> nodes) {
-        for (int i = 0; i < order.Length; i++) {
-            int a = order[i], b = order[(i + 1) % order.Length];
-            if (weight[a, b] == null) return (nodes[a], nodes[b]);
-        }
-        throw new InvalidOperationException("every hop is an edge");
-    }
+    // The closed tour through order, by name: the first city repeated at the end.
+    private static string[] Closed(List<string> nodes, int[] order) => order.Append(order[0]).Select(i => nodes[i]).ToArray();
 
     // The ids of the edges a closed tour walks, all of which exist.
     private static string[] EdgeIds(string[] closed) =>
@@ -120,13 +118,23 @@ class BruteForceMinimumTSP : ISolver<MINIMUMTSP, Tour> {
     }
 
     /// <summary>The cost of the closed tour through <paramref name="order"/>, or null if a hop is not an edge.</summary>
-    internal static long? Cost(int?[,] weight, int[] order) {
+    internal static long? Cost(int?[,] weight, int[] order) => Cost(weight, order, out _);
+
+    /// <summary>
+    /// The cost of the closed tour through <paramref name="order"/>, or null if a hop is not an edge; then
+    /// <paramref name="missing"/> is the first such hop, from <c>order[missing]</c> to the city after it (else -1).
+    /// </summary>
+    internal static long? Cost(int?[,] weight, int[] order, out int missing) {
         long total = 0;
         for (int i = 0; i < order.Length; i++) {
             int? w = weight[order[i], order[(i + 1) % order.Length]];
-            if (w == null) return null;
+            if (w == null) {
+                missing = i;
+                return null;
+            }
             total += w.Value;
         }
+        missing = -1;
         return total;
     }
 
