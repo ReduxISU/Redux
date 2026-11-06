@@ -261,6 +261,52 @@ static class TripartiteFrames {
         int sets = (spec.X.Contains(name) ? 1 : 0) + (spec.Y.Contains(name) ? 1 : 0) + (spec.Z.Contains(name) ? 1 : 0);
         return sets > 1 ? $"{name} in {set}" : name;
     }
+
+    // ---- What fails a whole set of triples, for a brute force's steps (the verifier only says no) ----
+
+    /// <summary>The elements the given triples use more than once, in X, Y, Z order, with how many times.</summary>
+    public static List<(string Id, int Uses)> Repeated(TripartiteSpec spec, IEnumerable<int> triples) {
+        var uses = Uses(spec, triples);
+        return Order(spec).Where(id => uses.GetValueOrDefault(id) > 1).Select(id => (id, uses[id])).ToList();
+    }
+
+    /// <summary>The elements of Y and Z the given triples leave unused, in Y, Z order.</summary>
+    public static List<string> Unused(TripartiteSpec spec, IEnumerable<int> triples) {
+        var uses = Uses(spec, triples);
+        return Order(spec).Where(id => id[0] != 'x' && !uses.ContainsKey(id)).ToList();
+    }
+
+    // Every element id, X first, then Y, then Z.
+    private static IEnumerable<string> Order(TripartiteSpec spec) =>
+        spec.X.Select((_, i) => XId(i)).Concat(spec.Y.Select((_, i) => YId(i))).Concat(spec.Z.Select((_, i) => ZId(i)));
+
+    /// <summary>"Paul, Chloe and Sam" by <see cref="ElementName"/>; past <paramref name="most"/>, "a, b, c, d and 3 more".</summary>
+    public static string Names(TripartiteSpec spec, IEnumerable<string> ids, int most = 4) {
+        var names = ids.Select(id => ElementName(spec, id)).ToList();
+        return names.Count <= most ? AndList(names) : string.Join(", ", names.Take(most)) + $" and {names.Count - most} more";
+    }
+
+    /// <summary>
+    /// What a brute force's Reject says of triples the verifier turned down: the elements they use more than once, the most
+    /// used first ("a is used 3 times, and b and c twice"); else the elements of Y and Z they never use; else that the
+    /// verifier rejects them. For a <c>$"Try {...}: {WhyRejected(spec, triples)}."</c> hole, so it runs only for a kept step.
+    /// </summary>
+    public static string WhyRejected(TripartiteSpec spec, IReadOnlyCollection<int> triples) {
+        var repeated = Repeated(spec, triples);
+        if (repeated.Count > 0) {
+            var groups = repeated.GroupBy(r => r.Uses).OrderByDescending(g => g.Key).ToList();
+            static string Times(int uses) => uses == 2 ? "twice" : $"{uses} times";
+            var first = groups[0].Select(r => r.Id).ToList();
+            string text = $"{Names(spec, first)} {(first.Count == 1 ? "is" : "are")} used {Times(groups[0].Key)}";
+            foreach (var g in groups.Skip(1))
+                text += $", and {Names(spec, g.Select(r => r.Id))} {Times(g.Key)}";
+            return text;
+        }
+        var unused = Unused(spec, triples);
+        return unused.Count > 0
+            ? $"no element is used twice, but {Names(spec, unused)} {(unused.Count == 1 ? "is" : "are")} never used, so the verifier rejects it"
+            : "no element is used twice, but the verifier rejects it";
+    }
 }
 
 /// <summary>

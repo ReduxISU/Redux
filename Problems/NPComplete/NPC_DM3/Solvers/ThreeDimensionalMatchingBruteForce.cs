@@ -5,6 +5,9 @@ using API.Problems.NPComplete.NPC_DM3.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_DM3.Solvers;
 
+// The steps 3-Dimensional Matching Brute Force records: one per set of |X| triples, in the order Combinations hands them
+// out. A set is a Reject naming the elements it uses more than once (or never), or the Accept that ends the search; then
+// the Done. The recorder's cap hides the rest of a long run.
 // Not incremental: every step judges a whole set of |X| triples.
 class ThreeDimensionalMatchingBruteForce : ISolver<DM3, ChosenTriples> {
 
@@ -65,96 +68,61 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3, ChosenTriples> {
         }
     }
 
+    // How the steps show a candidate, given by the positions in M of its triples: those triples, and the elements they use
+    // more than once. The Accept says its own focus, none.
+    private static RunSteps<List<int>, ChosenTriples> NewSteps(StepRecorder<ChosenTriples> rec, TripartiteSpec? spec) => new(rec,
+        // What every picture shows: the triples tried, and the elements they use more than once.
+        partial: TripartiteFrames.Chosen,
+        focus: combination => TripartiteFrames.Repeated(spec!, combination).Select(r => r.Id).ToArray());
+
     public string solve(DM3 problem) => Solve(problem, StepRecorder<ChosenTriples>.Off);
 
-    // Steps: one per set of |X| triples tried, in the order Combinations hands them out; the first set the verifier accepts
-    // is the answer.
+    // Tries every set of |X| triples of M until the verifier accepts one.
     public string Solve(DM3 problem, StepRecorder<ChosenTriples> rec) {
         int n = problem.X.Count, m = problem.M.Count;
-        // A matching needs |X| triples; with fewer in M there is none (#745).
+        // The verifier only says no, so the elements a set of triples uses twice or never are worked out for the steps alone.
+        TripartiteSpec? spec = rec.Enabled ? DM3Visualization.Spec(problem) : null;
+        var steps = NewSteps(rec, spec);
+        // A matching needs |X| triples; with fewer in M there is none.
         if (m < n) {
-            rec.Done(new ChosenTriples([]), false, m == 0
-                ? $"M has no triples, so nothing can match the {Plural(n, "element")} of X."
-                : $"M has only {Plural(m, "triple")}, but a matching needs {n}, one for each element of X. There is nothing to try.");
+            if (m == 0)
+                steps.Done(new ChosenTriples([]), false, $"M has no triples, so nothing can match the {Words.Count(n, "element")} of X.");
+            else
+                steps.Done(new ChosenTriples([]), false, $"M has only {Words.Count(m, "triple")}, but a matching needs {n}, one for each element of X. There is nothing to try.");
             return "{}";
         }
-        // Read only inside recorder lambdas (and for Done), so it costs nothing when recording is off.
-        TripartiteSpec? spec = null;
-        TripartiteSpec Spec() => spec ??= DM3Visualization.Spec(problem);
         long tried = 0;
         foreach (List<int> combination in Combinations(m, n)) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             tried++;
             string certificate = indexListToCertificate(combination, problem.M);
             if (problem.defaultVerifier.verify(problem, certificate)) {
-                rec.Accept(() => TripartiteFrames.Chosen(combination), () => TryCaption(Spec(), combination, accepted: true));
-                rec.Done(TripartiteFrames.Chosen(combination), true, DoneCaption(Spec(), combination, tried));
+                // With |Y| or |Z| bigger than |X|, a matching can leave some of their elements unused.
+                var unused = rec.Enabled ? TripartiteFrames.Unused(spec!, combination) : [];
+                string which = rec.Enabled ? TripartiteFrames.AndList(combination.Select(TripartiteFrames.TripleId).ToList()) : "";
+                string triples = rec.Enabled ? TripartiteFrames.AndList(combination.Select(i => TripartiteFrames.TripleLabel(spec!, i)).ToList()) : "";
+                if (unused.Count == 0) {
+                    steps.Accept(combination, $"Try {which}: every element of X, Y and Z is used exactly once, so the verifier accepts it.", focus: () => []);
+                    if (tried == 1)
+                        steps.Done(TripartiteFrames.Chosen(combination), true, $"{triples} {(combination.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found on the first try.");
+                    else
+                        steps.Done(TripartiteFrames.Chosen(combination), true, $"{triples} {(combination.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {TripartiteFrames.Count(tried)} tries.");
+                } else {
+                    steps.Accept(combination, $"Try {which}: no element is used twice, so the verifier accepts it.", focus: () => []);
+                    if (tried == 1)
+                        steps.Done(TripartiteFrames.Chosen(combination), true, $"The verifier accepts {triples}, found on the first try, though {TripartiteFrames.Names(spec!, unused)} {(unused.Count == 1 ? "is" : "are")} never used.");
+                    else
+                        steps.Done(TripartiteFrames.Chosen(combination), true, $"The verifier accepts {triples}, found after {TripartiteFrames.Count(tried)} tries, though {TripartiteFrames.Names(spec!, unused)} {(unused.Count == 1 ? "is" : "are")} never used.");
+                }
                 return certificate;
             }
-            rec.Reject(() => TripartiteFrames.Chosen(combination), () => TryCaption(Spec(), combination, accepted: false),
-                () => Repeated(Spec(), combination).Select(r => r.Id).ToArray());
+            steps.Reject(combination,
+                $"Try {TripartiteFrames.AndList(combination.Select(TripartiteFrames.TripleId).ToList())}: {TripartiteFrames.WhyRejected(spec!, combination)}.");
         }
-        rec.Done(new ChosenTriples([]), false, tried == 1
-            ? "There is only one way to pick the triples, and the verifier rejects it, so there is no perfect matching."
-            : $"Checked all {TripartiteFrames.Count(tried)} ways to pick {n} of the {m} triples. The verifier rejects every one, so there is no perfect matching.");
+        if (tried == 1)
+            steps.Done(new ChosenTriples([]), false, $"There is only one way to pick the triples, and the verifier rejects it, so there is no perfect matching.");
+        else
+            steps.Done(new ChosenTriples([]), false, $"Checked all {TripartiteFrames.Count(tried)} ways to pick {n} of the {m} triples. The verifier rejects every one, so there is no perfect matching.");
         return "{}";
     }
-
-    // The elements a set of triples uses more than once, in X, Y, Z order, with how many times.
-    private static List<(string Id, int Uses)> Repeated(TripartiteSpec spec, List<int> combination) {
-        var uses = TripartiteFrames.Uses(spec, combination);
-        return Order(spec).Where(id => uses.GetValueOrDefault(id) > 1).Select(id => (id, uses[id])).ToList();
-    }
-
-    // The elements of Y and Z a set of triples leaves unused, in Y, Z order.
-    private static List<string> Unused(TripartiteSpec spec, List<int> combination) {
-        var uses = TripartiteFrames.Uses(spec, combination);
-        return Order(spec).Where(id => id[0] != 'x' && !uses.ContainsKey(id)).ToList();
-    }
-
-    private static IEnumerable<string> Order(TripartiteSpec spec) =>
-        spec.X.Select((_, i) => TripartiteFrames.XId(i))
-            .Concat(spec.Y.Select((_, i) => TripartiteFrames.YId(i)))
-            .Concat(spec.Z.Select((_, i) => TripartiteFrames.ZId(i)));
-
-    private static string Names(TripartiteSpec spec, IEnumerable<string> ids, int most = 4) {
-        var names = ids.Select(id => TripartiteFrames.ElementName(spec, id)).ToList();
-        return names.Count <= most ? TripartiteFrames.AndList(names) : string.Join(", ", names.Take(most)) + $" and {names.Count - most} more";
-    }
-
-    // "Try T1, T2 and T5: Paul and Chloe are used twice."
-    private static string TryCaption(TripartiteSpec spec, List<int> combination, bool accepted) {
-        string which = TripartiteFrames.AndList(combination.Select(TripartiteFrames.TripleId).ToList());
-        if (accepted)
-            return Unused(spec, combination).Count == 0
-                ? $"Try {which}: every element of X, Y and Z is used exactly once, so the verifier accepts it."
-                : $"Try {which}: no element is used twice, so the verifier accepts it.";
-        var repeated = Repeated(spec, combination);
-        if (repeated.Count > 0) {
-            // "a is used 3 times, and b and c twice": the most used first.
-            var groups = repeated.GroupBy(r => r.Uses).OrderByDescending(g => g.Key).ToList();
-            static string Times(int uses) => uses == 2 ? "twice" : $"{uses} times";
-            var first = groups[0].Select(r => r.Id).ToList();
-            string text = $"{Names(spec, first)} {(first.Count == 1 ? "is" : "are")} used {Times(groups[0].Key)}";
-            foreach (var g in groups.Skip(1))
-                text += $", and {Names(spec, g.Select(r => r.Id))} {Times(g.Key)}";
-            return $"Try {which}: {text}.";
-        }
-        var unused = Unused(spec, combination);
-        return unused.Count > 0
-            ? $"Try {which}: no element is used twice, but {Names(spec, unused)} {(unused.Count == 1 ? "is" : "are")} never used, so the verifier rejects it."
-            : $"Try {which}: no element is used twice, but the verifier rejects it.";
-    }
-
-    // "T2 (Paul, Austin, Jake), T4 (Sally, Madison, Frank) and T6 (Dave, Bob, Chloe) use every element of X, Y and Z exactly once."
-    private static string DoneCaption(TripartiteSpec spec, List<int> combination, long tried) {
-        string triples = TripartiteFrames.AndList(combination.Select(i => TripartiteFrames.TripleLabel(spec, i)).ToList());
-        string after = tried == 1 ? "on the first try" : $"after {TripartiteFrames.Count(tried)} tries";
-        var unused = Unused(spec, combination);
-        return unused.Count == 0
-            ? $"{triples} {(combination.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found {after}."
-            : $"The verifier accepts {triples}, found {after}, though {Names(spec, unused)} {(unused.Count == 1 ? "is" : "are")} never used.";
-    }
-
-    private static string Plural(int n, string one) => $"{n} {(n == 1 ? one : one + "s")}";
 }
