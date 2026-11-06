@@ -5,6 +5,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 
+// The steps Subset Sum Brute Force records: one per subset that holds something, in mask order. A subset is a Reject
+// saying what it adds up to, or the Accept that ends the search; then the Done. The recorder's cap hides the rest of a
+// long run.
 // Not incremental: every step judges a whole subset.
 class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
 
@@ -28,7 +31,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
 
     }
 
-    // Written out by position, not added to a SPADE set, so a number S has twice can be picked twice (#628): {7,7}.
+    // Written out by position, not added to a SPADE set, so a number S has twice can be picked twice: {7,7}.
     private static string SubsetToCertificate(bool[] picked, List<string> S) {
         List<string> chosen = new List<string>();
         for (int i = 0; i < S.Count; i++) {
@@ -39,7 +42,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
     }
 
     // Moves to the next subset in mask order (bit i picks item i), like adding 1 to the mask. Returns false once every
-    // subset has been seen. A bool per item, not an int mask, so there is no limit on the number of items (#791).
+    // subset has been seen. A bool per item, not an int mask, so there is no limit on the number of items.
     private static bool NextSubset(bool[] picked) {
         for (int i = 0; i < picked.Length; i++) {
             picked[i] = !picked[i];
@@ -48,9 +51,17 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
         return false;
     }
 
+    // How the steps show a candidate, given by its picks, one per number of S: the numbers picked, all in focus.
+    private static RunSteps<bool[], Placement> NewSteps(StepRecorder<Placement> rec) => new(rec,
+        // What every picture shows: the numbers picked, in the one container, every one of them in focus.
+        partial: picked => new Placement(picked.Select(p => p ? 0 : -1)),
+        focus: picked => Members(picked).Select(PackingFrames.ItemId).ToArray());
+
+    // The positions of the numbers a candidate picks.
+    private static List<int> Members(bool[] picked) => Enumerable.Range(0, picked.Length).Where(i => picked[i]).ToList();
+
     public string solve(SUBSETSUM subsetSum) => Solve(subsetSum, StepRecorder<Placement>.Off);
 
-    // Steps: one per subset tried, in mask order; the subset that adds up to T is accepted.
     public string Solve(SUBSETSUM subsetSum, StepRecorder<Placement> rec) {
         int n = subsetSum.S.Count;
 
@@ -60,34 +71,31 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
         // "{}" doubles as the no-solution sentinel.
         bool[] picked = new bool[n];
         int tried = 0;
-        // Read only inside recorder lambdas (and for Done), so they cost nothing when recording is off.
-        Placement Chosen() => new(picked.Select(p => p ? 0 : -1));
-        List<int> Members() => Enumerable.Range(0, n).Where(i => picked[i]).ToList();
-        string[] Focus() => Members().Select(PackingFrames.ItemId).ToArray();
-        string Set() => PackingFrames.Braces(Members().Select(i => subsetSum.S[i]));
-        string Adds() => PackingFrames.SumText(Members().Select(i => int.Parse(subsetSum.S[i])).ToList());
+        var steps = NewSteps(rec);
         while (NextSubset(picked)) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
 
             string certificate = SubsetToCertificate(picked, subsetSum.S);
             tried++;
+            // The verifier only says yes or no, so what the subset adds up to is worked out inside the step line, for a kept
+            // step alone.
             if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {
-                rec.Accept(Chosen, () => $"Try {Set()}: {Adds()}. That's T.", Focus);
-                rec.Done(Chosen(), true, $"{Set()} adds up to exactly {subsetSum.T}, found after {Tries(tried)}.");
+                steps.Accept(picked, $"Try {PackingFrames.Braces(Members(picked).Select(i => subsetSum.S[i]))}: {PackingFrames.SumText(Members(picked).Select(i => int.Parse(subsetSum.S[i])).ToList())}. That's T.");
+                steps.Done(new Placement(picked.Select(p => p ? 0 : -1)), true,
+                    $"{PackingFrames.Braces(Members(picked).Select(i => subsetSum.S[i]))} adds up to exactly {subsetSum.T}, found after {Words.Count(tried, "subset")}.");
                 return certificate;
             }
-            rec.Reject(Chosen, () => $"Try {Set()}: {Adds()}, not {subsetSum.T}.", Focus);
+            steps.Reject(picked, $"Try {PackingFrames.Braces(Members(picked).Select(i => subsetSum.S[i]))}: {PackingFrames.SumText(Members(picked).Select(i => int.Parse(subsetSum.S[i])).ToList())}, not {subsetSum.T}.");
         }
         // "{}" is the answer only when T = 0 (the empty set adds up to 0); otherwise it means none was found. The verifier says
-        // which.
-        if (rec != StepRecorder<Placement>.Off) {
+        // which; a plain solve skips asking.
+        if (rec.Enabled) {
             bool empty = subsetSum.defaultVerifier.verify(subsetSum, "{}");
-            rec.Done(new Placement([]), empty, empty
-                ? $"Checked all {Tries(tried)} that hold something. None adds up to {subsetSum.T}, but the empty set does, so it is the answer."
-                : $"Checked all {Tries(tried)}. None adds up to {subsetSum.T}.");
+            if (empty)
+                steps.Done(new Placement([]), true, $"Checked all {Words.Count(tried, "subset")} that hold something. None adds up to {subsetSum.T}, but the empty set does, so it is the answer.");
+            else
+                steps.Done(new Placement([]), false, $"Checked all {Words.Count(tried, "subset")}. None adds up to {subsetSum.T}.");
         }
         return "{}";
     }
-
-    private static string Tries(int n) => n == 1 ? "1 subset" : $"{n} subsets";
 }

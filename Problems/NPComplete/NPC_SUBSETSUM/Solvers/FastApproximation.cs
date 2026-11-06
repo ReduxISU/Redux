@@ -8,9 +8,13 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.Solvers;
 
-// Incremental: each step shows the best subset kept so far, which the run goes on from (the next number can still replace
-// it), never a whole candidate judged against T. So the picture draws it Committed and only the Done says whether T was hit
-// (#898).
+// The steps Fast Approximation records, for the Packing picture (item i is S[i]; the one container is the subset):
+//   - an Update per number, once the sums it reaches are merged in and trimmed, showing the best subset kept so far and
+//     saying how many sums are kept;
+//   - the Done, saying whether the best sum kept is T.
+// The merges have no verdicts (nothing is judged against T until the end), so they are Updates. Incremental: each step
+// shows the best subset kept so far, which the run goes on from (the next number can still replace it), never a whole
+// candidate judged against T. So the picture draws it Committed and only the Done says whether T was hit.
 class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "Fast Approximation Algorithm";
@@ -52,30 +56,39 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
     public FastApproximation() {
     }
 
+    // How the steps show the pass, given by the sums kept so far (ascending) and the position of the number just merged
+    // in: the best (largest) sum kept, and that number.
+    private static RunSteps<(List<SumState> Kept, int Position), Placement> NewSteps(StepRecorder<Placement> rec, int n) => new(rec,
+        // What every picture shows: the numbers of the best sum kept, and the number just merged in.
+        partial: s => Best(s.Kept, n),
+        focus: s => [PackingFrames.ItemId(s.Position)]);
+
     public string solve(SUBSETSUM subsetsum) => Solve(subsetsum, StepRecorder<Placement>.Off);
 
-    // Steps: one per number, after the sums it reaches are merged in and trimmed, showing the best subset kept so far; then
-    // the answer.
+    // Builds the sums of subsets up to T one number at a time: each number is added to every sum kept so far, and sums
+    // within a factor (1 + delta) of a smaller one kept are dropped, so the list stays short. The best sum kept at the end
+    // is within a factor (1 - e) of the best sum up to T.
     public string Solve(SUBSETSUM subsetsum, StepRecorder<Placement> rec) {
 
         int target = subsetsum.T;
         List<int> numbers = subsetsum.S.Select(int.Parse).ToList();
         int n = numbers.Count;
+        var steps = NewSteps(rec, n);
 
         if (target < 0) {
             // No subset of the input can sum to a negative target.
-            rec.Done(new Placement([]), false, $"T is {target}. This approximation only builds sums from 0 up to T, so it answers no.");
+            steps.Done(new Placement([]), false, $"T is {target}. This approximation only builds sums from 0 up to T, so it answers no.");
             return "{}";
         }
 
         if (target == 0) {
             // The empty subset is the only subset this solver reports for T = 0, written as {}.
-            rec.Done(new Placement([]), true, "T is 0, so the empty set is the answer.");
+            steps.Done(new Placement([]), true, $"T is 0, so the empty set is the answer.");
             return "{}";
         }
 
         if (n == 0) {
-            rec.Done(new Placement([]), false, "There are no numbers, so nothing adds up to T.");
+            steps.Done(new Placement([]), false, $"There are no numbers, so nothing adds up to T.");
             return "{}";
         }
 
@@ -84,7 +97,7 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
         List<SumState> L = new List<SumState> { new SumState(0, new List<int>(), new List<int>()) };
 
         for (int position = 0; position < n; position++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             int item = numbers[position];
             List<SumState> LPrime = new List<SumState>(L);
             foreach (var state in L) {
@@ -100,14 +113,12 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
 
             // Run list-trimming function to drop values that are mathematically too close
             L = Trim(LPrime, delta);
-            int merged = LPrime.Count, at = position;
-            List<SumState> kept = L;
-            rec.Try(() => Best(kept, n), () => {
-                int dropped = merged - kept.Count;
-                string trimmed = dropped > 0 ? $", {dropped} trimmed as too close to another" : "";
-                return $"Add {item} to every sum kept so far that stays within {target}. {kept.Count} {(kept.Count == 1 ? "sum" : "sums")} kept{trimmed}. "
-                    + $"Best so far: {(int)kept[^1].Sum}.";
-            }, PackingFrames.ItemId(at));
+            // The why says how many sums the trim dropped, when it dropped any.
+            int dropped = LPrime.Count - L.Count;
+            if (dropped > 0)
+                steps.Update((L, position), $"Add {item} to every sum kept so far that stays within {target}. {Words.Count(L.Count, "sum")} kept, {dropped} trimmed as too close to another. Best so far: {(int)L[^1].Sum}.");
+            else
+                steps.Update((L, position), $"Add {item} to every sum kept so far that stays within {target}. {Words.Count(L.Count, "sum")} kept. Best so far: {(int)L[^1].Sum}.");
         }
 
         // Extract the optimal subset path tracking record from the back of the remaining sparse list
@@ -119,10 +130,12 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
         // The trimmed list only guarantees a sum close to the optimum, so the best subset can
         // miss the target. Only report it if it is actually a solution.
         bool ok = subsetsum.defaultVerifier.verify(subsetsum, certificate);
-        rec.Done(ok ? Best(L, n) : new Placement([]), ok, ok
-            ? $"The best sum kept is exactly {target}: {PackingFrames.Braces(bestState.ChosenItems.Select(PackingFrames.Num))}."
-            : $"The best sum kept is {(int)bestState.Sum}, not {target}, so the approximation answers no, even if an exact subset exists.");
-        return ok ? certificate : "{}";
+        if (ok) {
+            steps.Done(Best(L, n), true, $"The best sum kept is exactly {target}: {PackingFrames.Braces(bestState.ChosenItems.Select(PackingFrames.Num))}.");
+            return certificate;
+        }
+        steps.Done(new Placement([]), false, $"The best sum kept is {(int)bestState.Sum}, not {target}, so the approximation answers no, even if an exact subset exists.");
+        return "{}";
     }
 
     // The best (largest) sum kept, as a placement: its numbers in the one container.
