@@ -168,6 +168,14 @@ static class GraphTourFrames {
     /// <summary>"1 → 4 → 3": the path with arrows.</summary>
     public static string Arrows(IEnumerable<string> order) => string.Join(" → ", order);
 
+    /// <summary>The node names of a path given as indexes into <paramref name="nodes"/>, closed back to its start when
+    /// <paramref name="close"/> is set: the order a Tour takes.</summary>
+    public static List<string> NodeNames(IReadOnlyList<string> nodes, IReadOnlyList<int> path, bool close = false) {
+        var names = path.Select(i => nodes[i]).ToList();
+        if (close) names.Add(nodes[path[0]]);
+        return names;
+    }
+
     // ---- The whole response ----
 
     // A stopped run's last frame: blank, with the empty order every tour frame carries.

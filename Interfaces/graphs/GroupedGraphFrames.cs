@@ -290,6 +290,14 @@ static class GroupedGraphFrames {
 
     // ---- Captions and reasons, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
+    /// <summary>A solver's values as the Assignment shape (<c>x1</c> to <c>"True"</c>), in the order given.</summary>
+    public static Assignment ToAssignment(IEnumerable<KeyValuePair<string, bool>> values) =>
+        new(values.Select(p => new KeyValuePair<string, string>(p.Key, p.Value.ToString())));
+
+    /// <summary>A copy of <paramref name="values"/> with <paramref name="variable"/> set to <paramref name="value"/>: the values once a choice is made.</summary>
+    public static Dictionary<string, bool> WithValue(IReadOnlyDictionary<string, bool> values, string variable, bool value) =>
+        new(values) { [variable] = value };
+
     /// <summary>"x1 = True, x2 = False", in the order given.</summary>
     public static string Assigned(IEnumerable<KeyValuePair<string, bool>> values) =>
         string.Join(", ", values.Select(p => $"{p.Key} = {p.Value}"));
