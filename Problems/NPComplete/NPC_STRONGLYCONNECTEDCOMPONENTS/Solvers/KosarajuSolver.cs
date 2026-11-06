@@ -95,7 +95,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
                 var component = new List<string>();
                 int g = components.Count;
                 of[node] = g;
-                steps.Accept((node, null), $"Pass 2: {node} has the highest finish number left, so it starts component {g + 1}.");
+                steps.Accept((node, null), $"In pass 2, {node} has the highest finish number left, so it starts component {g + 1}.");
                 SecondDfs(node, rev, visited, component, steps, of, g);
                 components.Add(component.OrderBy(x => x).ToList());
             }
@@ -119,7 +119,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
         List<string> finished) {
         visited.Add(node);
         seen.Add(node);
-        steps.Update((node, null), $"Pass 1: visit {node}.");
+        steps.Update((node, null), $"In pass 1, visit {node}.");
 
         foreach (var next in adj[node]) {
             if (!visited.Contains(next))
@@ -128,7 +128,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
 
         order.Push(node);
         finished.Add(node);
-        steps.Update((node, null), $"Pass 1: {node} is finished (number {finished.Count}).");
+        steps.Update((node, null), $"In pass 1, {node} is finished (number {finished.Count}).");
     }
 
     // Pass 2: a depth-first search from node on the reversed graph; every node it reaches that has no component yet joins
@@ -147,7 +147,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
         foreach (var next in rev[node]) {
             if (!visited.Contains(next)) {
                 of[next] = g;
-                steps.Accept((next, node), $"Pass 2: follow the edge {next} → {node} backward, so {next} joins component {g + 1}.");
+                steps.Accept((next, node), $"In pass 2, follow the edge {next} → {node} backward, so {next} joins component {g + 1}.");
                 SecondDfs(next, rev, visited, component, steps, of, g);
             }
         }

@@ -97,12 +97,12 @@ public class WalkSat_Tests {
         Assert.Equal(Values(done.Partial), Values(steps[^2].Partial));
         Assert.Single(steps, s => s.Event == StepEvent.Accept);
         Assert.All(steps, s => Assert.False(string.IsNullOrWhiteSpace(s.Caption)));
-        Assert.StartsWith("Try 1: start from a random assignment", steps[0].Caption);
+        Assert.StartsWith("Start try 1 from a random assignment", steps[0].Caption);
 
         // Every flip: the clause in focus had no true literal before it, the variable in focus is one of its variables, and the
         // flip changes that variable alone.
         for (int i = 1; i < steps.Count; i++) {
-            if (!steps[i].Caption.StartsWith("Flip ") || steps[i].Caption.Contains("not shown")) continue;
+            if (!System.Text.RegularExpressions.Regex.IsMatch(steps[i].Caption, @"^C\d+ \(")) continue;
             var before = Values(steps[i - 1].Partial);
             var after = Values(steps[i].Partial);
             Assert.Equal(2, steps[i].Focus.Length);
@@ -128,8 +128,8 @@ public class WalkSat_Tests {
         Assert.All(steps, s => Assert.DoesNotContain("unsatisfiable", s.Caption, StringComparison.OrdinalIgnoreCase));
         Assert.All(steps, s => Assert.DoesNotContain("no solution", s.Caption, StringComparison.OrdinalIgnoreCase));
         // The tries after the first are one step.
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Tries 2–100: no satisfying assignment"));
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 ends after 600 flips"));
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("No satisfying assignment in tries 2–100 "));
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("After 600 flips, try 1 ends"));
     }
 
     [Theory]
@@ -157,9 +157,9 @@ public class WalkSat_Tests {
         int successful = 0;
         for (int seed = 0; seed < 5000 && found == null; seed++) {
             var probe = StepsOf(Run(new WalkSAT(maxTries: 100, flipsPerVariable: 1), instance, seed));
-            var restart = probe.LastOrDefault(s => s.Caption.StartsWith("Restart. Try "));
+            var restart = probe.LastOrDefault(s => s.Caption.StartsWith("Restart with try "));
             if (probe[^1].Ok == true && restart != null) {
-                int number = int.Parse(restart.Caption["Restart. Try ".Length..].Split(':')[0]);
+                int number = int.Parse(restart.Caption["Restart with try ".Length..].Split(' ')[0]);
                 if (wanted == 2 ? number == 2 : number >= wanted) { found = seed; successful = number; }
             }
         }
@@ -168,12 +168,12 @@ public class WalkSat_Tests {
         var run = Run(new WalkSAT(maxTries: 100, flipsPerVariable: 1), instance, found);
         var steps = StepsOf(run);
         Assert.True(new SAT3Verifier().verify(new SAT3(instance), run.Answer));
-        Assert.StartsWith("Try 1: start from a random assignment", steps[0].Caption);
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 ends after 3 flips"));
-        Assert.Single(steps, s => s.Caption.StartsWith("Restart."));
-        string between = successful == 3 ? "Try 2 ends after 3 flips: no satisfying assignment." : $"Tries 2–{successful - 1}: no satisfying assignment";
+        Assert.StartsWith("Start try 1 from a random assignment", steps[0].Caption);
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("After 3 flips, try 1 ends"));
+        Assert.Single(steps, s => s.Caption.StartsWith("Restart "));
+        string between = successful == 3 ? "No satisfying assignment in try 2 (it ends after 3 flips)." : $"No satisfying assignment in tries 2–{successful - 1} ";
         if (successful > 2) Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith(between));
-        else Assert.DoesNotContain(steps, s => s.Caption.StartsWith("Tries ") || s.Caption.StartsWith("Try 2 ends"));
+        else Assert.DoesNotContain(steps, s => s.Caption.StartsWith("No satisfying assignment in tr"));
         Assert.Contains($"try {successful}", steps[^1].Caption);
 
         // Under a small cap the successful try still ends the steps, with its Accept just before the Done.

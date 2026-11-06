@@ -152,7 +152,7 @@ public class EdgeSetSolvers_Tests {
         var steps = run.Steps.Cast<SolverStep<Groups>>().ToList();
         Assert.Equal(5 - 1, steps.Count - 1);   // n - 1 phases, then Done
         Assert.Equal(StepEvent.Accept, steps[0].Event);
-        Assert.All(steps.Take(steps.Count - 1), s => Assert.StartsWith("Phase ", s.Caption));
+        Assert.All(steps.Take(steps.Count - 1), s => Assert.Matches(@"^Node \S+ is added last, so ", s.Caption));
         Assert.All(steps.Take(steps.Count - 1), s => Assert.True(s.Event is StepEvent.Accept or StepEvent.Reject));
     }
 

@@ -318,10 +318,10 @@ static class QuantumCircuits {
         for (int t = 1; t <= rounds; t++) {
             int round = t;
             columns.Add(new([new QuantumGate("box", data, Label: "Oracle", Oracle: true)], st => st.FlipSigns(i => markedSet.Contains((int)Item(i))),
-                _ => $"Round {round}: the oracle flips the sign of the marked {items}. The probabilities stay the same; only the {Plural(M, "sign changes", "signs change")}."));
+                _ => $"In round {round}, the oracle flips the sign of the marked {items}. The probabilities stay the same; only the {Plural(M, "sign changes", "signs change")}."));
             columns.Add(new([new QuantumGate("box", data, Label: "Diffuse")], st => st.Diffuse(), d => d == null
-                ? $"Round {round}: reflect every amplitude about the average. The marked {items} {Plural(M, "grows", "grow")}, the rest shrink."
-                : $"Round {round}: reflect every amplitude about the average. The marked {items} now {Plural(M, "has", "have")} probability {Percent(MarkedChance(d))}."));
+                ? $"In round {round}, reflect every amplitude about the average. The marked {items} {Plural(M, "grows", "grow")}, the rest shrink."
+                : $"In round {round}, reflect every amplitude about the average. The marked {items} now {Plural(M, "has", "have")} probability {Percent(MarkedChance(d))}."));
             stages.Add(new($"round {round}", columns.Count - 2, columns.Count - 1));
         }
         columns.Add(new(data.Select(Meter).ToList(), null, d => {

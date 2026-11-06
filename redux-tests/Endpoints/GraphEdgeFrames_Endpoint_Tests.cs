@@ -300,7 +300,7 @@ public class GraphEdgeFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var root = JsonDocument.Parse(body).RootElement;
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(5, frames.Count);   // four phases, then Done
-        Assert.All(frames.Take(4), f => Assert.StartsWith("Phase ", f.GetProperty("caption").GetString()));
+        Assert.All(frames.Take(4), f => Assert.Matches(@"^Node \S+ is added last, so ", f.GetProperty("caption").GetString()));
         Assert.Contains("weighs 3", frames[^1].GetProperty("caption").GetString());
         var weights = root.GetProperty("payload").GetProperty("edges").EnumerateArray().ToDictionary(e => e.GetProperty("id").GetString()!, e => e.GetProperty("weight").GetInt32());
         int total = frames[^1].GetProperty("edges").EnumerateObject().Sum(e => weights[e.Name]);

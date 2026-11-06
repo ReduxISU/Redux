@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 //
 // The search cannot know which try will succeed, so it reports its tries to RestartSteps as it runs, and RestartSteps
 // records them once it is over: the first try and the successful one in full, the tries in between as one Reject
-// ("Tries 2–37: ..."); a try too long for the recorder's cap keeps its first and last flips and says how many it skipped.
+// ("No satisfying assignment in tries 2–37 ..."); a try too long for the recorder's cap keeps its first and last flips and says how many it skipped.
 // Recording draws nothing from the generator, so the answer is the same with steps or without. When every try fails, the
 // Done says it gave up: WalkSAT can miss an answer, so that is no proof that there is none.
 class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
@@ -69,17 +69,17 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
         apply: (f, values) => values[f.Variable] = !values[f.Variable],
         partial: values => ToAssignment(formula.Values(values)),
         moveFocus: f => [ClauseId(f.Clause), VariableId(formula.Variables[f.Variable])],
-        // What each step says. "Try 1: start from a random assignment, x1 = True, x2 = False. C2 has no true literal."
+        // What each step says. "Start try 1 from a random assignment, x1 = True, x2 = False. C2 has no true literal."
         startWhy: (t, start) => {
-            string intro = t.Number == 1 ? "Try 1: start from a random assignment" : $"Restart. Try {t.Number}: start from a new random assignment";
+            string intro = t.Number == 1 ? "Start try 1 from a random assignment" : $"Restart with try {t.Number} from a new random assignment";
             string listed = formula.Variables.Count <= 8 ? $", {Assigned(formula.Values(start))}" : $" of the {formula.Variables.Count} variables";
             var falseClauses = formula.FalseClauses(start);
             return falseClauses.Count == 0
                 ? $"{intro}{listed}: every clause has a true literal."
                 : $"{intro}{listed}. {NoTrueLiteral(falseClauses)}.";
         },
-        // "Flip 3: C2 (x1 | !x2 | x3) has no true literal. Flip x2 to False: a free flip, no clause turns false. Now ..."
-        moveWhy: (t, f, after, number) => {
+        // "C2 (x1 | !x2 | x3) has no true literal. Flip x2 to False: a free flip, no clause turns false. Now ..."
+        moveWhy: (t, f, after) => {
             string flip = $"{formula.Variables[f.Variable]} to {after[f.Variable]}";
             string turns = f.Breaks == 0 ? "no clause turns false" : $"{Count(f.Breaks, "clause")} {(f.Breaks == 1 ? "turns" : "turn")} false";
             string how = f.Kind switch {
@@ -89,15 +89,15 @@ class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
             };
             var still = formula.FalseClauses(after);
             string now = still.Count == 0 ? "Every clause now has a true literal." : $"Now {NoTrueLiteral(still)}.";
-            return $"Flip {number}: {FailedClause(f.Clause, formula.Written[f.Clause])}. {how} {now}";
+            return $"{FailedClause(f.Clause, formula.Written[f.Clause])}. {how} {now}";
         },
         skippedWhy: (t, from, to, after) =>
-            $"{(from == to ? $"Flip {from} of try {t.Number} is" : $"Flips {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
+            $"{(from == to ? $"The next flip of try {t.Number} is" : $"The next {to - from + 1} flips of try {t.Number} are")} not shown one by one. After them, "
                 + $"{ClauseCheck(formula.FalseClauses(after))}.",
-        closeWhy: (t, end) => $"Try {t.Number} ends after {Count(t.Moves.Count, "flip")}: {ClauseCheck(formula.FalseClauses(end))}.",
+        closeWhy: (t, end) => $"After {Count(t.Moves.Count, "flip")}, try {t.Number} ends: {ClauseCheck(formula.FalseClauses(end))}.",
         betweenWhy: (from, to) => from == to
-            ? $"Try {from} ends after {Count(maxFlips, "flip")}: no satisfying assignment."
-            : $"Tries {from}–{to}: no satisfying assignment (each ends after {Count(maxFlips, "flip")}).",
+            ? $"No satisfying assignment in try {from} (it ends after {Count(maxFlips, "flip")})."
+            : $"No satisfying assignment in tries {from}–{to} (each ends after {Count(maxFlips, "flip")}).",
         solvedWhy: (t, end) => $"Every clause has a true literal under {Assigned(formula.Values(end))}: found by "
             + (t.Moves.Count == 0 ? $"the random start of try {t.Number}." : $"try {t.Number} after {Count(t.Moves.Count, "flip")}."),
         gaveUpWhy: begun => $"Gave up after {Count(begun, "try", "tries")}: no answer found. WalkSAT can miss an answer, so the formula may still have one.");

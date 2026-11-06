@@ -111,8 +111,8 @@ public class FlowSolvers_Tests {
         var steps = Steps("({1,2,3,4},{((1,2),10),((1,3),2),((2,4),3),((3,4),5)},1,4)");
         Assert.Equal(
             ["No flow yet. Each step finds a path from 1 to 4 with room left and pushes as much as it can.",
-             "Path 1: push 3 along 1 → 2 → 4. 2 → 4 is now full. Flow is now 3.",
-             "Path 2: push 2 along 1 → 3 → 4. 1 → 3 is now full. Flow is now 5.",
+             "Push 3 along 1 → 2 → 4. 2 → 4 is now full. Flow is now 3.",
+             "Push 2 along 1 → 3 → 4. 1 → 3 is now full. Flow is now 5.",
              "No augmenting path is left. The nodes still reachable from 1 form S = {1,2}. The 2 edges from S to T are full and add up to 5, equal to the maximum flow."],
             steps.Select(s => s.Caption));
         Assert.Equal(["1", "1>2", "2", "2>4", "4"], steps[1].Focus);
@@ -124,8 +124,8 @@ public class FlowSolvers_Tests {
     public void APathThatRunsBackward_TakesBackFlowSentEarlier() {
         // The mockup's "Flow gets taken back": path 1 sends a → b, path 2 has to undo it to reach d.
         var steps = Steps("({s,a,b,c,d,t},{((s,a),1),((s,c),1),((a,b),1),((a,d),1),((c,b),1),((b,t),1),((d,t),1)},s,t)");
-        Assert.Equal("Path 1: push 1 along s → a → b → t. s → a, a → b and b → t are now full. Flow is now 1.", steps[1].Caption);
-        Assert.Equal("Path 2: push 1 along s → c → b ⇠ a → d → t. It runs backward over a → b, taking back flow sent there earlier. "
+        Assert.Equal("Push 1 along s → a → b → t. s → a, a → b and b → t are now full. Flow is now 1.", steps[1].Caption);
+        Assert.Equal("Push 1 along s → c → b ⇠ a → d → t. It runs backward over a → b, taking back flow sent there earlier. "
             + "s → c, c → b, a → d and d → t are now full. Flow is now 2.", steps[2].Caption);
         Assert.Equal(["s", "s>c", "c", "c>b", "b", "a>b", "a", "a>d", "d", "d>t", "t"], steps[2].Focus);
         Assert.Contains(new FlowArc("a>b", false, 1), steps[2].Partial.Path);
@@ -136,7 +136,7 @@ public class FlowSolvers_Tests {
     [Fact]
     public void ParallelEdges_AreReadAsOneSummedEdge() {
         var steps = Steps("({1,2,3},{((1,2),2),((1,2),5),((2,3),4)},1,3)");
-        Assert.Equal("Path 1: push 4 along 1 → 2 → 3. 2 → 3 is now full. Flow is now 4.", steps[1].Caption);
+        Assert.Equal("Push 4 along 1 → 2 → 3. 2 → 3 is now full. Flow is now 4.", steps[1].Caption);
         Assert.Equal(new Dictionary<string, int> { ["1>2"] = 4, ["2>3"] = 4 }, steps[1].Partial.Flow);
     }
 

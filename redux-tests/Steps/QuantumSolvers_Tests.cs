@@ -310,10 +310,10 @@ public class QuantumSolvers_Tests {
         var captions = Captions("unstructuredgroversolver", "(0,0,0,0,0,1,0,0)");
         Assert.Equal([
             "Try: Apply H to every qubit: all 8 items are equally likely, 12.5% each.",
-            "Try: Round 1: the oracle flips the sign of the marked item. The probabilities stay the same; only the sign changes.",
-            "Try: Round 1: reflect every amplitude about the average. The marked item now has probability 78.1%.",
-            "Try: Round 2: the oracle flips the sign of the marked item. The probabilities stay the same; only the sign changes.",
-            "Try: Round 2: reflect every amplitude about the average. The marked item now has probability 94.5%.",
+            "Try: In round 1, the oracle flips the sign of the marked item. The probabilities stay the same; only the sign changes.",
+            "Try: In round 1, reflect every amplitude about the average. The marked item now has probability 78.1%.",
+            "Try: In round 2, the oracle flips the sign of the marked item. The probabilities stay the same; only the sign changes.",
+            "Try: In round 2, reflect every amplitude about the average. The marked item now has probability 94.5%.",
             "Try: Measure: item 5 (101) with probability 94.5%.",
             "Accept: The quantum server measured item 5 (101) in 1,024 of 1,024 runs.",
             "Done: Item 5 is marked, found with 2 rounds of Grover's algorithm.",

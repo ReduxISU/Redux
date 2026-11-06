@@ -68,30 +68,30 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
         apply: (f, values) => values[f.Variable] = !values[f.Variable],
         partial: values => ToAssignment(formula.Values(values)),
         moveFocus: f => [ClauseId(f.Clause), VariableId(formula.Variables[f.Variable])],
-        // What each step says. "Try 1: start from a random assignment, x1 = True, x2 = False. C2 has no true literal."
+        // What each step says. "Start try 1 from a random assignment, x1 = True, x2 = False. C2 has no true literal."
         startWhy: (t, start) => {
-            string intro = t.Number == 1 ? "Try 1: start from a random assignment" : $"Restart. Try {t.Number}: start from a new random assignment";
+            string intro = t.Number == 1 ? "Start try 1 from a random assignment" : $"Restart with try {t.Number} from a new random assignment";
             string listed = formula.Variables.Count <= 8 ? $", {Assigned(formula.Values(start))}" : $" of the {formula.Variables.Count} variables";
             var falseClauses = formula.FalseClauses(start);
             return falseClauses.Count == 0
                 ? $"{intro}{listed}: every clause has a true literal."
                 : $"{intro}{listed}. {NoTrueLiteral(falseClauses)}.";
         },
-        // "Flip 3: C2 (x1 | !x2 | x3) has no true literal. Pick one of its literals at random and flip its variable: x2 to
+        // "C2 (x1 | !x2 | x3) has no true literal. Pick one of its literals at random and flip its variable: x2 to
         // False. Now C1 has no true literal."
-        moveWhy: (t, f, after, number) => {
+        moveWhy: (t, f, after) => {
             var still = formula.FalseClauses(after);
             string now = still.Count == 0 ? "Every clause now has a true literal." : $"Now {NoTrueLiteral(still)}.";
-            return $"Flip {number}: {FailedClause(f.Clause, formula.Written[f.Clause])}. Pick one of its literals at random and flip its variable: "
+            return $"{FailedClause(f.Clause, formula.Written[f.Clause])}. Pick one of its literals at random and flip its variable: "
                 + $"{formula.Variables[f.Variable]} to {after[f.Variable]}. {now}";
         },
         skippedWhy: (t, from, to, after) =>
-            $"{(from == to ? $"Flip {from} of try {t.Number} is" : $"Flips {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
+            $"{(from == to ? $"The next flip of try {t.Number} is" : $"The next {to - from + 1} flips of try {t.Number} are")} not shown one by one. After them, "
                 + $"{ClauseCheck(formula.FalseClauses(after))}.",
-        closeWhy: (t, end) => $"Try {t.Number} ends after {Count(t.Moves.Count, "flip")}: {ClauseCheck(formula.FalseClauses(end))}.",
+        closeWhy: (t, end) => $"After {Count(t.Moves.Count, "flip")}, try {t.Number} ends: {ClauseCheck(formula.FalseClauses(end))}.",
         betweenWhy: (from, to) => from == to
-            ? $"Try {from} ends after {Count(maxFlips, "flip")}: no satisfying assignment."
-            : $"Tries {from}–{to}: no satisfying assignment (each ends after {Count(maxFlips, "flip")}).",
+            ? $"No satisfying assignment in try {from} (it ends after {Count(maxFlips, "flip")})."
+            : $"No satisfying assignment in tries {from}–{to} (each ends after {Count(maxFlips, "flip")}).",
         solvedWhy: (t, end) => $"Every clause has a true literal under {Assigned(formula.Values(end))}: found by "
             + (t.Moves.Count == 0 ? $"the random start of try {t.Number}." : $"try {t.Number} after {Count(t.Moves.Count, "flip")}."),
         gaveUpWhy: begun => $"Gave up after {Count(begun, "try", "tries")}: no answer found. Schöning's algorithm can miss an answer, so the formula may still have one.");

@@ -111,7 +111,7 @@ public class Schoning_Tests {
             Assert.Equal(StepEvent.Done, done.Event);
             Assert.Single(steps, s => s.Event == StepEvent.Done);
             Assert.All(steps, s => Assert.False(string.IsNullOrWhiteSpace(s.Caption)));
-            Assert.StartsWith("Try 1: start from a random assignment", steps[0].Caption);
+            Assert.StartsWith("Start try 1 from a random assignment", steps[0].Caption);
             if (run.Answer == "{}") {
                 Assert.False(done.Ok);
                 Assert.StartsWith("Gave up after ", done.Caption);
@@ -129,7 +129,7 @@ public class Schoning_Tests {
             // Every flip: the clause in focus had no true literal before it, the variable in focus is one of its variables, and
             // the flip changes that variable alone (so the clause has a true literal after it).
             for (int i = 1; i < steps.Count; i++) {
-                if (!steps[i].Caption.StartsWith("Flip ") || steps[i].Caption.Contains("not shown")) continue;
+                if (!System.Text.RegularExpressions.Regex.IsMatch(steps[i].Caption, @"^C\d+ \(")) continue;
                 var before = Values(steps[i - 1].Partial);
                 var after = Values(steps[i].Partial);
                 Assert.Equal(2, steps[i].Focus.Length);
@@ -155,7 +155,7 @@ public class Schoning_Tests {
         Assert.False(done.Ok);
         Assert.Empty(done.Partial.Values);
         Assert.Equal("Gave up after 1 try: no answer found. Schöning's algorithm can miss an answer, so the formula may still have one.", done.Caption);
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 ends after 6 flips"));
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("After 6 flips, try 1 ends"));
         Assert.Equal(1 + 6 + 1 + 1, steps.Count);
 
         // The default for two variables is the minimum, 100 tries.
@@ -164,7 +164,7 @@ public class Schoning_Tests {
         // With more tries, the tries after the first are one step.
         var many = StepsOf(Run(new Schoning(trials: 50, flipsPerVariable: 3), Unsatisfiable, 3));
         Assert.StartsWith("Gave up after 50 tries: no answer found.", many[^1].Caption);
-        Assert.Contains(many, s => s.Event == StepEvent.Reject && s.Caption == "Tries 2–50: no satisfying assignment (each ends after 6 flips).");
+        Assert.Contains(many, s => s.Event == StepEvent.Reject && s.Caption == "No satisfying assignment in tries 2–50 (each ends after 6 flips).");
         foreach (var s in steps.Concat(many)) {
             Assert.DoesNotContain("unsatisfiable", s.Caption, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("no solution", s.Caption, StringComparison.OrdinalIgnoreCase);
@@ -204,9 +204,9 @@ public class Schoning_Tests {
         int successful = 0;
         for (int seed = 0; seed < 5000 && found == null; seed++) {
             var probe = StepsOf(Run(new Schoning(trials: 100, flipsPerVariable: 1), OneAnswer, seed));
-            var restart = probe.LastOrDefault(s => s.Caption.StartsWith("Restart. Try "));
+            var restart = probe.LastOrDefault(s => s.Caption.StartsWith("Restart with try "));
             if (probe[^1].Ok == true && restart != null) {
-                int number = int.Parse(restart.Caption["Restart. Try ".Length..].Split(':')[0]);
+                int number = int.Parse(restart.Caption["Restart with try ".Length..].Split(' ')[0]);
                 if (wanted == 2 ? number == 2 : number >= wanted) { found = seed; successful = number; }
             }
         }
@@ -215,12 +215,12 @@ public class Schoning_Tests {
         var run = Run(new Schoning(trials: 100, flipsPerVariable: 1), OneAnswer, found);
         var steps = StepsOf(run);
         Assert.True(new SAT3Verifier().verify(new SAT3(OneAnswer), run.Answer));
-        Assert.StartsWith("Try 1: start from a random assignment", steps[0].Caption);
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 ends after 3 flips"));
-        Assert.Single(steps, s => s.Caption.StartsWith("Restart."));
-        string between = successful == 3 ? "Try 2 ends after 3 flips: no satisfying assignment." : $"Tries 2–{successful - 1}: no satisfying assignment";
+        Assert.StartsWith("Start try 1 from a random assignment", steps[0].Caption);
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("After 3 flips, try 1 ends"));
+        Assert.Single(steps, s => s.Caption.StartsWith("Restart "));
+        string between = successful == 3 ? "No satisfying assignment in try 2 (it ends after 3 flips)." : $"No satisfying assignment in tries 2–{successful - 1} ";
         if (successful > 2) Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith(between));
-        else Assert.DoesNotContain(steps, s => s.Caption.StartsWith("Tries ") || s.Caption.StartsWith("Try 2 ends"));
+        else Assert.DoesNotContain(steps, s => s.Caption.StartsWith("No satisfying assignment in tr"));
         Assert.Contains($"try {successful}", steps[^1].Caption);
 
         var capped = StepsOf(Run(new Schoning(trials: 100, flipsPerVariable: 1), OneAnswer, found, cap: 6));

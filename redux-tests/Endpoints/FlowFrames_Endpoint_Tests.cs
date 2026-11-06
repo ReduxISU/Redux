@@ -183,7 +183,7 @@ public class FlowFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.Equal(["Try", "Accept", "Accept", "Done"], frames.Select(f => f.GetProperty("event").GetString()));
         Assert.Equal(
-            "{\"event\":\"Accept\",\"caption\":\"Path 2: push 2 along 1 → 3 → 4. 1 → 3 is now full. Flow is now 5.\","
+            "{\"event\":\"Accept\",\"caption\":\"Push 2 along 1 → 3 → 4. 1 → 3 is now full. Flow is now 5.\","
             + "\"focus\":[\"1\",\"1>3\",\"3\",\"3>4\",\"4\"],"
             + "\"nodes\":{\"1\":{\"state\":\"ElementHighlight\"},\"3\":{\"state\":\"ElementHighlight\"},\"4\":{\"state\":\"ElementHighlight\"}},"
             + "\"edges\":{\"1>3\":{\"state\":\"ElementHighlight\"},\"2>4\":{\"state\":\"Covered\"},\"3>4\":{\"state\":\"ElementHighlight\"}},"

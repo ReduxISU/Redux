@@ -23,14 +23,14 @@ public class SchoningPpzSeed_Endpoint_Tests : IClassFixture<AppFactory> {
 
     // Each solver, and how its first step begins.
     public static TheoryData<string, string> Solvers => new() {
-        { "Schoning", "Try 1: start from a random assignment" },
-        { "PPZ", "Try 1: take the variables in a random order" },
+        { "Schoning", "Start try 1 from a random assignment" },
+        { "PPZ", "Take the variables of try 1 in a random order" },
     };
 
     public static TheoryData<string, string, string> SolversAndPictures {
         get {
             var data = new TheoryData<string, string, string>();
-            foreach (var (solver, first) in new[] { ("Schoning", "Try 1: start from a random assignment"), ("PPZ", "Try 1: take the variables in a random order") })
+            foreach (var (solver, first) in new[] { ("Schoning", "Start try 1 from a random assignment"), ("PPZ", "Take the variables of try 1 in a random order") })
                 foreach (var vis in new[] { "Sat3DefaultVisualization", "Sat3FormulaVisualization", "Sat3FactorGraphVisualization" })
                     data.Add(solver, vis, first);
             return data;

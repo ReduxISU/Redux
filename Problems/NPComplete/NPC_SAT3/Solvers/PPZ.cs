@@ -65,32 +65,32 @@ class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
         moveFocus: s => s.Clause < 0
             ? [VariableId(formula.Variables[s.Variable])]
             : [ClauseId(s.Clause), VariableId(formula.Variables[s.Variable])],
-        // What each step says. "Try 1: take the variables in a random order: x3, x1, x2." (the order is that of its moves)
+        // What each step says. "Take the variables of try 1 in a random order: x3, x1, x2." (the order is that of its moves)
         startWhy: (t, start) => {
-            string intro = t.Number == 1 ? "Try 1: take the" : $"Restart. Try {t.Number}: take the";
+            string intro = t.Number == 1 ? "Take the" : "Restart: take the";
             string random = t.Number == 1 ? "a random order" : "a new random order";
             return formula.Variables.Count <= 8
-                ? $"{intro} variables in {random}: {string.Join(", ", t.Moves.Select(m => formula.Variables[m.Variable]))}."
-                : $"{intro} {formula.Variables.Count} variables in {random}.";
+                ? $"{intro} variables of try {t.Number} in {random}: {string.Join(", ", t.Moves.Select(m => formula.Variables[m.Variable]))}."
+                : $"{intro} {formula.Variables.Count} variables of try {t.Number} in {random}.";
         },
-        // "Step 2: set x1. Every other literal of C3 (x1 | !x2 | x3) is false, so C3 forces x1 = True."
-        moveWhy: (t, s, after, number) => s.Clause < 0
-            ? $"Step {number}: set {formula.Variables[s.Variable]}. No clause forces it, so it takes a random value: {formula.Variables[s.Variable]} = {s.Value}."
-            : $"Step {number}: set {formula.Variables[s.Variable]}. Every other literal of C{s.Clause + 1} {ClauseText(formula.Written[s.Clause])} is false, so C{s.Clause + 1} forces {formula.Variables[s.Variable]} = {s.Value}.",
+        // "Set x1. Every other literal of C3 (x1 | !x2 | x3) is false, so C3 forces x1 = True."
+        moveWhy: (t, s, after) => s.Clause < 0
+            ? $"Set {formula.Variables[s.Variable]}. No clause forces it, so it takes a random value: {formula.Variables[s.Variable]} = {s.Value}."
+            : $"Set {formula.Variables[s.Variable]}. Every other literal of C{s.Clause + 1} {ClauseText(formula.Written[s.Clause])} is false, so C{s.Clause + 1} forces {formula.Variables[s.Variable]} = {s.Value}.",
         skippedWhy: (t, from, to, after) => {
             int set = after.Count(v => v.HasValue);
-            return $"{(from == to ? $"Step {from} of try {t.Number} is" : $"Steps {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
+            return $"{(from == to ? $"The next variable set in try {t.Number} is" : $"The next {to - from + 1} variables set in try {t.Number} are")} not shown one by one. After them, "
                 + $"{set} of the {formula.Variables.Count} variables {(set == 1 ? "is" : "are")} set.";
         },
         // Every variable is set: the check that ends the try.
         closeWhy: (t, end) => {
-            if (t.Solved) return $"Try {t.Number} has set every variable: every clause has a true literal.";
-            return $"Try {t.Number} has set every variable, but {ClauseCheck(formula.FalseClauses(end))}.";
+            if (t.Solved) return $"Every variable is set in try {t.Number}: every clause has a true literal.";
+            return $"Every variable is set in try {t.Number}, but {ClauseCheck(formula.FalseClauses(end))}.";
         },
         closeFocus: (t, end) => t.Solved ? [] : formula.FalseClauses(end).Select(ClauseId).ToArray(),
         betweenWhy: (from, to) => from == to
-            ? $"Try {from} sets every variable: no satisfying assignment."
-            : $"Tries {from}–{to}: no satisfying assignment (each sets every variable).",
+            ? $"No satisfying assignment in try {from} (it sets every variable)."
+            : $"No satisfying assignment in tries {from}–{to} (each sets every variable).",
         solvedWhy: (t, end) => $"Every clause has a true literal under {Assigned(formula.Values(end))}: found by try {t.Number}.",
         gaveUpWhy: begun => $"Gave up after {Count(begun, "try", "tries")}: no answer found. PPZ can miss an answer, so the formula may still have one.",
         checksAtEnd: true);

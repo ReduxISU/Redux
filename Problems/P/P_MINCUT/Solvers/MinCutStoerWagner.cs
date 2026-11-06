@@ -124,11 +124,11 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
             int phaseWeight = key[lastAdded];
             // The phase's cut: an Accept if it is the lightest so far (it becomes the best), else a Reject.
             if (phaseWeight < bestWeight) {
-                steps.Accept(merged[lastAdded], $"Phase {phase + 1}: node {names[lastAdded]} is added last, so {GraphEdgeFrames.Side(Names(names, merged[lastAdded]))} is cut off from the rest at weight {phaseWeight}. It is the lightest cut so far.");
+                steps.Accept(merged[lastAdded], $"Node {names[lastAdded]} is added last, so {GraphEdgeFrames.Side(Names(names, merged[lastAdded]))} is cut off from the rest at weight {phaseWeight}. It is the lightest cut so far.");
                 bestWeight = phaseWeight;
                 bestSide = new HashSet<int>(merged[lastAdded]);
             } else {
-                steps.Reject(merged[lastAdded], $"Phase {phase + 1}: node {names[lastAdded]} is added last, so {GraphEdgeFrames.Side(Names(names, merged[lastAdded]))} is cut off from the rest at weight {phaseWeight}. It is no lighter than the best so far ({bestWeight}).");
+                steps.Reject(merged[lastAdded], $"Node {names[lastAdded]} is added last, so {GraphEdgeFrames.Side(Names(names, merged[lastAdded]))} is cut off from the rest at weight {phaseWeight}. It is no lighter than the best so far ({bestWeight}).");
             }
 
             // Merge lastAdded into secondLastAdded.

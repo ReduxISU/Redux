@@ -213,7 +213,7 @@ public class QuantumCircuitFrames_Tests {
             "Measure the query qubits: 101 with probability 100%.",
         ], Enumerable.Range(0, 5).Select(sim.Caption));
         var grover = QuantumCircuits.UnstructuredSearch(Table("(0,0,0,0,0,1,0,0)"));
-        Assert.Equal("Round 2: reflect every amplitude about the average. The marked item now has probability 94.5%.", new QuantumSimulation(grover).Caption(4));
+        Assert.Equal("In round 2, reflect every amplitude about the average. The marked item now has probability 94.5%.", new QuantumSimulation(grover).Caption(4));
     }
 
     // The rounds drawn and simulated here are the rounds the quantum server runs: quantumsolver's grover_rounds (#24 there)

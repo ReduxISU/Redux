@@ -99,7 +99,7 @@ public class Ppz_Tests {
             Assert.Equal(StepEvent.Done, done.Event);
             Assert.Single(steps, s => s.Event == StepEvent.Done);
             Assert.All(steps, s => Assert.False(string.IsNullOrWhiteSpace(s.Caption)));
-            Assert.StartsWith("Try 1: take the variables in a random order: ", steps[0].Caption);
+            Assert.StartsWith("Take the variables of try 1 in a random order: ", steps[0].Caption);
             Assert.Empty(steps[0].Partial.Values);
             if (run.Answer == "{}") {
                 Assert.False(done.Ok);
@@ -112,14 +112,14 @@ public class Ppz_Tests {
                 Assert.Equal(Values(GroupedGraphFrames.ParseAssignment(run.Answer)), Values(done.Partial));
                 var accept = steps[^2];
                 Assert.Equal(StepEvent.Accept, accept.Event);
-                Assert.EndsWith("has set every variable: every clause has a true literal.", accept.Caption);
+                Assert.Matches(@"^Every variable is set in try \d+: every clause has a true literal\.$", accept.Caption);
                 Assert.Equal(Values(done.Partial), Values(accept.Partial));
                 Assert.Single(steps, s => s.Event == StepEvent.Accept);
             }
 
             for (int i = 1; i < steps.Count; i++) {
                 var step = steps[i];
-                if (step.Caption.StartsWith("Step ")) {
+                if (step.Caption.StartsWith("Set ")) {
                     // One more variable than before, the one in focus (last), and nothing else changes.
                     var before = Values(steps[i - 1].Partial);
                     var after = Values(step.Partial);
@@ -143,7 +143,7 @@ public class Ppz_Tests {
                         Assert.False(forcedHere, step.Caption);
                     }
                 }
-                if (step.Event == StepEvent.Reject && step.Caption.Contains("has set every variable")) {
+                if (step.Event == StepEvent.Reject && step.Caption.StartsWith("Every variable is set in try ")) {
                     // The check of a failed try: every variable is set, and the clauses in focus are the false ones.
                     var values = Values(step.Partial);
                     Assert.Equal(variables, values.Count);
@@ -165,12 +165,12 @@ public class Ppz_Tests {
         Assert.False(done.Ok);
         Assert.Empty(done.Partial.Values);
         Assert.Equal("Gave up after 2 tries: no answer found. PPZ can miss an answer, so the formula may still have one.", done.Caption);
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 has set every variable, but "));
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption == "Try 2 sets every variable: no satisfying assignment.");
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Every variable is set in try 1, but "));
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption == "No satisfying assignment in try 2 (it sets every variable).");
 
         var many = StepsOf(Run(new PPZ(trials: 50), Unsatisfiable, 3));
         Assert.StartsWith("Gave up after 50 tries: no answer found.", many[^1].Caption);
-        Assert.Contains(many, s => s.Event == StepEvent.Reject && s.Caption == "Tries 2–50: no satisfying assignment (each sets every variable).");
+        Assert.Contains(many, s => s.Event == StepEvent.Reject && s.Caption == "No satisfying assignment in tries 2–50 (each sets every variable).");
         foreach (var s in steps.Concat(many)) {
             Assert.DoesNotContain("unsatisfiable", s.Caption, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("no solution", s.Caption, StringComparison.OrdinalIgnoreCase);
@@ -187,8 +187,8 @@ public class Ppz_Tests {
         Assert.True(steps.Count <= cap + 1, $"{steps.Count} steps for a cap of {cap}");
         Assert.Equal(0, StepCaptions.NotShown(steps[^1].Caption));
         var skipped = Assert.Single(steps, s => s.Caption.Contains("not shown one by one"));
-        Assert.Matches(@"^Steps \d+–\d+ of try 1 are not shown one by one\. After them, \d+ of the 203 variables are set\.$", skipped.Caption);
-        Assert.StartsWith("Try 1: take the 203 variables in a random order.", steps[0].Caption);
+        Assert.Matches(@"^The next \d+ variables set in try 1 are not shown one by one\. After them, \d+ of the 203 variables are set\.$", skipped.Caption);
+        Assert.StartsWith("Take the 203 variables of try 1 in a random order.", steps[0].Caption);
         Assert.StartsWith("Gave up after 5 tries", steps[^1].Caption);
     }
 
@@ -200,9 +200,9 @@ public class Ppz_Tests {
         int successful = 0;
         for (int seed = 0; seed < 5000 && found == null; seed++) {
             var probe = StepsOf(Run(new PPZ(trials: 100), OneAnswer, seed));
-            var restart = probe.LastOrDefault(s => s.Caption.StartsWith("Restart. Try "));
+            var restart = probe.LastOrDefault(s => s.Caption.StartsWith("Restart: "));
             if (probe[^1].Ok == true && restart != null) {
-                int number = int.Parse(restart.Caption["Restart. Try ".Length..].Split(':')[0]);
+                int number = int.Parse(restart.Caption.Split(" of try ")[1].Split(' ')[0]);
                 if (wanted == 2 ? number == 2 : number >= wanted) { found = seed; successful = number; }
             }
         }
@@ -211,13 +211,13 @@ public class Ppz_Tests {
         var run = Run(new PPZ(trials: 100), OneAnswer, found);
         var steps = StepsOf(run);
         Assert.True(new SAT3Verifier().verify(new SAT3(OneAnswer), run.Answer));
-        Assert.StartsWith("Try 1: take the variables in a random order", steps[0].Caption);
-        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Try 1 has set every variable, but "));
-        var restartStep = Assert.Single(steps, s => s.Caption.StartsWith("Restart."));
+        Assert.StartsWith("Take the variables of try 1 in a random order", steps[0].Caption);
+        Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith("Every variable is set in try 1, but "));
+        var restartStep = Assert.Single(steps, s => s.Caption.StartsWith("Restart: "));
         Assert.Empty(restartStep.Partial.Values);
-        string between = successful == 3 ? "Try 2 sets every variable: no satisfying assignment." : $"Tries 2–{successful - 1}: no satisfying assignment";
+        string between = successful == 3 ? "No satisfying assignment in try 2 (it sets every variable)." : $"No satisfying assignment in tries 2–{successful - 1} ";
         if (successful > 2) Assert.Contains(steps, s => s.Event == StepEvent.Reject && s.Caption.StartsWith(between));
-        else Assert.DoesNotContain(steps, s => s.Caption.StartsWith("Tries ") || s.Caption.StartsWith("Try 2 sets"));
+        else Assert.DoesNotContain(steps, s => s.Caption.StartsWith("No satisfying assignment in tr"));
         Assert.EndsWith($"found by try {successful}.", steps[^1].Caption);
 
         var capped = StepsOf(Run(new PPZ(trials: 100), OneAnswer, found, cap: 6));

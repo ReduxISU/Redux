@@ -44,7 +44,7 @@ sealed class RestartSteps<TValues, TMove, TPartial> : IStepGate {
     private readonly Func<TValues, TPartial> _partial;
     private readonly Func<TMove, string[]> _moveFocus;
     private readonly Func<RestartTry<TValues, TMove>, TValues, string> _startWhy;
-    private readonly Func<RestartTry<TValues, TMove>, TMove, TValues, int, string> _moveWhy;
+    private readonly Func<RestartTry<TValues, TMove>, TMove, TValues, string> _moveWhy;
     private readonly Func<RestartTry<TValues, TMove>, int, int, TValues, string> _skippedWhy;
     private readonly Func<RestartTry<TValues, TMove>, TValues, string> _closeWhy;
     private readonly Func<RestartTry<TValues, TMove>, TValues, string[]>? _closeFocus;
@@ -80,7 +80,7 @@ sealed class RestartSteps<TValues, TMove, TPartial> : IStepGate {
     /// <param name="partial">The partial answer the values show.</param>
     /// <param name="moveFocus">The ids a move is about (a clause, a variable).</param>
     /// <param name="startWhy">The caption of a try's start, from its start values.</param>
-    /// <param name="moveWhy">The caption of a move, with the values after it and its number within the try (from 1).</param>
+    /// <param name="moveWhy">The caption of a move, with the values after it. It does not number the move: the step bar shows the step number.</param>
     /// <param name="skippedWhy">The caption of the step for the moves from..to (numbered from 1) not shown, with the values after them.</param>
     /// <param name="closeWhy">The caption of the step that ends a try (a failed one; every one with <paramref name="checksAtEnd"/>).</param>
     /// <param name="closeFocus">The ids that step is about; none by default.</param>
@@ -94,7 +94,7 @@ sealed class RestartSteps<TValues, TMove, TPartial> : IStepGate {
                         Func<TValues, TPartial> partial,
                         Func<TMove, string[]> moveFocus,
                         Func<RestartTry<TValues, TMove>, TValues, string> startWhy,
-                        Func<RestartTry<TValues, TMove>, TMove, TValues, int, string> moveWhy,
+                        Func<RestartTry<TValues, TMove>, TMove, TValues, string> moveWhy,
                         Func<RestartTry<TValues, TMove>, int, int, TValues, string> skippedWhy,
                         Func<RestartTry<TValues, TMove>, TValues, string> closeWhy,
                         Func<int, int, string> betweenWhy,
@@ -233,8 +233,7 @@ sealed class RestartSteps<TValues, TMove, TPartial> : IStepGate {
                 continue;
             }
             bool ends = t.Solved && !closes && i == moves - 1;
-            int number = i + 1;
-            Func<Step<TPartial>> step = () => new(_partial(cur), _moveWhy(t, move, cur, number)) { Focus = _moveFocus(move) };
+            Func<Step<TPartial>> step = () => new(_partial(cur), _moveWhy(t, move, cur)) { Focus = _moveFocus(move) };
             if (ends) _rec.Accept(step);
             else _rec.Try(step);
         }

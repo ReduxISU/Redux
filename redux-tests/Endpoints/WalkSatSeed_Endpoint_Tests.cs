@@ -51,7 +51,7 @@ public class WalkSatSeed_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(42, root.GetProperty("seed").GetInt32());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
         Assert.True(frames.Count > 1);
-        Assert.StartsWith("Try 1: start from a random assignment", frames[0].GetProperty("caption").GetString());
+        Assert.StartsWith("Start try 1 from a random assignment", frames[0].GetProperty("caption").GetString());
         Assert.Equal("Done", frames[^1].GetProperty("event").GetString());
         Assert.True(frames[^1].GetProperty("ok").GetBoolean());
     }
@@ -119,7 +119,7 @@ public class WalkSatSeed_Endpoint_Tests : IClassFixture<AppFactory> {
         // The seed follows the solver.
         Assert.Equal(["type", "kind", "reduction", "reductionName", "solver", "seed"], a.EnumerateObject().Take(6).Select(p => p.Name));
         var solve = a.GetProperty("frames").EnumerateArray().Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
-        Assert.Contains(solve, f => f.GetProperty("caption").GetString()!.StartsWith("Try 1: start from a random assignment"));
+        Assert.Contains(solve, f => f.GetProperty("caption").GetString()!.StartsWith("Start try 1 from a random assignment"));
 
         var chosen = await Json("reductionView", $"reduction={Reduction}&solver=WalkSAT", instance);
         int seed = chosen.GetProperty("seed").GetInt32();

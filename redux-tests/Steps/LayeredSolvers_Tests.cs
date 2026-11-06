@@ -213,14 +213,14 @@ public class LayeredSolvers_Tests {
     public void Kosaraju_FirstNumbersTheNodes_ThenCollectsEachComponent() {
         var steps = Steps(new KosarajuSolver(), "({1,2,3,4,5},{(1,2),(2,3),(3,1),(3,4),(4,5),(5,4)})");
         Assert.Equal(
-            ["Pass 1: visit 1.", "Pass 1: visit 2.", "Pass 1: visit 3.", "Pass 1: visit 4.", "Pass 1: visit 5.",
-             "Pass 1: 5 is finished (number 1).", "Pass 1: 4 is finished (number 2).", "Pass 1: 3 is finished (number 3).",
-             "Pass 1: 2 is finished (number 4).", "Pass 1: 1 is finished (number 5).",
-             "Pass 2: 1 has the highest finish number left, so it starts component 1.",
-             "Pass 2: follow the edge 3 → 1 backward, so 3 joins component 1.",
-             "Pass 2: follow the edge 2 → 3 backward, so 2 joins component 1.",
-             "Pass 2: 4 has the highest finish number left, so it starts component 2.",
-             "Pass 2: follow the edge 5 → 4 backward, so 5 joins component 2.",
+            ["In pass 1, visit 1.", "In pass 1, visit 2.", "In pass 1, visit 3.", "In pass 1, visit 4.", "In pass 1, visit 5.",
+             "In pass 1, 5 is finished (number 1).", "In pass 1, 4 is finished (number 2).", "In pass 1, 3 is finished (number 3).",
+             "In pass 1, 2 is finished (number 4).", "In pass 1, 1 is finished (number 5).",
+             "In pass 2, 1 has the highest finish number left, so it starts component 1.",
+             "In pass 2, follow the edge 3 → 1 backward, so 3 joins component 1.",
+             "In pass 2, follow the edge 2 → 3 backward, so 2 joins component 1.",
+             "In pass 2, 4 has the highest finish number left, so it starts component 2.",
+             "In pass 2, follow the edge 5 → 4 backward, so 5 joins component 2.",
              "2 strongly connected components: {1,2,3}, {4,5}."],
             steps.Select(s => s.Caption));
         Assert.Equal(["3", "3>1"], steps[11].Focus);

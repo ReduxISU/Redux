@@ -74,13 +74,13 @@ class MinSTCutSolver : ISolver<MINSTCUT, NetworkFlow>, IIncrementalSolver {
             // The why says where the path runs backward over earlier flow and which edges it fills, when it does either:
             // one step line per case, so each reads as a plain sentence.
             if (push.Back.Count == 0 && push.Full.Count == 0)
-                steps.Accept((push, value), $"Path {paths}: push {bottleneck} along {push.Along}. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. Flow is now {value}.");
             else if (push.Back.Count == 0)
-                steps.Accept((push, value), $"Path {paths}: push {bottleneck} along {push.Along}. {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
             else if (push.Full.Count == 0)
-                steps.Accept((push, value), $"Path {paths}: push {bottleneck} along {push.Along}. It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier. Flow is now {value}.");
             else
-                steps.Accept((push, value), $"Path {paths}: push {bottleneck} along {push.Along}. It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier. {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier. {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
         }
 
         HashSet<string> sSide = BfsReachable(residual, s);

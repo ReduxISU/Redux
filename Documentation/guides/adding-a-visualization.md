@@ -290,7 +290,7 @@ States (precedence `Rejected > ElementHighlight > Solution > Covered > Blocked >
 
 The solver and its steps (`NetworkFlow`: units keyed by edge id, the legs, the value, and in Done the S side by node name):
 
-- `MinSTCutSolver` (Edmonds-Karp, incremental): a `Try` with no flow, then an `Accept` per augmenting path ("Path 1: push 3 along 1 → 2 → 4. 2 → 4 is now full. Flow is now 3."; a backward leg is written `⇠` and named in the caption), then a `Done` with the S side.
+- `MinSTCutSolver` (Edmonds-Karp, incremental): a `Try` with no flow, then an `Accept` per augmenting path ("Push 3 along 1 → 2 → 4. 2 → 4 is now full. Flow is now 3."; a backward leg is written `⇠` and named in the caption), then a `Done` with the S side.
 - The solver's residual graph merges parallel edges and both directions of a pair, so it only knows each pair's net flow. The steps draw that net flow on the edge it runs along. That is always a valid flow, and the algorithm itself is unchanged.
 
 To add a flow problem or another max-flow solver:
