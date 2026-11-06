@@ -354,6 +354,14 @@ static class BipartiteFrames {
         return string.Join("; ", why);
     }
 
+    /// <summary>
+    /// What a brute force's Reject says of picks the verifier turned down: <see cref="Why"/>'s reason, or "the verifier
+    /// rejects it" when every constraint is hit as the rule asks (the verifier said no for a reason of its own). For a
+    /// <c>$"Try {...}: {WhyRejected(spec, picked)}."</c> hole, so it runs only for a kept step.
+    /// </summary>
+    public static string WhyRejected(BipartiteSpec spec, IEnumerable<string> picked) =>
+        Why(spec, picked) is { Length: > 0 } why ? why : "the verifier rejects it";
+
     // ---- The whole response ----
 
     /// <summary>

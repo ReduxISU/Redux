@@ -7,6 +7,9 @@ using System.Numerics;
 
 namespace API.Problems.NPComplete.NPC_SETCOVER.Solvers;
 
+// The steps Set Cover Brute Force records: one per combination of sets, smallest combinations first. A combination is a
+// Reject naming the elements it leaves uncovered, or the Accept that ends the search; then the Done. The recorder's cap
+// hides the rest of a long run.
 class SetCoverBruteForce : ISolver<SETCOVER, ChosenSets> {
 
     // --- Fields ---
@@ -62,16 +65,27 @@ class SetCoverBruteForce : ISolver<SETCOVER, ChosenSets> {
         }
         return combination;
     }
+    // How the steps show a candidate, given by the positions in S of its sets: those sets, every one of them in focus.
+    private static RunSteps<List<int>, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec) => new(rec,
+        // What every picture shows: the sets of the combination, all in focus.
+        partial: combination => new ChosenSets(Picked(combination)),
+        focus: combination => Picked(combination));
+
+    // The ids (S1, S2, ...) of the sets at these positions of S.
+    private static string[] Picked(List<int> combination) => combination.Select(BipartiteFrames.SetId).ToArray();
+
     public string solve(SETCOVER setCover) => Solve(setCover, StepRecorder<ChosenSets>.Off);
 
-    // Steps: one per combination tried, in the order the solver tries them. Recorder state lives only in this call.
+    // Tries every combination of 1, 2, ..., K sets (never more sets than S has), smallest first, so the first cover found
+    // uses as few sets as any.
     public string Solve(SETCOVER setCover, StepRecorder<ChosenSets> rec) {
-        // Every combination of 1, 2, ..., K sets (never more sets than S has), smallest first (#772).
+        var steps = NewSteps(rec);
+        // The verifier only says no, so the elements a combination leaves uncovered are worked out for the steps alone.
+        BipartiteSpec? spec = rec.Enabled ? SetCoverDefaultVisualization.Spec(setCover) : null;
         int m = setCover.subsets.Count;
         int maxSize = Math.Min(setCover.K, m);
         int tried = 0;
         List<int> combination = new List<int>();
-        string[] Picked() => combination.Select(BipartiteFrames.SetId).ToArray();
         for (int size = 1; size <= maxSize; size++) {
             combination = new List<int>();
             for (int i = 0; i < size; i++) {
@@ -79,34 +93,31 @@ class SetCoverBruteForce : ISolver<SETCOVER, ChosenSets> {
             }
             BigInteger reps = factorial(m) / (factorial(size) * factorial(m - size));
             for (BigInteger i = 0; i < reps; i++) {
-                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
                 string certificate = indexListToCertificate(combination, setCover.subsets);
                 tried++;
                 if (setCover.defaultVerifier.verify(setCover, certificate)) {
-                    rec.Accept(() => new ChosenSets(Picked()), () => $"Try {BipartiteFrames.Braces(Picked())}. It covers every element.", Picked);
-                    rec.Done(new ChosenSets(Picked()), true,
-                        $"{BipartiteFrames.Braces(Picked())} covers U with {size} {(size == 1 ? "set" : "sets")}, found after {tried} {(tried == 1 ? "try" : "tries")}. "
-                        + "Smaller combinations were tried first, so no cover uses fewer sets.");
+                    steps.Accept(combination, $"Try {BipartiteFrames.Braces(Picked(combination))}. It covers every element.");
+                    steps.Done(new ChosenSets(Picked(combination)), true,
+                        $"{BipartiteFrames.Braces(Picked(combination))} covers U with {Words.Count(size, "set")}, found after {Words.Count(tried, "try", "tries")}. Smaller combinations were tried first, so no cover uses fewer sets.");
                     return certificate;
                 }
-                rec.Reject(() => new ChosenSets(Picked()), () => $"Try {BipartiteFrames.Braces(Picked())}: {Why(setCover, Picked())}.", Picked);
+                steps.Reject(combination, $"Try {BipartiteFrames.Braces(Picked(combination))}: {BipartiteFrames.WhyRejected(spec!, Picked(combination))}.");
                 combination = nextComb(combination, setCover.subsets.Count);
 
             }
         }
         // Nothing was found. The empty collection is the answer only when U is empty.
         bool ok = setCover.defaultVerifier.verify(setCover, "{}");
-        rec.Done(new ChosenSets([]), ok,
-            ok ? "U is empty, so no sets are needed."
-            : m == 0 ? "S has no sets, so U can't be covered."
-            : tried == 0 ? $"K = {setCover.K} allows no sets, so U can't be covered."
-            : $"Checked all {tried} combinations of up to K = {setCover.K} sets. None covers U.");
+        if (ok)
+            steps.Done(new ChosenSets([]), true, $"U is empty, so no sets are needed.");
+        else if (m == 0)
+            steps.Done(new ChosenSets([]), false, $"S has no sets, so U can't be covered.");
+        else if (tried == 0)
+            steps.Done(new ChosenSets([]), false, $"K = {setCover.K} allows no sets, so U can't be covered.");
+        else
+            steps.Done(new ChosenSets([]), false, $"Checked all {tried} combinations of up to K = {setCover.K} sets. None covers U.");
         return "{}";
-    }
-
-    private static string Why(SETCOVER setCover, string[] picked) {
-        string why = BipartiteFrames.Why(SetCoverDefaultVisualization.Spec(setCover), picked);
-        return why.Length > 0 ? why : "the verifier rejects it";
     }
 
 }

@@ -79,9 +79,9 @@ class HittingSetBruteForce : ISolver<HITTINGSET, NodeSet> {
                 steps.Done(new NodeSet(found), true, $"{BipartiteFrames.Braces(found)} hits every set exactly once, found after {Words.Count(tried, "try", "tries")}.");
                 return strCertificate;
             }
-            // BipartiteFrames.Why names what fails; if it finds nothing, the verifier rejected the subset for another reason.
+            // The verifier only says no, so the step names what fails the subset: the sets it misses or hits twice.
             steps.Reject(possibleSolution,
-                $"Try {BipartiteFrames.Braces(Picked(possibleSolution, items))}: {(BipartiteFrames.Why(spec!, Picked(possibleSolution, items).Select(BipartiteFrames.ElementId)) is { Length: > 0 } why ? why : "the verifier rejects it")}.");
+                $"Try {BipartiteFrames.Braces(Picked(possibleSolution, items))}: {BipartiteFrames.WhyRejected(spec!, Picked(possibleSolution, items).Select(BipartiteFrames.ElementId))}.");
         }
 
         // No hitting set exists. "{}", as the other set solvers answer; the verifier rejects it whenever S is not empty.
