@@ -201,7 +201,33 @@ A step-by-step visualization shows the solver at work, one picture per **step**.
 - the **focus**: the pieces of the picture the step is about (a variable, a clause, an edge);
 - the **why**: one sentence saying what happened and why.
 
-Each step is one of five kinds: **Try** (look at something), **Accept** (keep it), **Reject** (it fails), **Backtrack** (undo and go back), and **Done** (the end, with the answer).
+Each step starts with a **keyword** that says what kind of step it is:
+
+| Keyword | It means | Typical step |
+| --- | --- | --- |
+| **Try** | look at something that may still fail | try an assignment, start a tour from a city |
+| **Update** | change the working state; there is nothing to judge yet | fill a table cell, read a symbol, apply a gate, set the starting distances |
+| **Accept** | keep it: a move made, the best so far, a piece of the answer | settle a node, push flow along a path, take a cell into the trace-back |
+| **Reject** | it fails | a clause with no true literal, a dead end, a move the machine does not have |
+| **Backtrack** | undo a move and go back | back out of a dead end in a search |
+| **Done** | the end, with the answer and whether there is one | the final verdict |
+
+Update is only in `RunSteps` (a search's steps are tries and verdicts). It is not an event of its own: it records a Try, so the pictures, the API's JSON and both front ends see a Try. The keyword is there so the solver's code says what it means.
+
+**Which keyword?** Ask whether the step has a verdict. If it can still fail, it is a Try. If nothing is being judged, it is an Update. A verdict is an Accept or a Reject, and the very last step is always Done. One example per kind of algorithm:
+
+| Kind of algorithm | Its steps | Example |
+| --- | --- | --- |
+| brute force | a Reject per failed candidate, an Accept for the answer | [SATBruteForceSolver.cs](../../Problems/NPComplete/NPC_SAT/Solvers/SATBruteForceSolver.cs) |
+| greedy | a Try to start, an Accept per move, a Reject for a dead end | [TSPGreedy.cs](../../Problems/NPComplete/NPC_TSP/Solvers/TSPGreedy.cs) |
+| backtracking search | Try, Reject and Accept per choice, Backtrack to go back | [Sat3BacktrackingSolver.cs](../../Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs) |
+| dynamic programming | an Update per cell filled, an Accept per cell of the trace-back | [EditDistanceDPSolver.cs](../../Problems/NPComplete/NPC_EDITDISTANCE/Solvers/EditDistanceDPSolver.cs) |
+| automaton simulation | an Update per symbol read, a Reject when there is no move | [DFASolver.cs](../../Problems/P/P_DFA/Solvers/DFASolver.cs) |
+| quantum circuit | an Update per column of gates, an Accept or Reject for the measurement | [UnstructuredGroverSolver.cs](../../Problems/NPComplete/NPC_UNSTRUCTUREDSEARCH/Solvers/UnstructuredGroverSolver.cs) |
+| shortest paths (relaxation) | an Update to set the starting distances, an Accept per node settled (its relaxations in the why) | [SSSPSolver.cs](../../Problems/P/P_SSSP/Solvers/SSSPSolver.cs) |
+| network flow | an Update for the empty flow, an Accept per augmenting path | [MinSTCutSolver.cs](../../Problems/P/P_MINSTCUT/Solvers/MinSTCutSolver.cs) |
+
+The same word can mean two things. A DFA *accepts* a string, but its run never records an Accept step: a run keeps nothing, it only moves. Whether the machine accepts is the Done's verdict (`ok`).
 
 The idea is simple. You already know the algorithm, so you add one line wherever it does something worth showing. That line says the keyword and why, and you get the pictures for free. A visualization draws your steps only if they have the shape of answer it draws. If the shapes don't match, nothing breaks: the picture shows the start and the answer instead.
 

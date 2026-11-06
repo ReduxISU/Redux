@@ -102,6 +102,57 @@ public class RunSteps_Tests {
         Assert.Equal(1001, rec.Total);
     }
 
+    // Update, a step with no verdict, records exactly what a Try records: the same event, partial, focus and caption.
+    [Fact]
+    public void Update_RecordsWhatATryRecords() {
+        var calls = new Counter();
+        var viaUpdate = new StepRecorder<NodeSet>();
+        var viaTry = new StepRecorder<NodeSet>();
+        int cell = 4;
+        StepsOn(viaUpdate, calls).Update((["a"], "a"), $"fill cell {cell}");
+        StepsOn(viaTry, calls).Try((["a"], "a"), $"fill cell {cell}");
+        StepsOn(viaUpdate, calls).Update((["a"], null), $"read b", focus: () => ["b"], partial: () => Nodes("b"));
+        StepsOn(viaTry, calls).Try((["a"], null), $"read b", focus: () => ["b"], partial: () => Nodes("b"));
+
+        Assert.Equal(StepEvent.Try, viaUpdate.Steps[0].Event);
+        Assert.Equal(viaTry.Steps.Count, viaUpdate.Steps.Count);
+        for (int i = 0; i < viaTry.Steps.Count; i++) {
+            Assert.Equal(viaTry.Steps[i] with { Focus = [] }, viaUpdate.Steps[i] with { Focus = [] });
+            Assert.Equal(viaTry.Steps[i].Focus, viaUpdate.Steps[i].Focus);
+        }
+        Assert.Equal("fill cell 4", viaUpdate.Steps[0].Caption);
+        Assert.Equal(["b"], viaUpdate.Steps[1].Focus);
+    }
+
+    // Like a Try, an Update builds nothing when the recorder is off or past the cap, and a counting recorder counts it.
+    [Fact]
+    public void Update_BuildsNothingOffOrPastTheCap() {
+        var calls = new Counter();
+        var text = new Counter();
+        StepsOn(StepRecorder<NodeSet>.Off, calls).Update((["a"], "a"), $"update {text.Hit()}");
+        Assert.Equal(0, calls.Count);
+        Assert.Equal(0, text.Count);
+
+        var rec = new StepRecorder<NodeSet>(cap: 3);
+        var steps = StepsOn(rec, calls);
+        for (int i = 0; i < 100; i++) steps.Update((["a"], null), $"update {text.Hit()}");
+        steps.Done(Nodes("a"), true, $"done");
+        Assert.Equal(3, text.Count);
+        Assert.Equal(3 * 2, calls.Count);
+        Assert.Equal(4, rec.Steps.Count);
+        Assert.Equal(101, rec.Total);
+        Assert.Equal("done (97 not shown)", rec.Steps[3].Caption);
+
+        long now = 0;
+        var deadline = StepRecorder<NodeSet>.DeadlineOnlyForTest(TimeSpan.FromMilliseconds(3), () => now++);
+        var counted = StepsOn(deadline, calls);
+        Assert.Throws<StepBudgetExceededException>(() => {
+            for (int i = 0; i < 1000; i++) counted.Update((["a"], null), $"update {text.Hit()}");
+        });
+        Assert.Equal(3, text.Count);
+        Assert.Empty(deadline.Steps);
+    }
+
     [Fact]
     public void NoFocusConverter_GivesNoFocus() {
         var rec = new StepRecorder<NodeSet>();

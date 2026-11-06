@@ -46,7 +46,9 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     //          focus: state => [...]);
     //
     //   4. In the algorithm, one line per step: the keyword, the state, then why, written inline as $"..." even when the
-    //      text has no {holes}:
+    //      text has no {holes}. The keywords: Try (look at something that may still fail), Update (change the working
+    //      state with nothing to judge yet: fill a table cell, read a symbol, apply a gate; RunSteps only), Accept (keep
+    //      it), Reject (it fails), Backtrack (undo and go back), Done (the end, with the answer):
     //
     //      public string Solve({PROBLEM} problem, StepRecorder<TPartial> rec) {
     //          var steps = NewSteps(rec);

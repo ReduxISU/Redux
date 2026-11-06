@@ -4,7 +4,7 @@ namespace API.Interfaces.Steps;
 
 /// <summary>
 /// Records the steps of a solver that does not branch: a brute force trying one candidate after another, a greedy making one
-/// move after another, a local search. The solver says, once, how to show what a step is about (its <typeparamref name="TState"/>):
+/// move after another, a local search, a table filled cell by cell, a machine run symbol by symbol. The solver says, once, how to show what a step is about (its <typeparamref name="TState"/>):
 /// the converters given to the constructor turn it into the partial answer and the focus. Each step is then one call that names
 /// the event, what it is about, and why: <c>steps.Reject(candidate, $"Try {...}: clause C2 has no true literal.")</c>.
 /// <para>
@@ -34,6 +34,17 @@ sealed class RunSteps<TState, TPartial> : StepsCore<TPartial> {
 
     /// <summary>A Try: the solver tries <paramref name="state"/>.</summary>
     public void Try(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
+        if (!Rec.CountsSteps) return;
+        Step(StepEvent.Try, state, why.ToStringAndClear(), focus, partial);
+    }
+
+    /// <summary>
+    /// An Update: the solver changes its working state, and there is nothing to judge yet: a table cell filled, a symbol
+    /// read, a gate applied, the starting distances set. It is recorded as a Try (<see cref="StepEvent.Try"/>), so every
+    /// picture draws it as it draws a Try, and it is kept within the cap as a Try is. Use Try instead when what the step
+    /// looks at can still fail.
+    /// </summary>
+    public void Update(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
         if (!Rec.CountsSteps) return;
         Step(StepEvent.Try, state, why.ToStringAndClear(), focus, partial);
     }
