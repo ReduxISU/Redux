@@ -5,6 +5,13 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 
+// The steps Knuth's Algorithm X records:
+//   - an Accept per set it tries for the uncovered element with the fewest sets left (the first set saying which element
+//     that is, the others that they are tried for it instead);
+//   - a Reject when an uncovered element has no set left that doesn't double up an element already covered;
+//   - a Backtrack per set it takes back;
+//   - the Done, with the exact cover or why there is none.
+// It records no search tree.
 class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
 
     // --- Fields ---
@@ -16,7 +23,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact search WITH pruning (Algorithm X via dancing links) -- distinct
     // from ExactCoverBruteForce, which does not prune. Also DepthFirstSearch: iterate() recurses one
-    // row choice deeper before trying the next (#842).
+    // row choice deeper before trying the next.
     public SolverType solverType { get; } = SolverType.Backtracking | SolverType.DepthFirstSearch;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Choosing the minimum-remaining-rows column each step (iterate's OrderBy) is a heuristic that cuts
@@ -32,11 +39,19 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
 
     }
 
+    // How the steps show the search, given by its stack of sets taken (positions in S; the last taken on top).
+    private static RunSteps<Stack<int>, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec) => new(rec,
+        // What every picture shows: the sets taken, and the set taken last.
+        partial: Picked,
+        focus: stack => stack.Count > 0 ? [BipartiteFrames.SetId(stack.Peek())] : []);
+
     public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
 
-    // Steps: try a set for the element with the fewest options, reach an element no set can cover, undo a set. Recorder
-    // state lives only in this call.
+    // Algorithm X: X maps each element not yet covered (column) to the sets (rows) still able to cover it, Y each set to
+    // its elements. Taking a set removes its elements' columns and every other set that shares one of them; taking it back
+    // restores them.
     public string Solve(EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
+        var steps = NewSteps(rec);
 
         Dictionary<int, List<int>> Y = new Dictionary<int, List<int>>();
         Dictionary<int, List<int>> X = new Dictionary<int, List<int>>();
@@ -60,17 +75,19 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
 
         Stack<int> selectedSets = new Stack<int>();
         bool foundSolution = false;
-        iterate(Y, ref X, ref selectedSets, ref foundSolution, exactCover, rec);
+        iterate(Y, ref X, ref selectedSets, ref foundSolution, exactCover, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (selectedSets.Any()) {
-            rec.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(selectedSets).Sets)}.");
+            steps.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(selectedSets).Sets)}.");
             return solutionToCertificate(selectedSets, exactCover);
         }
 
         // With nothing selected, a solution was found only when X is empty: then {} is the exact cover.
-        rec.Done(new ChosenSets([]), foundSolution,
-            foundSolution ? "There are no elements, so the empty collection {} is an exact cover." : "Every branch was undone. No exact cover exists.");
+        if (foundSolution)
+            steps.Done(new ChosenSets([]), true, $"There are no elements, so the empty collection {{}} is an exact cover.");
+        else
+            steps.Done(new ChosenSets([]), false, $"Every branch was undone. No exact cover exists.");
         return "{}";
     }
 
@@ -78,34 +95,32 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
     private static ChosenSets Picked(Stack<int> solution) => new(solution.Select(BipartiteFrames.SetId));
 
     private void iterate(Dictionary<int, List<int>> Y, ref Dictionary<int, List<int>> X, ref Stack<int> solution, ref bool foundSolution,
-        EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
+        EXACTCOVER exactCover, RunSteps<Stack<int>, ChosenSets> steps) {
         if (!X.Keys.Any()) foundSolution = true;
         if (foundSolution == true) return;
         else {
+            // Branch on the uncovered element with the fewest sets left.
             int minimumColumn = X.OrderBy(kv => kv.Value.Count).First().Key;
-            // A copy: select and deselect change this column's row list while the loop runs (#773).
+            // A copy: select and deselect change this column's row list while the loop runs.
             var rows = X[minimumColumn].ToList();
-            var stack = solution;
             string element = exactCover.X[minimumColumn];
             if (rows.Count == 0)
-                rec.Reject(() => Picked(stack), () => $"No set left can cover {element} without doubling up, so undo.", BipartiteFrames.ElementId(element));
+                steps.Reject(solution, $"No set left can cover {element} without doubling up, so undo.", focus: () => [BipartiteFrames.ElementId(element)]);
             bool first = true;
             foreach (var row in rows) {
-                if (timerHasExpired) return; // #935: unwind at the time limit; solve() returns the timed-out answer
+                if (timerHasExpired) return; // unwind at the time limit; solve() returns the timed-out answer
                 solution.Push(row);
                 Stack<List<int>> columns = select(Y, ref X, row);
-                bool isFirst = first;
+                if (first)
+                    steps.Accept(solution, $"{element} has the fewest options ({rows.Count}). Try {BipartiteFrames.SetText(exactCover.S, row)}.");
+                else
+                    steps.Accept(solution, $"Try {BipartiteFrames.SetText(exactCover.S, row)} for {element} instead.");
                 first = false;
-                rec.Accept(() => Picked(stack),
-                    () => isFirst
-                        ? $"{element} has the fewest options ({rows.Count}). Try {BipartiteFrames.SetText(exactCover.S, row)}."
-                        : $"Try {BipartiteFrames.SetText(exactCover.S, row)} for {element} instead.",
-                    BipartiteFrames.SetId(row));
-                iterate(Y, ref X, ref solution, ref foundSolution, exactCover, rec);
+                iterate(Y, ref X, ref solution, ref foundSolution, exactCover, steps);
                 if (foundSolution == true) return;
                 deselect(Y, ref X, row, ref columns);
                 solution.Pop();
-                rec.Backtrack(() => Picked(stack), () => $"Undo {BipartiteFrames.SetId(row)}: no exact cover follows from it.", BipartiteFrames.SetId(row));
+                steps.Backtrack(solution, $"Undo {BipartiteFrames.SetId(row)}: no exact cover follows from it.", focus: () => [BipartiteFrames.SetId(row)]);
             }
         }
     }

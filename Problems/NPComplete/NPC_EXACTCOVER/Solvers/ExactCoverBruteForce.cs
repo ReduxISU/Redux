@@ -5,6 +5,10 @@ using API.Problems.NPComplete.NPC_EXACTCOVER.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 
+// The steps Exact Cover Brute Force records: one per combination of sets, in the order it counts through them (in binary,
+// S1 the lowest bit, so the empty combination comes last). A combination is a Reject naming the elements it leaves
+// uncovered or covers more than once, or the Accept that ends the search; then the Done. The recorder's cap hides the rest
+// of a long run.
 class ExactCoverBruteForce : ISolver<EXACTCOVER, ChosenSets> {
 
     // --- Fields ---
@@ -53,37 +57,43 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER, ChosenSets> {
         }
     }
 
+    // How the steps show a candidate, given by its bits, one per set of S (1: picked): the picked sets, all in focus.
+    private static RunSteps<List<int>, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec) => new(rec,
+        // What every picture shows: the picked sets, every one of them in focus.
+        partial: binary => new ChosenSets(Picked(binary)),
+        focus: Picked);
+
+    // The ids (S1, S2, ...) of the sets a candidate's bits pick.
+    private static string[] Picked(List<int> binary) =>
+        Enumerable.Range(0, binary.Count).Where(i => binary[i] == 1).Select(BipartiteFrames.SetId).ToArray();
+
     public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
 
-    // Steps: one per combination of sets tried, in the order the solver tries them (counting in binary, S1 the lowest
-    // bit, so the empty combination comes last). Recorder state lives only in this call.
+    // Tries every combination of the sets of S until one covers every element exactly once.
     public string Solve(EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
         List<int> binary = new List<int>() { };
         for (int i = 0; i < exactCover.S.Count; i++) {
             binary.Add(0);
         }
-        string[] Picked() => Enumerable.Range(0, binary.Count).Where(i => binary[i] == 1).Select(BipartiteFrames.SetId).ToArray();
+        var steps = NewSteps(rec);
+        // The verifier only says no, so the elements a combination misses or doubles are worked out for the steps alone.
+        BipartiteSpec? spec = rec.Enabled ? ExactCoverDefaultVisualization.Spec(exactCover) : null;
         int tried = 0;
         string certificate = BinaryToCertificate(binary, exactCover.S);
         for (int i = 0; i < Math.Pow(2, binary.Count); i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             nextBinary(binary);
             certificate = BinaryToCertificate(binary, exactCover.S);
             tried++;
             if (exactCover.defaultVerifier.verify(exactCover, certificate)) {
-                rec.Accept(() => new ChosenSets(Picked()), () => $"Try {BipartiteFrames.Braces(Picked())}. It covers every element exactly once.", Picked);
-                rec.Done(new ChosenSets(Picked()), true,
-                    $"{BipartiteFrames.Braces(Picked())} covers every element exactly once, found after {tried} {(tried == 1 ? "try" : "tries")}.");
+                steps.Accept(binary, $"Try {BipartiteFrames.Braces(Picked(binary))}. It covers every element exactly once.");
+                steps.Done(new ChosenSets(Picked(binary)), true,
+                    $"{BipartiteFrames.Braces(Picked(binary))} covers every element exactly once, found after {Words.Count(tried, "try", "tries")}.");
                 return certificate;
             }
-            rec.Reject(() => new ChosenSets(Picked()), () => $"Try {BipartiteFrames.Braces(Picked())}: {Why(exactCover, Picked())}.", Picked);
+            steps.Reject(binary, $"Try {BipartiteFrames.Braces(Picked(binary))}: {BipartiteFrames.WhyRejected(spec!, Picked(binary))}.");
         }
-        rec.Done(new ChosenSets([]), false, $"Checked all {tried} combinations of sets. None covers every element exactly once.");
+        steps.Done(new ChosenSets([]), false, $"Checked all {tried} combinations of sets. None covers every element exactly once.");
         return "{}";
-    }
-
-    private static string Why(EXACTCOVER exactCover, string[] picked) {
-        string why = BipartiteFrames.Why(ExactCoverDefaultVisualization.Spec(exactCover), picked);
-        return why.Length > 0 ? why : "the verifier rejects it";
     }
 }

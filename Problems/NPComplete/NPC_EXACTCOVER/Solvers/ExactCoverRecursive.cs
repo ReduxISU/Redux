@@ -4,6 +4,12 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 
+// The steps Exact Cover Recursive records:
+//   - an Accept per set it takes, one that shares no element with the sets already taken;
+//   - a Reject when every set left overlaps the sets taken, naming the elements still not covered;
+//   - a Backtrack per set it takes back;
+//   - the Done, with the exact cover or why there is none.
+// It records no search tree.
 class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
 
     // --- Fields ---
@@ -50,7 +56,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
 
     private string subsetsToCertificate(List<List<string>> solution) {
         if (solution.Count == 0) {
-            // The empty collection, as the other Exact Cover solvers write it; also their "no answer" (#775).
+            // The empty collection, as the other Exact Cover solvers write it; also their "no answer".
             return "{}";
         }
 
@@ -85,10 +91,17 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
         return false;
     }
 
+    // How the steps show the search, given by the sets taken so far, in the order taken. index gives each set of S its
+    // position (by reference, so two sets with the same elements keep their own ids).
+    private static RunSteps<List<List<string>>, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec, Dictionary<List<string>, int> index) => new(rec,
+        // What every picture shows: the sets taken, and the set taken last.
+        partial: chosen => Picked(chosen, index),
+        focus: chosen => chosen.Count > 0 ? [BipartiteFrames.SetId(index[chosen[^1]])] : []);
+
     public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
 
-    // Steps: take a set that shares no element with the sets taken, run out of such sets, undo a set. Recorder state lives
-    // only in this call.
+    // A depth-first search: take any set that shares no element with the sets taken, recurse, and take it back when no
+    // exact cover follows from it. It stops as soon as the sets taken are an exact cover.
     public string Solve(EXACTCOVER exactCover, StepRecorder<ChosenSets> rec) {
         List<string> uSet = new List<string>(exactCover.X);
         List<List<string>> subsets = new List<List<string>>(exactCover.S);
@@ -96,32 +109,36 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
         // Sets are tracked by reference, so two sets with the same elements keep their own ids (S1, S2, ...).
         var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
-        List<List<string>> result = solve_r(exactCover, uSet, subsets, choosenSubsets, rec, index);
-        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: solve_r unwinds at the time limit
+        var steps = NewSteps(rec, index);
+        List<List<string>> result = solve_r(exactCover, uSet, subsets, choosenSubsets, steps, index);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // solve_r unwinds at the time limit
         string certificate = subsetsToCertificate(result);
         if (result.Count > 0) {
-            rec.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(result, index).Sets)}.");
+            steps.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(result, index).Sets)}.");
         } else {
             // Nothing chosen is the answer only when there are no elements.
             bool ok = exactCover.defaultVerifier.verify(exactCover, certificate);
-            rec.Done(new ChosenSets([]), ok,
-                ok ? "There are no elements, so the empty collection {} is an exact cover." : "Every branch was undone. No exact cover exists.");
+            if (ok)
+                steps.Done(new ChosenSets([]), true, $"There are no elements, so the empty collection {{}} is an exact cover.");
+            else
+                steps.Done(new ChosenSets([]), false, $"Every branch was undone. No exact cover exists.");
         }
         return certificate;
     }
 
+    // The sets taken, by id (S1, S2, ...).
     private static ChosenSets Picked(List<List<string>> chosen, Dictionary<List<string>, int> index) =>
         new(chosen.Select(s => BipartiteFrames.SetId(index[s])));
 
     public List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets) {
         var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
-        return solve_r(exactCover, uSet, subsetList, choosenSubsets, StepRecorder<ChosenSets>.Off, index);
+        return solve_r(exactCover, uSet, subsetList, choosenSubsets, NewSteps(StepRecorder<ChosenSets>.Off, index), index);
     }
 
     private List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets,
-        StepRecorder<ChosenSets> rec, Dictionary<List<string>, int> index) {
-        // #935: unwind at the time limit; Solve then returns the timed-out answer.
+        RunSteps<List<List<string>>, ChosenSets> steps, Dictionary<List<string>, int> index) {
+        // Unwind at the time limit; Solve then returns the timed-out answer.
         if (timerHasExpired)
             return new List<List<string>>();
         //check if choosen subsets is a solution, if it is, return it
@@ -136,10 +153,11 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
             }
         }
         if (possibleSubsets.Count == 0) {
+            // A dead end. The elements still not covered are named only for a kept step.
             string[] Uncovered() => exactCover.X.Where(x => !choosenSubsets.Any(s => s.Contains(x))).ToArray();
-            rec.Reject(() => Picked(choosenSubsets, index),
-                () => $"Every set left overlaps the sets taken, and {BipartiteFrames.List(Uncovered())} {(Uncovered().Length == 1 ? "is" : "are")} still not covered, so undo.",
-                () => Uncovered().Select(BipartiteFrames.ElementId).ToArray());
+            steps.Reject(choosenSubsets,
+                $"Every set left overlaps the sets taken, and {BipartiteFrames.List(Uncovered())} {(Uncovered().Length == 1 ? "is" : "are")} still not covered, so undo.",
+                focus: () => Uncovered().Select(BipartiteFrames.ElementId).ToArray());
         }
 
         //foreach remaining good set in subsets, add it to choosen subsets and recurse.
@@ -148,14 +166,13 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
             possibleSubsets.Remove(set);
             choosenSubsets.Add(set);
             int i = index[set];
-            rec.Accept(() => Picked(choosenSubsets, index),
-                () => $"Take {BipartiteFrames.SetText(exactCover.S, i)}: it shares no element with the sets taken.", BipartiteFrames.SetId(i));
-            List<List<string>> result = solve_r(exactCover, uSet, possibleSubsets, choosenSubsets, rec, index);
+            steps.Accept(choosenSubsets, $"Take {BipartiteFrames.SetText(exactCover.S, i)}: it shares no element with the sets taken.");
+            List<List<string>> result = solve_r(exactCover, uSet, possibleSubsets, choosenSubsets, steps, index);
             if (result.Count > 0)
                 return result;
             choosenSubsets.Remove(set);
             possibleSubsets.Add(set);
-            rec.Backtrack(() => Picked(choosenSubsets, index), () => $"Undo {BipartiteFrames.SetId(i)}: no exact cover follows from it.", BipartiteFrames.SetId(i));
+            steps.Backtrack(choosenSubsets, $"Undo {BipartiteFrames.SetId(i)}: no exact cover follows from it.", focus: () => [BipartiteFrames.SetId(i)]);
         }
         return new List<List<string>>();
 
