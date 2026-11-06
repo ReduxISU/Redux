@@ -4,6 +4,13 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.P.P_NQUEENS.Solvers;
 
+// The steps N-Queens Backtracking records, for the Board picture and the Search Tree picture alike. Row by row:
+//   - a Try for each queen placed, with the squares skipped in its row since the last queen, each linked to the queen
+//     attacking it (in the tree, the skipped squares are pruned nodes "(row,col)" whose note names the attacker, and the
+//     queen is an explored node under the queen of the row above, the solution in the last row);
+//   - a Reject when a row has no safe square left: the rest of the row's skipped squares, and the queen above that has to
+//     move (that node fails; the root "start" when row 0 runs out);
+//   - the Done, which names the answer's path in the tree again, root first.
 // Incremental: it places one queen per row and takes queens back, so every step's partial is the queens placed so far.
 class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
@@ -17,52 +24,72 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Exact backtracking search WITH pruning over permutation-style placements
     // -- factorial worst case (own complexity string above already says "O(N!)"). Also
-    // DepthFirstSearch: backtrack() places row by row, recursing before trying the next column (#842).
+    // DepthFirstSearch: backtrack() places row by row, recursing before trying the next column.
     public SolverType solverType { get; } = SolverType.Backtracking | SolverType.DepthFirstSearch;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
     public MathematicalFunction timeComplexity { get; } = new("N!", "");
 
+    // A step about row Row: the queen placed at column Col (Placed), or the row given up (not Placed). Skipped is the
+    // squares skipped in the row since its last queen, each with the row of the queen attacking it and its search-tree node.
+    private readonly record struct Move(int Row, int Col, bool Placed, IReadOnlyList<(int Col, int By, int Node)> Skipped);
+
+    // How the steps show a move. The search keeps its own tree (a "start" root, pruned squares with notes), so it gives
+    // RunSteps the tree nodes of each step rather than using SearchSteps.
+    private static RunSteps<Move, BoardCells> NewSteps(StepRecorder<BoardCells> rec, int[] board, int n, Search search) => new(rec,
+        // What every picture shows: the queens placed (the new one too), each skipped square linked to its attacker, and
+        // the new queen's square, or for a row given up the whole row and the queen above that has to move.
+        partial: m => Queens(board, m.Placed ? m.Row + 1 : m.Row, m.Skipped.Select(x => Conflict(m.Row, x.Col, x.By, board))),
+        focus: m => m.Placed ? [BoardFrames.CellId(m.Row, m.Col)]
+            : [.. Enumerable.Range(0, n).Select(c => BoardFrames.CellId(m.Row, c)), .. m.Row > 0 ? new[] { BoardFrames.CellId(m.Row - 1, board[m.Row - 1]) } : []],
+        // The Search Tree picture's nodes only: the skipped squares, pruned, then the queen placed (after the root, on the
+        // first step), or the queen above, failed.
+        tree: m => m.Placed
+            ? [.. search.Placements == 1 ? [Search.Root] : Array.Empty<SearchNode>(), .. m.Skipped.Select(x => search.Cut(board, m.Row, x)),
+                search.Queen(board, m.Row, m.Row == n - 1 ? SearchNodeState.Solution : SearchNodeState.Explored)]
+            : [.. m.Skipped.Select(x => search.Cut(board, m.Row, x)), search.Queen(board, m.Row - 1, SearchNodeState.Failed)]);
+
     // --- Solver ---
     public string solve(NQUEENS problem) => Solve(problem, StepRecorder<BoardCells>.Off);
 
-    // Steps (the Board picture): a Try for every queen placed (with the squares skipped in its row, each linked to the queen
-    // attacking it), a Reject when a row has no safe square left, then the answer.
-    // Each step also names its nodes of the search tree (SolverStep.Tree, for the Search Tree picture): under the root
-    // "start", each square considered in a row is a node "(row,col)" under the queen of the row above. A Try brings the squares
-    // skipped since the last queen in that row (pruned, "hit by (r,c)") and then the queen placed (explored; the last row's is
-    // the solution); a Reject brings the rest of the row's skipped squares and then the queen above that has to move (failed;
-    // the root when row 0 runs out). The Done step names the answer's path again, root first.
     public string Solve(NQUEENS problem, StepRecorder<BoardCells> rec) {
         int n = problem.n;
         int[] board = new int[n]; // board[row] = col
-        var search = new Search { Rec = rec, RowIds = new int[n] };
+        var search = new Search { RowIds = new int[n] };
+        var steps = NewSteps(rec, board, n, search);
 
-        if (backtrack(0, board, n, search)) {
+        if (backtrack(0, board, n, search, steps)) {
             string answer = formatCertificate(board);
-            rec.Done(Queens(board, n, []), true, n == 0
-                ? "An empty board needs no queens, so the answer is {}."
-                : $"{(n == 1 ? "The one queen is placed" : $"All {n} queens are placed and none attacks another")}{(n <= 16 ? ": " + answer : "")}. "
-                    + $"Found after {Count(search.Placements, "placement")}.",
-                n == 0 ? null : () => [Search.Root, .. Enumerable.Range(0, n).Select(r => search.Queen(board, r, r == n - 1 ? SearchNodeState.Solution : SearchNodeState.Explored))]);
+            var queens = Queens(board, n, []);
+            // The answer is spelled out only for a board this small; a large n would make the text huge.
+            if (n == 0)
+                steps.Done(queens, true, $"An empty board needs no queens, so the answer is {{}}.");
+            else if (n == 1)
+                steps.Done(queens, true, $"The one queen is placed: {answer}. Found after {BoardFrames.Count(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
+                    tree: () => search.AnswerPath(board, n));
+            else if (n <= 16)
+                steps.Done(queens, true, $"All {n} queens are placed and none attacks another: {answer}. Found after {BoardFrames.Count(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
+                    tree: () => search.AnswerPath(board, n));
+            else
+                steps.Done(queens, true, $"All {n} queens are placed and none attacks another. Found after {BoardFrames.Count(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
+                    tree: () => search.AnswerPath(board, n));
             return answer;
         }
 
         if (timerHasExpired) {
-            // #935: backtrack() returned false because it was stopped. A timed run is stopped by SolveRun.Record, which
-            // puts its stopped Done in place of this one.
-            rec.Done(new BoardCells([], []), false, "The solver's timer ran out before it found a placement.");
+            // backtrack() returned false because it was stopped. A timed run is stopped by SolveRun.Record, which puts its
+            // stopped Done in place of this one.
+            steps.Done(new BoardCells([], []), false, $"The solver's timer ran out before it found a placement.");
             return SolveRun.TimedOutAnswer;
         }
-        rec.Done(new BoardCells([], []), false, $"Every arrangement runs into an attack. No placement exists for n = {n}, so the solver returns {{}}.");
+        steps.Done(new BoardCells([], []), false, $"Every arrangement runs into an attack. No placement exists for n = {n}, so the solver returns {{}}.");
         return "{}";
     }
 
-    // What the search carries besides the board: the recorder, how many queens it has placed, and the search tree's
-    // bookkeeping: the node id of each row's current queen and the next id (plain ints, so solving without steps allocates
-    // nothing for the tree; the nodes themselves are built only inside recorder lambdas).
+    // What the search carries besides the board: how many queens it has placed, and the search tree's bookkeeping: the node
+    // id of each row's current queen and the next id (plain ints, so solving without steps allocates nothing for the tree;
+    // the nodes themselves are built only for a step that is kept).
     private sealed class Search {
-        public required StepRecorder<BoardCells> Rec { get; init; }
         public int Placements;
         public required int[] RowIds { get; init; }
         public int NextNode = 1;
@@ -72,21 +99,29 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
         // The node of the queen in row r (the root for r = -1), in the given state.
         public SearchNode Queen(int[] board, int r, SearchNodeState state) =>
             r < 0 ? Root with { State = state } : new(RowIds[r], r == 0 ? 0 : RowIds[r - 1], $"({r},{board[r]})", state);
+
+        // The node of a square skipped in row r, under the queen of the row above: pruned, its note the queen attacking it.
+        public SearchNode Cut(int[] board, int r, (int Col, int By, int Node) x) =>
+            new(x.Node, r == 0 ? 0 : RowIds[r - 1], $"({r},{x.Col})", SearchNodeState.Pruned) { Bound = $"hit by ({x.By},{board[x.By]})" };
+
+        // The answer's path, root first, the last row's queen the solution.
+        public SearchNode[] AnswerPath(int[] board, int n) =>
+            [Root, .. Enumerable.Range(0, n).Select(r => Queen(board, r, r == n - 1 ? SearchNodeState.Solution : SearchNodeState.Explored))];
     }
 
-    private bool backtrack(int row, int[] board, int n, Search search) {
+    // Places queens in rows row .. n-1 under the queens already placed; false when the rest can't be placed. It goes along
+    // the row from the left, skips a column a queen above attacks, places the queen on the first safe one and recurses on
+    // the next row. When the rows below fail, it moves the queen on to the next safe column; when the row runs out, it gives
+    // up, and the row above moves its queen.
+    private bool backtrack(int row, int[] board, int n, Search search, RunSteps<Move, BoardCells> steps) {
         if (timerHasExpired) return false;
 
         if (row == n) return true;
 
-        var rec = search.Rec;
         // The columns skipped since the last queen placed in this row, each with the row of the queen attacking it and its
         // node of the search tree.
         var skipped = new List<(int Col, int By, int Node)>();
         bool resumed = false;
-        int parentId = row == 0 ? 0 : search.RowIds[row - 1];
-        SearchNode Cut((int Col, int By, int Node) x) =>
-            new(x.Node, parentId, $"({row},{x.Col})", SearchNodeState.Pruned) { Bound = $"hit by ({x.By},{board[x.By]})" };
         for (int col = 0; col < n; col++) {
             int by = attacker(row, col, board);
             if (by >= 0) {
@@ -95,28 +130,41 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
             }
             board[row] = col;
             search.Placements++;
-            var rejected = skipped.ToArray();
-            bool again = resumed;
             search.RowIds[row] = search.NextNode++;
-            bool first = search.Placements == 1;
-            rec.Try(() => Queens(board, row + 1, rejected.Select(x => Conflict(row, x.Col, x.By, board))),
-                () => placeCaption(row, col, [.. rejected.Select(x => (x.Col, x.By))], again, board),
-                () => [BoardFrames.CellId(row, col)],
-                () => [.. first ? [Search.Root] : Array.Empty<SearchNode>(), .. rejected.Select(Cut),
-                    search.Queen(board, row, row == n - 1 ? SearchNodeState.Solution : SearchNodeState.Explored)]);
+            var placed = new Move(row, col, true, skipped);
+            if (skipped.Count == 0) {
+                if (resumed)
+                    steps.Try(placed, $"Back in row {row}: move the queen on to column {col}.");
+                else
+                    steps.Try(placed, $"Row {row}: column {col} is safe. Place the queen there.");
+            } else {
+                // The first column skipped, and the row of the queen attacking it: the why says how it attacks.
+                var (first, from, _) = skipped[0];
+                if (skipped.Count == 1 && resumed)
+                    steps.Try(placed, $"Back in row {row}: column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
+                else if (skipped.Count == 1)
+                    steps.Try(placed, $"Row {row}: column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
+                else if (resumed)
+                    steps.Try(placed, $"Back in row {row}: columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
+                else
+                    steps.Try(placed, $"Row {row}: columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
+            }
             skipped.Clear();
             resumed = true;
-            if (backtrack(row + 1, board, n, search)) return true;
+            if (backtrack(row + 1, board, n, search, steps)) return true;
         }
 
         if (!timerHasExpired) {
-            var rejectedAtEnd = skipped.ToArray();
-            bool again = resumed;
-            rec.Reject(() => Queens(board, row, rejectedAtEnd.Select(x => Conflict(row, x.Col, x.By, board))),
-                () => deadCaption(row, rejectedAtEnd.Length, again),
-                // The whole row failed, and so did the queen above it that has to move.
-                () => [.. Enumerable.Range(0, n).Select(c => BoardFrames.CellId(row, c)), .. row > 0 ? new[] { BoardFrames.CellId(row - 1, board[row - 1]) } : []],
-                () => [.. rejectedAtEnd.Select(Cut), search.Queen(board, row - 1, SearchNodeState.Failed)]);
+            // The whole row failed, and so did the queen above it that has to move.
+            var dead = new Move(row, -1, false, skipped);
+            if (row == 0)
+                steps.Reject(dead, $"Row 0 has no column left to try.");
+            else if (skipped.Count == 0)
+                steps.Reject(dead, $"Row {row}: its queen was already in the last column, so back up and move the queen in row {row - 1}.");
+            else if (resumed)
+                steps.Reject(dead, $"Row {row}: the rest of the row is attacked too, so back up and move the queen in row {row - 1}.");
+            else
+                steps.Reject(dead, $"Row {row}: every column is attacked, so back up and move the queen in row {row - 1}.");
         }
         return false;
     }
@@ -132,7 +180,7 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
         return -1;
     }
 
-    // --- The Board picture (built only inside recorder lambdas, so solving without steps never pays for it) ---
+    // --- The Board picture (built only for a step that is kept, so solving without steps never pays for it) ---
 
     // The queens in rows 0 .. rows-1, and the conflicts a step found.
     private static BoardCells Queens(int[] board, int rows, IEnumerable<BoardConflict> conflicts) =>
@@ -140,31 +188,6 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
     private static BoardConflict Conflict(int row, int col, int by, int[] board) =>
         new(BoardFrames.CellId(row, col), BoardFrames.CellId(by, board[by]));
-
-    private static string Count(int count, string what) => $"{BoardFrames.Count(count)} {what}{(count == 1 ? "" : "s")}";
-
-    // "columns 0 and 1 are attacked (0 along its column by the queen at (0,0))": why the first skipped column was skipped.
-    private static string reason((int Col, int By)[] rejected, int row, int[] board) {
-        if (rejected.Length == 0) return "";
-        var cols = rejected.Select(x => x.Col.ToString()).ToList();
-        var (col, by) = rejected[0];
-        string how = board[by] == col ? "along its column" : "diagonally";
-        string which = cols.Count == 1 ? $"column {cols[0]} is" : $"columns {BoardFrames.AndList(cols)} are";
-        return $"{which} attacked ({col} {how} by the queen at ({by},{board[by]}))";
-    }
-
-    private static string placeCaption(int row, int col, (int Col, int By)[] rejected, bool again, int[] board) {
-        string why = reason(rejected, row, board);
-        if (again) return $"Back in row {row}: {(why.Length > 0 ? why + ", so move" : "move")} the queen on to column {col}.";
-        return why.Length > 0 ? $"Row {row}: {why}. Place the queen at column {col}." : $"Row {row}: column {col} is safe. Place the queen there.";
-    }
-
-    private static string deadCaption(int row, int skipped, bool resumed) {
-        if (row == 0) return "Row 0 has no column left to try.";
-        string back = $"so back up and move the queen in row {row - 1}.";
-        if (skipped == 0) return $"Row {row}: its queen was already in the last column, {back}";
-        return resumed ? $"Row {row}: the rest of the row is attacked too, {back}" : $"Row {row}: every column is attacked, {back}";
-    }
 
     // Certificate format: {(row,col),(row,col),...} for every queen
     private string formatCertificate(int[] board) {

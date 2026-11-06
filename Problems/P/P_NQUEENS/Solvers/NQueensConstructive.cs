@@ -17,6 +17,8 @@ namespace API.Problems.P.P_NQUEENS.Solvers;
 // build a column list where entry i is the column of the queen in row i, using
 // the even columns followed by the odd columns with a few remainder-dependent
 // rearrangements.
+// The steps it records, for the Board picture: an Update for the column list the formula writes down, an Update per row
+// placing its queen straight from the list (nothing is judged, so no step is a Try or an Accept), then the Done.
 // Incremental: it places one queen per row, straight from the formula, and never takes one back.
 class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
@@ -41,40 +43,46 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
     public MathematicalFunction timeComplexity { get; } = new("n", "");
 
+    // How the steps show the queens placed so far, given by the last row that has one (-1: none yet).
+    private static RunSteps<int, BoardCells> NewSteps(StepRecorder<BoardCells> rec, int[] columns) => new(rec,
+        // What every picture shows: the queens in rows 0 .. row, and the square of the one just placed.
+        partial: row => Queens(columns, row + 1),
+        focus: row => row < 0 ? [] : [BoardFrames.CellId(row, columns[row])]);
+
     // --- Solver ---
     public string solve(NQUEENS problem) => Solve(problem, StepRecorder<BoardCells>.Off);
 
-    // Steps (the Board picture): the column list the formula writes down, then a Try per row placing its queen straight from
-    // the list, then the answer. The rows are Try steps, not Accept: a recorder builds every Accept past its step cap, which
-    // for a large n would build the board n times.
     public string Solve(NQUEENS problem, StepRecorder<BoardCells> rec) {
         int n = problem.n;
-        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: O(n), no search loop to stop
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // O(n), no search loop to stop
 
         // n = 2 and n = 3 are the only sizes with no solution; n <= 0 is empty.
         if (n <= 0 || n == 2 || n == 3) {
-            if (n <= 0) rec.Done(new BoardCells([], []), true, "An empty board needs no queens, so the answer is {}.");
-            else rec.Done(new BoardCells([], []), false, $"The formula has no answer for n = {n}, and none exists, so the solver returns {{}} without placing anything.");
+            var none = NewSteps(rec, []);
+            if (n <= 0) none.Done(new BoardCells([], []), true, $"An empty board needs no queens, so the answer is {{}}.");
+            else none.Done(new BoardCells([], []), false, $"The formula has no answer for n = {n}, and none exists, so the solver returns {{}} without placing anything.");
             return "{}";
         }
 
         var notes = new List<string>();
         int[] columns = buildColumns(n, notes); // columns[row] = col, both 0-indexed
-        rec.Try(() => new BoardCells([], []),
-            () => $"n = {n}, so n mod 12 = {n % 12}. Write the even columns, then the odd ones"
-                + (notes.Count > 0 ? ", and " + string.Join("; ", notes) : "")
-                + $": {ListText(columns.Select(c => c + 1))}. Row i gets the i-th number, minus 1.",
-            () => []);
-        for (int row = 0; row < n; row++) {
-            int r = row;
-            rec.Try(() => Queens(columns, r + 1), () => $"Row {r}: column {columns[r]}, straight from the list. No checking needed.",
-                () => [BoardFrames.CellId(r, columns[r])]);
-        }
+        var steps = NewSteps(rec, columns);
+        // The column list the formula writes down (1-indexed, as the formula counts).
+        if (notes.Count > 0)
+            steps.Update(-1, $"n = {n}, so n mod 12 = {n % 12}. Write the even columns, then the odd ones, and {string.Join("; ", notes)}: {ListText(columns.Select(c => c + 1))}. Row i gets the i-th number, minus 1.");
+        else
+            steps.Update(-1, $"n = {n}, so n mod 12 = {n % 12}. Write the even columns, then the odd ones: {ListText(columns.Select(c => c + 1))}. Row i gets the i-th number, minus 1.");
+        // Each row's queen goes straight where the list says.
+        for (int row = 0; row < n; row++)
+            steps.Update(row, $"Row {row}: column {columns[row]}, straight from the list. No checking needed.");
 
         string answer = formatCertificate(columns);
-        rec.Done(Queens(columns, n), true, n == 1 ? $"The one queen is placed in 1 step, with no search: {answer}."
-            : n <= ShortBoard ? $"All {n} queens placed in {n} steps, with no search: {answer}."
-            : $"All {BoardFrames.Count(n)} queens placed in {BoardFrames.Count(n)} steps, with no search.");
+        if (n == 1)
+            steps.Done(Queens(columns, n), true, $"The one queen is placed in 1 step, with no search: {answer}.");
+        else if (n <= ShortBoard)
+            steps.Done(Queens(columns, n), true, $"All {n} queens placed in {n} steps, with no search: {answer}.");
+        else
+            steps.Done(Queens(columns, n), true, $"All {BoardFrames.Count(n)} queens placed in {BoardFrames.Count(n)} steps, with no search.");
         return answer;
     }
 
@@ -86,7 +94,7 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
         return list.Count <= ShortBoard ? string.Join(", ", list) : string.Join(", ", list.Take(ShortBoard)) + $", … ({BoardFrames.Count(list.Count)} in all)";
     }
 
-    // The queens in rows 0 .. rows-1 (built only inside recorder lambdas).
+    // The queens in rows 0 .. rows-1 (built only for a step that is kept).
     private static BoardCells Queens(int[] columns, int rows) =>
         new(Enumerable.Range(0, rows).Select(r => new KeyValuePair<string, string>(BoardFrames.CellId(r, columns[r]), "Q")), []);
 
