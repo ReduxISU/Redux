@@ -8,7 +8,7 @@ namespace redux_tests;
 // A problem's Solvers folder holds only solvers, so a contributor who opens it to read or copy a solver finds nothing else
 // there. Helpers sit next to it: the steps a solver records in a sibling Steps folder (NPC_SAT3/Steps), a shared data
 // structure at the problem's root (NPC_SAT3/SatFormula.cs). A solver may split its own class over several files of the
-// folder (Sat3BacktrackingSolver.cs and its partial Sat3BacktrackingSolver.Steps.cs); every part is the solver.
+// folder (WalkSAT.cs and its partial WalkSAT.Steps.cs); every part is the solver.
 //
 // The files are read as text: every top-level type is declared at the start of a line, under a file-scoped namespace.
 [Trait("Category", "Metadata")]
