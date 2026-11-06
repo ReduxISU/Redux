@@ -2,9 +2,13 @@
 using API.Interfaces.Steps;
 using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
+using static API.Interfaces.Graphs.GraphSubsetFrames;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.Solvers;
 
+// The steps Independent Set Brute Force records: one per candidate set of K nodes, in the order it tries them. A
+// candidate is a Reject naming two of its nodes that are joined, or the Accept that ends the search; then the Done. The
+// recorder's cap hides the rest of a long run.
 class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
 
     // --- Fields ---
@@ -53,34 +57,40 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
         }
         return combination;
     }
+    // How the steps show a candidate: the indices of the nodes it picks.
+    private static RunSteps<List<int>, NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> nodes) => new(rec,
+        // What every picture shows: the candidate's nodes, every one of them in focus.
+        partial: combination => new NodeSet(combination.Select(i => nodes[i])),
+        focus: combination => combination.Select(i => nodes[i]).ToArray());
+
     public string solve(INDEPENDENTSET independentSet) => Solve(independentSet, StepRecorder<NodeSet>.Off);
 
-    // Steps: one per candidate set of size K. Recorder state lives only in this call.
+    // Tries every set of K nodes in turn, the first K node indices first, until one has no two nodes joined.
     public string Solve(INDEPENDENTSET independentSet, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec, independentSet.nodes);
         List<int> combination = new List<int>();
         for (int i = 0; i < independentSet.K; i++) {
             combination.Add(i);
         }
         long reps = factorial(independentSet.nodes.Count) / (factorial(independentSet.K) * factorial(independentSet.nodes.Count - independentSet.K));
         int tried = 0;
-        string[] Candidate() => combination.Select(i => independentSet.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             string certificate = indexListToCertificate(combination, independentSet.nodes);
             tried++;
             if (independentSet.defaultVerifier.verify(independentSet, certificate)) {
-                rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. No two are joined.", Candidate);
-                rec.Done(new NodeSet(Candidate()), true,
-                    $"{GraphSubsetFrames.Braces(Candidate())} is an independent set of size {independentSet.K}, found after {tried} tries.");
+                string[] found = combination.Select(c => independentSet.nodes[c]).ToArray();
+                steps.Accept(combination, $"Try {Braces(found)}. No two are joined.");
+                steps.Done(new NodeSet(found), true, $"{Braces(found)} is an independent set of size {independentSet.K}, found after {tried} tries.");
                 return certificate;
             }
-            rec.Reject(() => new NodeSet(Candidate()),
-                () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.IndependentSet, independentSet.nodes, independentSet.edges, Candidate())}.",
-                Candidate);
+            // The verifier only says no, so the joined pair is looked up for a kept step.
+            steps.Reject(combination,
+                $"Try {Braces(combination.Select(c => independentSet.nodes[c]))}: {Why(SubsetRule.IndependentSet, independentSet.nodes, independentSet.edges, combination.Select(c => independentSet.nodes[c]))}.");
             combination = nextComb(combination, independentSet.nodes.Count);
 
         }
-        rec.Done(new NodeSet([]), false, $"Checked all {tried} sets of {independentSet.K} nodes. None is independent.");
+        steps.Done(new NodeSet([]), false, $"Checked all {tried} sets of {independentSet.K} nodes. None is independent.");
         return "{}";
     }
 
