@@ -7,6 +7,9 @@ using API.Problems.NPComplete.NPC_NODESET.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_NODESET.Solvers;
 
+// The steps Node Set Brute Force records: one per set of nodes it tries removing, removing nothing first, then every set
+// of 1 node, 2 nodes, ... up to K. A set is a Reject naming a cycle that survives its removal, or the Accept that ends the
+// search; then the Done. The recorder's cap hides the rest of a long run.
 class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
 
     // --- Fields ---
@@ -28,7 +31,7 @@ class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
     public NodeSetBruteForce() {
 
     }
-    // BigInteger, not long: 21! no longer fits in a long, and an overflowed count skipped every combination (#783).
+    // BigInteger, not long: 21! no longer fits in a long, and an overflowed count skipped every combination.
     private BigInteger factorial(BigInteger x) {
         BigInteger y = 1;
         for (BigInteger i = 1; i <= x; i++) {
@@ -59,20 +62,30 @@ class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
         }
         return combination;
     }
+    // How the steps show a candidate: the indices of the nodes it removes.
+    private static RunSteps<List<int>, NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> nodes) => new(rec,
+        // What every picture shows: the nodes removed, every one of them in focus.
+        partial: combination => new NodeSet(combination.Select(i => nodes[i])),
+        focus: combination => combination.Select(i => LayeredFrames.NodeId(nodes[i])).ToArray());
+
     public string solve(NODESET nodeSet) => Solve(nodeSet, StepRecorder<NodeSet>.Off);
 
+    // Tries removing nothing, then every set of 1 node, 2 nodes, ... up to K, until what is left has no cycle.
     public string Solve(NODESET nodeSet, StepRecorder<NodeSet> rec) {
-        var cycle = LayeredFrames.SurvivingCycle(NodeSetDefaultVisualization.Spec(nodeSet));
+        var steps = NewSteps(rec, nodeSet.nodes);
+        // The verifier only says no, so a cycle that survives is found for the steps alone (a plain solve builds no finder).
+        var cycle = rec.Enabled ? LayeredFrames.SurvivingCycle(NodeSetDefaultVisualization.Spec(nodeSet)) : null;
         int tried = 0;
 
-        // Removing nothing comes first: an acyclic graph needs no node removed (#789).
+        // Removing nothing comes first: an acyclic graph needs no node removed.
         tried++;
+        List<int> nothing = [];
         if (nodeSet.defaultVerifier.verify(nodeSet, "{}")) {
-            rec.Accept(() => new NodeSet([]), () => "Try removing nothing. No cycle is left.");
-            rec.Done(new NodeSet([]), true, "The graph has no cycle, so removing nothing is enough. Found after 1 try.");
+            steps.Accept(nothing, $"Try removing nothing. No cycle is left.");
+            steps.Done(new NodeSet([]), true, $"The graph has no cycle, so removing nothing is enough. Found after 1 try.");
             return "{}";
         }
-        rec.Reject(() => new NodeSet([]), () => $"Try removing nothing: the cycle {cycle([], [])} is there.");
+        steps.Reject(nothing, $"Try removing nothing: the cycle {cycle!([], [])} is there.");
         for (int i = 0; i < nodeSet.K; i++) {
             List<int> combination = new List<int>();
             for (int j = 0; j <= i; j++) {
@@ -80,24 +93,23 @@ class NodeSetBruteForce : ISolver<NODESET, NodeSet> {
             }
             BigInteger reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
             for (BigInteger k = 0; k < reps; k++) {
-                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+                if (timerHasExpired) return SolveRun.TimedOutAnswer;
                 string certificate = indexListToCertificate(combination, nodeSet.nodes);
                 tried++;
-                string[] Candidate() => combination.Select(c => nodeSet.nodes[c]).ToArray();
-                string[] Ids() => Candidate().Select(LayeredFrames.NodeId).ToArray();
                 if (nodeSet.defaultVerifier.verify(nodeSet, certificate)) {
-                    rec.Accept(() => new NodeSet(Candidate()), () => $"Try removing {certificate}. No cycle is left.", Ids);
-                    rec.Done(new NodeSet(Candidate()), true, $"Removing {certificate} leaves no cycle, within K = {nodeSet.K}. Found after {tried} {(tried == 1 ? "try" : "tries")}.");
+                    steps.Accept(combination, $"Try removing {certificate}. No cycle is left.");
+                    steps.Done(new NodeSet(combination.Select(c => nodeSet.nodes[c])), true,
+                        $"Removing {certificate} leaves no cycle, within K = {nodeSet.K}. Found after {Words.Count(tried, "try", "tries")}.");
                     return certificate;
                 }
-                rec.Reject(() => new NodeSet(Candidate()), () => $"Try removing {certificate}: the cycle {cycle([], Candidate())} is still there.", Ids);
+                steps.Reject(combination, $"Try removing {certificate}: the cycle {cycle!([], combination.Select(c => nodeSet.nodes[c]))} is still there.");
                 combination = nextComb(combination, nodeSet.nodes.Count);
 
             }
         }
         // Removing nothing failed above, and so did every set of 1 to K nodes.
-        rec.Done(new NodeSet([]), false,
-            $"Checked every way to remove up to K = {nodeSet.K} {(nodeSet.K == 1 ? "node" : "nodes")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
+        steps.Done(new NodeSet([]), false,
+            $"Checked every way to remove up to K = {Words.Count(nodeSet.K, "node")} ({Words.Count(tried, "try", "tries")}). A cycle always survives.");
         return "{}";
     }
 }
