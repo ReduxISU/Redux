@@ -167,6 +167,19 @@ static class GraphGroupFrames {
     };
 
     /// <summary>
+    /// A node's colored neighbours and the colors they use, for the why of a coloring step: "neighbour a uses color 0",
+    /// "neighbours a and b use colors 0 and 1" (with <paramref name="already"/>, "neighbours a and b already use ..."), or
+    /// "no neighbour is colored yet" when there are none.
+    /// </summary>
+    public static string NeighboursUse(IReadOnlyList<string> neighbours, IReadOnlyList<int> colors, bool already = false) {
+        if (neighbours.Count == 0) return "no neighbour is colored yet";
+        string who = neighbours.Count == 1 ? "neighbour" : "neighbours";
+        string verb = neighbours.Count == 1 ? "uses" : "use";
+        string what = colors.Count == 1 ? "color" : "colors";
+        return $"{who} {And(neighbours)} {(already ? "already " : "")}{verb} {what} {And(colors.Select(c => c.ToString()).ToList())}";
+    }
+
+    /// <summary>
     /// The first thing wrong with a candidate grouping, or null if it is fine. Coloring: two neighbours that share a color
     /// ("1 and 2 are both color 0"), else a node that has no color. Clique cover: the nodes in no clique, all of them
     /// ("node 1 is in no clique", #889), else a pair in one clique that is not joined ("1 and 4 are in one group but

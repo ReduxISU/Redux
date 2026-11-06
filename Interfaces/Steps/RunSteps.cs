@@ -23,13 +23,21 @@ namespace API.Interfaces.Steps;
 sealed class RunSteps<TState, TPartial> : StepsCore<TPartial> {
     private readonly Func<TState, TPartial> _partial;
     private readonly Func<TState, string[]>? _focus;
+    private readonly Func<TState, SearchNode[]>? _tree;
 
     /// <param name="rec">The recorder the steps go to.</param>
     /// <param name="partial">A state's partial answer.</param>
     /// <param name="focus">The ids a step about a state is about; none by default.</param>
-    public RunSteps(StepRecorder<TPartial> rec, Func<TState, TPartial> partial, Func<TState, string[]>? focus = null) : base(rec) {
+    /// <param name="tree">
+    /// The search-tree nodes a step about a state adds (<see cref="SolverStep{TPartial}.Tree"/>); none by default. For a
+    /// search that keeps its own tree, with node states <see cref="SearchSteps{TState, TChoice, TPartial}"/> does not give;
+    /// a search that does not should use SearchSteps.
+    /// </param>
+    public RunSteps(StepRecorder<TPartial> rec, Func<TState, TPartial> partial, Func<TState, string[]>? focus = null,
+                    Func<TState, SearchNode[]>? tree = null) : base(rec) {
         _partial = partial;
         _focus = focus;
+        _tree = tree;
     }
 
     /// <summary>A Try: the solver tries <paramref name="state"/>.</summary>
@@ -67,15 +75,18 @@ sealed class RunSteps<TState, TPartial> : StepsCore<TPartial> {
         Step(StepEvent.Backtrack, state, why.ToStringAndClear(), focus, partial);
     }
 
-    /// <summary>The final step (<see cref="StepRecorder{TPartial}.Done(TPartial, bool, string)"/>): the answer, whether there is one, and why.</summary>
-    public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText why) {
+    /// <summary>
+    /// The final step (<see cref="StepRecorder{TPartial}.Done(TPartial, bool, string, Func{SearchNode[]}?)"/>): the answer,
+    /// whether there is one, and why; with <paramref name="tree"/>, the answer's path in a search tree the solver keeps.
+    /// </summary>
+    public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText why, Func<SearchNode[]>? tree = null) {
         if (!Recording) return;
-        Rec.Done(answer, ok, why.ToStringAndClear()!);
+        Rec.Done(answer, ok, why.ToStringAndClear()!, tree);
     }
 
     private void Step(StepEvent kind, TState state, string? why, Func<string[]>? focus, Func<TPartial>? partial) {
         if (Rec.Builds(kind))
-            Add(kind, partial != null ? partial() : _partial(state), why, focus != null ? focus() : _focus != null ? _focus(state) : [], null);
+            Add(kind, partial != null ? partial() : _partial(state), why, focus != null ? focus() : _focus != null ? _focus(state) : [], _tree?.Invoke(state));
         else
             Skip(kind);
     }

@@ -153,6 +153,36 @@ public class RunSteps_Tests {
         Assert.Empty(deadline.Steps);
     }
 
+    // A search that keeps its own tree gives each step's tree nodes through the tree converter, and the answer's path
+    // through the Done; neither is called when the recorder is off or the step is past the cap.
+    [Fact]
+    public void TreeConverter_GivesEachStepItsNodes_AndOnlyWhenBuilt() {
+        var calls = new Counter();
+        RunSteps<int, NodeSet> On(StepRecorder<NodeSet> rec) => new(rec,
+            partial: id => Nodes($"n{id}"),
+            tree: id => { calls.Count++; return [new SearchNode(id, id == 0 ? null : 0, $"n{id}", SearchNodeState.Explored)]; });
+
+        var off = On(StepRecorder<NodeSet>.Off);
+        off.Reject(1, $"reject");
+        off.Done(Nodes(), true, $"done", tree: () => { calls.Count++; return []; });
+        Assert.Equal(0, calls.Count);
+
+        var rec = new StepRecorder<NodeSet>(cap: 1);
+        var steps = On(rec);
+        steps.Try(0, $"start");
+        steps.Reject(1, $"past the cap");
+        steps.Done(Nodes("n0"), true, $"done", tree: () => [new SearchNode(0, null, "n0", SearchNodeState.Solution)]);
+        Assert.Equal(1, calls.Count);
+        Assert.Equal("n0", Assert.Single(rec.Steps[0].Tree!).Label);
+        Assert.Equal(SearchNodeState.Solution, Assert.Single(rec.Steps[^1].Tree!).State);
+        // A step with no tree converter, and a Done with no path, carry no nodes.
+        var plain = new StepRecorder<NodeSet>();
+        StepsOn(plain, calls).Try((["a"], null), $"try");
+        StepsOn(plain, calls).Done(Nodes("a"), true, $"done");
+        Assert.Null(plain.Steps[0].Tree);
+        Assert.Null(plain.Steps[1].Tree);
+    }
+
     [Fact]
     public void NoFocusConverter_GivesNoFocus() {
         var rec = new StepRecorder<NodeSet>();
