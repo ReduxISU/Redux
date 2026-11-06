@@ -5,6 +5,10 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_WEIGHTEDCUT.Solvers;
 
+// The steps Weighted Cut Brute Force records: one per candidate S side tried (every size, never bounded by K), in the
+// order the solver tries them. A side whose crossing edges weigh something other than K is a Reject saying what they
+// weigh; the first whose crossing edges weigh K is the Accept that ends the search; then the Done. The recorder's cap
+// hides the rest of a long run.
 class WeightedCutBruteForce : ISolver<WEIGHTEDCUT, Groups> {
 
     // --- Fields ---
@@ -96,16 +100,25 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT, Groups> {
         }
         return combination;
     }
+    // How the steps show a candidate, given by the indexes of its S side's nodes: the split, S as group 0 and the rest as
+    // group 1 (the edges that cross are the cut).
+    private static RunSteps<List<int>, Groups> NewSteps(List<string> nodes, StepRecorder<Groups> rec) => new(rec,
+        // What every picture shows: the split.
+        partial: combination => GraphEdgeFrames.Split(nodes, Side(nodes, combination)));
+
+    // The names of the S side's nodes.
+    private static string[] Side(List<string> nodes, List<int> combination) => combination.Select(c => nodes[c]).ToArray();
+
+    // The other side, written as the steps write a side.
+    private static string Rest(List<string> nodes, List<int> combination) => GraphEdgeFrames.Side(nodes.Except(Side(nodes, combination)));
+
     public string solve(WEIGHTEDCUT cut) => Solve(cut, StepRecorder<Groups>.Off);
 
-    // Steps: one per candidate side S tried (every size, never bounded by K), in the order the solver tries them. The
-    // partial answer is the split (S is group 0, the rest group 1); the edges that cross it are the cut.
+    // Tries every S side, of every size (never bounded by K), until the crossing edges weigh exactly K.
     public string Solve(WEIGHTEDCUT cut, StepRecorder<Groups> rec) {
+        var steps = NewSteps(cut.nodes, rec);
         int tried = 0;
         List<int> combination = new List<int>();
-        string[] Side() => combination.Select(c => cut.nodes[c]).ToArray();
-        string Rest() => GraphEdgeFrames.Side(cut.nodes.Except(Side()));
-        double Weight() => GraphEdgeFrames.Crossing(cut.edges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)), Side().ToHashSet()).Weight;
         for (int i = 0; i < cut.nodes.Count; i++) {
             combination = new List<int>();
             for (int j = 0; j <= i; j++) {
@@ -113,21 +126,23 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT, Groups> {
             }
             long reps = factorial(cut.nodes.Count) / (factorial(i + 1) * factorial(cut.nodes.Count - i - 1));
             for (int k = 0; k < reps; k++) {
-                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
                 string certificate = indexListToCertificate(combination, cut.nodes);
                 certificate = certificateToEdges(cut, certificate);
                 tried++;
                 if (cut.defaultVerifier.verify(cut, certificate)) {
-                    rec.Accept(() => GraphEdgeFrames.Split(cut.nodes, Side()), () => $"Put {GraphEdgeFrames.Side(Side())} against {Rest()}: the crossing edges weigh {cut.K}, as wanted.", Array.Empty<string>());
-                    rec.Done(GraphEdgeFrames.Split(cut.nodes, Side()), true, $"{GraphEdgeFrames.Side(Side())} against {Rest()} cuts edges of total weight {cut.K}, found after {tried} tries.");
+                    steps.Accept(combination, $"Put {GraphEdgeFrames.Side(Side(cut.nodes, combination))} against {Rest(cut.nodes, combination)}: the crossing edges weigh {cut.K}, as wanted.");
+                    steps.Done(GraphEdgeFrames.Split(cut.nodes, Side(cut.nodes, combination)), true,
+                        $"{GraphEdgeFrames.Side(Side(cut.nodes, combination))} against {Rest(cut.nodes, combination)} cuts edges of total weight {cut.K}, found after {tried} tries.");
                     return certificate;
                 }
-                rec.Reject(() => GraphEdgeFrames.Split(cut.nodes, Side()),
-                    () => $"Put {GraphEdgeFrames.Side(Side())} against {Rest()}: the crossing edges weigh {Weight()}, not {cut.K}.", Array.Empty<string>());
+                // The verifier only says no, so the crossing edges are weighed for the step alone.
+                steps.Reject(combination,
+                    $"Put {GraphEdgeFrames.Side(Side(cut.nodes, combination))} against {Rest(cut.nodes, combination)}: the crossing edges weigh {GraphEdgeFrames.Crossing(cut.edges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)), Side(cut.nodes, combination).ToHashSet()).Weight}, not {cut.K}.");
                 combination = nextComb(combination, cut.nodes.Count);
             }
         }
-        rec.Done(new Groups([]), false, $"Checked {tried} ways to pick the S side. None cuts edges of total weight {cut.K}.");
+        steps.Done(new Groups([]), false, $"Checked {tried} ways to pick the S side. None cuts edges of total weight {cut.K}.");
         return "{}";
     }
 }
