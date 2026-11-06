@@ -4,6 +4,10 @@ using API.Interfaces.Table;
 
 namespace API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
 
+// The steps 0-1 ILP Brute Force records, for the Table picture: one per assignment tried, in the counter's order (x1 flips
+// fastest). An assignment is a Reject naming the rows that go over their bounds (those rows in focus), or the Accept of the
+// first assignment every row allows; then the Done, with the answer, or with the last assignment tried when none works.
+// The recorder's cap hides the rest of a long run.
 // Not incremental: every step judges a whole 0-1 assignment. The partial names the variables x1 ... xn, as the Table
 // picture's columns do.
 class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01, Assignment> {
@@ -49,45 +53,56 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01, Assignment> {
     /// <summary>The variable name of column <paramref name="j"/> (0-based): x1, x2, ...</summary>
     internal static string Variable(int j) => $"x{j + 1}";
 
+    // How the steps show an assignment, given by its bits (x1 first) and the constraints it breaks.
+    private static RunSteps<(List<int> Binary, IReadOnlyList<int> Over), Assignment> NewSteps(StepRecorder<Assignment> rec) => new(rec,
+        // What every picture shows: the assignment, and the Table picture's rows of the constraints over their bounds (row
+        // 0 is the assignment, so constraint r is TableFrames.RowId(r + 1)).
+        partial: s => Current(s.Binary),
+        focus: s => s.Over.Select(r => TableFrames.RowId(r + 1)).ToArray());
+
+    // The assignment as the picture names it: x1 = 0, x2 = 1, ...
+    private static Assignment Current(List<int> binary) => new(binary.Select((v, j) => new KeyValuePair<string, string>(Variable(j), v.ToString())));
+
     public string solve(INTPROGRAMMING01 intPrograming) => Solve(intPrograming, StepRecorder<Assignment>.Off);
 
-    // Steps: one per assignment tried, in the counter's order (x1 flips fastest): a Reject naming the rows that go over
-    // their bounds, or the Accept of the first assignment every row allows; then Done, with the answer, or with the last
-    // assignment tried when none works. Focus: the Table picture's rows of
-    // the constraints over their bounds (row 0 is the assignment, so constraint r is TableFrames.RowId(r + 1)), none for
-    // the Accept.
+    // Tries every 0-1 assignment until one keeps every row of C x within its bound in d.
     public string Solve(INTPROGRAMMING01 intPrograming, StepRecorder<Assignment> rec) {
         List<int> binary = new List<int>();
         for (int i = 0; i < intPrograming.C[0].Count; i++) {
             binary.Add(0);
         }
         int tried = 0;
-        // Read only inside recorder lambdas, so they cost nothing when recording is off.
-        Assignment Current() => new(binary.Select((v, j) => new KeyValuePair<string, string>(Variable(j), v.ToString())));
-        List<int> Over() => Enumerable.Range(0, intPrograming.C.Count)
-            .Where(r => r < intPrograming.d.Count && Total(intPrograming.C[r], binary) > intPrograming.d[r]).ToList();
+        var steps = NewSteps(rec);
         double total = Math.Pow(2, binary.Count);
         string last = "";
         for (int i = 0; i < total; i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             string certificate = BinaryToCertificate(binary);
             last = certificate;
             tried++;
             if (intPrograming.defaultVerifier.verify(intPrograming, certificate)) {
-                rec.Accept(Current, () => $"Try {certificate}: every row stays within its bound.", () => []);
-                int count = tried;
-                rec.Done(Current(), true, $"{certificate} satisfies every row, found on try {count} of {total}.");
+                steps.Accept((binary, []), $"Try {certificate}: every row stays within its bound.");
+                steps.Done(Current(binary), true, $"{certificate} satisfies every row, found on try {tried} of {total}.");
                 return certificate;
             }
-            rec.Reject(Current, () => $"Try {certificate}: {OverText(intPrograming, binary, Over())}",
-                () => Over().Select(r => TableFrames.RowId(r + 1)).ToArray());
+            // The verifier only says yes or no, so which rows go over their bounds is worked out for the steps alone (only
+            // while recording).
+            IReadOnlyList<int> over = rec.Enabled
+                ? Enumerable.Range(0, intPrograming.C.Count).Where(r => r < intPrograming.d.Count && Total(intPrograming.C[r], binary) > intPrograming.d[r]).ToList()
+                : [];
+            if (over.Count == 0)
+                steps.Reject((binary, over), $"Try {certificate}: the verifier rejects it.");
+            else if (over.Count == 1)
+                steps.Reject((binary, over), $"Try {certificate}: row {over[0] + 1} adds up to {Total(intPrograming.C[over[0]], binary)}, over its bound {intPrograming.d[over[0]]}.");
+            else
+                steps.Reject((binary, over), $"Try {certificate}: {string.Join("; ", over.Select(r => $"row {r + 1} adds up to {Total(intPrograming.C[r], binary)}, over its bound {intPrograming.d[r]}"))}.");
             // The last try is kept, not wrapped back to all zeros, so the Done below can show it.
             if (i + 1 < total) nextBinary(binary);
         }
-        // The Done keeps the last assignment tried, so the Table picture closes on it with the rows it breaks (#905); the
-        // run's verdict is still no.
-        rec.Done(Current(), false, $"No 0-1 assignment satisfies every row: all {tried} were tried, the last {last}.");
-        // No assignment works: "{}", the empty set every solver answers when there is no answer (#797).
+        // The Done keeps the last assignment tried, so the Table picture closes on it with the rows it breaks; the run's
+        // verdict is still no.
+        steps.Done(Current(binary), false, $"No 0-1 assignment satisfies every row: all {tried} were tried, the last {last}.");
+        // No assignment works: "{}", the empty set every solver answers when there is no answer.
         return "{}";
     }
 
@@ -96,11 +111,5 @@ class IntegerProgrammingBruteForce : ISolver<INTPROGRAMMING01, Assignment> {
         int total = 0;
         for (int j = 0; j < row.Count && j < x.Count; j++) total += row[j] * x[j];
         return total;
-    }
-
-    private static string OverText(INTPROGRAMMING01 p, List<int> x, List<int> over) {
-        if (over.Count == 0) return "the verifier rejects it.";
-        string Part(int r) => $"row {r + 1} adds up to {Total(p.C[r], x)}, over its bound {p.d[r]}";
-        return over.Count == 1 ? $"{Part(over[0])}." : $"{string.Join("; ", over.Select(Part))}.";
     }
 }
