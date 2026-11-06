@@ -8,7 +8,16 @@ using System;
 
 namespace API.Problems.P.P_SPSP.Solvers;
 
-// Incremental: each step settles one more node for good, until the target is settled.
+// The steps Dijkstra's Algorithm records for one source and one target, for the Layered, list and table pictures (ids from
+// LayeredFrames):
+//   - an Update that sets the starting distances: 0 for the source, ∞ for every other node;
+//   - an Accept each time a node is settled, after its edges are relaxed: its distance is final, and the why lists the
+//     shorter routes the relaxations found (focus: the node and the edges it relaxed). The target is settled without
+//     relaxing, and the search stops there;
+//   - the Done, with the shortest path, or saying the target can't be reached.
+// Each step's partial is the search after that moment. The list and table pictures rebuild their frames from these steps
+// (PathSteps, TableSteps), so the visualize endpoint runs Dijkstra once. Incremental: each step settles one more node for
+// good, until the target is settled.
 class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
     // ----- Fields ----- //
     public string solverName { get; } = "Dijkstra's Algorithm";
@@ -27,44 +36,56 @@ class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
     public MathematicalFunction timeComplexity { get; } = new("(V + E) log V", "");
     PriorityQueue<string, int>? pq;
 
+    // How the steps show the search: every node's distance and predecessor as they are now, and which nodes are settled. A
+    // step is about one node, and the neighbours whose edges from it were just relaxed.
+    private static RunSteps<(string Node, List<string> Relaxed), Distances> NewSteps(StepRecorder<Distances> rec, bool directed,
+        Dictionary<string, int> dist, Dictionary<string, string?> prev, HashSet<string> visited) => new(rec,
+        // What every picture shows: the distances, predecessors and settled nodes so far.
+        partial: _ => Distances.Of(dist, prev, visited),
+        // The node, and the edges it relaxed.
+        focus: s => [LayeredFrames.NodeId(s.Node), .. s.Relaxed.Select(next => LayeredFrames.EdgeId(directed, s.Node, next)).Distinct()]);
+
     public string solve(SPSP problem) => Solve(problem, StepRecorder<Distances>.Off);
 
-    // Steps: a Try for the start, then an Accept each time a node is settled (after its edges are relaxed; the target
-    // is settled without relaxing), then Done. Each step's Partial is the search after that moment. The list and
-    // table pictures rebuild their frames from these steps (PathSteps, TableSteps), so the visualize endpoint runs
-    // Dijkstra once.
+    // Dijkstra, stopped at the target: take the unsettled node nearest the source off the queue, settle it (its distance is
+    // now final), and relax each of its edges: when going through it is shorter than a neighbour's distance so far, the
+    // neighbour takes that distance and this node as its predecessor. Once the target is settled its distance is final, so
+    // the search stops. A node already settled can come off the queue again (a stale entry): it is skipped.
     public string Solve(SPSP problem, StepRecorder<Distances> rec) {
         SolveProbe.Hit(GetType());
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
-
-        if (nodes.Count == 0) {
-            rec.Done(new Distances([], [], []), false, "The graph has no nodes, so there is no path.");
-            return "{}"; // No nodes, return empty path
-        }
-
         string sourceNode = problem.sourceNode;
         string targetNode = problem.targetNode;
-
-        if (!nodes.Contains(sourceNode) || !nodes.Contains(targetNode)) {
-            rec.Done(new Distances([], [], []), false, "The source or the target is not a node of the graph.");
-            return "{}";
-        }
-
-        var adjacency = BuildAdjacencyList(graph);
 
         var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
+        var steps = NewSteps(rec, problem.isDirected, dist, prev, visited);
+
+        if (nodes.Count == 0) {
+            steps.Done(new Distances([], [], []), false, $"The graph has no nodes, so there is no path.");
+            return "{}"; // No nodes, return empty path
+        }
+
+        if (!nodes.Contains(sourceNode) || !nodes.Contains(targetNode)) {
+            steps.Done(new Distances([], [], []), false, $"The source or the target is not a node of the graph.");
+            return "{}";
+        }
+
+        var adjacency = BuildAdjacencyList(graph);
         pq = new PriorityQueue<string, int>();
-        Distances Partial() => Distances.Of(dist, prev, visited);
+        // What the relaxations of the node being settled did, for its step: the neighbours whose edges were relaxed, and
+        // each shorter route found (the neighbour, its old distance and its new one). Reused for every node.
+        var relaxed = new List<string>();
+        var shorter = new List<(string Node, int Old, int New)>();
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
-        rec.Try(Partial, () => $"Start at {sourceNode} with distance 0. Every other node starts at ∞.", LayeredFrames.NodeId(sourceNode));
+        steps.Update((sourceNode, relaxed), $"Start at {sourceNode} with distance 0. Every other node starts at ∞.");
 
         while (pq.Count > 0) {
-            // #935: the run is stopped; SolveRun.Record adds the stopped Done step when recording.
+            // The run is stopped; SolveRun.Record adds the stopped Done step when recording.
             if (timerHasExpired)
                 return SolveRun.TimedOutAnswer;
 
@@ -74,14 +95,13 @@ class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
                 continue; // Skip if we've already visited this node
             visited.Add(current);
 
+            relaxed.Clear();
+            shorter.Clear();
             if (current == targetNode) {
-                rec.Accept(Partial, () => $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}. It is the target, so the search stops.",
-                    LayeredFrames.NodeId(current));
+                steps.Accept((current, relaxed), $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}. It is the target, so the search stops.");
                 break; // Stop if we've reached the target node
             }
 
-            var relaxed = new List<string>();
-            var shorter = new List<string>();
             foreach (var (next, weight) in adjacency.TryGetValue(current, out var neighbors) ? neighbors : []) {
                 if (visited.Contains(next))
                     continue; // Skip visited neighbors
@@ -89,26 +109,27 @@ class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
                 if (dist[current] == int.MaxValue)
                     continue; // Skip if current node is unreachable
 
-                relaxed.Add(LayeredFrames.EdgeId(problem.isDirected, current, next));
+                relaxed.Add(next);
                 int candidate = dist[current] + weight;
                 if (candidate < dist[next]) {
-                    shorter.Add($"{next}: {LayeredFrames.Distance(dist[next])} → {candidate}");
+                    shorter.Add((next, dist[next], candidate));
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
                 }
             }
-            rec.Accept(Partial, () => $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}."
-                + (shorter.Count > 0 ? $" Shorter routes found: {string.Join(", ", shorter)}." : " No shorter routes from here."),
-                () => relaxed.Distinct().Prepend(LayeredFrames.NodeId(current)).ToArray());
+            if (shorter.Count == 0)
+                steps.Accept((current, relaxed), $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}. No shorter routes from here.");
+            else
+                steps.Accept((current, relaxed), $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}. Shorter routes found: {string.Join(", ", shorter.Select(r => $"{r.Node}: {LayeredFrames.Distance(r.Old)} → {r.New}"))}.");
         }
 
         if (dist[targetNode] == int.MaxValue) {
-            rec.Done(Partial(), false, $"{targetNode} can't be reached from {sourceNode}, so there is no path.");
+            steps.Done(Distances.Of(dist, prev, visited), false, $"{targetNode} can't be reached from {sourceNode}, so there is no path.");
             return "{}"; // No path found
         }
         List<string> path = ReconstructPath(prev, sourceNode, targetNode);
-        rec.Done(Partial(), true, $"The shortest path is {string.Join(" → ", path)}, with total {dist[targetNode]}.");
+        steps.Done(Distances.Of(dist, prev, visited), true, $"The shortest path is {string.Join(" → ", path)}, with total {dist[targetNode]}.");
         return NodeListToCertificate(path);
     }
 
@@ -218,8 +239,8 @@ class SPSPSolver : ISolver<SPSP, Distances>, IIncrementalSolver {
     }
 
     // LegacyPathSteps: the list picture's steps (the path to each settled node, in the certificate format) as this
-    // solver made them in a second run before #734. The picture now builds them from the typed run (PathSteps); this
-    // is kept as the reference the tests compare PathSteps against.
+    // solver made them in a second run, before the pictures read the typed run. The picture now builds them from the
+    // typed run (PathSteps); this is kept as the reference the tests compare PathSteps against.
     internal List<Object> LegacyPathSteps(SPSP problem) {
         SolveProbe.Hit(GetType());
         var steps = new List<Object>();
