@@ -11,7 +11,13 @@ namespace API.Problems.NPComplete.NPC_BERNSTEINVAZIRANI.Solvers;
 /// Bernstein-Vazirani solver that uses an external quantum computing API.
 /// Supports both ISU AWS server and local server configurations.
 /// </summary>
-// Incremental: the circuit is applied one column at a time, and then read.
+// The steps the Bernstein-Vazirani Algorithm records, for the Quantum Circuit picture:
+//   - an Update per column of the Bernstein-Vazirani circuit, in order: the circuit the server runs, drawn and simulated
+//     here (the server is never asked for these). Applying gates has no verdict;
+//   - an Accept with the bits the server measured, which are s, or a Reject when its answer is not a bit string;
+//   - the Done, with the verifier's verdict.
+// With no answer from the server there is no answer at all: Ask throws SolverUnavailableException (HTTP 503
+// solver_unavailable). Incremental: the circuit is applied one column at a time, and then read.
 class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
@@ -37,36 +43,50 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI, QuantumProgres
 
     // --- Methods ---
 
+    // How the steps show the measurement (the answer read, null when the server's reply is not one): read off the end of
+    // the whole circuit.
+    private static RunSteps<string?, QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec, int columns, long? outcome,
+        List<KeyValuePair<string, long>> counts) => new(rec,
+        // What every picture shows: the whole circuit applied, the bits measured, how often the server saw each outcome,
+        // and the answer.
+        partial: answer => new QuantumProgress(columns, outcome: outcome, counts: counts, result: answer),
+        // The circuit's last column, where the answer is read (nothing is read from a reply that is not an answer).
+        focus: answer => answer != null && columns > 0 ? [QuantumCircuits.ColumnId(columns - 1)] : []);
+
     public string solve(BERNSTEINVAZIRANI problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps: a Try per column of the Bernstein-Vazirani circuit (the one the server runs, drawn and simulated here, never
-    // asked of the server), then an Accept with what the server measured (a Reject when its answer is not one; with no
-    // answer at all the solver throws SolverUnavailableException, #625), and Done with the verdict.
+    // Asks the quantum server to run the Bernstein-Vazirani circuit: one oracle call, after which the input register reads
+    // s.
     public string Solve(BERNSTEINVAZIRANI problem, StepRecorder<QuantumProgress> rec) {
+        // The circuit is built and simulated only for the steps: a plain solve never builds it.
         var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.BernsteinVazirani(problem.funcValues) : null;
         if (spec != null) QuantumSteps.Columns(rec, spec);
         var counts = new List<KeyValuePair<string, long>>();
         string answer = Ask(problem, counts);
         if (spec != null) {
-            int all = spec.Columns.Count, n = problem.NBits;
+            int n = problem.NBits;
             // The certificate lists s's bits, "(1,0,1)": they are what the server measured.
             string bits = answer.Length >= 2 && answer[0] == '(' && answer[^1] == ')' ? answer[1..^1].Replace(",", "") : "";
             long? outcome = n > 0 && bits.Length == n && n <= 62 && bits.All(c => c is '0' or '1') ? Convert.ToInt64(bits, 2) : null;
-            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
+            var steps = NewSteps(rec, spec.Columns.Count, outcome, counts);
             if (outcome != null)
-                rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
-                    () => $"The quantum server measured {bits}{QuantumSteps.Shots(counts, bits)}, so s = {bits}. One oracle call.", read);
+                steps.Accept(answer, $"The quantum server measured {bits}{QuantumSteps.Shots(counts, bits)}, so s = {bits}. One oracle call.");
             else
-                rec.Reject(() => new QuantumProgress(all, counts: counts), () => $"The quantum server gave no answer: {answer}");
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
-                ok => ok ? $"s = {bits}, found with one call to the oracle."
-                    : outcome == null ? "No answer: the quantum server did not give one." : $"s = {bits} does not fit every input: f is not s · x for any s.");
+                steps.Reject(null, $"The quantum server gave no answer: {answer}");
+
+            var final = new QuantumProgress(spec.Columns.Count, outcome: outcome, counts: counts, result: answer);
+            if (QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer)))
+                steps.Done(final, true, $"s = {bits}, found with one call to the oracle.");
+            else if (outcome == null)
+                steps.Done(final, false, $"No answer: the quantum server did not give one.");
+            else
+                steps.Done(final, false, $"s = {bits} does not fit every input: f is not s · x for any s.");
         }
         return answer;
     }
 
     // The server's answer; its counts, when it sends them, go into counts. On any failure of the quantum service this
-    // throws SolverUnavailableException (HTTP 503 solver_unavailable), never an error text in place of the answer (#625).
+    // throws SolverUnavailableException (HTTP 503 solver_unavailable), never an error text in place of the answer.
     private string Ask(BERNSTEINVAZIRANI problem, List<KeyValuePair<string, long>> counts) {
         // Get the function values as a boolean array
         bool[] requestBody = problem.funcValues.ToArray();
