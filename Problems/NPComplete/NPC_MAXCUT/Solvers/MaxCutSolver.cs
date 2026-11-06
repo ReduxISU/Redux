@@ -4,6 +4,8 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_MAXCUT.Solvers;
 
+// The steps Max Cut Brute Force records: an Accept each time a split beats every split before it, the best so far (the
+// 2^n splits themselves are not shown one by one), then the Done with the heaviest cut.
 class MaxCutSolver : ISolver<MAXCUT, Groups> {
     public string solverName { get; } = "Max Cut Brute Force";
     public string solverDefinition { get; } = "Enumerates all 2^n partitions of the vertex set and returns the S side of the partition whose crossing edges have maximum total weight. Certificate format: {node1,node2,...} representing the S side.";
@@ -21,15 +23,20 @@ class MaxCutSolver : ISolver<MAXCUT, Groups> {
 
     public MaxCutSolver() { }
 
+    // How the steps show a split, given by its S side: S as group 0 and the rest as group 1 (the edges that cross are the cut).
+    private static RunSteps<HashSet<string>, Groups> NewSteps(List<string> nodes, StepRecorder<Groups> rec) => new(rec,
+        // What every picture shows: the split.
+        partial: side => GraphEdgeFrames.Split(nodes, side));
+
     public string solve(MAXCUT problem) => Solve(problem, StepRecorder<Groups>.Off);
 
-    // Steps: one Accept each time a split beats every split before it (the 2^n splits themselves are not shown one by
-    // one). The partial answer is the split: the S side is group 0, the rest group 1; the edges that cross are the cut.
+    // Tries every S side (every mask but none and all) and keeps the split whose crossing edges weigh the most.
     public string Solve(MAXCUT problem, StepRecorder<Groups> rec) {
         List<string> nodes = problem.nodes;
+        var steps = NewSteps(nodes, rec);
         int n = nodes.Count;
         if (n < 2) {
-            rec.Done(new Groups([]), false, "A graph needs at least two nodes to have a cut.");
+            steps.Done(new Groups([]), false, $"A graph needs at least two nodes to have a cut.");
             return "{}";
         }
 
@@ -49,20 +56,15 @@ class MaxCutSolver : ISolver<MAXCUT, Groups> {
             if (w > bestWeight) {
                 bestWeight = w;
                 bestS = S;
-                // Copies, so the closures below are only built for a new best, not on every pass of the loop.
-                var side = S;
-                int weight = w;
-                rec.Accept(() => GraphEdgeFrames.Split(nodes, side),
-                    () => $"Put {GraphEdgeFrames.Side(side)} against {GraphEdgeFrames.Side(nodes.Where(x => !side.Contains(x)))}: the crossing edges weigh {weight}, the most so far.",
-                    Array.Empty<string>());
+                steps.Accept(S, $"Put {GraphEdgeFrames.Side(S)} against {GraphEdgeFrames.Side(nodes.Where(x => !S.Contains(x)))}: the crossing edges weigh {w}, the most so far.");
             }
         }
 
         if (bestS.Count == 0) {
-            rec.Done(new Groups([]), false, "No split was found.");
+            steps.Done(new Groups([]), false, $"No split was found.");
             return "{}";
         }
-        rec.Done(GraphEdgeFrames.Split(nodes, bestS), true,
+        steps.Done(GraphEdgeFrames.Split(nodes, bestS), true,
             $"The heaviest cut weighs {bestWeight}: {GraphEdgeFrames.Side(bestS)} against {GraphEdgeFrames.Side(nodes.Where(x => !bestS.Contains(x)))}, after trying all {limit - 2} choices of the S side.");
         return "{" + string.Join(",", bestS) + "}";
     }
