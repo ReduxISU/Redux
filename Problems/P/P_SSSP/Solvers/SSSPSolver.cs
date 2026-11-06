@@ -8,7 +8,14 @@ using System.Collections.Generic;
 
 namespace API.Problems.P.P_SSSP.Solvers;
 
-// Incremental: each step settles one more node for good; settled distances and tree edges never change.
+// The steps Dijkstra's Algorithm records, for the Layered, list and table pictures (ids from LayeredFrames):
+//   - an Update that sets the starting distances: 0 for the source, ∞ for every other node;
+//   - an Accept each time a node is settled, after its edges are relaxed: its distance is final, and the why lists the
+//     shorter routes the relaxations found (focus: the node and the edges it relaxed);
+//   - the Done, once every node that can be reached is settled.
+// Each step's partial is the search after that moment. The list and table pictures rebuild their frames from these steps
+// (GraphSteps, TableSteps), so the visualize endpoint runs Dijkstra once. Incremental: each step settles one more node for
+// good; settled distances and tree edges never change.
 class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
     public string solverName { get; } = "Dijkstra's Algorithm";
     public string solverDefinition { get; } = "";
@@ -26,42 +33,55 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
     public MathematicalFunction timeComplexity { get; } = new("(V + E) log V", "");
     PriorityQueue<string, int>? pq;
 
+    // How the steps show the search: every node's distance and predecessor as they are now, and which nodes are settled. A
+    // step is about one node, and the neighbours whose edges from it were just relaxed.
+    private static RunSteps<(string Node, List<string> Relaxed), Distances> NewSteps(StepRecorder<Distances> rec, bool directed,
+        Dictionary<string, int> dist, Dictionary<string, string?> prev, HashSet<string> visited) => new(rec,
+        // What every picture shows: the distances, predecessors and settled nodes so far.
+        partial: _ => Distances.Of(dist, prev, visited),
+        // The node, and the edges it relaxed.
+        focus: s => [LayeredFrames.NodeId(s.Node), .. s.Relaxed.Select(next => LayeredFrames.EdgeId(directed, s.Node, next)).Distinct()]);
+
     public string solve(SSSP problem) => Solve(problem, StepRecorder<Distances>.Off);
 
-    // Steps: a Try for the start, then an Accept each time a node is settled (after its edges are relaxed), then Done.
-    // Each step's Partial is the search after that moment. The list and table pictures rebuild their frames from these
-    // steps (GraphSteps, TableSteps), so the visualize endpoint runs Dijkstra once.
+    // Dijkstra: take the unsettled node nearest the source off the queue, settle it (its distance is now final), and relax
+    // each of its edges: when going through it is shorter than a neighbour's distance so far, the neighbour takes that
+    // distance and this node as its predecessor. A node already settled can come off the queue again (a stale entry): it is
+    // skipped.
     public string Solve(SSSP problem, StepRecorder<Distances> rec) {
         SolveProbe.Hit(GetType());
         UtilCollectionGraph graph = problem.graph;
         List<string> nodes = graph.Nodes.ToList().Select(n => n.ToString()).ToList();
-
-        if (nodes.Count == 0) {
-            rec.Done(new Distances([], [], []), true, "The graph has no nodes, so there is nothing to reach.");
-            return "{}"; // No nodes, return empty path
-        }
-
         string sourceNode = problem.sourceNode;
-
-        if (!nodes.Contains(sourceNode)) {
-            rec.Done(new Distances([], [], []), false, $"The source {sourceNode} is not a node of the graph.");
-            return "{}";
-        }
-
-        var adjacency = BuildAdjacencyList(graph);
 
         var dist = nodes.ToDictionary(n => n, _ => int.MaxValue);
         var prev = nodes.ToDictionary(n => n, _ => (string?)null);
         var visited = new HashSet<string>();
+        var steps = NewSteps(rec, problem.isDirected, dist, prev, visited);
+
+        if (nodes.Count == 0) {
+            steps.Done(new Distances([], [], []), true, $"The graph has no nodes, so there is nothing to reach.");
+            return "{}"; // No nodes, return empty path
+        }
+
+        if (!nodes.Contains(sourceNode)) {
+            steps.Done(new Distances([], [], []), false, $"The source {sourceNode} is not a node of the graph.");
+            return "{}";
+        }
+
+        var adjacency = BuildAdjacencyList(graph);
         pq = new PriorityQueue<string, int>();
-        Distances Partial() => Distances.Of(dist, prev, visited);
+        // What the relaxations of the node being settled did, for its step: the neighbours whose edges were relaxed, and
+        // each shorter route found (the neighbour, its old distance and its new one). Reused for every node.
+        var relaxed = new List<string>();
+        var shorter = new List<(string Node, int Old, int New)>();
 
         dist[sourceNode] = 0;
         pq.Enqueue(sourceNode, 0);
-        rec.Try(Partial, () => $"Start at {sourceNode} with distance 0. Every other node starts at ∞.", LayeredFrames.NodeId(sourceNode));
+        steps.Update((sourceNode, relaxed), $"Start at {sourceNode} with distance 0. Every other node starts at ∞.");
 
         while (pq.Count > 0) {
-            // #935: the run is stopped; SolveRun.Record adds the stopped Done step when recording.
+            // The run is stopped; SolveRun.Record adds the stopped Done step when recording.
             if (timerHasExpired)
                 return SolveRun.TimedOutAnswer;
 
@@ -71,8 +91,8 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
                 continue;
             visited.Add(current);
 
-            var relaxed = new List<string>();
-            var shorter = new List<string>();
+            relaxed.Clear();
+            shorter.Clear();
             foreach (var (next, weight) in adjacency.TryGetValue(current, out var neighbors) ? neighbors : []) {
                 if (visited.Contains(next))
                     continue;
@@ -80,23 +100,26 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
                 if (dist[current] == int.MaxValue)
                     continue;
 
-                relaxed.Add(LayeredFrames.EdgeId(problem.isDirected, current, next));
+                relaxed.Add(next);
                 int candidate = dist[current] + weight;
                 if (candidate < dist[next]) {
-                    shorter.Add($"{next}: {LayeredFrames.Distance(dist[next])} → {candidate}");
+                    shorter.Add((next, dist[next], candidate));
                     dist[next] = candidate;
                     prev[next] = current;
                     pq.Enqueue(next, candidate);
                 }
             }
-            rec.Accept(Partial, () => $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}."
-                + (shorter.Count > 0 ? $" Shorter routes found: {string.Join(", ", shorter)}." : " No shorter routes from here."),
-                () => relaxed.Distinct().Prepend(LayeredFrames.NodeId(current)).ToArray());
+            if (shorter.Count == 0)
+                steps.Accept((current, relaxed), $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}. No shorter routes from here.");
+            else
+                steps.Accept((current, relaxed), $"Settle {current} at distance {LayeredFrames.Distance(dist[current])}. Shorter routes found: {string.Join(", ", shorter.Select(r => $"{r.Node}: {LayeredFrames.Distance(r.Old)} → {r.New}"))}.");
         }
 
         var lost = nodes.Where(n => dist[n] == int.MaxValue).ToList();
-        rec.Done(Partial(), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree."
-            + (lost.Count > 0 ? $" {LayeredFrames.List(lost)} can't be reached." : ""));
+        if (lost.Count == 0)
+            steps.Done(Distances.Of(dist, prev, visited), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree.");
+        else
+            steps.Done(Distances.Of(dist, prev, visited), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree. {LayeredFrames.List(lost)} can't be reached.");
         return NodeListCertificate(nodes, sourceNode, prev);
     }
 
@@ -221,8 +244,9 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
         public List<(string from, string to)> treeEdges { get; set; } = new(); // accepted tree edges so far
     }
 
-    // LegacyGraphSteps: the list picture's steps as this solver made them in a second run before #734. The picture now
-    // builds them from the typed run (GraphSteps); this is kept as the reference the tests compare GraphSteps against.
+    // LegacyGraphSteps: the list picture's steps as this solver made them in a second run, before the pictures read the
+    // typed run. The picture now builds them from the typed run (GraphSteps); this is kept as the reference the tests
+    // compare GraphSteps against.
     internal List<Object> LegacyGraphSteps(SSSP problem) {
         SolveProbe.Hit(GetType());
         var steps = new List<Object>();
