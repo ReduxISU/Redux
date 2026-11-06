@@ -6,24 +6,27 @@ namespace API.Interfaces.Quantum;
 /// <summary>
 /// Steps the quantum-algorithm solvers share (see <c>QuantumCircuitFrames</c> for how they are drawn).
 /// <list type="bullet">
-/// <item><see cref="Columns"/>: one Try per column of the instance's circuit, each with the column as the focus and a caption
-/// read from simulating it. A solver that sends the circuit to a quantum server records these first: the circuit is known
+/// <item><see cref="Columns"/>: one Update per column of the instance's circuit (applying gates has no verdict), each with
+/// the column as the focus and a caption read from simulating it. A solver that sends the circuit to a quantum server records these first: the circuit is known
 /// before the server answers, and drawing it never needs the server.</item>
-/// <item><see cref="Done"/>: the Done step with the problem's own verdict, only while recording.</item>
+/// <item><see cref="Done"/>: the Done step with the problem's own verdict, only while recording; <see cref="Verdict"/> is that
+/// verdict, for a solver whose Done says more than one caption can.</item>
 /// </list>
 /// </summary>
 static class QuantumSteps {
     /// <summary>Whether <paramref name="rec"/> records anything (a plain solve passes the shared <c>Off</c> recorder).</summary>
     public static bool Recording(StepRecorder<QuantumProgress> rec) => !ReferenceEquals(rec, StepRecorder<QuantumProgress>.Off);
 
-    /// <summary>One Try per column of <paramref name="spec"/>, column by column.</summary>
+    /// <summary>One Update per column of <paramref name="spec"/>, column by column.</summary>
     public static void Columns(StepRecorder<QuantumProgress> rec, QuantumCircuitSpec spec) {
         if (!Recording(rec)) return;
         var simulation = new QuantumSimulation(spec);
-        for (int c = 0; c < spec.Columns.Count; c++) {
-            int column = c;
-            rec.Try(() => new QuantumProgress(column + 1), () => simulation.Caption(column), () => spec.ColumnFocus(column));
-        }
+        // How the steps show a column (its index): the circuit applied up to and including it, with the column as the focus.
+        var steps = new RunSteps<int, QuantumProgress>(rec,
+            partial: column => new QuantumProgress(column + 1),
+            focus: spec.ColumnFocus);
+        for (int column = 0; column < spec.Columns.Count; column++)
+            steps.Update(column, $"{simulation.Caption(column)}");
     }
 
     /// <summary>
@@ -32,13 +35,17 @@ static class QuantumSteps {
     /// </summary>
     public static void Done(StepRecorder<QuantumProgress> rec, Func<bool> verify, QuantumProgress answer, Func<bool, string> caption) {
         if (!Recording(rec)) return;
-        bool ok;
-        try {
-            ok = verify();
-        } catch (Exception ex) when (ex is not StepBudgetExceededException) {
-            ok = false;
-        }
+        bool ok = Verdict(verify);
         rec.Done(answer, ok, caption(ok));
+    }
+
+    /// <summary>The verdict of <paramref name="verify"/>: false for an answer the verifier cannot read.</summary>
+    public static bool Verdict(Func<bool> verify) {
+        try {
+            return verify();
+        } catch (Exception ex) when (ex is not StepBudgetExceededException) {
+            return false;
+        }
     }
 
     /// <summary>

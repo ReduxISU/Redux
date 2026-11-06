@@ -7,7 +7,15 @@ using System.Text.RegularExpressions;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 
-// Incremental: the circuit is applied one column at a time, and then read.
+// The steps Grover's Algorithm records, for the Quantum Circuit picture:
+//   - an Update per column of Grover's circuit, in order: the textbook circuit, drawn and simulated here (the quantum
+//     server builds its own from the SAT expression and is never asked for these). Applying gates has no verdict;
+//   - an Accept for the item the server measured when it is marked, or a Reject when it is not;
+//   - the Done, with the verifier's verdict: how many rounds of Grover's algorithm found the item, or, for a miss, how
+//     often a run of the circuit drawn here finds a marked item.
+// With no answer from the server there is no answer at all: SolveAsSat throws SolverUnavailableException (HTTP 503
+// solver_unavailable), never the server's error in place of an item. Incremental: the circuit is applied one column at a
+// time, and then read.
 class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
@@ -34,16 +42,23 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
         throw new ArithmeticException("not a power of two");
     }
 
+    // How the steps show the measurement (the item the server measured): read off the end of the whole circuit.
+    private static RunSteps<int, QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec, int columns, int items,
+        List<KeyValuePair<string, long>> counts) => new(rec,
+        // What every picture shows: the whole circuit applied, the item measured (no outcome when it is not an item), and
+        // how often the server saw each outcome.
+        partial: item => new QuantumProgress(columns, outcome: item < items ? item : null, counts: counts, result: item.ToString()),
+        // The circuit's last column, where the measurement is read.
+        focus: _ => columns > 0 ? [QuantumCircuits.ColumnId(columns - 1)] : []);
+
     public string solve(UNSTRUCTUREDSEARCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps: a Try per column of Grover's circuit for the table (the textbook circuit, drawn and simulated here; the server
-    // builds its own from the SAT expression and is never asked for these), then an Accept with the item the server
-    // measured when it is marked (a Reject when it is not, #847), and Done with the verdict. With no answer from the server
-    // there is no answer at all: SolveAsSat throws SolverUnavailableException (HTTP 503 solver_unavailable), never the
-    // server's error in place of an item (#625; it was the answer before, #838).
+    // Writes f as a SAT expression (one AND of the input bits per marked item, ORed together) and asks the quantum server
+    // to run Grover's search on it; the bits it measured name the item.
     public string Solve(UNSTRUCTUREDSEARCH problem, StepRecorder<QuantumProgress> rec) {
         // We have to convert the function values into a SAT problem
         int nbits = PowerOfTwo(problem.funcValues.Count);
+        // The circuit is built and simulated only for the steps: a plain solve never builds it.
         var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.UnstructuredSearch(problem.funcValues) : null;
         if (spec != null) QuantumSteps.Columns(rec, spec);
         var exprs = new List<string>();
@@ -69,49 +84,43 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
         int index = Item(satproblem, measured);
         string answer = index.ToString();
         if (spec != null) {
-            int all = spec.Columns.Count;
-            long? outcome = index < problem.funcValues.Count ? index : null;
-            string[] read = all > 0 ? [QuantumCircuits.ColumnId(all - 1)] : [];
-            string Measured() => $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}";
-            // Green only for a marked item: a missed measurement is a Reject, not an answer (#847).
-            if (index < problem.funcValues.Count && problem.funcValues[index] != 0)
-                rec.Accept(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer), () => $"{Measured()}.", read);
+            int items = problem.funcValues.Count;
+            var steps = NewSteps(rec, spec.Columns.Count, items, counts);
+            // Green only for a marked item: a missed measurement is a Reject, not an answer.
+            if (index < items && problem.funcValues[index] != 0)
+                steps.Accept(index, $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}.");
             else
-                rec.Reject(() => new QuantumProgress(all, outcome: outcome, counts: counts, result: answer), () => $"{Measured()}, which is not marked.", read);
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
-                ok => ok ? $"Item {answer} is marked, found with {Rounds(QuantumCircuits.GroverRounds(problem.funcValues.Count, problem.funcValues.Count(v => v != 0)))} of Grover's algorithm."
-                    : problem.funcValues.All(v => v == 0) ? $"Nothing is marked, so item {answer} is not either: the answer should be no solution."
-                    : Missed(problem.funcValues, spec, answer));
+                steps.Reject(index, $"The quantum server measured item {answer} ({QuantumCircuits.Bits(index, nbits)}){QuantumSteps.Shots(counts, measured)}, which is not marked.");
+
+            var final = new QuantumProgress(spec.Columns.Count, outcome: index < items ? index : null, counts: counts, result: answer);
+            var marked = Enumerable.Range(0, items).Where(i => problem.funcValues[i] != 0).ToList();
+            int rounds = QuantumCircuits.GroverRounds(items, marked.Count);
+            if (QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer))) {
+                steps.Done(final, true, $"Item {answer} is marked, found with {Words.Count(rounds, "round")} of Grover's algorithm.");
+            } else if (marked.Count == 0) {
+                steps.Done(final, false, $"Nothing is marked, so item {answer} is not either: the answer should be no solution.");
+            } else {
+                // How often a run of the circuit drawn here finds a marked item, from simulating it; null when the circuit is
+                // too big to simulate. Never "usually": with 2 of 4 marked it is 50%, and with 3 of 4 one round overshoots to 0%.
+                string? chance = new QuantumSimulation(spec).After(spec.Columns.Count) is { } end
+                    ? QuantumCircuits.Percent(marked.Sum(i => end.Probabilities[i])) : null;
+                if (chance == "0%")
+                    steps.Done(final, false, $"Item {answer} is not marked. With {marked.Count} of {QuantumCircuits.Count(items)} items marked, the marked items end at 0% after {Words.Count(rounds, "round")} of Grover's algorithm, so every run misses.");
+                else if (chance == "100%")
+                    steps.Done(final, false, $"Item {answer} is not marked: the measurement missed. The circuit drawn here finds a marked item every time, so the server's run went differently.");
+                else if (chance != null)
+                    steps.Done(final, false, $"Item {answer} is not marked: the measurement missed. A run finds a marked item about {chance} of the time.");
+                else
+                    steps.Done(final, false, $"Item {answer} is not marked: the measurement missed.");
+            }
         }
         return answer;
     }
 
     /// <summary>
-    /// Done's caption when the server measured an unmarked item: how often a run of the circuit drawn finds a marked item,
-    /// from simulating it (#906). Never "usually": with 2 of 4 marked it is 50%, and with 3 of 4 one round overshoots to
-    /// 0%. Nothing is said about the odds when the circuit is too big to simulate.
-    /// </summary>
-    public static string Missed(IReadOnlyList<int> table, QuantumCircuitSpec spec, string answer) {
-        string missed = $"Item {answer} is not marked: the measurement missed.";
-        var d = new QuantumSimulation(spec).After(spec.Columns.Count);
-        if (d == null) return missed;
-        var marked = Enumerable.Range(0, table.Count).Where(i => table[i] != 0).ToList();
-        string chance = QuantumCircuits.Percent(marked.Sum(i => d.Probabilities[i]));
-        string rounds = Rounds(QuantumCircuits.GroverRounds(table.Count, marked.Count));
-        return chance switch {
-            "0%" => $"Item {answer} is not marked. With {marked.Count} of {QuantumCircuits.Count(table.Count)} items marked, the marked items end at 0% after {rounds} of Grover's algorithm, so every run misses.",
-            "100%" => $"{missed} The circuit drawn here finds a marked item every time, so the server's run went differently.",
-            _ => $"{missed} A run finds a marked item about {chance} of the time.",
-        };
-    }
-
-    // "1 round", "2 rounds" (#902).
-    private static string Rounds(int rounds) => rounds == 1 ? "1 round" : $"{rounds} rounds";
-
-    /// <summary>
     /// The variables of <paramref name="formula"/> in the quantum service's order: every distinct name, sorted by code point
     /// (sat_quantum.py's <c>sorted(set(re.findall(r"[A-Za-z0-9_]+", expr)))</c>). From 11 variables up this is not x0, x1,
-    /// ...: x10 sorts before x2 (#883). The same as SATGroverSolver's on the #832 fix.
+    /// ...: x10 sorts before x2. The same as SATGroverSolver's.
     /// </summary>
     public static List<string> ServiceVariableOrder(string formula) =>
         Regex.Matches(formula, "[A-Za-z0-9_]+").Select(m => m.Value).Distinct().OrderBy(v => v, StringComparer.Ordinal).ToList();
@@ -138,9 +147,8 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
     }
 
     // The bits the server measured, in its variable order (see Item). On any failure of the quantum service, including a
-    // response with no `answer_bitstring` (#538) or one that is not `nbits` binary digits, this throws
-    // SolverUnavailableException (HTTP 503 solver_unavailable) rather than handing Solve something that is not a bit string
-    // (#625). The bit string is checked inside Ask, so a malformed one fails the same way as a missing one.
+    // response with no `answer_bitstring` or one that is not `nbits` binary digits, this throws
+    // SolverUnavailableException (HTTP 503 solver_unavailable) rather than handing Solve something that is not a bit string. The bit string is checked inside Ask, so a malformed one fails the same way as a missing one.
     private string SolveAsSat(UNSTRUCTUREDSEARCH problem, string problemInstance, int nbits, List<KeyValuePair<string, long>> counts) {
         var requestBody = new JSON_Sat_Problem(problemInstance);
 
