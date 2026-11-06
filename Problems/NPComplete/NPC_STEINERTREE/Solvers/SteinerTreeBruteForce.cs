@@ -5,6 +5,10 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_STEINERTREE.Solvers;
 
+// The steps Steiner Tree Brute Force records: one per candidate edge set, in the order it tries them (every combination of
+// each size, from one fewer than the terminals up to K or the edge count, whichever is smaller). A candidate is a Reject
+// naming the terminals it doesn't reach (in focus), or saying it is in more than one piece, or the Accept that ends the
+// search; then the Done. The recorder's cap hides the rest of a long run.
 class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
 
     // --- Fields ---
@@ -53,27 +57,31 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
         return "{" + certificate.TrimEnd(',') + "}";
     }
 
-    // Why a candidate edge set is not a Steiner tree, in the verifier's own order: a terminal left out, then more than one piece.
-    private static (string Reason, string[] Focus) Why(STEINERTREE steiner, IEnumerable<KeyValuePair<string, string>> candidate) {
+    // The terminals no edge of the candidate touches, in the instance's order: the first thing the verifier checks.
+    private static string[] Unreached(STEINERTREE steiner, IEnumerable<KeyValuePair<string, string>> candidate) {
         var touched = new HashSet<string>(StringComparer.Ordinal);
         foreach (var e in candidate) {
             touched.Add(e.Key);
             touched.Add(e.Value);
         }
-        var missing = steiner.terminals.Where(t => !touched.Contains(t)).ToArray();
-        if (missing.Length > 0)
-            return (missing.Length == 1 ? $"terminal {missing[0]} isn't reached" : $"terminals {string.Join(", ", missing)} aren't reached", missing);
-        return ("the edges form more than one piece", []);
+        return steiner.terminals.Where(t => !touched.Contains(t)).ToArray();
     }
+
+    // How the steps show a candidate: the indices of the edges it picks, and for a Reject the terminals it leaves out
+    // (null: the step is not a Reject).
+    private static RunSteps<(List<int> Combination, string[]? Unreached), EdgeSet> NewSteps(StepRecorder<EdgeSet> rec,
+        List<KeyValuePair<string, string>> edges) => new(rec,
+        // What every picture shows: the candidate's edges, and what the step is about: every edge of a candidate it
+        // accepts, the terminals left out of one it rejects (none when it is in more than one piece).
+        partial: s => new EdgeSet(s.Combination.Select(c => GraphSubsetFrames.EdgeId(edges[c].Key, edges[c].Value))),
+        focus: s => s.Unreached ?? s.Combination.Select(c => GraphSubsetFrames.EdgeId(edges[c].Key, edges[c].Value)).ToArray());
 
     public string solve(STEINERTREE steiner) => Solve(steiner, StepRecorder<EdgeSet>.Off);
 
-    // Steps: one per candidate edge set tried, in the order the solver tries them (every combination of each size, from
-    // one fewer than the terminals up to K or the edge count, whichever is smaller). Recorder state lives only in this call.
     public string Solve(STEINERTREE steiner, StepRecorder<EdgeSet> rec) {
+        var steps = NewSteps(rec, steiner.edges);
         int tried = 0;
         List<int> combination = new List<int>();
-        string[] Candidate() => combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)).ToArray();
 
         // Every combination of i edges, for i from one fewer than the terminals up to K (no more than the edges there are).
         int largest = Math.Min(steiner.K, steiner.edges.Count);
@@ -84,21 +92,31 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE, EdgeSet> {
             }
 
             do {
-                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+                if (timerHasExpired) return SolveRun.TimedOutAnswer;
                 string certificate = indexListToCertificate(combination, steiner.edges);
                 tried++;
                 if (steiner.defaultVerifier.verify(steiner, certificate)) {
-                    rec.Accept(() => new EdgeSet(Candidate()), () => $"Try edges {string.Join(", ", Candidate())}. They connect every terminal.", Candidate);
-                    rec.Done(new EdgeSet(Candidate()), true, $"{Candidate().Length} edges connect every terminal, found after {tried} tries.");
+                    string[] found = combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)).ToArray();
+                    steps.Accept((combination, null), $"Try edges {string.Join(", ", found)}. They connect every terminal.");
+                    steps.Done(new EdgeSet(found), true, $"{found.Length} edges connect every terminal, found after {tried} tries.");
                     return certificate;
                 }
-                rec.Reject(() => new EdgeSet(Candidate()),
-                    () => $"Try edges {string.Join(", ", Candidate())}: {Why(steiner, combination.Select(c => steiner.edges[c])).Reason}.",
-                    () => Why(steiner, combination.Select(c => steiner.edges[c])).Focus);
+                // The verifier only says no. In its order: a terminal left out fails first, else the edges are in more than
+                // one piece. The terminals left out are looked up only while recording.
+                string[] unreached = rec.Enabled ? Unreached(steiner, combination.Select(c => steiner.edges[c])) : [];
+                if (unreached.Length == 1)
+                    steps.Reject((combination, unreached),
+                        $"Try edges {string.Join(", ", combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)))}: terminal {unreached[0]} isn't reached.");
+                else if (unreached.Length > 1)
+                    steps.Reject((combination, unreached),
+                        $"Try edges {string.Join(", ", combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)))}: terminals {string.Join(", ", unreached)} aren't reached.");
+                else
+                    steps.Reject((combination, unreached),
+                        $"Try edges {string.Join(", ", combination.Select(c => GraphSubsetFrames.EdgeId(steiner.edges[c].Key, steiner.edges[c].Value)))}: the edges form more than one piece.");
             } while (nextComb(combination, steiner.edges.Count));
 
         }
-        rec.Done(new EdgeSet([]), false, $"Checked {tried} candidate edge sets. None of them connects every terminal using at most {steiner.K} edges.");
+        steps.Done(new EdgeSet([]), false, $"Checked {tried} candidate edge sets. None of them connects every terminal using at most {steiner.K} edges.");
         return "{}";
     }
 
