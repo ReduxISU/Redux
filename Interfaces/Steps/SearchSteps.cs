@@ -32,7 +32,7 @@ namespace API.Interfaces.Steps;
 /// and formats the text only for steps the recorder keeps, as <see cref="StepRecorder{TPartial}"/> builds its lambdas.
 /// </para>
 /// </summary>
-sealed class SearchTree<TState, TChoice, TPartial> : IStepGate, IBacktrackGate where TState : class {
+sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate where TState : class {
     // A node as the tree keeps it; a patch adds the state and note of one step.
     private sealed class Node(int id, Node? parent, string label, bool leaf) {
         public int Id { get; } = id;
@@ -78,7 +78,7 @@ sealed class SearchTree<TState, TChoice, TPartial> : IStepGate, IBacktrackGate w
     /// <param name="rejectNote">A rejected choice's note (<c>C2 false</c>); none by default.</param>
     /// <param name="queuedNote">A queued state's note (<c>2 clauses left</c>, <c>lb 4,525</c>); none by default.</param>
     /// <param name="solvedNote">A solution's note, from the state it reaches (<c>x3 free</c>); none by default.</param>
-    public SearchTree(StepRecorder<TPartial> rec,
+    public SearchSteps(StepRecorder<TPartial> rec,
                       Func<TState, TPartial> partial,
                       Func<TState, string[]> focus,
                       Func<TState, TChoice, TPartial> childPartial,

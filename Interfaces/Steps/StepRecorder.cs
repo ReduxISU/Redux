@@ -12,7 +12,7 @@ namespace API.Interfaces.Steps;
 /// <see cref="ShownText"/> (an Accept's a <see cref="KeptText"/>), so nothing in its braces is evaluated, and the lambda is not
 /// invoked, when recording is off or the cap has been reached. The older forms, the whole step as one lambda,
 /// <c>rec.Try(() =&gt; new(partial, caption) { Focus = [id] })</c> (see <see cref="Step{TPartial}"/>), or the partial answer and
-/// caption as separate lambdas, do the same. A solver that branches records through a <see cref="SearchTree{TState, TChoice, TPartial}"/>,
+/// caption as separate lambdas, do the same. A solver that branches records through a <see cref="SearchSteps{TState, TChoice, TPartial}"/>,
 /// which builds the search-tree nodes from the same keywords.
 /// </para>
 /// <para>
@@ -190,7 +190,7 @@ sealed class StepRecorder<TPartial> : IStepGate {
     }
 
     /// <summary>
-    /// A step its caller has already built, for <see cref="SearchTree{TState, TChoice, TPartial}"/>: it asked <see cref="Builds"/>
+    /// A step its caller has already built, for <see cref="SearchSteps{TState, TChoice, TPartial}"/>: it asked <see cref="Builds"/>
     /// first, and built the partial, caption, focus and tree only if it said yes (they are default otherwise, and not read).
     /// </summary>
     internal void AddBuilt(StepEvent kind, TPartial partial, string? caption, string[]? focus, SearchNode[]? tree) {

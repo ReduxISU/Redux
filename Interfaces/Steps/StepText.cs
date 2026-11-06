@@ -4,7 +4,7 @@ namespace API.Interfaces.Steps;
 
 /// <summary>
 /// What decides whether a step's text is formatted: a <see cref="StepRecorder{TPartial}"/>, or a
-/// <see cref="SearchTree{TState, TChoice, TPartial}"/> on one. The text handlers below ask it before formatting anything.
+/// <see cref="SearchSteps{TState, TChoice, TPartial}"/> on one. The text handlers below ask it before formatting anything.
 /// </summary>
 interface IStepGate {
     /// <summary>Whether the recorder is recording. An Accept and a Done are built whenever it is, even past the cap.</summary>
@@ -14,7 +14,7 @@ interface IStepGate {
     bool ShowsNextStep { get; }
 }
 
-/// <summary>What decides whether <see cref="SearchTree{TState, TChoice, TPartial}.Expand"/> records a Backtrack to a state.</summary>
+/// <summary>What decides whether <see cref="SearchSteps{TState, TChoice, TPartial}.Expand"/> records a Backtrack to a state.</summary>
 interface IBacktrackGate {
     /// <summary>Whether expanding <paramref name="state"/> records a Backtrack that will be kept.</summary>
     bool ShowsBacktrackTo(object state);
@@ -37,7 +37,7 @@ ref struct ShownText {
         _text = _on ? new DefaultInterpolatedStringHandler(literalLength, formattedCount) : default;
     }
 
-    // For SearchTree.Expand: formatted only when the expansion is a kept Backtrack.
+    // For SearchSteps.Expand: formatted only when the expansion is a kept Backtrack.
     public ShownText(int literalLength, int formattedCount, IBacktrackGate gate, object state, out bool shouldAppend) {
         _on = shouldAppend = gate.ShowsBacktrackTo(state);
         _text = _on ? new DefaultInterpolatedStringHandler(literalLength, formattedCount) : default;

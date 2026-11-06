@@ -9,7 +9,7 @@ namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
 // The search records a step for each value it tries (a Try, then an Accept when the branch is queued or satisfies every
 // clause, or a Reject when a clause is left with no true literal), a Backtrack when it takes a queued branch that is not one
-// it just made, and a Done with the answer. The SearchTree builds the Search Tree picture's nodes from those steps.
+// it just made, and a Done with the answer. SearchSteps builds the Search Tree picture's nodes from those steps.
 class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
 
     // --- Fields ---
@@ -35,14 +35,16 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // How the steps show a state: its assignment, the variable it decides, and its node in the Search Tree picture ("x2=F").
     // A rejected value's node names the clause it falsifies; the solution's node names the variables it never had to set.
     // Both run only when the node is built, since each is a lookup the search itself does not make.
-    private static SearchTree<SAT3PQObject, bool, Assignment> NewTree(SAT3 sat3, StepRecorder<Assignment> rec) => new(rec,
+    private static SearchSteps<SAT3PQObject, bool, Assignment> NewSteps(SAT3 sat3, StepRecorder<Assignment> rec) => new(rec,
+        // What every picture shows: the assignment so far and the pieces the step is about.
         partial: s => ToAssignment(s.varStates),
         focus: s => [VariableId(s.nextVar)],
         childPartial: (s, value) => ToAssignment(WithValue(s.varStates, s.nextVar, value)),
-        childLabel: (s, value) => $"{s.nextVar}={(value ? "T" : "F")}",
         rejectFocus: (s, value) => FirstFalsifiedClause(sat3.clauses, WithValue(s.varStates, s.nextVar, value)) is int c and >= 0
             ? [VariableId(s.nextVar), ClauseId(c)]
             : [VariableId(s.nextVar)],
+        // The Search Tree picture's node text only.
+        childLabel: (s, value) => $"{s.nextVar}={(value ? "T" : "F")}",
         rejectNote: (s, value) => FirstFalsifiedClause(sat3.clauses, WithValue(s.varStates, s.nextVar, value)) is int c and >= 0 ? $"C{c + 1} false" : null,
         solvedNote: s => sat3.literals.Select(l => l.TrimStart('!')).Distinct().Where(v => !s.varStates.ContainsKey(v)).ToList() switch {
             { Count: 0 } => null,
@@ -53,12 +55,12 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     public string solve(SAT3 sat3) => Solve(sat3, StepRecorder<Assignment>.Off);
 
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
-        var tree = NewTree(sat3, rec);
-        Dictionary<string, bool>? solution = Search(sat3, tree);
+        var steps = NewSteps(sat3, rec);
+        Dictionary<string, bool>? solution = Search(sat3, steps);
 
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (solution == null) {
-            tree.Done(new Assignment([]), false, $"Every branch was rejected, so there is no solution.");
+            steps.Done(new Assignment([]), false, $"Every branch was rejected, so there is no solution.");
             return "No Solution";
         }
 
@@ -80,7 +82,7 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         }
         solutionString = solutionString.TrimEnd(',');
         solutionString += ")";
-        tree.Done(ToAssignment(solution), true, $"Every clause has a true literal under {Assigned(decided)}.{(free.Count switch {
+        steps.Done(ToAssignment(solution), true, $"Every clause has a true literal under {Assigned(decided)}.{(free.Count switch {
             0 => "",
             1 => $" {free[0]} is free (either value works), so the answer sets it to False.",
             _ => $" {string.Join(", ", free.SkipLast(1))} and {free[^1]} are free (either value works), so the answer sets them to False.",
@@ -91,12 +93,12 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // Return type varies
     public Dictionary<string, bool>? findSolution(SAT3 sat3) => findSolution(sat3, StepRecorder<Assignment>.Off);
 
-    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) => Search(sat3, NewTree(sat3, rec));
+    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) => Search(sat3, NewSteps(sat3, rec));
 
     // A best-first backtracking search: each state decides its next variable both ways, a value that leaves a clause with
     // no true literal is pruned, and the most promising state still queued is expanded next, until every clause has a true
     // literal.
-    private Dictionary<string, bool>? Search(SAT3 sat3, SearchTree<SAT3PQObject, bool, Assignment> tree) {
+    private Dictionary<string, bool>? Search(SAT3 sat3, SearchSteps<SAT3PQObject, bool, Assignment> steps) {
         // A single literal such as (x1) is still a satisfiable formula, so only an empty formula is rejected here.
         if (sat3.literals.Count < 1) {
             return null;
@@ -116,33 +118,33 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         curSat.initVarWeights();
         curSat.removeDuplicatesFromClauses();
         satPQ.Enqueue(curSat, curSat.getPQWeight());
-        tree.Root(curSat, $"start");
+        steps.Root(curSat, $"start");
 
         while (!solutionFound && satPQ.Count > 0) {
             if (timerHasExpired) return null; // stop at the time limit; Solve reports the stop
             curSat = satPQ.Dequeue();
-            tree.Expand(curSat, $"{(tree.DeadEnd ? "Neither value of the last variable works. " : "")}Go back to {Assigned(curSat.varStates)}, the most promising branch still open: {curSat.nextVar} is next.");
+            steps.Expand(curSat, $"{(steps.DeadEnd ? "Neither value of the last variable works. " : "")}Go back to {Assigned(curSat.varStates)}, the most promising branch still open: {curSat.nextVar} is next.");
             var (trueChild, falseChild) = curSat.createSATChildPair(curSat.depth, totalNumberOfVariables);
             foreach (var (value, childSAT) in new[] { (true, trueChild), (false, falseChild) }) {
-                tree.Try(curSat, value, $"Try {curSat.nextVar} = {value}{(curSat.varStates.Count == 0 ? "" : $" after {Assigned(curSat.varStates)}")}.");
+                steps.Try(curSat, value, $"Try {curSat.nextVar} = {value}{(curSat.varStates.Count == 0 ? "" : $" after {Assigned(curSat.varStates)}")}.");
                 //Invalid statements are evaluated upon creation and returned as null
                 if (childSAT != null) {
                     eval = evaluateBooleanExpression(childSAT.SATState.clauses);
                     if (eval == 0) {
                         //undecided
                         satPQ.Enqueue(childSAT, childSAT.getPQWeight());
-                        tree.Accept(curSat, value, $"Keep {curSat.nextVar} = {value}: no clause has every literal false yet, so this branch is queued.", queued: childSAT,
+                        steps.Accept(curSat, value, $"Keep {curSat.nextVar} = {value}: no clause has every literal false yet, so this branch is queued.", queued: childSAT,
                             note: $"{Count(childSAT.SATState.clauses.Count, "clause")} left");
                     } else if (eval == 1) {
                         //satisfiable
                         solutionFound = true;
                         solution = childSAT.varStates;
-                        tree.Accept(curSat, value, $"Keep {curSat.nextVar} = {value}: every clause now has a true literal.", solved: childSAT);
+                        steps.Accept(curSat, value, $"Keep {curSat.nextVar} = {value}: every clause now has a true literal.", solved: childSAT);
                         break; //SOLUTION FOUND EXIT FOR EACH
                     }
                 } else {
                     //unsolvable therefore dont add
-                    tree.Reject(curSat, value, $"{curSat.nextVar} = {value} fails: {(FirstFalsifiedClause(sat3.clauses, WithValue(curSat.varStates, curSat.nextVar, value)) is int c and >= 0 ? $"clause C{c + 1} {ClauseText(sat3.clauses[c])} has no true literal left." : "a clause is left with no true literal.")}");
+                    steps.Reject(curSat, value, $"{curSat.nextVar} = {value} fails: {(FirstFalsifiedClause(sat3.clauses, WithValue(curSat.varStates, curSat.nextVar, value)) is int c and >= 0 ? $"clause C{c + 1} {ClauseText(sat3.clauses[c])} has no true literal left." : "a clause is left with no true literal.")}");
                 }
             }
         }

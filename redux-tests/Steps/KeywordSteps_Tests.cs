@@ -4,7 +4,7 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// The keyword-first forms of StepRecorder (rec.Reject(() => partial, $"caption", ids)) and the SearchTree built on them. What
+// The keyword-first forms of StepRecorder (rec.Reject(() => partial, $"caption", ids)) and the SearchSteps built on them. What
 // they record must match the lambda forms, and they must build nothing a recorder would not keep: no caption formatted, no
 // partial or focus built, no node made, when the recorder is off or the step is past the cap (an Accept past the cap is still
 // built, as before, since the recorder keeps the last one).
@@ -100,7 +100,7 @@ public class KeywordSteps_Tests {
         Assert.Equal("already fixed", rec.Steps[0].Caption);
     }
 
-    // ---- SearchTree ----
+    // ---- SearchSteps ----
 
     private sealed class State(string name) {
         public string Name { get; } = name;
@@ -108,7 +108,7 @@ public class KeywordSteps_Tests {
     }
 
     // A tree whose converters count their calls: a state shows as its name, a choice (an int) as "name+choice".
-    private static SearchTree<State, int, NodeSet> TreeOn(StepRecorder<NodeSet> rec, Counter calls) => new(rec,
+    private static SearchSteps<State, int, NodeSet> TreeOn(StepRecorder<NodeSet> rec, Counter calls) => new(rec,
         partial: s => { calls.Count++; return Nodes(s.Name); },
         focus: s => { calls.Count++; return [s.Name]; },
         childPartial: (s, c) => { calls.Count++; return Nodes(s.Name, c.ToString()); },
