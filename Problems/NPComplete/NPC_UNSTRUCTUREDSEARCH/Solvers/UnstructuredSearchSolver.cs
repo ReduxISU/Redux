@@ -4,6 +4,11 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Solvers;
 
+// The steps Unstructured Search Brute Force records, for the Quantum Circuit picture (which this solver never runs, so
+// only its oracle is drawn as the focus):
+//   - a Reject per item the oracle says is not marked;
+//   - an Accept for the first marked item;
+//   - the Done, with the verifier's verdict.
 // Not incremental: each oracle call judges one whole candidate, the item it asks about.
 class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress> {
 
@@ -27,37 +32,54 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress> {
     // --- Methods Including Constructors ---
     public UnstructuredSearchSolver() { }
 
+    // How the steps show the run: the item the step calls the oracle with (null: a step that calls nothing), and the
+    // answer once there is one.
+    private static RunSteps<(int? Call, string? Answer), QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec,
+        List<OracleQuery> queries, string? oracle) => new(rec,
+        // What every picture shows: the oracle calls made so far, and the answer.
+        partial: s => new QuantumProgress(queries: queries, result: s.Answer),
+        // The oracle gate, for a step that calls it.
+        focus: s => s.Call != null && oracle != null ? [oracle] : []);
+
     public string solve(UNSTRUCTUREDSEARCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps (the Quantum Circuit picture, which this solver never runs): a Reject per item the oracle says is not marked,
-    // with the oracle as the focus, then an Accept for the first marked item, and Done with the verifier's verdict.
+    // Calls the oracle on each item in turn until one is marked (f = 1).
     public string Solve(UNSTRUCTUREDSEARCH problem, StepRecorder<QuantumProgress> rec) {
+        // The oracle gate is looked up only for the steps: a plain solve never builds the circuit.
         string? gate = QuantumSteps.Recording(rec) ? QuantumCircuits.UnstructuredSearch(problem.funcValues).OracleGateId : null;
-        string[] Focus() => gate == null ? [] : [gate];
         int bits = QuantumCircuits.Log2(problem.funcValues.Count);
-        string Item(int i) => bits > 0 ? $"item {i} ({QuantumCircuits.Bits(i, bits)})" : $"item {i}";
         var queries = new List<OracleQuery>();
-        string Finish(string answer) {
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(queries: queries, result: answer),
-                ok => answer == "no solution"
-                    ? (ok ? $"No item of the {QuantumCircuits.Count(problem.funcValues.Count)} is marked: no solution." : "The answer no solution is not correct.")
-                    : ok ? $"Item {answer} is marked, found after {QuantumCircuits.Count(queries.Count)} oracle {(queries.Count == 1 ? "call" : "calls")}." : $"The answer {answer} is not correct.");
-            return answer;
-        }
+        var steps = NewSteps(rec, queries, gate);
 
         // For a classical solution, we just need to loop over the values and
         // find the first non-zero value.
+        string answer = "no solution";
         for (int i = 0; i < problem.funcValues.Count; i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
-            int x = i, fx = problem.funcValues[i];
-            queries.Add(new OracleQuery(x, fx));
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
+            int fx = problem.funcValues[i];
+            queries.Add(new OracleQuery(i, fx));
+            // An item is named by its index, and by its bits when there are any.
             if (fx != 0) {
-                rec.Accept(() => new QuantumProgress(queries: queries, result: Convert.ToString(x)),
-                    () => $"Call the oracle with {Item(x)}: f = {fx}, so it is marked.", Focus);
-                return Finish(Convert.ToString(i));
+                answer = Convert.ToString(i);
+                steps.Accept((i, answer), $"Call the oracle with item {i}{(bits > 0 ? $" ({QuantumCircuits.Bits(i, bits)})" : "")}: f = {fx}, so it is marked.");
+                break;
             }
-            rec.Reject(() => new QuantumProgress(queries: queries), () => $"Call the oracle with {Item(x)}: f = 0, not marked.", Focus);
+            steps.Reject((i, null), $"Call the oracle with item {i}{(bits > 0 ? $" ({QuantumCircuits.Bits(i, bits)})" : "")}: f = 0, not marked.");
         }
-        return Finish("no solution");
+
+        // The verdict is only for the steps: a plain solve never runs the verifier.
+        if (QuantumSteps.Recording(rec)) {
+            var final = new QuantumProgress(queries: queries, result: answer);
+            bool ok = QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer));
+            if (answer == "no solution" && ok)
+                steps.Done(final, true, $"No item of the {QuantumCircuits.Count(problem.funcValues.Count)} is marked: no solution.");
+            else if (answer == "no solution")
+                steps.Done(final, false, $"The answer no solution is not correct.");
+            else if (ok)
+                steps.Done(final, true, $"Item {answer} is marked, found after {QuantumCircuits.Count(queries.Count)} oracle {(queries.Count == 1 ? "call" : "calls")}.");
+            else
+                steps.Done(final, false, $"The answer {answer} is not correct.");
+        }
+        return answer;
     }
 }
