@@ -4,6 +4,9 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.P.P_MINCUT.Solvers;
 
+// The steps the Stoer-Wagner Algorithm records: one per phase. Each phase ends by cutting off the node added last (with
+// everything already merged into it); that cut is an Accept if it is the lightest so far, else a Reject. Then the Done,
+// with the minimum cut.
 class MinCutStoerWagner : ISolver<MINCUT, Groups> {
     public string solverName { get; } = "Stoer-Wagner Algorithm";
     public string solverDefinition { get; } = "Finds the global minimum cut of a weighted undirected graph using the Stoer-Wagner algorithm in O(V³) time.";
@@ -22,15 +25,23 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
 
     public MinCutStoerWagner() { }
 
+    // How the steps show a phase's cut, given as the original nodes merged into the node added last: the split that cuts
+    // them off (that side is group 0, the rest group 1; the edges that cross are the cut), with that side in focus.
+    private static RunSteps<HashSet<int>, Groups> NewSteps(IReadOnlyList<string> names, StepRecorder<Groups> rec) => new(rec,
+        // What every picture shows: the split, and the side cut off.
+        partial: cutOff => GraphEdgeFrames.Split(names, Names(names, cutOff)),
+        focus: cutOff => Names(names, cutOff));
+
+    // The names of a set of original nodes, in node order.
+    private static string[] Names(IReadOnlyList<string> names, HashSet<int> nodes) => nodes.OrderBy(i => i).Select(i => names[i]).ToArray();
+
     public string solve(MINCUT problem) => Solve(problem, StepRecorder<Groups>.Off);
 
-    // Steps: one per phase. Each phase ends by cutting off the node added last (with everything already merged into it);
-    // that is Accept if it is the lightest cut so far and Reject if not. The partial answer is that split (the cut-off
-    // side is group 0, the rest group 1); the edges that cross it are the cut.
     public string Solve(MINCUT problem, StepRecorder<Groups> rec) {
+        var steps = NewSteps(problem.nodes, rec);
         int n = problem.nodes.Count;
         if (n < 2) {
-            rec.Done(new Groups([]), true, "A graph with fewer than two nodes has nothing to cut.");
+            steps.Done(new Groups([]), true, $"A graph with fewer than two nodes has nothing to cut.");
             return "{}";
         }
 
@@ -38,7 +49,7 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
         int[,] w = BuildAdjacencyMatrix(n, nodeIndex, problem.edges);
 
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
-        var (minWeight, minSide) = RunStoerWagner(n, w, rec, problem.nodes, () => timerHasExpired);
+        var (minWeight, minSide) = RunStoerWagner(n, w, problem.nodes, steps, () => timerHasExpired);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         List<string> cutEdgeParts = new();
@@ -55,23 +66,26 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
             listedWeight += edge.weight;
         }
 
-        // The answer lists one edge per pair of nodes. Parallel edges are already merged into one with their summed weight
-        // (#769), so it weighs the cut it names; if it ever did not, the verifier would refuse it, and so must the Done step.
+        // The answer lists one edge per pair of nodes. Parallel edges are already merged into one with their summed weight,
+        // so it weighs the cut it names; if it ever did not, the verifier would refuse it, and so must the Done step.
         bool listsTheCut = listedWeight == minWeight;
-        rec.Done(GraphEdgeFrames.Split(problem.nodes, minSide.Select(i => problem.nodes[i])), listsTheCut,
-            !listsTheCut
-                ? $"The minimum cut weighs {minWeight}, but the answer lists one edge per pair of nodes, weighing {listedWeight}, so it does not show that cut."
-            : minWeight == 0 && cutEdgeParts.Count == 0
-                ? "The graph is already in more than one piece, so the minimum cut weighs 0."
-                : $"The minimum cut weighs {minWeight}: {GraphEdgeFrames.Side(minSide.Select(i => problem.nodes[i]))} against {GraphEdgeFrames.Side(problem.nodes.Where((_, i) => !minSide.Contains(i)))}.");
+        Groups split = GraphEdgeFrames.Split(problem.nodes, minSide.Select(i => problem.nodes[i]));
+        if (!listsTheCut)
+            steps.Done(split, false, $"The minimum cut weighs {minWeight}, but the answer lists one edge per pair of nodes, weighing {listedWeight}, so it does not show that cut.");
+        else if (minWeight == 0 && cutEdgeParts.Count == 0)
+            steps.Done(split, true, $"The graph is already in more than one piece, so the minimum cut weighs 0.");
+        else
+            steps.Done(split, true, $"The minimum cut weighs {minWeight}: {GraphEdgeFrames.Side(minSide.Select(i => problem.nodes[i]))} against {GraphEdgeFrames.Side(problem.nodes.Where((_, i) => !minSide.Contains(i)))}.");
         return "{" + string.Join(",", cutEdgeParts) + "}";
     }
 
-    // Runs Stoer-Wagner and returns (minCutWeight, one side of the min cut as original node indices).
-    // With a recorder (and the node names, to write captions), records one step per phase. With stop, it stops between
-    // phases once stop() is true (#935: the time limit); the caller reports it.
-    internal static (int weight, HashSet<int> side) RunStoerWagner(int n, int[,] wInput, StepRecorder<Groups>? rec = null, IReadOnlyList<string>? names = null,
-        Func<bool>? stop = null) {
+    // Runs Stoer-Wagner and returns (minCutWeight, one side of the min cut as original node indices). Each phase grows a
+    // set A from one node, always adding the node most tightly joined to A; the node added last, with everything already
+    // merged into it, cut off from the rest is the phase's cut. Then the last two nodes added are merged into one. The
+    // lightest phase cut is a minimum cut. It records one step per phase (names are the nodes' names, for the why). With
+    // stop, it stops between phases once stop() is true (the time limit); the caller reports it.
+    internal static (int weight, HashSet<int> side) RunStoerWagner(int n, int[,] wInput, IReadOnlyList<string> names,
+        RunSteps<HashSet<int>, Groups> steps, Func<bool>? stop = null) {
         int[,] w = (int[,])wInput.Clone();
         List<HashSet<int>> merged = Enumerable.Range(0, n).Select(i => new HashSet<int> { i }).ToList();
         bool[] active = Enumerable.Repeat(true, n).ToArray();
@@ -80,7 +94,7 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
         HashSet<int> bestSide = new();
 
         for (int phase = 0; phase < n - 1; phase++) {
-            if (stop != null && stop()) break; // #935: stop at the time limit; the caller reports it
+            if (stop != null && stop()) break; // stop at the time limit; the caller reports it
             int[] key = new int[n];
             bool[] inA = new bool[n];
             int lastAdded = -1, secondLastAdded = -1;
@@ -108,20 +122,13 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
             // The cut-of-the-phase separates lastAdded from the rest.
             // key[lastAdded] = sum of edges from lastAdded to all other active nodes.
             int phaseWeight = key[lastAdded];
-            if (rec != null && names != null) {
-                int phaseNumber = phase + 1;
-                int added = lastAdded;
-                int bestSoFar = bestWeight;
-                string[] CutOff() => merged[added].OrderBy(i => i).Select(i => names[i]).ToArray();
-                Groups Split() => GraphEdgeFrames.Split(names, CutOff());
-                string Caption(string verdict) =>
-                    $"Phase {phaseNumber}: node {names[added]} is added last, so {GraphEdgeFrames.Side(CutOff())} is cut off from the rest at weight {phaseWeight}. {verdict}";
-                if (phaseWeight < bestWeight) rec.Accept(Split, () => Caption("It is the lightest cut so far."), CutOff);
-                else rec.Reject(Split, () => Caption($"It is no lighter than the best so far ({bestSoFar})."), CutOff);
-            }
+            // The phase's cut: an Accept if it is the lightest so far (it becomes the best), else a Reject.
             if (phaseWeight < bestWeight) {
+                steps.Accept(merged[lastAdded], $"Phase {phase + 1}: node {names[lastAdded]} is added last, so {GraphEdgeFrames.Side(Names(names, merged[lastAdded]))} is cut off from the rest at weight {phaseWeight}. It is the lightest cut so far.");
                 bestWeight = phaseWeight;
                 bestSide = new HashSet<int>(merged[lastAdded]);
+            } else {
+                steps.Reject(merged[lastAdded], $"Phase {phase + 1}: node {names[lastAdded]} is added last, so {GraphEdgeFrames.Side(Names(names, merged[lastAdded]))} is cut off from the rest at weight {phaseWeight}. It is no lighter than the best so far ({bestWeight}).");
             }
 
             // Merge lastAdded into secondLastAdded.
@@ -141,7 +148,7 @@ class MinCutStoerWagner : ISolver<MINCUT, Groups> {
         if (n < 2) return 0;
         Dictionary<string, int> nodeIndex = BuildNodeIndex(problem.nodes);
         int[,] w = BuildAdjacencyMatrix(n, nodeIndex, problem.edges);
-        var (weight, _) = RunStoerWagner(n, w);
+        var (weight, _) = RunStoerWagner(n, w, problem.nodes, NewSteps(problem.nodes, StepRecorder<Groups>.Off));
         return weight;
     }
 
