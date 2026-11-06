@@ -50,7 +50,7 @@ public class KeywordSteps_Tests {
         lambdas.Try(() => Nodes("a"), () => $"pick a ({n})", "a");
         keyword.Reject(() => Nodes("a", "b"), $"b clashes", () => ["b", "a"]);
         lambdas.Reject(() => Nodes("a", "b"), () => "b clashes", "b", "a");
-        keyword.Backtrack(() => Nodes("a"), "drop b", "b");
+        keyword.Backtrack(() => Nodes("a"), $"drop b", "b");
         lambdas.Backtrack(() => Nodes("a"), () => "drop b", "b");
         keyword.Accept(() => Nodes("a"), $"keep a{n,3:D2}");
         lambdas.Accept(() => Nodes("a"), () => $"keep a{n,3:D2}");
@@ -91,12 +91,13 @@ public class KeywordSteps_Tests {
         Assert.Equal("accept 999", rec.Steps[5].Caption);
     }
 
+    // Text that is not an interpolated string does not compile (CS9205), so a computed caption can never be built eagerly;
+    // fixed text is written as a constant interpolated string.
     [Fact]
-    public void PlainStrings_ConvertToo() {
+    public void ConstantInterpolatedStrings_AreTheFixedText() {
         var rec = new StepRecorder<NodeSet>();
-        string caption = "already built";
-        rec.Reject(() => Nodes("a"), caption);
-        Assert.Equal("already built", rec.Steps[0].Caption);
+        rec.Reject(() => Nodes("a"), $"already fixed");
+        Assert.Equal("already fixed", rec.Steps[0].Caption);
     }
 
     // ---- SearchTree ----
@@ -106,150 +107,175 @@ public class KeywordSteps_Tests {
         public override string ToString() => Name;
     }
 
+    // A tree whose converters count their calls: a state shows as its name, a choice (an int) as "name+choice".
+    private static SearchTree<State, int, NodeSet> TreeOn(StepRecorder<NodeSet> rec, Counter calls) => new(rec,
+        partial: s => { calls.Count++; return Nodes(s.Name); },
+        focus: s => { calls.Count++; return [s.Name]; },
+        childPartial: (s, c) => { calls.Count++; return Nodes(s.Name, c.ToString()); },
+        childLabel: (s, c) => $"{s.Name}+{c}",
+        rejectFocus: (s, c) => { calls.Count++; return [s.Name, $"bad{c}"]; },
+        rejectNote: (s, c) => { calls.Count++; return $"no {c}"; },
+        queuedNote: s => { calls.Count++; return $"queued {s.Name}"; },
+        solvedNote: s => { calls.Count++; return $"solved {s.Name}"; });
+
     private static IReadOnlyList<SearchNode> TreeOf(SolverStep<NodeSet> step) => step.Tree!;
 
     [Fact]
-    public void Tree_RootIsCarriedByTheFirstStep_AndChildrenGoUnderTheStateExpanded() {
+    public void Tree_ChoiceSteps_TakeTheirPartialFocusLabelAndNoteFromTheConverters() {
         var rec = new StepRecorder<NodeSet>();
-        var tree = new SearchTree<State, NodeSet>(rec);
-        State root = new("root"), a = new("a");
-        tree.Root(root, "start");
-        tree.Expand(root, () => Nodes(), $"never: the root is not a jump");
-        tree.Try(() => Nodes("x"), $"try x", child: "x=T");
-        tree.Accept(() => Nodes("x"), $"keep x", queued: a, bound: $"{2} left");
-        tree.Try(() => Nodes("x"), "try x=F", child: "x=F");
-        tree.Reject(() => Nodes("x"), "x=F fails", bound: "C1 false");
+        var tree = TreeOn(rec, new Counter());
+        State root = new("r"), a = new("a");
+        tree.Root(root, $"start");
+        tree.Expand(root, $"never: the root is not a jump");
+        tree.Try(root, 1, $"try 1");
+        tree.Accept(root, 1, $"keep 1", queued: a);
+        tree.Try(root, 2, $"try 2");
+        tree.Reject(root, 2, $"2 fails");
+        tree.Reject(root, 3, $"3 fails too", note: $"own note");
 
-        Assert.Equal(new[] { StepEvent.Try, StepEvent.Accept, StepEvent.Try, StepEvent.Reject }, rec.Steps.Select(s => s.Event));
-        Assert.Equal([new SearchNode(0, null, "start", SearchNodeState.Queued), new SearchNode(1, 0, "x=T", SearchNodeState.Explored)], TreeOf(rec.Steps[0]));
-        Assert.Equal([new SearchNode(1, 0, "x=T", SearchNodeState.Queued) { Bound = "2 left" }], TreeOf(rec.Steps[1]));
-        Assert.Equal([new SearchNode(2, 0, "x=F", SearchNodeState.Explored)], TreeOf(rec.Steps[2]));
-        Assert.Equal([new SearchNode(2, 0, "x=F", SearchNodeState.Pruned) { Bound = "C1 false" }], TreeOf(rec.Steps[3]));
+        Assert.Equal(new[] { StepEvent.Try, StepEvent.Accept, StepEvent.Try, StepEvent.Reject, StepEvent.Reject }, rec.Steps.Select(s => s.Event));
+        Assert.Equal(Nodes("r", "1"), rec.Steps[0].Partial);
+        Assert.Equal(["r"], rec.Steps[0].Focus);
+        Assert.Equal([new SearchNode(0, null, "start", SearchNodeState.Queued), new SearchNode(1, 0, "r+1", SearchNodeState.Explored)], TreeOf(rec.Steps[0]));
+        // The Accept is about the child the Try of the same choice made.
+        Assert.Equal([new SearchNode(1, 0, "r+1", SearchNodeState.Queued) { Bound = "queued a" }], TreeOf(rec.Steps[1]));
+        Assert.Equal([new SearchNode(2, 0, "r+2", SearchNodeState.Explored)], TreeOf(rec.Steps[2]));
+        Assert.Equal(["r", "bad2"], rec.Steps[3].Focus);
+        Assert.Equal([new SearchNode(2, 0, "r+2", SearchNodeState.Pruned) { Bound = "no 2" }], TreeOf(rec.Steps[3]));
+        // A choice with no Try before it makes its own child; a given note wins over the converter.
+        Assert.Equal([new SearchNode(3, 0, "r+3", SearchNodeState.Pruned) { Bound = "own note" }], TreeOf(rec.Steps[4]));
+        // Children of a queued state go under its node.
+        tree.Expand(a, $"never: a was just queued");
+        tree.Try(a, 4, $"try 4");
+        Assert.Equal(1, rec.Steps[^1].Tree![0].ParentId);
     }
 
     [Fact]
     public void Tree_Expand_RecordsABacktrackOnlyWhenTheSearchJumps() {
         var rec = new StepRecorder<NodeSet>();
-        var tree = new SearchTree<State, NodeSet>(rec);
+        var tree = TreeOn(rec, new Counter());
         State root = new("root"), a = new("a"), b = new("b"), c = new("c");
         var captions = new Counter();
-        tree.Root(root, "start");
-        tree.Expand(root, () => Nodes(), $"{captions.Hit()}");
-        tree.Try(() => Nodes("a"), "try a", child: "a");
-        tree.Accept(() => Nodes("a"), "queue a", queued: a);
-        tree.Try(() => Nodes("b"), "try b", child: "b");
-        tree.Accept(() => Nodes("b"), "queue b", queued: b);
-        tree.Expand(a, () => Nodes("a"), $"{captions.Hit()}");    // a child just queued: no step
-        tree.Try(() => Nodes("c"), "try c", child: "c");
-        tree.Accept(() => Nodes("c"), "queue c", queued: c);
-        Assert.False(tree.DeadEnd);                                // a queued c
-        tree.Expand(c, () => Nodes("c"), $"{captions.Hit()}");    // c, just queued: no step
-        tree.Try(() => Nodes("e"), "try e", child: "e");
-        tree.Reject(() => Nodes("e"), "e fails");
-        Assert.True(tree.DeadEnd);                                 // c queued nothing
-        tree.Expand(b, () => Nodes("b"), $"{(tree.DeadEnd ? "dead end, " : "")}back to {captions.Hit("b")}", () => ["b"]);
-        tree.Try(() => Nodes("d"), "try d", child: "d");
+        tree.Root(root, $"start");
+        tree.Expand(root, $"{captions.Hit()}");
+        tree.Accept(root, 1, $"queue a", queued: a);
+        tree.Accept(root, 2, $"queue b", queued: b);
+        tree.Expand(a, $"{captions.Hit()}");    // a child just queued: no step
+        tree.Accept(a, 3, $"queue c", queued: c);
+        Assert.False(tree.DeadEnd);                // a queued c
+        tree.Expand(c, $"{captions.Hit()}");    // c, just queued: no step
+        tree.Reject(c, 4, $"4 fails");
+        Assert.True(tree.DeadEnd);                 // c queued nothing
+        tree.Expand(b, $"{(tree.DeadEnd ? "dead end, " : "")}back to {captions.Hit("b")}");
 
         Assert.Equal(1, captions.Count);
         var back = Assert.Single(rec.Steps, s => s.Event == StepEvent.Backtrack);
         Assert.Equal("dead end, back to b", back.Caption);
+        Assert.Equal(Nodes("b"), back.Partial);
         Assert.Equal(["b"], back.Focus);
-        Assert.Equal([new SearchNode(2, 0, "b", SearchNodeState.Explored)], back.Tree);
-        // The child tried after the Backtrack goes under b.
-        Assert.Equal(2, rec.Steps.First(s => s.Caption == "try d").Tree![0].ParentId);
+        Assert.Equal([new SearchNode(2, 0, "root+2", SearchNodeState.Explored)], back.Tree);
     }
 
     [Fact]
-    public void Tree_AtAState_AndAStateOverride() {
+    public void Tree_StateSteps_TheWaitingRoot_AndOverrides() {
         var rec = new StepRecorder<NodeSet>();
-        var tree = new SearchTree<State, NodeSet>(rec);
-        State root = new("root"), a = new("a");
-        tree.Root(root, "A", $"lb {4}");
-        tree.Try(() => Nodes("A"), "start at A");                            // no node of its own: just the root
-        tree.Try(() => Nodes("A"), "expand A", at: root);
-        tree.Accept(() => Nodes("A", "B"), "queue B", child: "B", queued: a, bound: "lb 5");
-        tree.Reject(() => Nodes("A", "C"), "no edge", child: "C", bound: "no edge");
-        tree.Reject(() => Nodes("A", "B"), "no better", at: a, bound: "tour 9", state: SearchNodeState.Failed);
+        var tree = TreeOn(rec, new Counter());
+        State root = new("A"), b = new("B");
+        tree.Root(root, $"A", $"lb {4}");
+        tree.Try(root, $"start at A");                         // the root while it waits: shown as Root made it
+        tree.Try(root, $"expand A");
+        tree.Accept(root, 1, $"queue B", queued: b);
+        tree.Reject(b, $"no better", note: $"tour 9", outcome: SearchNodeState.Failed, partial: () => Nodes("A", "B", "A"), focus: () => ["B", "A"]);
 
         Assert.Equal([new SearchNode(0, null, "A", SearchNodeState.Queued) { Bound = "lb 4" }], TreeOf(rec.Steps[0]));
+        Assert.Equal(Nodes("A"), rec.Steps[0].Partial);
         Assert.Equal([new SearchNode(0, null, "A", SearchNodeState.Explored)], TreeOf(rec.Steps[1]));
-        Assert.Equal([new SearchNode(1, 0, "B", SearchNodeState.Queued) { Bound = "lb 5" }], TreeOf(rec.Steps[2]));
-        Assert.Equal([new SearchNode(2, 0, "C", SearchNodeState.Pruned) { Bound = "no edge" }], TreeOf(rec.Steps[3]));
-        Assert.Equal([new SearchNode(1, 0, "B", SearchNodeState.Failed) { Bound = "tour 9" }], TreeOf(rec.Steps[4]));
+        Assert.Equal([new SearchNode(1, 0, "A+1", SearchNodeState.Failed) { Bound = "tour 9" }], TreeOf(rec.Steps[3]));
+        Assert.Equal(Nodes("A", "B", "A"), rec.Steps[3].Partial);
+        Assert.Equal(["B", "A"], rec.Steps[3].Focus);
     }
 
     [Fact]
-    public void Tree_Done_NamesThePathToTheLastSolution_OrALeafSolutionAlone() {
+    public void Tree_Done_NamesThePathToTheLastSolution_OrAStartingAnswerAlone() {
         var rec = new StepRecorder<NodeSet>(cap: 1);
-        var tree = new SearchTree<State, NodeSet>(rec);
-        State root = new("root"), a = new("a");
-        tree.Root(root, "start");
-        tree.Accept(() => Nodes(), "greedy", child: "greedy", bound: "tour 10");   // a leaf solution
-        tree.Try(() => Nodes(), "expand", at: root);
-        tree.Accept(() => Nodes("a"), "queue a", child: "a", queued: a);
-        tree.Try(() => Nodes("a"), "expand a", at: a);
-        tree.Try(() => Nodes("a", "b"), "try b", child: "b");
-        tree.Accept(() => Nodes("a", "b"), "solved", bound: "tour 7");          // past the cap
-        tree.Done(Nodes("a", "b"), true, $"done");
+        var tree = TreeOn(rec, new Counter());
+        State root = new("r"), a = new("a"), done = new("done");
+        tree.Root(root, $"start");
+        tree.Accept($"greedy", leaf: $"greedy", partial: () => Nodes(), focus: () => [], note: $"tour 10");
+        tree.Try(root, $"expand");
+        tree.Accept(root, 1, $"queue a", queued: a);
+        tree.Try(a, $"expand a");
+        tree.Try(a, 2, $"try 2");
+        tree.Accept(a, 2, $"solved", solved: done);           // past the cap
+        tree.Done(Nodes("a", "2"), true, $"done");
 
         Assert.Equal([
             new SearchNode(0, null, "start", SearchNodeState.Explored),
-            new SearchNode(2, 0, "a", SearchNodeState.Explored),
-            new SearchNode(3, 2, "b", SearchNodeState.Solution) { Bound = "tour 7" },
+            new SearchNode(2, 0, "r+1", SearchNodeState.Explored),
+            new SearchNode(3, 2, "a+2", SearchNodeState.Solution) { Bound = "solved done" },
         ], rec.Steps[^1].Tree);
 
         var leafRec = new StepRecorder<NodeSet>();
-        var leafTree = new SearchTree<State, NodeSet>(leafRec);
-        leafTree.Root(root, "start");
-        leafTree.Accept(() => Nodes(), "greedy", child: "greedy", bound: "tour 10");
-        leafTree.Try(() => Nodes(), "expand", at: root);
-        leafTree.Done(Nodes(), true, "done");
+        var leafTree = TreeOn(leafRec, new Counter());
+        leafTree.Root(root, $"start");
+        leafTree.Accept($"greedy", leaf: $"greedy", partial: () => Nodes(), focus: () => [], note: $"tour 10");
+        leafTree.Try(root, $"expand");
+        leafTree.Done(Nodes(), true, $"done");
         Assert.Equal([new SearchNode(1, 0, "greedy", SearchNodeState.Solution) { Bound = "tour 10" }], leafRec.Steps[^1].Tree);
 
         var failRec = new StepRecorder<NodeSet>();
-        var failTree = new SearchTree<State, NodeSet>(failRec);
-        failTree.Root(root, "start");
-        failTree.Accept(() => Nodes(), "greedy", child: "greedy", bound: "tour 10");
-        failTree.Done(Nodes(), false, "over K");
+        var failTree = TreeOn(failRec, new Counter());
+        failTree.Root(root, $"start");
+        failTree.Accept($"greedy", leaf: $"greedy", partial: () => Nodes(), focus: () => [], note: $"tour 10");
+        failTree.Done(Nodes(), false, $"over K");
         Assert.Null(failRec.Steps[^1].Tree);
     }
 
     [Fact]
-    public void Tree_Off_MakesNoNode_AndFormatsNothing() {
+    public void Tree_Off_CallsNoConverter_AndFormatsNothing() {
         foreach (var rec in new[] { StepRecorder<NodeSet>.Off, StepRecorder<NodeSet>.DeadlineOnly(TimeSpan.FromMinutes(5)) }) {
             var c = new Counter();
-            var tree = new SearchTree<State, NodeSet>(rec);
+            var tree = TreeOn(rec, c);
             State root = new("root"), a = new("a"), b = new("b");
             tree.Root(root, $"{c.Hit()}", $"{c.Hit()}");
-            tree.Expand(root, () => { c.Count++; return Nodes(); }, $"{c.Hit()}", () => { c.Count++; return []; });
-            tree.Try(() => { c.Count++; return Nodes(); }, $"{c.Hit()}", () => { c.Count++; return []; }, child: $"{c.Hit()}");
-            tree.Accept(() => { c.Count++; return Nodes(); }, $"{c.Hit()}", () => { c.Count++; return []; }, queued: a, bound: $"{c.Hit()}");
-            tree.Reject(() => { c.Count++; return Nodes(); }, $"{c.Hit()}", () => { c.Count++; return []; }, child: $"{c.Hit()}", bound: $"{c.Hit()}");
-            tree.Expand(b, () => { c.Count++; return Nodes(); }, $"{c.Hit()}");     // a jump: still nothing built
+            tree.Expand(root, $"{c.Hit()}");
+            tree.Try(root, $"{c.Hit()}");
+            tree.Try(root, 1, $"{c.Hit()}");
+            tree.Accept(root, 1, $"{c.Hit()}", queued: a, note: $"{c.Hit()}");
+            tree.Reject(root, 2, $"{c.Hit()}", note: $"{c.Hit()}");
+            tree.Reject(root, 3, $"{c.Hit()}");
+            tree.Accept(root, $"{c.Hit()}", note: $"{c.Hit()}", partial: () => { c.Count++; return Nodes(); }, focus: () => { c.Count++; return []; });
+            tree.Accept($"{c.Hit()}", leaf: $"{c.Hit()}", partial: () => { c.Count++; return Nodes(); }, focus: () => { c.Count++; return []; });
+            tree.Accept(a, 4, $"{c.Hit()}", solved: b);
+            tree.Expand(b, $"{c.Hit()}");     // a jump: still nothing built
             tree.Done(Nodes(), true, $"{c.Hit()}");
             Assert.Equal(0, c.Count);
             Assert.Empty(rec.Steps);
         }
     }
 
-    // Past the cap a Try or Reject builds nothing but its node (the label, which a later step or the Done may name); an
-    // Accept is built in full, as the recorder's Accepts are.
+    // Past the cap a Try or Reject calls no converter but the label (a later step or the Done may name its node); an Accept
+    // is built in full, as the recorder's Accepts are.
     [Fact]
-    public void Tree_PastTheCap_FormatsOnlyLabelsAndAccepts() {
+    public void Tree_PastTheCap_BuildsOnlyLabelsAndAccepts() {
         var rec = new StepRecorder<NodeSet>(cap: 1);
-        var tree = new SearchTree<State, NodeSet>(rec);
+        var calls = new Counter();
+        var tree = TreeOn(rec, calls);
         var shown = new Counter();
-        var labels = new Counter();
         var accepts = new Counter();
         State root = new("root"), a = new("a");
-        tree.Root(root, "start");
-        tree.Try(() => Nodes(), "kept", at: root);
-        tree.Try(() => { shown.Count++; return Nodes(); }, $"{shown.Hit()}", () => { shown.Count++; return []; }, child: $"{labels.Hit("a")}");
-        tree.Reject(() => { shown.Count++; return Nodes(); }, $"{shown.Hit()}", () => { shown.Count++; return []; }, bound: $"{shown.Hit()}");
-        tree.Accept(() => { accepts.Count++; return Nodes(); }, $"{accepts.Hit()}", () => { accepts.Count++; return []; }, child: $"{labels.Hit("b")}", queued: a, bound: $"{accepts.Hit()}");
-        tree.Expand(root, () => { shown.Count++; return Nodes(); }, $"{shown.Hit()}");   // a jump, past the cap
+        tree.Root(root, $"start");
+        tree.Try(root, $"kept");
+        calls.Count = 0;
+        tree.Try(root, 1, $"{shown.Hit()}");
+        tree.Reject(root, 1, $"{shown.Hit()}", note: $"{shown.Hit()}");
+        tree.Reject(root, 2, $"{shown.Hit()}");
+        tree.Reject(root, $"{shown.Hit()}", note: $"{shown.Hit()}");
+        tree.Expand(root, $"{shown.Hit()}");   // a jump, past the cap
         Assert.Equal(0, shown.Count);
-        Assert.Equal(2, labels.Count);
-        Assert.Equal(4, accepts.Count);
+        Assert.Equal(0, calls.Count);
+        tree.Accept(root, 3, $"{accepts.Hit()}", queued: a);
+        Assert.Equal(1, accepts.Count);
+        Assert.Equal(3, calls.Count);           // childPartial, focus (the state's, by default) and queuedNote
     }
 }

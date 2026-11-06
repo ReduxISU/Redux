@@ -3,57 +3,101 @@ using System.Runtime.CompilerServices;
 namespace API.Interfaces.Steps;
 
 /// <summary>
-/// Records the steps of a solver that branches and builds their search-tree nodes (<see cref="SolverStep{TPartial}.Tree"/>)
-/// from the keywords, so the solver names only what the tree cannot know: a node's label and bound, and which of its own
-/// states (<typeparamref name="TState"/>, told apart by reference) a step is about.
+/// Records the steps of a solver that branches, and builds their search-tree nodes (<see cref="SolverStep{TPartial}.Tree"/>)
+/// from them. The solver says, once, how to show its states: the converters given to the constructor turn a state, or a
+/// state and a choice made from it, into the partial answer, the focus, a child's label and the node's note. Each step is then
+/// one call that names the event, what it is about, and why: <c>tree.Reject(state, value, $"x2 = False fails: ...")</c>.
 /// <para>
-/// How a step finds its node: <c>at: state</c> is that state's node; else <c>child: label</c> makes a new node under the
-/// state being expanded (the last one given to <see cref="Expand"/> or to <see cref="Try"/> with <c>at</c>); else an Accept
-/// or Reject is about the newest such child. The keyword gives the node's state: a Try explores it, a Reject prunes it
-/// (<c>state:</c> says otherwise, such as Failed), and an Accept queues it as the state given in <c>queued:</c>, or with no
-/// <c>queued</c> makes it the solution. A patch carries this step's bound only: a later step about the node gives its own.
+/// A step is about a state (<typeparamref name="TState"/>, told apart by reference) or about a choice from one
+/// (<typeparamref name="TChoice"/>: a value, the next city). A state's step is about its node; a choice's step is about the
+/// child the choice makes under its state, the one the last step about the same choice made if there is one, else a new one.
+/// The event gives the node's state: a Try explores it, a Reject prunes it (<c>outcome</c> says otherwise, such as Failed), and
+/// an Accept queues it as the state given in <c>queued</c>, or makes it the solution. A node's note is this step's alone:
+/// given as <c>note</c>, or from the converter for the event.
 /// </para>
 /// <para>
-/// <see cref="Root"/> makes node 0, queued, and the next step reported carries it before its own node. A best-first solver
-/// calls <see cref="Expand"/> for each state it takes off its queue; it records a Backtrack only when the state is not one
-/// of the children queued since the last expansion (the search jumped). <see cref="Done"/> with ok names the answer's path,
-/// root first: every node above the last solution explored, then the solution as its Accept left it (past the cap, the steps
-/// of its ancestors may not have been kept). A solution that entered the tree already solved (an Accept with <c>child</c>,
-/// such as a starting tour) is not on a path the search took, so it is named alone.
+/// <see cref="Root"/> makes node 0, queued, and the next step reported carries it before its own node; a step about the root
+/// while it is still waiting shows it as Root made it. A best-first solver calls <see cref="Expand"/> for each state it takes
+/// off its queue: it records a Backtrack only when the state is not one of the children queued since the last expansion.
+/// <see cref="Done"/> with ok names the answer's path, root first: every node above the last solution explored, then the
+/// solution as its Accept left it (past the cap, the steps of its ancestors may not have been kept). A starting answer
+/// (<see cref="Accept(KeptText, KeptText, Func{TPartial}, Func{string[]}, KeptText)"/>) was not reached by the search, so it
+/// is named alone.
 /// </para>
 /// <para>
-/// Costs nothing when the recorder is <see cref="StepRecorder{TPartial}.Off"/>: no node is made and no text is formatted. A
-/// <see cref="StepRecorder{TPartial}.DeadlineOnly"/> recorder still counts every step, so it remembers which states were just
-/// queued (to tell a Backtrack) and nothing else. Recording, it keeps a node for every state and every child reported, past
-/// the cap too, since a later step (or the Done) can name it; captions, bounds, partials and focus are built only for kept
-/// steps, as <see cref="StepRecorder{TPartial}"/> builds them.
+/// Costs nothing when the recorder is <see cref="StepRecorder{TPartial}.Off"/>: no converter is called, no text formatted, no
+/// node made. A <see cref="StepRecorder{TPartial}.DeadlineOnly"/> recorder still counts every step, so the tree remembers which
+/// states were just queued (to tell a Backtrack) and nothing else. Recording, it keeps a node for every state and choice
+/// reported, past the cap too, since a later step (or the Done) can name it; it calls the partial, focus and note converters
+/// and formats the text only for steps the recorder keeps, as <see cref="StepRecorder{TPartial}"/> builds its lambdas.
 /// </para>
 /// </summary>
-sealed class SearchTree<TState, TPartial> : IStepGate, IBacktrackGate where TState : class {
-    // A node as the tree keeps it; a patch adds the state and bound of one step.
+sealed class SearchTree<TState, TChoice, TPartial> : IStepGate, IBacktrackGate where TState : class {
+    // A node as the tree keeps it; a patch adds the state and note of one step.
     private sealed class Node(int id, Node? parent, string label, bool leaf) {
         public int Id { get; } = id;
         public Node? Parent { get; } = parent;
         public string Label { get; } = label;
-        // Made already solved by an Accept with a label: the Done names it alone.
+        // A starting answer: the Done names it alone.
         public bool Leaf { get; } = leaf;
     }
 
     private readonly StepRecorder<TPartial> _rec;
+    private readonly Func<TState, TPartial> _partial;
+    private readonly Func<TState, string[]> _focus;
+    private readonly Func<TState, TChoice, TPartial> _childPartial;
+    private readonly Func<TState, TChoice, string> _childLabel;
+    private readonly Func<TState, TChoice, string[]>? _childFocus;
+    private readonly Func<TState, TChoice, string[]>? _rejectFocus;
+    private readonly Func<TState, TChoice, string?>? _rejectNote;
+    private readonly Func<TState, string?>? _queuedNote;
+    private readonly Func<TState, string?>? _solvedNote;
+
     // Each state's node, by reference; weak, so a state the solver has dropped is not kept alive.
     private readonly ConditionalWeakTable<TState, Node> _nodes = new();
     // The states queued since the last expansion, to tell a Backtrack from going on with a child just made.
     private readonly List<TState> _justQueued = new();
     private int _nextId;
-    private Node? _expanding;
-    private Node? _newestChild;
+    private Node? _root;
     private SearchNode? _pendingRoot;
+    // The child the last choice made, and the choice, so the next step about the same choice is about it too.
+    private Node? _newestChild;
+    private TState? _newestFrom;
+    private TChoice _newestChoice = default!;
     // The last solution accepted, and its patch.
     private Node? _answer;
     private SearchNode? _answerPatch;
 
-    public SearchTree(StepRecorder<TPartial> rec) {
+    /// <param name="rec">The recorder the steps go to.</param>
+    /// <param name="partial">A state's partial answer.</param>
+    /// <param name="focus">The ids a step about a state is about.</param>
+    /// <param name="childPartial">The partial answer once a choice is made from a state.</param>
+    /// <param name="childLabel">The label of the child a choice makes (<c>x2=F</c>, <c>Denver</c>).</param>
+    /// <param name="childFocus">The ids a step about a choice is about; by default, its state's.</param>
+    /// <param name="rejectFocus">The ids a Reject of a choice is about (the clause it falsifies, say); by default, the choice's.</param>
+    /// <param name="rejectNote">A rejected choice's note (<c>C2 false</c>); none by default.</param>
+    /// <param name="queuedNote">A queued state's note (<c>2 clauses left</c>, <c>lb 4,525</c>); none by default.</param>
+    /// <param name="solvedNote">A solution's note, from the state it reaches (<c>x3 free</c>); none by default.</param>
+    public SearchTree(StepRecorder<TPartial> rec,
+                      Func<TState, TPartial> partial,
+                      Func<TState, string[]> focus,
+                      Func<TState, TChoice, TPartial> childPartial,
+                      Func<TState, TChoice, string> childLabel,
+                      Func<TState, TChoice, string[]>? childFocus = null,
+                      Func<TState, TChoice, string[]>? rejectFocus = null,
+                      Func<TState, TChoice, string?>? rejectNote = null,
+                      Func<TState, string?>? queuedNote = null,
+                      Func<TState, string?>? solvedNote = null) {
         _rec = rec;
+        _partial = partial;
+        _focus = focus;
+        _childPartial = childPartial;
+        _childLabel = childLabel;
+        _childFocus = childFocus;
+        _rejectFocus = rejectFocus;
+        _rejectNote = rejectNote;
+        _queuedNote = queuedNote;
+        _solvedNote = solvedNote;
     }
 
     bool IStepGate.Recording => ((IStepGate)_rec).Recording;
@@ -71,86 +115,164 @@ sealed class SearchTree<TState, TPartial> : IStepGate, IBacktrackGate where TSta
     private bool IsJump(TState state) => !_justQueued.Contains(state);
 
     /// <summary>The root of the search, node 0, queued. It records no step: the next step reported carries it.</summary>
-    public void Root(TState state, [InterpolatedStringHandlerArgument("")] KeptText label, [InterpolatedStringHandlerArgument("")] KeptText bound = default) {
+    public void Root(TState state, [InterpolatedStringHandlerArgument("")] KeptText label, [InterpolatedStringHandlerArgument("")] KeptText note = default) {
         if (!_rec.CountsSteps) return;
         _justQueued.Add(state);
         if (!Recording) return;
-        var root = new Node(_nextId++, null, label.ToStringAndClear()!, leaf: false);
-        _nodes.AddOrUpdate(state, root);
-        _expanding = root;
-        _pendingRoot = Patch(root, SearchNodeState.Queued, bound.ToStringAndClear());
+        _root = new Node(_nextId++, null, label.ToStringAndClear()!, leaf: false);
+        _nodes.AddOrUpdate(state, _root);
+        _pendingRoot = Patch(_root, SearchNodeState.Queued, note.ToStringAndClear());
     }
 
     /// <summary>
-    /// The search takes <paramref name="state"/> off its queue to expand it: its children come next. Records a Backtrack to its
-    /// node (explored) when it is not one of the children queued since the last expansion; the caption is formatted only then.
+    /// The search takes <paramref name="state"/> off its queue to expand it. Records a Backtrack to its node (explored) when it is
+    /// not one of the children queued since the last expansion; the caption is formatted only then.
     /// </summary>
-    public void Expand(TState state, Func<TPartial> partial, [InterpolatedStringHandlerArgument("", "state")] ShownText caption, Func<string[]>? focus = null) {
+    public void Expand(TState state, [InterpolatedStringHandlerArgument("", "state")] ShownText why) {
         if (!_rec.CountsSteps) return;
         bool jump = IsJump(state);
         _justQueued.Clear();
-        Node? node = null;
-        if (Recording) _expanding = node = NodeOf(state);
-        if (jump) Add(StepEvent.Backtrack, partial, caption.ToStringAndClear(), focus, node, SearchNodeState.Explored, null);
+        if (jump) StateStep(StepEvent.Backtrack, state, why.ToStringAndClear(), SearchNodeState.Explored, null, null, null);
     }
 
-    /// <summary>
-    /// A Try. With <c>at</c>, the search explores that state's node and expands it (its children come next); with <c>child</c>,
-    /// it tries a new node under the state being expanded; with neither, the step has no node of its own.
-    /// </summary>
-    public void Try(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]>? focus = null,
-                    TState? at = null, [InterpolatedStringHandlerArgument("")] KeptText child = default) {
+    /// <summary>A Try of a state: the search explores its node.</summary>
+    public void Try(TState state, [InterpolatedStringHandlerArgument("")] ShownText why) {
         if (!_rec.CountsSteps) return;
-        if (at != null) _justQueued.Clear();
-        Node? node = null;
-        if (Recording) {
-            node = at != null ? NodeOf(at) : NewChild(child.ToStringAndClear(), leaf: false);
-            if (at != null) _expanding = node;
-        }
-        Add(StepEvent.Try, partial, caption.ToStringAndClear(), focus, node, SearchNodeState.Explored, null);
+        _justQueued.Clear();
+        StateStep(StepEvent.Try, state, why.ToStringAndClear(), SearchNodeState.Explored, null, null, null);
+    }
+
+    /// <summary>A Try of a choice: a new child under <paramref name="from"/>, explored.</summary>
+    public void Try(TState from, TChoice choice, [InterpolatedStringHandlerArgument("")] ShownText why) {
+        if (!_rec.CountsSteps) return;
+        ChoiceStep(StepEvent.Try, from, choice, why.ToStringAndClear(), SearchNodeState.Explored, null, newChild: true);
     }
 
     /// <summary>
-    /// An Accept: the node (<c>at</c>, a new <c>child</c>, or the newest child) is queued as the state <c>queued</c>, or, with
-    /// no <c>queued</c>, is the solution (the best so far, for a branch and bound).
+    /// An Accept of a state: its node is the solution (the best so far, for a branch and bound). <paramref name="partial"/> and
+    /// <paramref name="focus"/> replace the converters for a step that shows the state another way (a closed tour).
     /// </summary>
-    public void Accept(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] KeptText caption, Func<string[]>? focus = null,
-                       TState? at = null, [InterpolatedStringHandlerArgument("")] KeptText child = default, TState? queued = null,
-                       [InterpolatedStringHandlerArgument("")] KeptText bound = default) {
+    public void Accept(TState state, [InterpolatedStringHandlerArgument("")] KeptText why, [InterpolatedStringHandlerArgument("")] KeptText note = default,
+                       Func<TPartial>? partial = null, Func<string[]>? focus = null) {
+        if (!_rec.CountsSteps) return;
+        StateStep(StepEvent.Accept, state, why.ToStringAndClear(), SearchNodeState.Solution, note.ToStringAndClear(), partial, focus);
+    }
+
+    /// <summary>
+    /// An Accept of a choice: its child is queued as the state <paramref name="queued"/>, or is the solution, reaching the state
+    /// <paramref name="solved"/> (for the solved note). The note is <paramref name="note"/>, else the queued or solved note.
+    /// </summary>
+    public void Accept(TState from, TChoice choice, [InterpolatedStringHandlerArgument("")] KeptText why, TState? queued = null, TState? solved = null,
+                       [InterpolatedStringHandlerArgument("")] KeptText note = default) {
         if (!_rec.CountsSteps) return;
         if (queued != null) _justQueued.Add(queued);
-        Node? node = null;
-        SearchNodeState state = queued != null ? SearchNodeState.Queued : SearchNodeState.Solution;
-        string? boundText = bound.ToStringAndClear();
-        if (Recording) {
-            node = at != null ? NodeOf(at) : NewChild(child.ToStringAndClear(), leaf: queued == null) ?? _newestChild;
-            if (queued != null) _nodes.AddOrUpdate(queued, node!);
-            else {
-                _answer = node;
-                _answerPatch = Patch(node!, state, boundText);
-            }
-        }
-        Add(StepEvent.Accept, partial, caption.ToStringAndClear(), focus, node, state, boundText);
+        string? text = note.ToStringAndClear();
+        if (Recording && text is null)
+            text = queued != null ? _queuedNote?.Invoke(queued) : solved != null ? _solvedNote?.Invoke(solved) : null;
+        Node? node = ChoiceStep(StepEvent.Accept, from, choice, why.ToStringAndClear(), queued != null ? SearchNodeState.Queued : SearchNodeState.Solution, text, newChild: false);
+        if (queued != null && node != null) _nodes.AddOrUpdate(queued, node);
     }
 
-    /// <summary>A Reject: the node (<c>at</c>, a new <c>child</c>, or the newest child) is pruned, or takes <c>state</c>.</summary>
-    public void Reject(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]>? focus = null,
-                       TState? at = null, [InterpolatedStringHandlerArgument("")] KeptText child = default,
-                       [InterpolatedStringHandlerArgument("")] ShownText bound = default, SearchNodeState state = SearchNodeState.Pruned) {
+    /// <summary>
+    /// An Accept of a starting answer that is no state of the search (a greedy tour): a leaf under the root, the solution so
+    /// far, labelled <paramref name="leaf"/>. It has no state to convert, so it says its own partial and focus.
+    /// </summary>
+    public void Accept([InterpolatedStringHandlerArgument("")] KeptText why, [InterpolatedStringHandlerArgument("")] KeptText leaf,
+                       Func<TPartial> partial, Func<string[]> focus, [InterpolatedStringHandlerArgument("")] KeptText note = default) {
         if (!_rec.CountsSteps) return;
         Node? node = null;
-        if (Recording) node = at != null ? NodeOf(at) : NewChild(child.ToStringAndClear(), leaf: false) ?? _newestChild;
-        Add(StepEvent.Reject, partial, caption.ToStringAndClear(), focus, node, state, bound.ToStringAndClear());
+        string? text = note.ToStringAndClear();
+        if (Recording) {
+            node = new Node(_nextId++, _root, leaf.ToStringAndClear()!, leaf: true);
+            SetAnswer(node, text);
+        }
+        if (_rec.Builds(StepEvent.Accept)) Build(StepEvent.Accept, why.ToStringAndClear(), node, SearchNodeState.Solution, text, partial(), focus());
+        else Skip(StepEvent.Accept);
+    }
+
+    /// <summary>
+    /// A Reject of a state: its node is pruned, or takes <paramref name="outcome"/>. <paramref name="partial"/> and
+    /// <paramref name="focus"/> replace the converters for a step that shows the state another way (a closed tour).
+    /// </summary>
+    public void Reject(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, [InterpolatedStringHandlerArgument("")] ShownText note = default,
+                       SearchNodeState outcome = SearchNodeState.Pruned, Func<TPartial>? partial = null, Func<string[]>? focus = null) {
+        if (!_rec.CountsSteps) return;
+        StateStep(StepEvent.Reject, state, why.ToStringAndClear(), outcome, note.ToStringAndClear(), partial, focus);
+    }
+
+    /// <summary>A Reject of a choice: its child is pruned. The note is <paramref name="note"/>, else the reject note.</summary>
+    public void Reject(TState from, TChoice choice, [InterpolatedStringHandlerArgument("")] ShownText why, [InterpolatedStringHandlerArgument("")] ShownText note = default) {
+        if (!_rec.CountsSteps) return;
+        string? text = note.ToStringAndClear();
+        if (text is null && _rejectNote != null && _rec.Builds(StepEvent.Reject)) text = _rejectNote(from, choice);
+        ChoiceStep(StepEvent.Reject, from, choice, why.ToStringAndClear(), SearchNodeState.Pruned, text, newChild: false);
     }
 
     /// <summary>
     /// The final step (<see cref="StepRecorder{TPartial}.Done(TPartial, bool, string, Func{SearchNode[]}?)"/>). With
     /// <paramref name="ok"/>, it names the path to the last solution accepted, root first; else no nodes.
     /// </summary>
-    public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText caption) {
+    public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText why) {
         if (!Recording) return;
         SearchNode[]? path = ok && _answer != null ? AnswerPath() : null;
-        _rec.Done(answer, ok, caption.ToStringAndClear()!, path is null ? null : () => path);
+        _rec.Done(answer, ok, why.ToStringAndClear()!, path is null ? null : () => path);
+    }
+
+    // A step about a state's node.
+    private void StateStep(StepEvent kind, TState state, string? why, SearchNodeState nodeState, string? note,
+                           Func<TPartial>? partial, Func<string[]>? focus) {
+        Node? node = null;
+        if (Recording) {
+            node = NodeOf(state);
+            if (nodeState == SearchNodeState.Solution) SetAnswer(node, note);
+        }
+        if (_rec.Builds(kind)) Build(kind, why, node, nodeState, note, partial != null ? partial() : _partial(state), focus != null ? focus() : _focus(state));
+        else Skip(kind);
+    }
+
+    // A step about the child a choice makes: a new one for a Try, else the one the last step about the same choice made.
+    private Node? ChoiceStep(StepEvent kind, TState from, TChoice choice, string? why, SearchNodeState nodeState, string? note, bool newChild) {
+        Node? node = null;
+        if (Recording) {
+            bool same = !newChild && _newestChild != null && ReferenceEquals(_newestFrom, from) && EqualityComparer<TChoice>.Default.Equals(_newestChoice, choice);
+            if (same) node = _newestChild!;
+            else {
+                node = new Node(_nextId++, NodeOf(from), _childLabel(from, choice), leaf: false);
+                (_newestChild, _newestFrom, _newestChoice) = (node, from, choice);
+            }
+            if (nodeState == SearchNodeState.Solution) SetAnswer(node, note);
+        }
+        if (_rec.Builds(kind)) {
+            var focus = kind == StepEvent.Reject && _rejectFocus != null ? _rejectFocus(from, choice)
+                : _childFocus != null ? _childFocus(from, choice)
+                : _focus(from);
+            Build(kind, why, node, nodeState, note, _childPartial(from, choice), focus);
+        } else {
+            Skip(kind);
+        }
+        return node;
+    }
+
+    private void SetAnswer(Node node, string? note) {
+        _answer = node;
+        _answerPatch = Patch(node, SearchNodeState.Solution, note);
+    }
+
+    // Hands a built step to the recorder, with its node's patch (after the root, while it waits).
+    private void Build(StepEvent kind, string? why, Node? node, SearchNodeState nodeState, string? note, TPartial partial, string[] focus) {
+        SearchNode? patch = node is null ? null : Patch(node, nodeState, note);
+        SearchNode[]? tree;
+        if (_pendingRoot is null) tree = patch is null ? null : [patch];
+        else if (patch is null || patch.NodeId == _pendingRoot.NodeId) tree = [_pendingRoot];
+        else tree = [_pendingRoot, patch];
+        _pendingRoot = null;
+        _rec.AddBuilt(kind, partial, why, focus, tree);
+    }
+
+    // Reports a step the recorder will not build: it is counted (and the clock checked), and nothing is made for it.
+    private void Skip(StepEvent kind) {
+        _pendingRoot = null;
+        _rec.AddBuilt(kind, default!, null, null, null);
     }
 
     private SearchNode[] AnswerPath() {
@@ -161,31 +283,9 @@ sealed class SearchTree<TState, TPartial> : IStepGate, IBacktrackGate where TSta
         return [.. path];
     }
 
-    // Records the step, with its node's patch (after the root, the first time) when the recorder builds it.
-    private void Add(StepEvent kind, Func<TPartial> partial, string? caption, Func<string[]>? focus, Node? node,
-                     SearchNodeState state, string? bound) {
-        SearchNode[]? tree = null;
-        if (_rec.Builds(kind)) {
-            SearchNode? patch = node is null ? null : Patch(node, state, bound);
-            if (_pendingRoot is null) tree = patch is null ? null : [patch];
-            else if (patch is null || patch.NodeId == _pendingRoot.NodeId) tree = [patch ?? _pendingRoot];
-            else tree = [_pendingRoot, patch];
-        }
-        _pendingRoot = null;
-        _rec.Add(kind, partial, caption, focus, tree);
-    }
-
     private Node NodeOf(TState state) =>
         _nodes.TryGetValue(state, out var node) ? node : throw new InvalidOperationException("This state has no node: give it to Root, or to an Accept as queued, first.");
 
-    // A new node under the state being expanded, or null when no label was given.
-    private Node? NewChild(string? label, bool leaf) {
-        if (label is null) return null;
-        var node = new Node(_nextId++, _expanding, label, leaf);
-        _newestChild = node;
-        return node;
-    }
-
-    private static SearchNode Patch(Node node, SearchNodeState state, string? bound) =>
-        new(node.Id, node.Parent?.Id, node.Label, state) { Bound = string.IsNullOrEmpty(bound) ? null : bound };
+    private static SearchNode Patch(Node node, SearchNodeState state, string? note) =>
+        new(node.Id, node.Parent?.Id, node.Label, state) { Bound = string.IsNullOrEmpty(note) ? null : note };
 }

@@ -12,7 +12,7 @@ namespace API.Interfaces.Steps;
 /// <see cref="ShownText"/> (an Accept's a <see cref="KeptText"/>), so nothing in its braces is evaluated, and the lambda is not
 /// invoked, when recording is off or the cap has been reached. The older forms, the whole step as one lambda,
 /// <c>rec.Try(() =&gt; new(partial, caption) { Focus = [id] })</c> (see <see cref="Step{TPartial}"/>), or the partial answer and
-/// caption as separate lambdas, do the same. A solver that branches records through a <see cref="SearchTree{TState, TPartial}"/>,
+/// caption as separate lambdas, do the same. A solver that branches records through a <see cref="SearchTree{TState, TChoice, TPartial}"/>,
 /// which builds the search-tree nodes from the same keywords.
 /// </para>
 /// <para>
@@ -160,10 +160,10 @@ sealed class StepRecorder<TPartial> : IStepGate {
     public void Reject(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, params ReadOnlySpan<string> focus) => Add(StepEvent.Reject, partial, caption.ToStringAndClear(), focus);
     public void Backtrack(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, params ReadOnlySpan<string> focus) => Add(StepEvent.Backtrack, partial, caption.ToStringAndClear(), focus);
 
-    public void Try(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Try, partial, caption.ToStringAndClear(), focus, null);
-    public void Accept(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] KeptText caption, Func<string[]> focus) => Add(StepEvent.Accept, partial, caption.ToStringAndClear(), focus, null);
-    public void Reject(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption.ToStringAndClear(), focus, null);
-    public void Backtrack(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption.ToStringAndClear(), focus, null);
+    public void Try(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Try, partial, caption.ToStringAndClear(), focus);
+    public void Accept(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] KeptText caption, Func<string[]> focus) => Add(StepEvent.Accept, partial, caption.ToStringAndClear(), focus);
+    public void Reject(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption.ToStringAndClear(), focus);
+    public void Backtrack(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption.ToStringAndClear(), focus);
 
     bool IStepGate.Recording => _enabled;
     bool IStepGate.ShowsNextStep => _enabled && _shownDecisions < _cap;
@@ -182,14 +182,21 @@ sealed class StepRecorder<TPartial> : IStepGate {
         CheckDeadline();
     }
 
-    /// <summary>
-    /// A keyword-first step with its search-tree nodes, for <see cref="SearchTree{TState, TPartial}"/>: the caption and
-    /// <paramref name="tree"/> are null unless <see cref="Builds"/> said the step is built.
-    /// </summary>
-    internal void Add(StepEvent kind, Func<TPartial> partial, string? caption, Func<string[]>? focus, SearchNode[]? tree) {
+    private void Add(StepEvent kind, Func<TPartial> partial, string? caption, Func<string[]> focus) {
         if (!_enabled) { StepWhileOff(); return; }
         if (Count(kind))
-            Keep(new SolverStep<TPartial>(partial(), kind, focus?.Invoke() ?? [], caption!) { Tree = tree });
+            Keep(new SolverStep<TPartial>(partial(), kind, focus(), caption!));
+        CheckDeadline();
+    }
+
+    /// <summary>
+    /// A step its caller has already built, for <see cref="SearchTree{TState, TChoice, TPartial}"/>: it asked <see cref="Builds"/>
+    /// first, and built the partial, caption, focus and tree only if it said yes (they are default otherwise, and not read).
+    /// </summary>
+    internal void AddBuilt(StepEvent kind, TPartial partial, string? caption, string[]? focus, SearchNode[]? tree) {
+        if (!_enabled) { StepWhileOff(); return; }
+        if (Count(kind))
+            Keep(new SolverStep<TPartial>(partial, kind, focus!, caption!) { Tree = tree });
         CheckDeadline();
     }
 

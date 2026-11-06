@@ -36,12 +36,12 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     public string solve(SAT3 sat3) => Solve(sat3, StepRecorder<Assignment>.Off);
 
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
-        var tree = new SearchTree<SAT3PQObject, Assignment>(rec);
+        var tree = NewTree(sat3, rec);
         Dictionary<string, bool>? solution = Search(sat3, tree);
 
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (solution == null) {
-            tree.Done(new Assignment([]), false, "Every branch was rejected, so there is no solution.");
+            tree.Done(new Assignment([]), false, $"Every branch was rejected, so there is no solution.");
             return "No Solution";
         }
 
@@ -69,12 +69,12 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     // Return type varies
     public Dictionary<string, bool>? findSolution(SAT3 sat3) => findSolution(sat3, StepRecorder<Assignment>.Off);
 
-    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) => Search(sat3, new(rec));
+    public Dictionary<string, bool>? findSolution(SAT3 sat3, StepRecorder<Assignment> rec) => Search(sat3, NewTree(sat3, rec));
 
     // A best-first backtracking search: each state decides its next variable both ways, a value that leaves a clause with
     // no true literal is pruned, and the most promising state still queued is expanded next, until every clause has a true
     // literal.
-    private Dictionary<string, bool>? Search(SAT3 sat3, SearchTree<SAT3PQObject, Assignment> tree) {
+    private Dictionary<string, bool>? Search(SAT3 sat3, SearchTree<SAT3PQObject, bool, Assignment> tree) {
         // A single literal such as (x1) is still a satisfiable formula, so only an empty formula is rejected here.
         if (sat3.literals.Count < 1) {
             return null;
@@ -94,35 +94,32 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
         curSat.initVarWeights();
         curSat.removeDuplicatesFromClauses();
         satPQ.Enqueue(curSat, curSat.getPQWeight());
-        tree.Root(curSat, "start");
+        tree.Root(curSat, $"start");
 
         while (!solutionFound && satPQ.Count > 0) {
             if (timerHasExpired) return null; // stop at the time limit; Solve reports the stop
             curSat = satPQ.Dequeue();
-            tree.Expand(curSat, () => ToAssignment(curSat.varStates), $"{(tree.DeadEnd ? "Neither value of the last variable works. " : "")}Go back to {Assigned(curSat.varStates)}, the most promising branch still open: {curSat.nextVar} is next.", () => VariableFocus(curSat));
+            tree.Expand(curSat, $"{(tree.DeadEnd ? "Neither value of the last variable works. " : "")}Go back to {Assigned(curSat.varStates)}, the most promising branch still open: {curSat.nextVar} is next.");
             var (trueChild, falseChild) = curSat.createSATChildPair(curSat.depth, totalNumberOfVariables);
             foreach (var (value, childSAT) in new[] { (true, trueChild), (false, falseChild) }) {
-                tree.Try(() => Partial(curSat, value), $"Try {curSat.nextVar} = {value}{After(curSat)}.", () => VariableFocus(curSat), child: $"{curSat.nextVar}={(value ? "T" : "F")}");
+                tree.Try(curSat, value, $"Try {curSat.nextVar} = {value}{After(curSat)}.");
                 //Invalid statements are evaluated upon creation and returned as null
                 if (childSAT != null) {
                     eval = evaluateBooleanExpression(childSAT.SATState.clauses);
                     if (eval == 0) {
                         //undecided
                         satPQ.Enqueue(childSAT, childSAT.getPQWeight());
-                        tree.Accept(() => Partial(curSat, value), $"Keep {curSat.nextVar} = {value}: no clause has every literal false yet, so this branch is queued.", () => VariableFocus(curSat),
-                            queued: childSAT, bound: $"{ClausesLeft(childSAT)}");
+                        tree.Accept(curSat, value, $"Keep {curSat.nextVar} = {value}: no clause has every literal false yet, so this branch is queued.", queued: childSAT);
                     } else if (eval == 1) {
                         //satisfiable
                         solutionFound = true;
                         solution = childSAT.varStates;
-                        tree.Accept(() => Partial(curSat, value), $"Keep {curSat.nextVar} = {value}: every clause now has a true literal.", () => VariableFocus(curSat),
-                            bound: $"{FreeNote(FreeVariables(sat3, childSAT.varStates))}");
+                        tree.Accept(curSat, value, $"Keep {curSat.nextVar} = {value}: every clause now has a true literal.", solved: childSAT);
                         break; //SOLUTION FOUND EXIT FOR EACH
                     }
                 } else {
                     //unsolvable therefore dont add
-                    tree.Reject(() => Partial(curSat, value), $"{curSat.nextVar} = {value} fails: {WhyFails(sat3, curSat, value)}", () => FailFocus(sat3, curSat, value),
-                        bound: $"{FailNote(sat3, curSat, value)}");
+                    tree.Reject(curSat, value, $"{curSat.nextVar} = {value} fails: {WhyFails(sat3, curSat, value)}");
                 }
             }
         }
@@ -177,6 +174,18 @@ class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
     }
 
     // --- What the steps say ---
+
+    // How the steps show a state: its assignment, the variable it decides, and its node in the Search Tree picture ("x2=F",
+    // with how many clauses are left once queued, the clause a value falsifies, or the variables the solution never set).
+    private static SearchTree<SAT3PQObject, bool, Assignment> NewTree(SAT3 sat3, StepRecorder<Assignment> rec) => new(rec,
+        partial: s => ToAssignment(s.varStates),
+        focus: VariableFocus,
+        childPartial: Partial,
+        childLabel: (s, value) => $"{s.nextVar}={(value ? "T" : "F")}",
+        rejectFocus: (s, value) => FailFocus(sat3, s, value),
+        rejectNote: (s, value) => FailNote(sat3, s, value),
+        queuedNote: ClausesLeft,
+        solvedNote: s => FreeNote(FreeVariables(sat3, s.varStates)));
 
     // The assignment so far with the value being tried added.
     private static Assignment Partial(SAT3PQObject state, bool value) =>
