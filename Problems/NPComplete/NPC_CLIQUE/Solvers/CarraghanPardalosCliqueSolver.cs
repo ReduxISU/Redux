@@ -7,6 +7,12 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
+// The steps Carraghan-Pardalos records, as it grows a clique one vertex at a time:
+//   - an Accept for each vertex added, saying how many candidates are joined to every member so far;
+//   - a Reject for a vertex the bound rules out (too few vertices could ever join it);
+//   - a Backtrack when it backs a vertex out again;
+//   - the Done, with the clique or none.
+
 class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
@@ -32,11 +38,16 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     }
 
+    // How the steps show the search: the clique grown so far, and the vertex the step is about.
+    private static RunSteps<(List<string> Clique, string Vertex), NodeSet> NewSteps(StepRecorder<NodeSet> rec) => new(rec,
+        // What every picture shows: the clique so far, and the vertex added, skipped or backed out.
+        partial: s => new NodeSet(s.Clique),
+        focus: s => [s.Vertex]);
+
     public string solve(CLIQUE clique) => Solve(clique, StepRecorder<NodeSet>.Off);
 
-    // Steps: add a vertex to the growing clique, skip a vertex the bound rules out, back a vertex out again.
-    // Recorder state lives only in this call.
     public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec);
 
         Dictionary<string, HashSet<string>> adj = BuildAdjacency(clique.nodes, clique.edges);
 
@@ -46,14 +57,14 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         HashSet<string> candidates = new HashSet<string>(order);
         List<string> partial = new List<string>();
 
-        HashSet<string>? found = Expand(candidates, partial, clique.K, adj, rec);
+        HashSet<string>? found = Expand(candidates, partial, clique.K, adj, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (found == null) {
-            rec.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
+            steps.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
             return "{}";
         }
-        rec.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.");
+        steps.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.");
         return "{" + string.Join(",", found) + "}";
     }
 
@@ -68,16 +79,11 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         return adj;
     }
 
-    // "no vertex", "1 vertex", "3 vertices": caption counts read right for 0 and 1 (#890).
-    private static string Vertices(int n) => n switch { 0 => "no vertex", 1 => "1 vertex", _ => $"{n} vertices" };
-
-    // "is" for no vertex or one, "are" for more.
-    private static string IsAre(int n) => n <= 1 ? "is" : "are";
-
     // Branch-and-bound search: extends 'partial' using vertices from 'candidates', pruning whenever
     // the partial clique plus remaining candidates can no longer reach size k.
     private HashSet<string>? Expand(
-        HashSet<string> candidates, List<string> partial, int k, Dictionary<string, HashSet<string>> adj, StepRecorder<NodeSet> rec) {
+        HashSet<string> candidates, List<string> partial, int k, Dictionary<string, HashSet<string>> adj,
+        RunSteps<(List<string> Clique, string Vertex), NodeSet> steps) {
 
         if (partial.Count == k) {
             return new HashSet<string>(partial);
@@ -88,7 +94,7 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         }
 
         foreach (string v in candidates.ToList()) {
-            if (timerHasExpired) return null; // #935: unwind at the time limit; solve() returns the timed-out answer
+            if (timerHasExpired) return null; // unwind at the time limit; Solve() returns the timed-out answer
 
             HashSet<string> newCandidates = new HashSet<string>(
                 candidates.Where(u => u != v && adj[v].Contains(u))
@@ -96,21 +102,24 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
             // Bound: skip v if the resulting branch cannot possibly reach size k.
             if (partial.Count + 1 + newCandidates.Count < k) {
-                rec.Reject(() => new NodeSet(partial),
-                    () => $"Skip {v}: with it only {Vertices(partial.Count + 1 + newCandidates.Count)} could ever join, but the clique needs {k}.", v);
+                steps.Reject((partial, v),
+                    $"Skip {v}: with it only {Words.Count(partial.Count + 1 + newCandidates.Count, "vertex", "vertices")} could ever join, but the clique needs {k}.");
                 candidates.Remove(v);
                 continue;
             }
 
             partial.Add(v);
-            rec.Accept(() => new NodeSet(partial),
-                () => $"Add {v} to the clique. {(newCandidates.Count == 0 ? "No vertex" : Vertices(newCandidates.Count))} {IsAre(newCandidates.Count)} joined to every member so far.", v);
-            HashSet<string>? result = Expand(newCandidates, partial, k, adj, rec);
+            if (newCandidates.Count == 0)
+                steps.Accept((partial, v), $"Add {v} to the clique. No vertex is joined to every member so far.");
+            else
+                steps.Accept((partial, v),
+                    $"Add {v} to the clique. {Words.Count(newCandidates.Count, "vertex", "vertices")} {(newCandidates.Count == 1 ? "is" : "are")} joined to every member so far.");
+            HashSet<string>? result = Expand(newCandidates, partial, k, adj, steps);
             if (result != null) {
                 return result;
             }
             partial.RemoveAt(partial.Count - 1);
-            rec.Backtrack(() => new NodeSet(partial), () => $"Back out {v}: no clique of size {k} grows from here.", v);
+            steps.Backtrack((partial, v), $"Back out {v}: no clique of size {k} grows from here.");
             candidates.Remove(v);
         }
 

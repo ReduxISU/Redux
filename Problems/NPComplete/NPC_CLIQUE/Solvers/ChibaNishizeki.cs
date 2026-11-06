@@ -7,6 +7,13 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
+// The steps Chiba-Nishizeki records:
+//   - a Try for each start vertex, in descending degree order;
+//   - an Accept for each vertex added to the growing clique, saying how many vertices are joined to every member so far;
+//   - a Reject for a vertex the count rules out (too few vertices would be left to join it);
+//   - a Backtrack when it backs a vertex out, and when it drops a start vertex that no clique grows from;
+//   - the Done, with the clique or none.
+
 class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     // --- Fields ---
@@ -33,11 +40,16 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     }
 
+    // How the steps show the search: the clique grown so far, and the vertex the step is about.
+    private static RunSteps<(List<string> Clique, string Vertex), NodeSet> NewSteps(StepRecorder<NodeSet> rec) => new(rec,
+        // What every picture shows: the clique so far, and the vertex started from, added, skipped or backed out.
+        partial: s => new NodeSet(s.Clique),
+        focus: s => [s.Vertex]);
+
     public string solve(CLIQUE clique) => Solve(clique, StepRecorder<NodeSet>.Off);
 
-    // Steps: start from a vertex, add a vertex to the growing clique, skip one the count rules out, back one out,
-    // and drop a start vertex once nothing grows from it. Recorder state lives only in this call.
     public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec);
 
         Dictionary<string, HashSet<string>> adj = BuildAdjacency(clique.nodes, clique.edges);
 
@@ -49,33 +61,33 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
         // 2. For each vertex v, in order, look for a (k-1)-clique among its later neighbors.
         foreach (string v in order) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             HashSet<string> laterNeighbors = new HashSet<string>(
                 adj[v].Where(u => !removed.Contains(u) && positionOf[u] > positionOf[v])
             );
 
-            rec.Try(() => new NodeSet([v]),
-                () => $"Start from {v}: look for a clique of size {clique.K} among its {laterNeighbors.Count} later neighbors.", v);
+            List<string> partial = new List<string> { v };
+            steps.Try((partial, v), $"Start from {v}: look for a clique of size {clique.K} among its {laterNeighbors.Count} later neighbors.");
             if (clique.K == 1) {
-                rec.Done(new NodeSet([v]), true, $"{{{v}}} is a clique of size 1.");
+                steps.Done(new NodeSet([v]), true, $"{{{v}}} is a clique of size 1.");
                 return "{" + v + "}";
             }
 
-            List<string> partial = new List<string> { v };
-            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj, rec);
+            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj, steps);
             if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             if (found != null) {
-                rec.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.");
+                steps.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.");
                 return "{" + string.Join(",", found) + "}";
             }
 
             // Remove v from further consideration to avoid rediscovering cliques already ruled out.
             removed.Add(v);
-            rec.Backtrack(() => new NodeSet([]), () => $"No clique of size {clique.K} contains {v}. Remove it and move on.", v);
+            // Nothing is kept: the next start vertex begins a new clique.
+            steps.Backtrack((partial, v), $"No clique of size {clique.K} contains {v}. Remove it and move on.", partial: () => new NodeSet([]));
         }
 
-        rec.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
+        steps.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
         return "{}";
     }
 
@@ -90,17 +102,11 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
         return adj;
     }
 
-    // "no vertex", "1 vertex", "3 vertices": caption counts read right for 0 and 1 (#890).
-    private static string Vertices(int n) => n switch { 0 => "no vertex", 1 => "1 vertex", _ => $"{n} vertices" };
-
-    // "is" for no vertex or one, "are" for more.
-    private static string IsAre(int n) => n <= 1 ? "is" : "are";
-
     // Recursively searches the induced subgraph 'candidates' for a clique of size 'remaining',
     // extending 'partial' with the result if found.
     private HashSet<string>? FindClique(
         HashSet<string> candidates, List<string> partial, int remaining,
-        Dictionary<string, HashSet<string>> adj, StepRecorder<NodeSet> rec) {
+        Dictionary<string, HashSet<string>> adj, RunSteps<(List<string> Clique, string Vertex), NodeSet> steps) {
 
         if (remaining == 0) {
             return new HashSet<string>(partial);
@@ -114,21 +120,29 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
             );
 
             // Prune: not enough remaining candidates to complete the clique.
+            // (Here remaining - 1 is at least 1, and when it is 1 no vertex is left, so "only ..." always goes with "are".)
             if (nextCandidates.Count < remaining - 1) {
-                rec.Reject(() => new NodeSet(partial),
-                    () => $"Skip {u}: {(nextCandidates.Count == 0 ? "no vertex" : $"only {Vertices(nextCandidates.Count)}")} would be left to join it, but {remaining - 1} {IsAre(remaining - 1)} needed.", u);
+                if (nextCandidates.Count == 0)
+                    steps.Reject((partial, u),
+                        $"Skip {u}: no vertex would be left to join it, but {remaining - 1} {(remaining - 1 == 1 ? "is" : "are")} needed.");
+                else
+                    steps.Reject((partial, u),
+                        $"Skip {u}: only {Words.Count(nextCandidates.Count, "vertex", "vertices")} would be left to join it, but {remaining - 1} are needed.");
                 continue;
             }
 
             partial.Add(u);
-            rec.Accept(() => new NodeSet(partial),
-                () => $"Add {u} to the clique. {(nextCandidates.Count == 0 ? "No vertex" : Vertices(nextCandidates.Count))} {IsAre(nextCandidates.Count)} joined to every member so far.", u);
-            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, rec);
+            if (nextCandidates.Count == 0)
+                steps.Accept((partial, u), $"Add {u} to the clique. No vertex is joined to every member so far.");
+            else
+                steps.Accept((partial, u),
+                    $"Add {u} to the clique. {Words.Count(nextCandidates.Count, "vertex", "vertices")} {(nextCandidates.Count == 1 ? "is" : "are")} joined to every member so far.");
+            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, steps);
             if (result != null) {
                 return result;
             }
             partial.RemoveAt(partial.Count - 1);
-            rec.Backtrack(() => new NodeSet(partial), () => $"Back out {u}: the clique cannot be completed from here.", u);
+            steps.Backtrack((partial, u), $"Back out {u}: the clique cannot be completed from here.");
         }
 
         return null;

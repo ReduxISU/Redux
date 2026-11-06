@@ -4,9 +4,13 @@ using API.Interfaces.Graphs.GraphParser;
 using API.Interfaces.Graphs;
 using System.Numerics;
 using System.Diagnostics;
+using static API.Interfaces.Graphs.GraphSubsetFrames;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
+// The steps Clique Brute Force records: one per candidate set of K nodes, in the order it tries them. A candidate is a
+// Reject naming two of its nodes that aren't joined, or the Accept that ends the search; then the Done. The recorder's
+// cap hides the rest of a long run.
 class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
 
     // --- Fields ---
@@ -28,6 +32,12 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
     public CliqueBruteForce() {
 
     }
+    // How the steps show a candidate: the indices of the nodes it picks.
+    private static RunSteps<List<int>, NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> nodes) => new(rec,
+        // What every picture shows: the candidate's nodes, every one of them in focus.
+        partial: combination => new NodeSet(combination.Select(i => nodes[i])),
+        focus: combination => combination.Select(i => nodes[i]).ToArray());
+
     private BigInteger factorial(BigInteger x) {
         BigInteger y = 1;
         for (BigInteger i = 1; i <= x; i++) {
@@ -57,8 +67,9 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
     }
     public string solve(CLIQUE clique) => Solve(clique, StepRecorder<NodeSet>.Off);
 
-    // Steps: one per candidate set tried, in the order the solver tries them. Recorder state lives only in this call.
+    // Tries every set of K nodes in turn, the first K node indices first, until every pair in one is joined.
     public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec, clique.nodes);
         // K==0 asks for the empty clique: the loop below tries the one size-0 candidate, "{}", and the
         // verifier accepts it.
         List<int> combination = new List<int>();
@@ -67,23 +78,23 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
         }
         BigInteger reps = factorial(clique.nodes.Count) / (factorial(clique.K) * factorial(clique.nodes.Count - clique.K));
         int tried = 0;
-        string[] Candidate() => combination.Select(i => clique.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             string certificate = indexListToCertificate(combination, clique.nodes);
             tried++;
             if (clique.defaultVerifier.verify(clique, certificate)) {
-                rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. Every pair is joined.", Candidate);
-                rec.Done(new NodeSet(Candidate()), true, $"{GraphSubsetFrames.Braces(Candidate())} is a clique, found after {tried} tries.");
+                string[] found = combination.Select(c => clique.nodes[c]).ToArray();
+                steps.Accept(combination, $"Try {Braces(found)}. Every pair is joined.");
+                steps.Done(new NodeSet(found), true, $"{Braces(found)} is a clique, found after {tried} tries.");
                 return certificate;
             }
-            rec.Reject(() => new NodeSet(Candidate()),
-                () => $"Try {GraphSubsetFrames.Braces(Candidate())}: {GraphSubsetFrames.Why(SubsetRule.Clique, clique.nodes, clique.edges, Candidate())}.",
-                Candidate);
+            // The verifier only says no, so the pair that isn't joined is looked up for a kept step.
+            steps.Reject(combination,
+                $"Try {Braces(combination.Select(c => clique.nodes[c]))}: {Why(SubsetRule.Clique, clique.nodes, clique.edges, combination.Select(c => clique.nodes[c]))}.");
             combination = nextComb(combination, clique.nodes.Count);
 
         }
-        rec.Done(new NodeSet([]), false, $"Checked all {tried} candidate sets. None is a clique of size {clique.K}.");
+        steps.Done(new NodeSet([]), false, $"Checked all {tried} candidate sets. None is a clique of size {clique.K}.");
         return "{}";
     }
 
