@@ -4,6 +4,11 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 
+// The steps Deutsch Classical records, for the Quantum Circuit picture (which this solver never runs, so only its oracle
+// is drawn as the focus):
+//   - an Update per oracle call, f(0) then f(1): asking the oracle has no verdict;
+//   - an Accept with the answer: constant when the two values agree, balanced when they differ;
+//   - the Done, with the verifier's verdict.
 // Incremental: each oracle call adds to what the solver knows about f, and none is taken back.
 class DeutschClassicalSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolver {
 
@@ -24,30 +29,46 @@ class DeutschClassicalSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSo
     // --- Methods Including Constructors ---
     public DeutschClassicalSolver() { }
 
+    // How the steps show the run: the input the step calls the oracle with (null: a step that calls nothing), and the
+    // answer once there is one.
+    private static RunSteps<(int? Call, string? Answer), QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec,
+        List<OracleQuery> queries, string? oracle) => new(rec,
+        // What every picture shows: the oracle calls made so far, and the answer.
+        partial: s => new QuantumProgress(queries: queries, result: s.Answer),
+        // The oracle gate, for a step that calls it.
+        focus: s => s.Call != null && oracle != null ? [oracle] : []);
+
     public string solve(DEUTSCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps (the Quantum Circuit picture, which this solver never runs): a Try per oracle call, f(0) then f(1), with the
-    // oracle as the focus; an Accept with the answer; Done with the verifier's verdict.
+    // Classically, the only way to learn whether f is constant or balanced is to call it on both inputs and compare.
     public string Solve(DEUTSCH problem, StepRecorder<QuantumProgress> rec) {
-        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        // The oracle gate is looked up only for the steps: a plain solve never builds the circuit.
         string? oracle = QuantumSteps.Recording(rec) ? QuantumCircuits.Deutsch(problem.funcValues).OracleGateId : null;
-        string[] Focus() => oracle == null ? [] : [oracle];
         var queries = new List<OracleQuery>();
-        bool f0 = problem.Func(false);
-        queries.Add(new OracleQuery(0, f0 ? 1 : 0));
-        rec.Try(() => new QuantumProgress(queries: queries), () => $"Call the oracle with x = 0: f(0) = {Bit(f0)}.", Focus);
-        bool f1 = problem.Func(true);
-        queries.Add(new OracleQuery(1, f1 ? 1 : 0));
-        rec.Try(() => new QuantumProgress(queries: queries), () => $"Call the oracle with x = 1: f(1) = {Bit(f1)}.", Focus);
+        var steps = NewSteps(rec, queries, oracle);
+
+        int f0 = problem.Func(false) ? 1 : 0;
+        queries.Add(new OracleQuery(0, f0));
+        steps.Update((0, null), $"Call the oracle with x = 0: f(0) = {f0}.");
+        int f1 = problem.Func(true) ? 1 : 0;
+        queries.Add(new OracleQuery(1, f1));
+        steps.Update((1, null), $"Call the oracle with x = 1: f(1) = {f1}.");
 
         string answer = f0 == f1 ? "constant" : "balanced";
-        rec.Accept(() => new QuantumProgress(queries: queries, result: answer), () => (f0 == f1
-            ? $"f(0) = f(1) = {Bit(f0)}, so f is constant."
-            : $"f(0) = {Bit(f0)} and f(1) = {Bit(f1)} differ, so f is balanced.") + " That took 2 oracle calls; Deutsch's algorithm needs 1.");
-        QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(queries: queries, result: answer),
-            ok => ok ? $"f is {answer}." : $"The answer {answer} is not correct.");
+        if (f0 == f1)
+            steps.Accept((null, answer), $"f(0) = f(1) = {f0}, so f is constant. That took 2 oracle calls; Deutsch's algorithm needs 1.");
+        else
+            steps.Accept((null, answer), $"f(0) = {f0} and f(1) = {f1} differ, so f is balanced. That took 2 oracle calls; Deutsch's algorithm needs 1.");
+
+        // The verdict is only for the steps: a plain solve never runs the verifier.
+        if (QuantumSteps.Recording(rec)) {
+            var final = new QuantumProgress(queries: queries, result: answer);
+            if (QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer)))
+                steps.Done(final, true, $"f is {answer}.");
+            else
+                steps.Done(final, false, $"The answer {answer} is not correct.");
+        }
         return answer;
     }
-
-    private static string Bit(bool b) => b ? "1" : "0";
 }

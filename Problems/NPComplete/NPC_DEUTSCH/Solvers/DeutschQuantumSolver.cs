@@ -10,7 +10,14 @@ namespace API.Problems.NPComplete.NPC_DEUTSCH.Solvers;
 /// Deutsch solver that uses an external quantum computing API.
 /// Supports both ISU AWS server and local server configurations.
 /// </summary>
-// Incremental: the circuit is applied one column at a time, and then read.
+// The steps Deutsch's Algorithm records, for the Quantum Circuit picture:
+//   - an Update per column of Deutsch's circuit, in order: the circuit the server runs, drawn and simulated here (the
+//     server is never asked for these). Applying gates has no verdict;
+//   - an Accept with what the server measured, x0 = 0 for constant or 1 for balanced, or a Reject when its answer is
+//     neither;
+//   - the Done, with the verifier's verdict.
+// With no answer from the server there is no answer at all: Ask throws SolverUnavailableException (HTTP 503
+// solver_unavailable). Incremental: the circuit is applied one column at a time, and then read.
 class DeutschQuantumSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolver {
 
     // --- Fields ---
@@ -36,33 +43,47 @@ class DeutschQuantumSolver : ISolver<DEUTSCH, QuantumProgress>, IIncrementalSolv
 
     // --- Methods ---
 
+    // How the steps show the measurement (the answer read, null when the server's reply is not one): read off the end of
+    // the whole circuit.
+    private static RunSteps<string?, QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec, int columns, long? outcome,
+        List<KeyValuePair<string, long>> counts) => new(rec,
+        // What every picture shows: the whole circuit applied, the bit measured, how often the server saw each outcome,
+        // and the answer.
+        partial: answer => new QuantumProgress(columns, outcome: outcome, counts: counts, result: answer),
+        // The circuit's last column, where the answer is read (nothing is read from a reply that is not an answer).
+        focus: answer => answer != null && columns > 0 ? [QuantumCircuits.ColumnId(columns - 1)] : []);
+
     public string solve(DEUTSCH problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps: a Try per column of Deutsch's circuit (the one the server runs, drawn and simulated here, never asked of the
-    // server), then an Accept with what the server measured (a Reject when its answer is not one; with no answer at all
-    // the solver throws SolverUnavailableException, #625), and Done with the verdict.
+    // Asks the quantum server to run Deutsch's circuit: one oracle call, with phase kickback putting f(0) ⊕ f(1) on x0.
     public string Solve(DEUTSCH problem, StepRecorder<QuantumProgress> rec) {
+        // The circuit is built and simulated only for the steps: a plain solve never builds it.
         var spec = QuantumSteps.Recording(rec) ? QuantumCircuits.Deutsch(problem.funcValues) : null;
         if (spec != null) QuantumSteps.Columns(rec, spec);
         var counts = new List<KeyValuePair<string, long>>();
         string answer = Ask(problem, counts);
         if (spec != null) {
-            int all = spec.Columns.Count;
+            // x0 reads 0 for constant and 1 for balanced.
             long? outcome = answer switch { "balanced" => 1, "constant" => 0, _ => null };
+            var steps = NewSteps(rec, spec.Columns.Count, outcome, counts);
             if (outcome is long x0)
-                rec.Accept(() => new QuantumProgress(all, outcome: x0, counts: counts, result: answer),
-                    () => $"The quantum server measured x0 = {x0}{QuantumSteps.Shots(counts, x0.ToString())}, so f is {answer}. One oracle call.",
-                    QuantumCircuits.ColumnId(all - 1));
+                steps.Accept(answer, $"The quantum server measured x0 = {x0}{QuantumSteps.Shots(counts, x0.ToString())}, so f is {answer}. One oracle call.");
             else
-                rec.Reject(() => new QuantumProgress(all, counts: counts), () => $"The quantum server gave no answer: {answer}");
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(all, outcome: outcome, counts: counts, result: answer),
-                ok => ok ? $"f is {answer}, found with one call to the oracle." : outcome == null ? "No answer: the quantum server did not give one." : $"The answer {answer} is not correct.");
+                steps.Reject(null, $"The quantum server gave no answer: {answer}");
+
+            var final = new QuantumProgress(spec.Columns.Count, outcome: outcome, counts: counts, result: answer);
+            if (QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer)))
+                steps.Done(final, true, $"f is {answer}, found with one call to the oracle.");
+            else if (outcome == null)
+                steps.Done(final, false, $"No answer: the quantum server did not give one.");
+            else
+                steps.Done(final, false, $"The answer {answer} is not correct.");
         }
         return answer;
     }
 
     // The server's answer; its counts, when it sends them, go into counts. On any failure of the quantum service this
-    // throws SolverUnavailableException (HTTP 503 solver_unavailable), never an error text in place of the answer (#625).
+    // throws SolverUnavailableException (HTTP 503 solver_unavailable), never an error text in place of the answer.
     private string Ask(DEUTSCH problem, List<KeyValuePair<string, long>> counts) {
         // Get the function values directly from the problem instance
         bool[] requestBody = problem.funcValues;
