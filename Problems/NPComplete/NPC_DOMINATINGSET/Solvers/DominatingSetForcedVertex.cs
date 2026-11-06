@@ -4,6 +4,12 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 
+// The steps Forced-Vertex Branch-and-Reduce records:
+//   - an Accept for each forced vertex (one with no neighbours, which only it can dominate);
+//   - a Try for the undominated vertex it branches on, then an Accept for each vertex of its closed neighbourhood taken;
+//   - a Backtrack when it backs a taken vertex out again;
+//   - a Reject when a branch runs out of picks with vertices still undominated;
+//   - the Done, with the dominating set or none.
 class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "Forced-Vertex Branch-and-Reduce Dominating Set Solver";
@@ -34,11 +40,17 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
     // --- Methods Including Constructors ---
     public DominatingSetForcedVertex() { }
 
+    // How the steps show the search: the vertex indices picked along the current branch, and the vertex the step is about
+    // (-1: none).
+    private static RunSteps<(List<int> Chosen, int Vertex), NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> names) => new(rec,
+        // What every picture shows: the picks so far, and the vertex taken, branched on or backed out.
+        partial: s => new NodeSet(s.Chosen.Select(c => names[c])),
+        focus: s => s.Vertex < 0 ? [] : [names[s.Vertex]]);
+
     public string solve(DOMINATINGSET problem) => Solve(problem, StepRecorder<NodeSet>.Off);
 
-    // Steps: a forced vertex taken, the vertex branched on, each neighbor tried, a branch backed out or out of picks.
-    // Recorder state lives only in this call.
     public string Solve(DOMINATINGSET problem, StepRecorder<NodeSet> rec) {
+        var steps = NewSteps(rec, problem.nodes);
         //Get problem data
         int n = problem.nodes.Count;
         int K = problem.K;
@@ -47,7 +59,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
         if (n == 0) {
             const string emptyCert = "{}";
             bool emptyOk = problem.defaultVerifier.verify(problem, emptyCert);
-            rec.Done(new NodeSet([]), emptyOk, "There are no vertices.");
+            steps.Done(new NodeSet([]), emptyOk, $"There are no vertices.");
             return emptyOk ? emptyCert : "{}";
         }
 
@@ -81,17 +93,19 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
         var chosen = new List<int>();
         var solution = new List<int>();
 
-        bool ok = SearchExact(n, K, adj, closed, dominated, chosen, out solution, problem.nodes, rec);
+        bool ok = SearchExact(n, K, adj, closed, dominated, chosen, out solution, problem.nodes, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (!ok) {
-            rec.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.");
+            steps.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.");
             return "{}";
         }
 
         string cert = "{" + string.Join(",", solution.Select(i => problem.nodes[i])) + "}";
         bool verified = problem.defaultVerifier.verify(problem, cert);
-        rec.Done(verified ? new NodeSet(solution.Select(i => problem.nodes[i])) : new NodeSet([]), verified,
-            verified ? $"{cert} dominates every vertex, with {solution.Count} of at most {K} allowed." : "The set found did not verify.");
+        if (verified)
+            steps.Done(new NodeSet(solution.Select(i => problem.nodes[i])), true, $"{cert} dominates every vertex, with {solution.Count} of at most {K} allowed.");
+        else
+            steps.Done(new NodeSet([]), false, $"The set found did not verify.");
         return verified ? cert : "{}";
     }
 
@@ -104,12 +118,11 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
         List<int> chosen,
         out List<int> solution,
         List<string> names,
-        StepRecorder<NodeSet> rec
+        RunSteps<(List<int> Chosen, int Vertex), NodeSet> steps
     ) {
         solution = null!;
-        string[] Names(List<int> picks) => picks.Select(c => names[c]).ToArray();
 
-        // #935: unwind at the time limit; solve() then returns the timed-out answer.
+        // Unwind at the time limit; Solve() then returns the timed-out answer.
         if (timerHasExpired)
             return false;
 
@@ -120,8 +133,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
         }
         if (K <= 0) {
             // no picks left but not fully dominated
-            rec.Reject(() => new NodeSet(Names(chosen)),
-                () => $"No picks left, and {dominated.Count(d => !d)} vertices are still not dominated.");
+            steps.Reject((chosen, -1), $"No picks left, and {dominated.Count(d => !d)} vertices are still not dominated.");
             return false;
         }
 
@@ -145,8 +157,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
                 chosen.Add(forced);
                 ApplyPick(closed, forced, dominated);
                 K--;
-                rec.Accept(() => new NodeSet(Names(chosen)),
-                    () => $"Take {names[forced]}: it has no neighbors, so only taking it can dominate it.", names[forced]);
+                steps.Accept((chosen, forced), $"Take {names[forced]}: it has no neighbors, so only taking it can dominate it.");
                 if (K < 0)
                     return false;
                 forcedApplied = true;
@@ -176,20 +187,19 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
             return true;
         }
 
-        rec.Try(() => new NodeSet(Names(chosen)),
-            () => $"{names[uPick]} isn't dominated yet. Some vertex in {GraphSubsetFrames.Braces(closed[uPick].Select(c => names[c]))} has to be taken.",
-            names[uPick]);
+        // Branch: the undominated vertex of highest degree must be dominated by itself or one of its neighbours.
+        steps.Try((chosen, uPick),
+            $"{names[uPick]} isn't dominated yet. Some vertex in {GraphSubsetFrames.Braces(closed[uPick].Select(c => names[c]))} has to be taken.");
         foreach (int w in closed[uPick]) {
             var dominated2 = (bool[])dominated.Clone();
             var chosen2 = new List<int>(chosen) { w };
             ApplyPick(closed, w, dominated2);
-            rec.Accept(() => new NodeSet(Names(chosen2)),
-                () => $"Take {names[w]}, which dominates {closed[w].Count(c => !dominated[c])} more vertex{(closed[w].Count(c => !dominated[c]) == 1 ? "" : "es")}.",
-                names[w]);
+            steps.Accept((chosen2, w),
+                $"Take {names[w]}, which dominates {Words.Count(closed[w].Count(c => !dominated[c]), "more vertex", "more vertexes")}.");
 
-            if (SearchExact(n, K - 1, adj, closed, dominated2, chosen2, out solution, names, rec))
+            if (SearchExact(n, K - 1, adj, closed, dominated2, chosen2, out solution, names, steps))
                 return true; // propagate success
-            rec.Backtrack(() => new NodeSet(Names(chosen)), () => $"Back out {names[w]}: no dominating set within K follows from taking it.", names[w]);
+            steps.Backtrack((chosen, w), $"Back out {names[w]}: no dominating set within K follows from taking it.");
         }
 
         return false; // no choice worked
