@@ -5,6 +5,13 @@ using API.Problems.NPComplete.NPC_CONVEXHULL.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
 
+// The steps Convex Hull Divide and Conquer records, for the Convex Hull picture:
+//   - an Update for the sort (with the repeated points left out);
+//   - an Update per smallest piece (at most 3 points), its hull made at once;
+//   - per merge: an Update to start it, an Update per corner pushed onto the chain and a Reject per corner popped off it
+//     (a clockwise turn, or three points on one line), and an Update with the merged hull and the corners it dropped;
+//   - an Accept with the whole hull, and the Done with the verifier's verdict (both only when recording).
+// Nothing is judged until a corner is popped, so the other steps are Updates.
 // Incremental: it builds the hull from small hulls, merging two at a time, and each merge walks a chain one corner at a
 // time, pushing and popping.
 class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
@@ -25,11 +32,15 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
 
     public ConvexHullSolver() { }
 
+    // How the steps show the run: the table of hulls built so far (see Build). Every step is about that same table, as it
+    // stands when the step is recorded.
+    private static RunSteps<Build, HullBuild> NewSteps(StepRecorder<HullBuild> rec) => new(rec,
+        // What every picture shows: the finished hulls, the two being merged, the chain walked so far and the points
+        // dropped. A step about some points (a piece, a corner) names them in its own focus.
+        partial: build => build.Partial());
+
     public string solve(CONVEXHULL problem) => Solve(problem, StepRecorder<HullBuild>.Off);
 
-    // Steps: the sort; a Try per smallest piece (at most 3 points, its hull made at once); per merge, a Try to start it, a Try
-    // per corner pushed onto the chain and a Reject per corner popped off it, and a Try with the merged hull; then an Accept
-    // with the whole hull, and Done with the verifier's verdict.
     public string Solve(CONVEXHULL problem, StepRecorder<HullBuild> rec) {
         if (timerHasExpired)
             return SolveRun.TimedOutAnswer;
@@ -40,18 +51,42 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
             .Distinct()
             .ToList();
 
-        var build = new Build(problem, rec);
-        build.Sorted(points);
+        var build = new Build(problem);
+        var steps = NewSteps(rec);
+        int n = problem.points.Count;
+        int repeats = n - points.Count;
+        if (points.Count > 1) {
+            if (points.Count <= 3 && repeats == 0)
+                steps.Update(build, $"Sort the {Words.Count(points.Count, "point")} by x, then y: {build.Names(points)}.");
+            else if (points.Count <= 3)
+                steps.Update(build, $"Sort the {Words.Count(points.Count, "point")} by x, then y: {build.Names(points)}. {Words.Count(repeats, "point repeats", "points repeat")} another and {(repeats == 1 ? "is" : "are")} left out.");
+            else if (repeats == 0)
+                steps.Update(build, $"Sort the {points.Count} points by x, then y: {build.Names(points)}. Then split the list in half, again and again, until each piece has at most 3 points.");
+            else
+                steps.Update(build, $"Sort the {points.Count} points by x, then y: {build.Names(points)}. {Words.Count(repeats, "point repeats", "points repeat")} another and {(repeats == 1 ? "is" : "are")} left out. Then split the list in half, again and again, until each piece has at most 3 points.");
+        }
         // No points: no pieces to make, and the hull is empty.
-        List<(double x, double y)> hull = points.Count == 0 ? new() : ConvexHullDC(points, build);
+        List<(double x, double y)> hull = points.Count == 0 ? new() : ConvexHullDC(points, build, steps);
 
         problem.convexHull = hull;
         problem.solution = Format(hull);
-        // Done and its verdict only when recording: the verifier checks every point against every edge, O(n h), which would
-        // make a plain solve of a large hull slower than the hull itself.
-        if (!ReferenceEquals(rec, StepRecorder<HullBuild>.Off)) {
-            build.Finish(hull);
-            rec.Done(build.Answer(hull), problem.defaultVerifier.verify(problem, problem.solution), build.DoneCaption(hull));
+        // The last Accept, the verdict and the Done only when recording: the verifier checks every point against every edge,
+        // O(n h), which would make a plain solve of a large hull slower than the hull itself.
+        if (rec.Enabled) {
+            if (hull.Count >= 3)
+                steps.Accept(build, $"The hull is {build.Names(hull)}, counterclockwise from {build.Id(hull[0])}.", partial: () => build.Answer(hull));
+            bool ok = problem.defaultVerifier.verify(problem, problem.solution);
+            int inside = build.DroppedCount;
+            if (n == 0)
+                steps.Done(build.Answer(hull), ok, $"There are no points, so the hull is empty.");
+            else if (hull.Count == 1)
+                steps.Done(build.Answer(hull), ok, $"The only point is {build.Id(hull[0])}, so the hull is that single point.");
+            else if (hull.Count == 2)
+                steps.Done(build.Answer(hull), ok, $"All the points are on one line, so the hull is the segment from {build.Id(hull[0])} to {build.Id(hull[1])}.");
+            else if (inside == 0)
+                steps.Done(build.Answer(hull), ok, $"Done. The hull has {hull.Count} corners, listed counterclockwise from {build.Id(hull[0])}: {build.Names(hull)}. Every point is a corner.");
+            else
+                steps.Done(build.Answer(hull), ok, $"Done. The hull has {hull.Count} corners, listed counterclockwise from {build.Id(hull[0])}: {build.Names(hull)}. The other {Words.Count(inside, "point lies", "points lie")} inside it or on an edge.");
         }
         return problem.solution;
     }
@@ -59,19 +94,28 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
     // Divide & Conquer. The hull is returned counterclockwise, starting at the lexicographically
     // smallest point (lowest x, then lowest y). Collinear boundary points are NOT vertices of the hull.
 
-    private List<(double x, double y)> ConvexHullDC(List<(double x, double y)> pts, Build build) {
+    private List<(double x, double y)> ConvexHullDC(List<(double x, double y)> pts, Build build, RunSteps<Build, HullBuild> steps) {
         if (pts.Count <= 3) {
-            var piece = Chain(pts, null);
-            build.Piece(pts, piece);
+            // A smallest piece: its hull is made at once, with no steps of its own.
+            var piece = Chain(pts, build, null);
+            build.AddPiece(pts, piece);
+            if (pts.Count == 1)
+                steps.Update(build, $"{build.Id(pts[0])} on its own is its own hull.", focus: () => build.Ids(piece));
+            else if (pts.Count == 2)
+                steps.Update(build, $"Smallest piece: {build.Names(pts)}. Its hull is the segment between them.", focus: () => build.Ids(piece));
+            else if (piece.Count == 2)
+                steps.Update(build, $"Smallest piece: {build.Names(pts)}. They are on one line, so {build.Names(pts.Except(piece))} in the middle is dropped.", focus: () => build.Ids(piece));
+            else
+                steps.Update(build, $"Smallest piece: {build.Names(pts)}. Its hull is the triangle they make.", focus: () => build.Ids(piece));
             return piece;
         }
 
         int mid = pts.Count / 2;
 
-        var left = ConvexHullDC(pts.GetRange(0, mid), build);
-        var right = ConvexHullDC(pts.GetRange(mid, pts.Count - mid), build);
+        var left = ConvexHullDC(pts.GetRange(0, mid), build, steps);
+        var right = ConvexHullDC(pts.GetRange(mid, pts.Count - mid), build, steps);
 
-        return Merge(left, right, build);
+        return Merge(left, right, build, steps);
     }
 
     // Merges two hulls in linear time. Every vertex of the combined hull is a vertex of one of the
@@ -79,12 +123,19 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
     // hull's vertices are put in (x, y) order by a linear merge of its lower and upper chains, and
     // since the halves were split by index of the sorted points, every left vertex precedes every
     // right vertex, so the two lists just concatenate. Correct for equal x values and collinear points.
-    private List<(double x, double y)> Merge(List<(double x, double y)> left, List<(double x, double y)> right, Build build) {
+    private List<(double x, double y)> Merge(List<(double x, double y)> left, List<(double x, double y)> right, Build build, RunSteps<Build, HullBuild> steps) {
         var all = SortedVertices(left);
         all.AddRange(SortedVertices(right));
-        build.StartMerge(left, right, all.Count);
-        var merged = Chain(all, build);
-        build.EndMerge(left, right, merged);
+        build.StartMerge(left, right);
+        steps.Update(build, $"Merge the left hull ({build.Names(left)}) with the right hull ({build.Names(right)}). Walk their {all.Count} corners left to right for the bottom edge, then back for the top edge, keeping only left turns.");
+        var merged = Chain(all, build, steps);
+        var gone = build.EndMerge(left, right, merged);
+        if (gone.Count == 0)
+            steps.Update(build, $"The merged hull is {build.Names(merged)}. Every corner of both hulls stays.", focus: () => build.Ids(merged));
+        else if (gone.Count == 1)
+            steps.Update(build, $"The merged hull is {build.Names(merged)}. {build.Names(gone)} is now inside it (or on an edge), so it is dropped.", focus: () => build.Ids(merged));
+        else
+            steps.Update(build, $"The merged hull is {build.Names(merged)}. {build.Names(gone)} are now inside it (or on an edge), so they are dropped.", focus: () => build.Ids(merged));
         return merged;
     }
 
@@ -123,32 +174,50 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
     }
 
     // Monotone chain over points already sorted by (x, y) with no duplicates.
-    // Returns the strictly convex hull counterclockwise from the first point. With a build, every push and pop is recorded
-    // (a merge); without one, nothing is (a smallest piece, recorded as a whole).
-    private List<(double x, double y)> Chain(List<(double x, double y)> sorted, Build? build) {
+    // Returns the strictly convex hull counterclockwise from the first point. With steps, every push and pop is recorded
+    // (a merge); without, nothing is (a smallest piece, recorded as a whole).
+    // The bottom edge walks the points left to right, the top edge back right to left. A corner whose turn (from the one
+    // before it to the next point) is not a left turn can't be on the hull, so it is popped off before the next is pushed.
+    private List<(double x, double y)> Chain(List<(double x, double y)> sorted, Build build, RunSteps<Build, HullBuild>? steps) {
         int n = sorted.Count;
         if (n <= 1)
             return new List<(double x, double y)>(sorted);
 
         var h = new List<(double x, double y)>();
+        if (steps != null) build.Chain = h;
         for (int i = 0; i < n; i++) {
-            while (h.Count >= 2 && Orientation(h[h.Count - 2], h[h.Count - 1], sorted[i]) <= 0) {
+            while (h.Count >= 2) {
+                double turn = Orientation(h[h.Count - 2], h[h.Count - 1], sorted[i]);
+                if (turn > 0) break;
                 var popped = h[h.Count - 1];
                 h.RemoveAt(h.Count - 1);
-                build?.Pop(h, popped, sorted[i], top: false);
+                if (steps == null) continue;
+                if (turn == 0)
+                    steps.Reject(build, $"{build.Id(h[^1])}, {build.Id(popped)} and {build.Id(sorted[i])} are on one line, so pop {build.Id(popped)} from the bottom edge.", focus: () => [build.Id(popped)]);
+                else
+                    steps.Reject(build, $"The turn at {build.Id(popped)} (from {build.Id(h[^1])} to {build.Id(sorted[i])}) is clockwise, so pop {build.Id(popped)} from the bottom edge.", focus: () => [build.Id(popped)]);
             }
             h.Add(sorted[i]);
-            build?.Push(h, top: false);
+            steps?.Update(build, $"Add {build.Id(h[^1])} to the bottom edge.", focus: () => [build.Id(h[^1])]);
         }
         int lower = h.Count + 1;
         for (int i = n - 2; i >= 0; i--) {
-            while (h.Count >= lower && Orientation(h[h.Count - 2], h[h.Count - 1], sorted[i]) <= 0) {
+            while (h.Count >= lower) {
+                double turn = Orientation(h[h.Count - 2], h[h.Count - 1], sorted[i]);
+                if (turn > 0) break;
                 var popped = h[h.Count - 1];
                 h.RemoveAt(h.Count - 1);
-                build?.Pop(h, popped, sorted[i], top: true);
+                if (steps == null) continue;
+                if (turn == 0)
+                    steps.Reject(build, $"{build.Id(h[^1])}, {build.Id(popped)} and {build.Id(sorted[i])} are on one line, so pop {build.Id(popped)} from the top edge.", focus: () => [build.Id(popped)]);
+                else
+                    steps.Reject(build, $"The turn at {build.Id(popped)} (from {build.Id(h[^1])} to {build.Id(sorted[i])}) is clockwise, so pop {build.Id(popped)} from the top edge.", focus: () => [build.Id(popped)]);
             }
             h.Add(sorted[i]);
-            build?.Push(h, top: true);
+            if (h.Count > 2 && h[^1] == h[0])
+                steps?.Update(build, $"Back at {build.Id(h[^1])}: the top edge closes the hull.", focus: () => [build.Id(h[^1])]);
+            else
+                steps?.Update(build, $"Add {build.Id(h[^1])} to the top edge.", focus: () => [build.Id(h[^1])]);
         }
         h.RemoveAt(h.Count - 1);
         return h;
@@ -165,113 +234,57 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
     }
 
     // What the run has built so far, for its steps: the finished hulls on the table, the two being merged, the chain the merge
-    // has walked and the points dropped. Its ids are read only inside recorder lambdas (and for Done), so they cost nothing
+    // is walking and the points dropped. Its ids are read only for a step that is kept (and for Done), so they cost nothing
     // when recording is off; keeping the table itself costs a few list operations per piece and merge.
     private sealed class Build {
         private readonly CONVEXHULL _problem;
-        private readonly StepRecorder<HullBuild> _rec;
         private Dictionary<(double X, double Y), string>? _ids;
         private readonly List<List<(double x, double y)>> _table = new();
         private readonly HashSet<(double x, double y)> _dropped = new();
         private List<(double x, double y)>? _left, _right;
-        private List<(double x, double y)> _chain = new();
 
-        public Build(CONVEXHULL problem, StepRecorder<HullBuild> rec) {
-            _problem = problem;
-            _rec = rec;
-        }
+        public Build(CONVEXHULL problem) => _problem = problem;
 
-        private string Id((double x, double y) p) => (_ids ??= GeometryFrames.IdsByPoint(ConvexHullVisualization.Spec(_problem)))[p];
-        private string[] Ids(IEnumerable<(double x, double y)> points) => points.Select(Id).ToArray();
-        private string Names(IEnumerable<(double x, double y)> points) => GeometryFrames.AndList(Ids(points));
+        // The chain the merge in progress is walking (the list Chain pushes onto and pops from); empty between merges.
+        public List<(double x, double y)> Chain { get; set; } = new();
 
-        private HullBuild Partial() => new(
+        // How many points are dropped so far: inside a hull, or in the middle of three on one line.
+        public int DroppedCount => _dropped.Count;
+
+        // A point's id in the picture ("P3"), and the ids of some points, as a list or as "P1, P2 and P3".
+        public string Id((double x, double y) p) => (_ids ??= GeometryFrames.IdsByPoint(ConvexHullVisualization.Spec(_problem)))[p];
+        public string[] Ids(IEnumerable<(double x, double y)> points) => points.Select(Id).ToArray();
+        public string Names(IEnumerable<(double x, double y)> points) => GeometryFrames.AndList(Ids(points));
+
+        public HullBuild Partial() => new(
             _table.Where(h => !ReferenceEquals(h, _left) && !ReferenceEquals(h, _right)).Select(Ids),
-            _left == null ? [] : Ids(_left), _right == null ? [] : Ids(_right), Ids(_chain), Ids(_dropped));
+            _left == null ? [] : Ids(_left), _right == null ? [] : Ids(_right), Ids(Chain), Ids(_dropped));
 
         public HullBuild Answer(List<(double x, double y)> hull) => new(hull.Count == 0 ? [] : [Ids(hull)], [], [], [], Ids(_dropped));
 
-        public void Sorted(List<(double x, double y)> sorted) {
-            int n = _problem.points.Count;
-            if (sorted.Count <= 1) return;
-            _rec.Try(Partial, () => {
-                string repeats = sorted.Count < n
-                    ? $" {Plural(n - sorted.Count, "point repeats", "points repeat")} another and {(n - sorted.Count == 1 ? "is" : "are")} left out."
-                    : "";
-                return sorted.Count <= 3
-                    ? $"Sort the {Plural(sorted.Count, "point", "points")} by x, then y: {Names(sorted)}.{repeats}"
-                    : $"Sort the {sorted.Count} points by x, then y: {Names(sorted)}.{repeats} Then split the list in half, again and again, until each piece has at most 3 points.";
-            });
-        }
-
-        // A smallest piece (at most 3 points) and its hull, made at once.
-        public void Piece(List<(double x, double y)> points, List<(double x, double y)> hull) {
+        // A smallest piece (at most 3 points) and its hull, made at once: the hull goes on the table, the rest is dropped.
+        public void AddPiece(List<(double x, double y)> points, List<(double x, double y)> hull) {
             _table.Add(hull);
             foreach (var p in points.Except(hull)) _dropped.Add(p);
-            _rec.Try(Partial, () => points.Count switch {
-                1 => $"{Id(points[0])} on its own is its own hull.",
-                2 => $"Smallest piece: {Names(points)}. Its hull is the segment between them.",
-                _ when hull.Count == 2 => $"Smallest piece: {Names(points)}. They are on one line, so {Names(points.Except(hull))} in the middle is dropped.",
-                _ => $"Smallest piece: {Names(points)}. Its hull is the triangle they make.",
-            }, () => Ids(hull));
         }
 
-        public void StartMerge(List<(double x, double y)> left, List<(double x, double y)> right, int corners) {
+        // The two hulls a merge starts from, taken off the table's finished hulls; the chain starts empty.
+        public void StartMerge(List<(double x, double y)> left, List<(double x, double y)> right) {
             _left = left;
             _right = right;
-            _chain = new();
-            _rec.Try(Partial, () =>
-                $"Merge the left hull ({Names(left)}) with the right hull ({Names(right)}). Walk their {corners} corners left to right for the bottom edge, then back for the top edge, keeping only left turns.");
+            Chain = new();
         }
 
-        public void Push(List<(double x, double y)> chain, bool top) {
-            _chain = chain;
-            var p = chain[^1];
-            _rec.Try(Partial, () => top && chain.Count > 2 && p == chain[0]
-                ? $"Back at {Id(p)}: the top edge closes the hull."
-                : $"Add {Id(p)} to the {(top ? "top" : "bottom")} edge.", () => [Id(p)]);
-        }
-
-        // "The turn at P4 (from P2 to P7) is clockwise, so pop P4 from the bottom edge."
-        public void Pop(List<(double x, double y)> chain, (double x, double y) popped, (double x, double y) next, bool top) {
-            _chain = chain;
-            var before = chain[^1];
-            _rec.Reject(Partial, () => {
-                string edge = top ? "top" : "bottom";
-                return Orientation(before, popped, next) == 0
-                    ? $"{Id(before)}, {Id(popped)} and {Id(next)} are on one line, so pop {Id(popped)} from the {edge} edge."
-                    : $"The turn at {Id(popped)} (from {Id(before)} to {Id(next)}) is clockwise, so pop {Id(popped)} from the {edge} edge.";
-            }, () => [Id(popped)]);
-        }
-
-        public void EndMerge(List<(double x, double y)> left, List<(double x, double y)> right, List<(double x, double y)> merged) {
+        // The merged hull takes the two hulls' place on the table. Returns the corners of the two that it dropped.
+        public List<(double x, double y)> EndMerge(List<(double x, double y)> left, List<(double x, double y)> right, List<(double x, double y)> merged) {
             var gone = left.Concat(right).Except(merged).ToList();
             foreach (var p in gone) _dropped.Add(p);
             int at = _table.FindIndex(h => ReferenceEquals(h, left));
             _table.RemoveAll(h => ReferenceEquals(h, left) || ReferenceEquals(h, right));
             _table.Insert(at, merged);
             _left = _right = null;
-            _chain = new();
-            _rec.Try(Partial, () => $"The merged hull is {Names(merged)}."
-                + (gone.Count == 0 ? " Every corner of both hulls stays."
-                    : $" {Names(gone)} {(gone.Count == 1 ? "is" : "are")} now inside it (or on an edge), so {(gone.Count == 1 ? "it is" : "they are")} dropped."),
-                () => Ids(merged));
+            Chain = new();
+            return gone;
         }
-
-        public void Finish(List<(double x, double y)> hull) {
-            if (hull.Count >= 3) _rec.Accept(() => Answer(hull), () => $"The hull is {Names(hull)}, counterclockwise from {Id(hull[0])}.");
-        }
-
-        public string DoneCaption(List<(double x, double y)> hull) {
-            int n = _problem.points.Count;
-            if (n == 0) return "There are no points, so the hull is empty.";
-            if (hull.Count == 1) return $"The only point is {Id(hull[0])}, so the hull is that single point.";
-            if (hull.Count == 2) return $"All the points are on one line, so the hull is the segment from {Id(hull[0])} to {Id(hull[1])}.";
-            int inside = _dropped.Count;
-            return $"Done. The hull has {hull.Count} corners, listed counterclockwise from {Id(hull[0])}: {Names(hull)}."
-                + (inside == 0 ? " Every point is a corner." : $" The other {Plural(inside, "point lies", "points lie")} inside it or on an edge.");
-        }
-
-        private static string Plural(int n, string one, string many) => $"{n} {(n == 1 ? one : many)}";
     }
 }
