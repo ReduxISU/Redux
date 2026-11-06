@@ -4,7 +4,7 @@ namespace API.Interfaces.Steps;
 
 /// <summary>
 /// What decides whether a step's text is formatted: a <see cref="StepRecorder{TPartial}"/>, or a
-/// <see cref="SearchSteps{TState, TChoice, TPartial}"/> on one. The text handlers below ask it before formatting anything.
+/// <see cref="RunSteps{TState, TPartial}"/> or <see cref="SearchSteps{TState, TChoice, TPartial}"/> on one. The text handlers below ask it before formatting anything.
 /// </summary>
 interface IStepGate {
     /// <summary>Whether the recorder is recording. An Accept and a Done are built whenever it is, even past the cap.</summary>

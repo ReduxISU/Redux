@@ -32,7 +32,7 @@ namespace API.Interfaces.Steps;
 /// and formats the text only for steps the recorder keeps, as <see cref="StepRecorder{TPartial}"/> builds its lambdas.
 /// </para>
 /// </summary>
-sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate where TState : class {
+sealed class SearchSteps<TState, TChoice, TPartial> : StepsCore<TPartial>, IBacktrackGate where TState : class {
     // A node as the tree keeps it; a patch adds the state and note of one step.
     private sealed class Node(int id, Node? parent, string label, bool leaf) {
         public int Id { get; } = id;
@@ -42,7 +42,6 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
         public bool Leaf { get; } = leaf;
     }
 
-    private readonly StepRecorder<TPartial> _rec;
     private readonly Func<TState, TPartial> _partial;
     private readonly Func<TState, string[]> _focus;
     private readonly Func<TState, TChoice, TPartial> _childPartial;
@@ -87,8 +86,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
                       Func<TState, TChoice, string[]>? rejectFocus = null,
                       Func<TState, TChoice, string?>? rejectNote = null,
                       Func<TState, string?>? queuedNote = null,
-                      Func<TState, string?>? solvedNote = null) {
-        _rec = rec;
+                      Func<TState, string?>? solvedNote = null) : base(rec) {
         _partial = partial;
         _focus = focus;
         _childPartial = childPartial;
@@ -100,9 +98,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
         _solvedNote = solvedNote;
     }
 
-    bool IStepGate.Recording => ((IStepGate)_rec).Recording;
-    bool IStepGate.ShowsNextStep => ((IStepGate)_rec).ShowsNextStep;
-    bool IBacktrackGate.ShowsBacktrackTo(object state) => ((IStepGate)_rec).ShowsNextStep && IsJump((TState)state);
+    bool IBacktrackGate.ShowsBacktrackTo(object state) => ((IStepGate)Rec).ShowsNextStep && IsJump((TState)state);
 
     /// <summary>
     /// Whether the state expanded last queued no child: so going on from another is backing out of a dead end. Read it in the
@@ -110,13 +106,11 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     /// </summary>
     public bool DeadEnd => _justQueued.Count == 0;
 
-    private bool Recording => ((IStepGate)_rec).Recording;
-
     private bool IsJump(TState state) => !_justQueued.Contains(state);
 
     /// <summary>The root of the search, node 0, queued. It records no step: the next step reported carries it.</summary>
     public void Root(TState state, [InterpolatedStringHandlerArgument("")] KeptText label, [InterpolatedStringHandlerArgument("")] KeptText note = default) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         _justQueued.Add(state);
         if (!Recording) return;
         _root = new Node(_nextId++, null, label.ToStringAndClear()!, leaf: false);
@@ -129,7 +123,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     /// not one of the children queued since the last expansion; the caption is formatted only then.
     /// </summary>
     public void Expand(TState state, [InterpolatedStringHandlerArgument("", "state")] ShownText why) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         bool jump = IsJump(state);
         _justQueued.Clear();
         if (jump) StateStep(StepEvent.Backtrack, state, why.ToStringAndClear(), SearchNodeState.Explored, null, null, null);
@@ -137,14 +131,14 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
 
     /// <summary>A Try of a state: the search explores its node.</summary>
     public void Try(TState state, [InterpolatedStringHandlerArgument("")] ShownText why) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         _justQueued.Clear();
         StateStep(StepEvent.Try, state, why.ToStringAndClear(), SearchNodeState.Explored, null, null, null);
     }
 
     /// <summary>A Try of a choice: a new child under <paramref name="from"/>, explored.</summary>
     public void Try(TState from, TChoice choice, [InterpolatedStringHandlerArgument("")] ShownText why) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         ChoiceStep(StepEvent.Try, from, choice, why.ToStringAndClear(), SearchNodeState.Explored, null, newChild: true);
     }
 
@@ -154,7 +148,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     /// </summary>
     public void Accept(TState state, [InterpolatedStringHandlerArgument("")] KeptText why, [InterpolatedStringHandlerArgument("")] KeptText note = default,
                        Func<TPartial>? partial = null, Func<string[]>? focus = null) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         StateStep(StepEvent.Accept, state, why.ToStringAndClear(), SearchNodeState.Solution, note.ToStringAndClear(), partial, focus);
     }
 
@@ -164,7 +158,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     /// </summary>
     public void Accept(TState from, TChoice choice, [InterpolatedStringHandlerArgument("")] KeptText why, TState? queued = null, TState? solved = null,
                        [InterpolatedStringHandlerArgument("")] KeptText note = default) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         if (queued != null) _justQueued.Add(queued);
         string? text = note.ToStringAndClear();
         if (Recording && text is null)
@@ -179,14 +173,14 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     /// </summary>
     public void Accept([InterpolatedStringHandlerArgument("")] KeptText why, [InterpolatedStringHandlerArgument("")] KeptText leaf,
                        Func<TPartial> partial, Func<string[]> focus, [InterpolatedStringHandlerArgument("")] KeptText note = default) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         Node? node = null;
         string? text = note.ToStringAndClear();
         if (Recording) {
             node = new Node(_nextId++, _root, leaf.ToStringAndClear()!, leaf: true);
             SetAnswer(node, text);
         }
-        if (_rec.Builds(StepEvent.Accept)) Build(StepEvent.Accept, why.ToStringAndClear(), node, SearchNodeState.Solution, text, partial(), focus());
+        if (Rec.Builds(StepEvent.Accept)) Build(StepEvent.Accept, why.ToStringAndClear(), node, SearchNodeState.Solution, text, partial(), focus());
         else Skip(StepEvent.Accept);
     }
 
@@ -196,15 +190,15 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     /// </summary>
     public void Reject(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, [InterpolatedStringHandlerArgument("")] ShownText note = default,
                        SearchNodeState outcome = SearchNodeState.Pruned, Func<TPartial>? partial = null, Func<string[]>? focus = null) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         StateStep(StepEvent.Reject, state, why.ToStringAndClear(), outcome, note.ToStringAndClear(), partial, focus);
     }
 
     /// <summary>A Reject of a choice: its child is pruned. The note is <paramref name="note"/>, else the reject note.</summary>
     public void Reject(TState from, TChoice choice, [InterpolatedStringHandlerArgument("")] ShownText why, [InterpolatedStringHandlerArgument("")] ShownText note = default) {
-        if (!_rec.CountsSteps) return;
+        if (!Rec.CountsSteps) return;
         string? text = note.ToStringAndClear();
-        if (text is null && _rejectNote != null && _rec.Builds(StepEvent.Reject)) text = _rejectNote(from, choice);
+        if (text is null && _rejectNote != null && Rec.Builds(StepEvent.Reject)) text = _rejectNote(from, choice);
         ChoiceStep(StepEvent.Reject, from, choice, why.ToStringAndClear(), SearchNodeState.Pruned, text, newChild: false);
     }
 
@@ -215,7 +209,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
     public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText why) {
         if (!Recording) return;
         SearchNode[]? path = ok && _answer != null ? AnswerPath() : null;
-        _rec.Done(answer, ok, why.ToStringAndClear()!, path is null ? null : () => path);
+        Rec.Done(answer, ok, why.ToStringAndClear()!, path is null ? null : () => path);
     }
 
     // A step about a state's node.
@@ -226,7 +220,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
             node = NodeOf(state);
             if (nodeState == SearchNodeState.Solution) SetAnswer(node, note);
         }
-        if (_rec.Builds(kind)) Build(kind, why, node, nodeState, note, partial != null ? partial() : _partial(state), focus != null ? focus() : _focus(state));
+        if (Rec.Builds(kind)) Build(kind, why, node, nodeState, note, partial != null ? partial() : _partial(state), focus != null ? focus() : _focus(state));
         else Skip(kind);
     }
 
@@ -242,7 +236,7 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
             }
             if (nodeState == SearchNodeState.Solution) SetAnswer(node, note);
         }
-        if (_rec.Builds(kind)) {
+        if (Rec.Builds(kind)) {
             var focus = kind == StepEvent.Reject && _rejectFocus != null ? _rejectFocus(from, choice)
                 : _childFocus != null ? _childFocus(from, choice)
                 : _focus(from);
@@ -266,13 +260,13 @@ sealed class SearchSteps<TState, TChoice, TPartial> : IStepGate, IBacktrackGate 
         else if (patch is null || patch.NodeId == _pendingRoot.NodeId) tree = [_pendingRoot];
         else tree = [_pendingRoot, patch];
         _pendingRoot = null;
-        _rec.AddBuilt(kind, partial, why, focus, tree);
+        Add(kind, partial, why, focus, tree);
     }
 
-    // Reports a step the recorder will not build: it is counted (and the clock checked), and nothing is made for it.
-    private void Skip(StepEvent kind) {
+    // A step the recorder will not build takes the waiting root with it, as a built one would.
+    protected override void Skip(StepEvent kind) {
         _pendingRoot = null;
-        _rec.AddBuilt(kind, default!, null, null, null);
+        base.Skip(kind);
     }
 
     private SearchNode[] AnswerPath() {
