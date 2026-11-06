@@ -4,6 +4,11 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_TOPOLOGICALSORT.Solvers;
 
+// The steps Kahn's Algorithm records:
+//   - an Update to start: the nodes with no incoming edges, ready to be placed (or none, when every node has one);
+//   - an Accept for each node it places, naming the nodes that placing it frees and the nodes still ready;
+//   - a Reject when nodes are left that never lose their last incoming edge (a cycle);
+//   - the Done, with the order or none.
 // Incremental: each step places one more node, and the order placed so far is never undone.
 class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
     // --- Fields ---
@@ -26,10 +31,20 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
     // --- Constructors ---
     public KahnsAlgorithm() { }
 
+    // How the steps show the run: the order placed so far, and the node just placed (null: none).
+    private static RunSteps<(List<string> Order, string? Placed), Tour> NewSteps(StepRecorder<Tour> rec) => new(rec,
+        // What every picture shows: the order so far, and the node the step placed.
+        partial: s => new Tour(s.Order),
+        focus: s => s.Placed == null ? [] : [LayeredFrames.NodeId(s.Placed)]);
+
     // --- Methods ---
     public string solve(TOPOLOGICALSORT problem) => Solve(problem, StepRecorder<Tour>.Off);
 
+    // Kahn's algorithm: a node can go next once every edge into it comes from a node already placed. Keep a queue of such
+    // nodes (in-degree 0), place them one at a time, and take away the edges out of each placed node; a node whose last
+    // incoming edge goes joins the queue. If the queue runs dry before every node is placed, the rest lie on a cycle.
     public string Solve(TOPOLOGICALSORT problem, StepRecorder<Tour> rec) {
+        var steps = NewSteps(rec);
         // Build in-degree map
         Dictionary<string, int> inDegree = new Dictionary<string, int>();
         foreach (var node in problem.nodes)
@@ -48,13 +63,13 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
         }
 
         List<string> order = new List<string>();
-        rec.Try(() => new Tour([]),
-            () => queue.Count > 0
-                ? $"Ready to place (no incoming edges): {LayeredFrames.List(queue.ToList())}."
-                : "No node is free of incoming edges, so the graph has a cycle.");
+        if (queue.Count > 0)
+            steps.Update((order, null), $"Ready to place (no incoming edges): {LayeredFrames.List(queue.ToList())}.");
+        else
+            steps.Update((order, null), $"No node is free of incoming edges, so the graph has a cycle.");
 
         while (queue.Count > 0) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             string current = queue.Dequeue();
             order.Add(current);
 
@@ -69,24 +84,26 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
                     }
                 }
             }
-            rec.Accept(() => new Tour(order),
-                () => $"Place {current} at position {order.Count}."
-                    + (freed.Count > 0 ? $" That frees {LayeredFrames.List(freed)}." : "")
-                    + (queue.Count > 0 ? $" Ready: {LayeredFrames.List(queue.ToList())}." : ""),
-                LayeredFrames.NodeId(current));
+            if (freed.Count > 0 && queue.Count > 0)
+                steps.Accept((order, current), $"Place {current} at position {order.Count}. That frees {LayeredFrames.List(freed)}. Ready: {LayeredFrames.List(queue.ToList())}.");
+            else if (freed.Count > 0)
+                steps.Accept((order, current), $"Place {current} at position {order.Count}. That frees {LayeredFrames.List(freed)}.");
+            else if (queue.Count > 0)
+                steps.Accept((order, current), $"Place {current} at position {order.Count}. Ready: {LayeredFrames.List(queue.ToList())}.");
+            else
+                steps.Accept((order, current), $"Place {current} at position {order.Count}.");
         }
 
         // If not all nodes processed, graph has a cycle
         if (order.Count != problem.nodes.Count) {
             var stuck = problem.nodes.Where(n => !order.Contains(n)).ToList();
-            rec.Reject(() => new Tour(order),
-                () => $"{LayeredFrames.List(stuck)} never {(stuck.Count > 1 ? "lose their" : "loses its")} last incoming edge, because of a cycle.",
-                () => stuck.Select(LayeredFrames.NodeId).ToArray());
-            rec.Done(new Tour([]), false, "The graph has a cycle, so no topological order exists.");
+            steps.Reject((order, null), $"{LayeredFrames.List(stuck)} never {(stuck.Count > 1 ? "lose their" : "loses its")} last incoming edge, because of a cycle.",
+                focus: () => stuck.Select(LayeredFrames.NodeId).ToArray());
+            steps.Done(new Tour([]), false, $"The graph has a cycle, so no topological order exists.");
             return "()";
         }
 
-        rec.Done(new Tour(order), true, $"Every node is placed and every edge points forward: {string.Join(", ", order)}.");
+        steps.Done(new Tour(order), true, $"Every node is placed and every edge points forward: {string.Join(", ", order)}.");
         return "(" + string.Join(",", order) + ")";
     }
 }
