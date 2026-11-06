@@ -9,6 +9,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
+// The steps Kruskal's Algorithm records, for the Spanning Tree picture: one per edge it looks at, lightest first, an Accept
+// when the edge joins two trees (it goes in), a Reject when it would close a cycle (it is skipped); then the Done. The
+// edges after the last one the tree needs are never looked at, so they get no step.
 class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     public string solverName { get; } = "Kruskal's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by sorting edges by weight and adding each edge if it joins two different components.";
@@ -25,22 +28,32 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver 
     // rank, near-O(1) amortized per operation, so the sort dominates.
     public MathematicalFunction timeComplexity { get; } = new("E log E", "");
 
+    // How the steps show an edge looked at: the tree so far, and the edge (none for an edge from a node to itself).
+    private static RunSteps<(string u, string v, int weight), EdgeSet> NewSteps(StepRecorder<EdgeSet> rec, List<(string u, string v, int weight)> selected) => new(rec,
+        // What every picture shows: the edges in the tree so far, and the edge the step is about.
+        partial: _ => Tree(selected),
+        focus: edge => edge.u == edge.v ? [] : [GraphSubsetFrames.EdgeId(edge.u, edge.v)]);
+
+    // The tree's edges, as the picture names them.
+    private static EdgeSet Tree(List<(string u, string v, int weight)> selected) => new(selected.Select(e => GraphSubsetFrames.EdgeId(e.u, e.v)));
+
     public string solve(MINIMUMSPANNINGTREE problem) => Solve(problem, StepRecorder<EdgeSet>.Off);
 
-    // Steps: one per edge looked at, lightest first: Accept when it joins two trees, Reject when it would close a cycle.
-    // The edges after the last one the tree needs are never looked at, so they get no step.
+    // Kruskal: look at the edges lightest first, and take each one that joins two different trees of the forest so far (the
+    // union-find says which tree a node is in); an edge inside one tree would close a cycle. Stop once the tree has n - 1
+    // edges.
     public string Solve(MINIMUMSPANNINGTREE problem, StepRecorder<EdgeSet> rec) {
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().ToList();
         var edges = ExtractEdges(problem.graph);
+        List<(string u, string v, int weight)> selected = new();
+        var steps = NewSteps(rec, selected);
 
         if (nodes.Count == 0) {
-            rec.Done(new EdgeSet([]), true, "There are no nodes, so there is nothing to connect.");
+            steps.Done(new EdgeSet([]), true, $"There are no nodes, so there is nothing to connect.");
             return "{}";
         }
 
         UnionFind<string> uf = new(nodes);
-        List<(string u, string v, int weight)> selected = new();
-        EdgeSet Chosen() => new(selected.Select(e => GraphSubsetFrames.EdgeId(e.u, e.v)));
 
         // Deterministic tie-breaking keeps certificates stable across runs.
         foreach (var edge in edges.OrderBy(e => e.weight).ThenBy(e => CanonicalKey(e.u, e.v))) {
@@ -48,26 +61,26 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver 
                 return SolveRun.TimedOutAnswer;
 
             var (u, v, weight) = edge;
-            string[] focus = u == v ? [] : [GraphSubsetFrames.EdgeId(u, v)];
             if (uf.Find(u) != uf.Find(v)) {
                 uf.Union(u, v);
                 selected.Add(edge);
-                rec.Accept(Chosen, () => $"Edge {GraphSubsetFrames.EdgeId(u, v)} joins two trees, so add it (weight {weight}).", focus);
+                steps.Accept(edge, $"Edge {GraphSubsetFrames.EdgeId(u, v)} joins two trees, so add it (weight {weight}).");
                 if (selected.Count == nodes.Count - 1)
                     break;
             } else {
-                rec.Reject(Chosen, () => $"Edge {GraphSubsetFrames.EdgeId(u, v)} would close a cycle, so skip it (weight {weight}).", focus);
+                steps.Reject(edge, $"Edge {GraphSubsetFrames.EdgeId(u, v)} would close a cycle, so skip it (weight {weight}).");
             }
         }
 
         if (selected.Count != nodes.Count - 1) {
-            rec.Done(new EdgeSet([]), false, "The edges leave the graph in more than one piece, so it has no spanning tree.");
+            steps.Done(new EdgeSet([]), false, $"The edges leave the graph in more than one piece, so it has no spanning tree.");
             return "{}";
         }
 
-        rec.Done(Chosen(), true, selected.Count == 0
-            ? "A single node needs no edges."
-            : $"The tree uses {selected.Count} edges with total weight {selected.Sum(e => e.weight)}.");
+        if (selected.Count == 0)
+            steps.Done(Tree(selected), true, $"A single node needs no edges.");
+        else
+            steps.Done(Tree(selected), true, $"The tree uses {selected.Count} edges with total weight {selected.Sum(e => e.weight)}.");
         return EdgeListToCertificate(selected);
     }
 
@@ -97,7 +110,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver 
                 }
             }
         }
-        // A tree takes the lightest edge between two nodes, so parallel edges merge into the lightest (#769), as the verifier
+        // A tree takes the lightest edge between two nodes, so parallel edges merge into the lightest, as the verifier
         // does; a heavier parallel edge is never even looked at.
         return ParallelEdges.Lightest(edges);
     }

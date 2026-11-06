@@ -7,6 +7,8 @@ using API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE;
 
 namespace API.Problems.NPComplete.NPC_MINIMUMSPANNINGTREE.Solvers;
 
+// The steps Prim's Algorithm records, for the Spanning Tree picture: a Try to start the tree at the first node, then an
+// Accept per edge added, the lightest edge leaving the tree, with the node it brings in; then the Done.
 class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     public string solverName { get; } = "Prim's Algorithm";
     public string solverDefinition { get; } = "Finds a minimum spanning tree by repeatedly adding the lowest-weight edge that connects the growing tree to a new vertex.";
@@ -26,24 +28,35 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
     public MathematicalFunction timeComplexity { get; } = new("V * E log E", "");
 
+    // How the steps show a move: the tree so far, and the edge added from a node of the tree to the node it brings in (no
+    // edge for the start, which is about the node alone).
+    private static RunSteps<(string From, string? To), EdgeSet> NewSteps(StepRecorder<EdgeSet> rec, List<(string u, string v, int weight)> selected) => new(rec,
+        // What every picture shows: the edges in the tree so far, and the edge added (or the starting node).
+        partial: _ => Tree(selected),
+        focus: move => move.To == null ? [move.From] : [GraphSubsetFrames.EdgeId(move.From, move.To)]);
+
+    // The tree's edges, as the picture names them.
+    private static EdgeSet Tree(List<(string u, string v, int weight)> selected) => new(selected.Select(e => GraphSubsetFrames.EdgeId(e.u, e.v)));
+
     public string solve(MINIMUMSPANNINGTREE problem) => Solve(problem, StepRecorder<EdgeSet>.Off);
 
-    // Steps: start at the first node, then one Accept per edge added to the growing tree.
+    // Prim: grow one tree from the first node; each round, add the lightest edge from a node in the tree to a node outside
+    // it, until every node is in.
     public string Solve(MINIMUMSPANNINGTREE problem, StepRecorder<EdgeSet> rec) {
         // Sort once so equal-weight instances still produce deterministic certificates.
         List<string> nodes = problem.graph.Nodes.ToList().Select(n => n.ToString()).Distinct().OrderBy(n => n).ToList();
         var edges = KruskalSolver.ExtractEdges(problem.graph);
+        var selected = new List<(string u, string v, int weight)>();
+        var steps = NewSteps(rec, selected);
 
         if (nodes.Count == 0) {
-            rec.Done(new EdgeSet([]), true, "There are no nodes, so there is nothing to connect.");
+            steps.Done(new EdgeSet([]), true, $"There are no nodes, so there is nothing to connect.");
             return "{}";
         }
 
         var adjacency = BuildAdjacency(nodes, edges);
         var visited = new HashSet<string> { nodes[0] };
-        var selected = new List<(string u, string v, int weight)>();
-        EdgeSet Chosen() => new(selected.Select(e => GraphSubsetFrames.EdgeId(e.u, e.v)));
-        rec.Try(Chosen, () => $"Start the tree at node {nodes[0]}.", nodes[0]);
+        steps.Try((nodes[0], null), $"Start the tree at node {nodes[0]}.");
 
         while (selected.Count < nodes.Count - 1) {
             if (timerHasExpired)
@@ -55,7 +68,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
                 .ToList();
 
             if (candidateEdges.Count == 0) {
-                rec.Done(new EdgeSet([]), false, "No edge leaves the tree, so the graph is in more than one piece and has no spanning tree.");
+                steps.Done(new EdgeSet([]), false, $"No edge leaves the tree, so the graph is in more than one piece and has no spanning tree.");
                 return "{}";
             }
 
@@ -68,14 +81,13 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
 
             selected.Add((nextEdge.from, nextEdge.to, nextEdge.weight));
             visited.Add(nextEdge.to);
-            rec.Accept(Chosen,
-                () => $"Edge {GraphSubsetFrames.EdgeId(nextEdge.from, nextEdge.to)} is the lightest edge leaving the tree, so add it (weight {nextEdge.weight}). Node {nextEdge.to} joins.",
-                GraphSubsetFrames.EdgeId(nextEdge.from, nextEdge.to));
+            steps.Accept((nextEdge.from, nextEdge.to), $"Edge {GraphSubsetFrames.EdgeId(nextEdge.from, nextEdge.to)} is the lightest edge leaving the tree, so add it (weight {nextEdge.weight}). Node {nextEdge.to} joins.");
         }
 
-        rec.Done(Chosen(), true, selected.Count == 0
-            ? "A single node needs no edges."
-            : $"The tree uses {selected.Count} edges with total weight {selected.Sum(e => e.weight)}.");
+        if (selected.Count == 0)
+            steps.Done(Tree(selected), true, $"A single node needs no edges.");
+        else
+            steps.Done(Tree(selected), true, $"The tree uses {selected.Count} edges with total weight {selected.Sum(e => e.weight)}.");
         return KruskalSolver.EdgeListToCertificate(selected);
     }
 
