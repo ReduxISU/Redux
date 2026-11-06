@@ -1,10 +1,18 @@
 using API.Interfaces;
 using API.Interfaces.Steps;
+using static API.Interfaces.Graphs.GroupedGraphFrames;
+using static API.Interfaces.Steps.Words;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-// The algorithm. The steps it records for the visualizations are in PPZSat.Steps.cs.
-partial class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
+// The steps PPZ records. Each try starts with a Try that names the random order of the variables (nothing set yet;
+// "Restart." for every try after the first). Then one Try per variable, in that order: the partial holds the variables set
+// so far (the rest are left out, so a picture draws them as Background), the focus is the variable, and the clause that
+// forces its value when one does. PPZ builds its assignment variable by variable, so it is incremental. Once every variable
+// is set the try is checked: an Accept when every clause has a true literal (then the Done), else a Reject whose focus is
+// the clauses with no true literal. RestartSteps records the first try and the successful one in full and the tries in
+// between as one step, within the recorder's cap. A run that gives up never says the formula has no answer.
+class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
     // --- Fields ---
     public string solverName { get; } = "PPZ Algorithm";
     public string solverDefinition { get; } = "Repeats the following trial up to a computed cap (at most 10,000 trials): picks a"
@@ -43,12 +51,58 @@ partial class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSo
         _trials = trials;
     }
 
+    // One move of a try: the variable set (an index into the variables), its value, and the clause that forced it (0-based), or
+    // -1 when the value was random.
+    private readonly record struct Set(int Variable, bool Value, int Clause);
+
+    // How the steps show a try. A run that is not recording gets RestartSteps.Off and makes none of these; RestartSteps calls
+    // them only while recording, for the steps it records.
+    private static RestartSteps<bool?[], Set, Assignment> NewSteps(SatFormula formula, StepRecorder<Assignment> rec) => !rec.Enabled ? RestartSteps<bool?[], Set, Assignment>.Off : new(rec,
+        // What every picture shows: the variables set so far, and for a move the variable and the clause that forces it.
+        copy: values => (bool?[])values.Clone(),
+        apply: (s, values) => values[s.Variable] = s.Value,
+        partial: values => ToAssignment(formula.Values(values)),
+        moveFocus: s => s.Clause < 0
+            ? [VariableId(formula.Variables[s.Variable])]
+            : [ClauseId(s.Clause), VariableId(formula.Variables[s.Variable])],
+        // What each step says. "Try 1: take the variables in a random order: x3, x1, x2." (the order is that of its moves)
+        startWhy: (t, start) => {
+            string intro = t.Number == 1 ? "Try 1: take the" : $"Restart. Try {t.Number}: take the";
+            string random = t.Number == 1 ? "a random order" : "a new random order";
+            return formula.Variables.Count <= 8
+                ? $"{intro} variables in {random}: {string.Join(", ", t.Moves.Select(m => formula.Variables[m.Variable]))}."
+                : $"{intro} {formula.Variables.Count} variables in {random}.";
+        },
+        // "Step 2: set x1. Every other literal of C3 (x1 | !x2 | x3) is false, so C3 forces x1 = True."
+        moveWhy: (t, s, after, number) => s.Clause < 0
+            ? $"Step {number}: set {formula.Variables[s.Variable]}. No clause forces it, so it takes a random value: {formula.Variables[s.Variable]} = {s.Value}."
+            : $"Step {number}: set {formula.Variables[s.Variable]}. Every other literal of C{s.Clause + 1} {ClauseText(formula.Written[s.Clause])} is false, so C{s.Clause + 1} forces {formula.Variables[s.Variable]} = {s.Value}.",
+        skippedWhy: (t, from, to, after) => {
+            int set = after.Count(v => v.HasValue);
+            return $"{(from == to ? $"Step {from} of try {t.Number} is" : $"Steps {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
+                + $"{set} of the {formula.Variables.Count} variables {(set == 1 ? "is" : "are")} set.";
+        },
+        // Every variable is set: the check that ends the try.
+        closeWhy: (t, end) => {
+            if (t.Solved) return $"Try {t.Number} has set every variable: every clause has a true literal.";
+            var falseClauses = formula.FalseClauses(end);
+            return $"Try {t.Number} has set every variable, but "
+                + (falseClauses.Count == 0 ? "every clause has a true literal." : $"{ClauseNames(falseClauses)} {(falseClauses.Count == 1 ? "has" : "have")} no true literal.");
+        },
+        closeFocus: (t, end) => t.Solved ? [] : formula.FalseClauses(end).Select(ClauseId).ToArray(),
+        betweenWhy: (from, to) => from == to
+            ? $"Try {from} sets every variable: no satisfying assignment."
+            : $"Tries {from}–{to}: no satisfying assignment (each sets every variable).",
+        solvedWhy: (t, end) => $"Every clause has a true literal under {Assigned(formula.Values(end))}: found by try {t.Number}.",
+        gaveUpWhy: begun => $"Gave up after {Count(begun, "try", "tries")}: no answer found. PPZ can miss an answer, so the formula may still have one.",
+        checksAtEnd: true);
+
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
         // The order of first appearance, so the same seed gives the same run in every process (a HashSet's order would not).
         var formula = SatFormula.Of(sat3);
         int n = formula.Variables.Count;
         if (n == 0) {
-            Steps.NoVariables(rec);
+            rec.Done(new Assignment([]), false, "The formula has no variables to set: no answer found.");
             return "{}";
         }
         var clauses = formula.Clauses;
@@ -56,7 +110,7 @@ partial class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSo
         double neededTrials = Math.Pow(2.0, n * (2.0 / 3.0));
         int trials = _trials ?? (neededTrials >= MaxTrials ? MaxTrials : (int)Math.Max(1, neededTrials));
         Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);
-        var steps = new Steps(formula, rec.Enabled);
+        var steps = NewSteps(formula, rec);
         var variables = Enumerable.Range(0, n).ToList();
         bool[]? solution = null;
 
@@ -70,7 +124,7 @@ partial class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSo
             foreach (int v in order) {
                 var (forced, clause) = ForcedValue(clauses, values, v);
                 values[v] = forced ?? (rnd.Next(2) == 0);
-                steps.SetVariable(v, values[v]!.Value, clause);
+                steps.Add(new Set(v, values[v]!.Value, clause));
             }
 
             bool[] full = Array.ConvertAll(values, x => x!.Value);
@@ -79,7 +133,7 @@ partial class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSo
             steps.End(values, solved);
         }
 
-        steps.Record(rec);
+        steps.Record(new Assignment([]));
         // Stopped by the time limit, not out of tries: that is no verdict at all.
         if (solution == null && timerHasExpired) return SolveRun.TimedOutAnswer;
         return solution == null ? "{}" : formula.Certificate(solution);

@@ -1,10 +1,16 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Steps;
+using static API.Interfaces.Graphs.GraphTourFrames;
+using static API.Interfaces.Steps.Words;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-// The algorithm. The steps it records for the visualizations are in TSPBruteForce.Steps.cs.
-partial class TSPBruteForce : ISolver<TSP, Tour> {
+// The steps Traveling Salesperson Brute Force records: one per complete permutation, in the order the solver tries them
+// (the same permutation can come round as several rotations and reversals; that is what a brute force does). A
+// permutation that is not a tour within K is a Reject that says why: the first missing edge, or a total over K. The first
+// one that is within K is the answer, an Accept, so the run stops there; then the Done. There are n! permutations, far more
+// than the recorder's cap on all but tiny instances, so only the first ones are kept and the Done says how many are not shown.
+class TSPBruteForce : ISolver<TSP, Tour> {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Brute Force";
@@ -25,6 +31,15 @@ partial class TSPBruteForce : ISolver<TSP, Tour> {
     public TSPBruteForce() {
 
     }
+
+    // How the steps show a permutation, given as its certificate ("{a,b,c,a}"): the closed tour it makes. A step is about the
+    // first hop that is not an edge, or else every edge the tour walks.
+    private static RunSteps<string, Tour> NewSteps(TSP tsp, StepRecorder<Tour> rec) => new(rec,
+        // What every picture shows: the tour, and its missing hop or its edges.
+        partial: certificate => ParseTour(certificate),
+        focus: certificate => tsp.FirstMissingHop(ParseTour(certificate).Order) is { } hop
+            ? [hop.From, hop.To]
+            : EdgeIds(ParseTour(certificate).Order, tsp.HasEdge));
 
     private string combinationToCertificate(List<int> combination, List<string> nodes) {
         string certificate = "";
@@ -85,9 +100,12 @@ partial class TSPBruteForce : ISolver<TSP, Tour> {
     public string solve(TSP tsp) => Solve(tsp, StepRecorder<Tour>.Off);
 
     public string Solve(TSP tsp, StepRecorder<Tour> rec) {
-        var steps = new Steps(tsp, rec);
+        var steps = NewSteps(tsp, rec);
         if (tsp.nodes.Count == 0) {
-            steps.NoCities();
+            // There is one empty "permutation", whose certificate is "{}"; the answer is "{}" either way, as it always was.
+            bool ok = false;
+            try { ok = tsp.defaultVerifier.verify(tsp, "{}"); } catch { }
+            steps.Done(new Tour([]), ok, $"There are no cities to tour.");
             return "{}";
         }
         IEnumerable<List<int>> combinations = EnumerateCombinations(tsp.nodes.Count);
@@ -98,13 +116,16 @@ partial class TSPBruteForce : ISolver<TSP, Tour> {
             string certificate = combinationToCertificate(combination, tsp.nodes);
             tried++;
             if (tsp.defaultVerifier.verify(tsp, certificate)) {
-                steps.Found(certificate, tried);
+                steps.Accept(certificate, $"Try {Arrows(ParseTour(certificate).Order)}: total {Num(tsp.Cost(ParseTour(certificate).Order) ?? 0)} is within K = {tsp.K}, so this is a tour.");
+                steps.Done(ParseTour(certificate), true, $"Found a tour within K = {tsp.K} after trying {Count(tried, "permutation")}.");
                 return certificate;
             }
-            steps.Rejected(certificate);
+            steps.Reject(certificate, $"Try {Arrows(ParseTour(certificate).Order)}: {(tsp.FirstMissingHop(ParseTour(certificate).Order) is { } hop
+                ? $"there is no edge between {hop.From} and {hop.To}"
+                : $"total {Num(tsp.Cost(ParseTour(certificate).Order) ?? 0)} is more than K = {tsp.K}")}.");
         }
 
-        steps.NoneWithinK(tried);
+        steps.Done(new Tour([]), false, $"Tried all {tried} permutations of the cities. None is a tour within K = {tsp.K}.");
         return "{}";
     }
 }

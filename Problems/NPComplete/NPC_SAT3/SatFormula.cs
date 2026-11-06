@@ -40,6 +40,38 @@ sealed class SatFormula {
         return false;
     }
 
+    /// <summary>The 0-based indexes of the clauses with no true literal under a whole assignment (an empty clause is left out).</summary>
+    public List<int> FalseClauses(bool[] values) {
+        var list = new List<int>();
+        for (int c = 0; c < Clauses.Count; c++)
+            if (Clauses[c].Length > 0 && !Holds(Clauses[c], values)) list.Add(c);
+        return list;
+    }
+
+    /// <summary>The 0-based indexes of the clauses with no true literal under a partial assignment (null: not set yet).</summary>
+    public List<int> FalseClauses(bool?[] values) {
+        var list = new List<int>();
+        for (int c = 0; c < Clauses.Count; c++)
+            if (Clauses[c].Length > 0 && !Holds(Clauses[c], values)) list.Add(c);
+        return list;
+    }
+
+    /// <summary>The variables of a whole assignment with their values, in variable order.</summary>
+    public List<KeyValuePair<string, bool>> Values(bool[] values) {
+        var list = new List<KeyValuePair<string, bool>>();
+        for (int v = 0; v < Variables.Count; v++)
+            list.Add(new KeyValuePair<string, bool>(Variables[v], values[v]));
+        return list;
+    }
+
+    /// <summary>The variables that are set in a partial assignment, with their values, in variable order (an unset one is left out).</summary>
+    public List<KeyValuePair<string, bool>> Values(bool?[] values) {
+        var list = new List<KeyValuePair<string, bool>>();
+        for (int v = 0; v < Variables.Count; v++)
+            if (values[v] is bool value) list.Add(new KeyValuePair<string, bool>(Variables[v], value));
+        return list;
+    }
+
     /// <summary>The certificate of a whole assignment: "(x1:True,x2:False)".</summary>
     public string Certificate(bool[] values) =>
         "(" + string.Join(",", Variables.Select((name, v) => name + ":" + values[v])) + ")";

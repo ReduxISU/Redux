@@ -168,6 +168,20 @@ static class GraphTourFrames {
     /// <summary>"1 → 4 → 3": the path with arrows.</summary>
     public static string Arrows(IEnumerable<string> order) => string.Join(" → ", order);
 
+    /// <summary>
+    /// The ids of the edges a path walks (those that exist: <paramref name="hasEdge"/>), to show a whole tour as the thing a
+    /// step is about. Undirected.
+    /// </summary>
+    public static string[] EdgeIds(IReadOnlyList<string> path, Func<string, string, bool> hasEdge) {
+        var ids = new List<string>();
+        for (int i = 0; i + 1 < path.Count; i++)
+            if (hasEdge(path[i], path[i + 1])) ids.Add(EdgeId(false, path[i], path[i + 1]));
+        return ids.ToArray();
+    }
+
+    /// <summary>A number for a caption: whole numbers without a decimal point, whatever the culture.</summary>
+    public static string Num(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     /// <summary>The node names of a path given as indexes into <paramref name="nodes"/>, closed back to its start when
     /// <paramref name="close"/> is set: the order a Tour takes.</summary>
     public static List<string> NodeNames(IReadOnlyList<string> nodes, IReadOnlyList<int> path, bool close = false) {

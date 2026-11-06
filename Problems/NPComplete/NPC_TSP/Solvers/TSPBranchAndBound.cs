@@ -1,7 +1,6 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Steps;
 using static API.Interfaces.Graphs.GraphTourFrames;
-using static API.Problems.NPComplete.NPC_TSP.Steps.TSPTourSteps;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
@@ -127,7 +126,7 @@ class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
         steps.Root(root, $"{nodes[0]}", $"lb {Num(root.bound)}");
         if (bestPath is not null)
             steps.Accept($"Start from the greedy tour {Arrows(NodeNames(nodes, bestPath, close: true))}: total {Num(bestCost)}, the best so far.", leaf: $"greedy tour",
-                partial: () => new Tour(NodeNames(nodes, bestPath, close: true)), focus: () => EdgeIds(problem, NodeNames(nodes, bestPath, close: true)), note: $"tour {Num(bestCost)}");
+                partial: () => new Tour(NodeNames(nodes, bestPath, close: true)), focus: () => EdgeIds(NodeNames(nodes, bestPath, close: true), problem.HasEdge), note: $"tour {Num(bestCost)}");
         else
             steps.Try(root, $"The greedy solver found no tour to start from, so there is no best so far. Start at {nodes[0]}.");
 

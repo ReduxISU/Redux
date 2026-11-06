@@ -2,12 +2,15 @@
 using API.Interfaces.Logic;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SAT;
+using static API.Interfaces.Graphs.GroupedGraphFrames;
 
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 #pragma warning disable CS1591
 
-// The algorithm. The steps it records for the visualizations are in SATBruteForceSolver.Steps.cs.
-public partial class SATBruteForceSolver : ISolver<SAT> {
+// The steps SAT Brute Force records: one per candidate assignment, in the order the counter tries them. A candidate is a
+// Reject naming the first clause with no true literal, or the Accept that ends the search; then the Done. The recorder's
+// cap hides the rest of a long run.
+public class SATBruteForceSolver : ISolver<SAT> {
 
 
     #region Fields
@@ -35,6 +38,12 @@ public partial class SATBruteForceSolver : ISolver<SAT> {
     }
     #endregion
 
+    // How the steps show a candidate: the assignment, and the clause it leaves with no true literal (-1: none).
+    private static RunSteps<(Dictionary<string, bool> Assignment, int FalseClause), Assignment> NewSteps(StepRecorder<Assignment> rec) => new(rec,
+        // What every picture shows: the candidate assignment, and the clause that fails it.
+        partial: s => ToAssignment(s.Assignment),
+        focus: s => s.FalseClause < 0 ? [] : [ClauseId(s.FalseClause)]);
+
 
     #region Methods
 
@@ -57,14 +66,15 @@ public partial class SATBruteForceSolver : ISolver<SAT> {
     // Tries every assignment, counting through them like a binary number with false = 0 and
     // true = 1 (the last variable is the low bit), starting from all-false.
     internal string Solve(CnfFormula formula, StepRecorder<Assignment> rec) {
-        var steps = new Steps(formula, rec);
+        var steps = NewSteps(rec);
         IReadOnlyList<string> variables = formula.Variables;
         bool[] values = new bool[variables.Count];
         Dictionary<string, bool> assignment = new Dictionary<string, bool>();
 
         while (true) {
             if (timerHasExpired) {
-                steps.TimedOut();
+                // Its own timer stopped it: there is no answer, so the run ends on a Done that says so (never on a candidate).
+                steps.Done(new Assignment([]), false, $"{SolverTimeoutCaption}");
                 return SolveRun.TimedOutAnswer;
             }
 
@@ -74,10 +84,12 @@ public partial class SATBruteForceSolver : ISolver<SAT> {
 
             int failed = FirstFalseClause(formula, assignment);
             if (failed < 0) {
-                steps.Satisfied(assignment);
+                steps.Accept((assignment, -1), $"Try {Assigned(assignment)}: every clause has a true literal.");
+                steps.Done(ToAssignment(assignment), true, $"The formula is satisfied by {Assigned(assignment)}.");
                 return "(" + string.Join(",", variables.Select(v => $"{v}:{assignment[v]}")) + ")";
             }
-            steps.Falsified(assignment, failed);
+            steps.Reject((assignment, failed),
+                $"Try {Assigned(assignment)}: clause C{failed + 1} {ClauseText(formula.Clauses[failed].Literals.Select(l => l.ToString()))} has no true literal.");
 
             // Advance to the next assignment; wrapping back to all-false means all were tried.
             int bit = values.Length - 1;
@@ -86,7 +98,7 @@ public partial class SATBruteForceSolver : ISolver<SAT> {
                 bit--;
             }
             if (bit < 0) {
-                steps.NoneSatisfies();
+                steps.Done(new Assignment([]), false, $"No assignment makes every clause true, so no solution exists.");
                 return "No solution exists";
             }
             values[bit] = true;

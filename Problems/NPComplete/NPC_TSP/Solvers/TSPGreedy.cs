@@ -1,10 +1,14 @@
 ﻿using API.Interfaces;
 using API.Interfaces.Steps;
+using static API.Interfaces.Graphs.GraphTourFrames;
 
 namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 
-// The algorithm. The steps it records for the visualizations are in TSPGreedy.Steps.cs.
-partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
+// The steps Traveling Salesperson Greedy records. For each start city: a Try to start there, an Accept for every
+// nearest-neighbour move (with the running path cost), then either a Reject (a dead end, a closing edge the graph does
+// not have, or a closed tour that is over K or no better than the best so far) or an Accept for a closed tour that is the
+// best so far. The Done gives the best tour.
+class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Greedy";
@@ -36,6 +40,13 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
         this.outerTimerHasExpired = outerTimerHasExpired;
     }
 
+    // How the steps show the route so far: the path, and the city it ends on with the edge it came by (just the city at the
+    // start). A step about something else (a dead end, the closing hop) says its own focus.
+    private static RunSteps<List<string>, Tour> NewSteps(StepRecorder<Tour> rec) => new(rec,
+        // What every picture shows: the route, and its last city and hop.
+        partial: route => new Tour(route),
+        focus: route => route.Count < 2 ? [route[^1]] : [route[^1], EdgeId(false, route[^2], route[^1])]);
+
     private bool getEdgeWeight(TSP tsp, string from, string to, out int weight) {
         var directEdge = tsp.edges.FirstOrDefault(edge => edge.source == from && edge.target == to);
         if (directEdge != default) {
@@ -61,9 +72,9 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
     // Nearest neighbour from every start city in turn, keeping the cheapest closed tour within K.
     public string Solve(TSP tsp, StepRecorder<Tour> rec) {
-        var steps = new Steps(tsp, rec);
+        var steps = NewSteps(rec);
         if (tsp.nodes.Count == 0) {
-            steps.NoCities();
+            steps.Done(new Tour([]), false, $"There are no cities to tour.");
             return "{}";
         }
 
@@ -78,7 +89,7 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
             string currentNode = startNode;
             route.Add(currentNode);
             visited.Add(currentNode);
-            steps.Started(route, startNode);
+            steps.Try(route, $"Start at {startNode}.");
 
             bool pathFailed = false;
             int totalWeight = 0;
@@ -104,7 +115,8 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
                 if (nextNode == "") {
                     pathFailed = true;
-                    steps.DeadEnd(route, currentNode, startNode);
+                    steps.Reject(route, $"Dead end at {currentNode}: it has no edge to a city that is not already on the path, so starting from {startNode} fails.",
+                        focus: () => [currentNode]);
                     break;
                 }
 
@@ -113,7 +125,7 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
                 route.Add(nextNode);
                 visited.Add(nextNode);
                 currentNode = nextNode;
-                steps.Moved(route, previous, nextNode, bestWeight, totalWeight);
+                steps.Accept(route, $"Go {previous} → {nextNode} (weight {bestWeight}, path cost {totalWeight}): the nearest city not yet visited.");
             }
 
             if (pathFailed) {
@@ -122,7 +134,8 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
             int returnEdgeWeight;
             if (!getEdgeWeight(tsp, currentNode, startNode, out returnEdgeWeight)) {
-                steps.NoWayBack(route, currentNode, startNode);
+                steps.Reject(route, $"Close the tour {currentNode} → {startNode}: there is no such edge, so starting from {startNode} fails.",
+                    focus: () => [currentNode, startNode], partial: () => new Tour(route.Append(startNode)));
                 continue;
             }
 
@@ -132,15 +145,21 @@ partial class TSPGreedy : ISolver<TSP, Tour>, IIncrementalSolver {
 
             bool withinK = tsp.defaultVerifier.verify(tsp, certificate);
             if (withinK && totalWeight < bestTotalWeight) {
-                steps.BestSoFar(route, startNode, totalWeight, bestTotalWeight);
+                steps.Accept(route, $"Close the tour {currentNode} → {startNode}: total {totalWeight}, the best so far{(bestTotalWeight == int.MaxValue ? "" : $" (it beats {bestTotalWeight})")}.",
+                    focus: () => [currentNode, startNode]);
                 bestTotalWeight = totalWeight;
                 bestCertificate = certificate;
             } else {
-                steps.NotBest(route, startNode, totalWeight, bestTotalWeight, withinK);
+                // The route was built hop by hop, so what failed is the closing hop, not the whole tour.
+                steps.Reject(route, $"Close the tour {currentNode} → {startNode}: total {totalWeight} {(withinK ? $"is no better than the best so far ({bestTotalWeight})" : $"is more than K = {tsp.K}")}.",
+                    focus: () => [currentNode, startNode, EdgeId(false, currentNode, startNode)]);
             }
         }
 
-        steps.Finished(bestCertificate, bestTotalWeight);
+        if (bestCertificate == "{}")
+            steps.Done(new Tour([]), false, $"No start gave a tour within K = {tsp.K}.");
+        else
+            steps.Done(ParseTour(bestCertificate), true, $"The best tour is {Arrows(ParseTour(bestCertificate).Order)}, total {bestTotalWeight}.");
         return bestCertificate;
     }
 }

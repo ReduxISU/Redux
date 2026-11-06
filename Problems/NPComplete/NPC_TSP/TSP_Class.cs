@@ -102,6 +102,39 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     }
 
     /// <summary>
+    /// The weight of the edge between two cities, or null if there is none. <see cref="edges"/> holds one edge per pair, the
+    /// lightest of any parallel edges, so this is the weight the verifier counts and the picture draws. It scans the edge list.
+    /// </summary>
+    public int? Weight(string a, string b) {
+        foreach (var e in edges)
+            if (e.source == a && e.target == b) return e.weight;
+        foreach (var e in edges)
+            if (e.source == b && e.target == a) return e.weight;
+        return null;
+    }
+
+    /// <summary>Whether two cities are joined by an edge.</summary>
+    public bool HasEdge(string a, string b) => Weight(a, b) != null;
+
+    /// <summary>The first step of a closed tour (<paramref name="closed"/> ends where it starts) that is not an edge, or null.</summary>
+    public (string From, string To)? FirstMissingHop(IReadOnlyList<string> closed) {
+        for (int i = 0; i + 1 < closed.Count; i++)
+            if (Weight(closed[i], closed[i + 1]) == null) return (closed[i], closed[i + 1]);
+        return null;
+    }
+
+    /// <summary>The total weight of a path's steps, or null if one of them is not an edge.</summary>
+    public int? Cost(IReadOnlyList<string> path) {
+        int total = 0;
+        for (int i = 0; i + 1 < path.Count; i++) {
+            int? w = Weight(path[i], path[i + 1]);
+            if (w == null) return null;
+            total += w.Value;
+        }
+        return total;
+    }
+
+    /// <summary>
     /// The edges of a parsed <see cref="WeightedGraphGrammar"/> E, as (one end, other end, weight), in the order listed. An
     /// edge written twice, even the other way round, is listed once (<see cref="ParallelEdges.Distinct"/>).
     /// </summary>

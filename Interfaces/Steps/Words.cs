@@ -4,4 +4,7 @@ namespace API.Interfaces.Steps;
 static class Words {
     /// <summary>"1 clause", "2 clauses": a count with its noun, plural when it is not 1 (the noun takes an s).</summary>
     public static string Count(int n, string noun) => $"{n} {(n == 1 ? noun : noun + "s")}";
+
+    /// <summary>"1 try", "2 tries": a count with its noun, for a noun whose plural is not the noun with an s.</summary>
+    public static string Count(int n, string singular, string plural) => $"{n} {(n == 1 ? singular : plural)}";
 }

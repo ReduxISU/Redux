@@ -1,10 +1,21 @@
 using API.Interfaces;
 using API.Interfaces.Steps;
+using static API.Interfaces.Graphs.GroupedGraphFrames;
+using static API.Interfaces.Steps.Words;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 
-// The algorithm. The steps it records for the visualizations are in WalkSAT.Steps.cs.
-partial class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
+// The steps WalkSAT records. Each try starts with a Try: its random start ("Restart." for every try after the first). Then
+// one Try per flip: the clause it picked (no true literal) and the variable it flips are the focus, and the partial is the
+// whole assignment after the flip, a candidate (WalkSAT is not incremental). A failed try ends with a Reject; the flip that
+// makes every clause true is an Accept, followed by the Done.
+//
+// The search cannot know which try will succeed, so it reports its tries to RestartSteps as it runs, and RestartSteps
+// records them once it is over: the first try and the successful one in full, the tries in between as one Reject
+// ("Tries 2–37: ..."); a try too long for the recorder's cap keeps its first and last flips and says how many it skipped.
+// Recording draws nothing from the generator, so the answer is the same with steps or without. When every try fails, the
+// Done says it gave up: WalkSAT can miss an answer, so that is no proof that there is none.
+class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
     // --- Fields ---
     public string solverName { get; } = "WalkSAT Algorithm";
@@ -46,19 +57,70 @@ partial class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
     // clauses false.
     private enum FlipKind { Free, Random, Greedy }
 
+    // One flip of a try: the clause it repairs (0-based), the variable it flips (an index into the variables), how it chose
+    // it, and how many clauses it turns false.
+    private readonly record struct Flip(int Clause, int Variable, FlipKind Kind, int Breaks);
+
+    // How the steps show a try. A run that is not recording gets RestartSteps.Off and makes none of these; RestartSteps calls
+    // them only while recording, for the steps it records.
+    private static RestartSteps<bool[], Flip, Assignment> NewSteps(SatFormula formula, int maxFlips, StepRecorder<Assignment> rec) => !rec.Enabled ? RestartSteps<bool[], Flip, Assignment>.Off : new(rec,
+        // What every picture shows: the whole assignment, and for a flip the clause it picked and the variable it flips.
+        copy: values => (bool[])values.Clone(),
+        apply: (f, values) => values[f.Variable] = !values[f.Variable],
+        partial: values => ToAssignment(formula.Values(values)),
+        moveFocus: f => [ClauseId(f.Clause), VariableId(formula.Variables[f.Variable])],
+        // What each step says. "Try 1: start from a random assignment, x1 = True, x2 = False. C2 has no true literal."
+        startWhy: (t, start) => {
+            string intro = t.Number == 1 ? "Try 1: start from a random assignment" : $"Restart. Try {t.Number}: start from a new random assignment";
+            string listed = formula.Variables.Count <= 8 ? $", {Assigned(formula.Values(start))}" : $" of the {formula.Variables.Count} variables";
+            var falseClauses = formula.FalseClauses(start);
+            return falseClauses.Count == 0
+                ? $"{intro}{listed}: every clause has a true literal."
+                : $"{intro}{listed}. {ClauseNames(falseClauses)} {(falseClauses.Count == 1 ? "has" : "have")} no true literal.";
+        },
+        // "Flip 3: C2 (x1 | !x2 | x3) has no true literal. Flip x2 to False: a free flip, no clause turns false. Now ..."
+        moveWhy: (t, f, after, number) => {
+            string flip = $"{formula.Variables[f.Variable]} to {after[f.Variable]}";
+            string turns = f.Breaks == 0 ? "no clause turns false" : $"{Count(f.Breaks, "clause")} {(f.Breaks == 1 ? "turns" : "turn")} false";
+            string how = f.Kind switch {
+                FlipKind.Free => $"Flip {flip}: a free flip, {turns}.",
+                FlipKind.Random => $"No variable of C{f.Clause + 1} flips free, so flip one at random: {flip}, and {turns}.",
+                _ => $"No variable of C{f.Clause + 1} flips free, so flip the one that turns the fewest clauses false: {flip}, and {turns}.",
+            };
+            var still = formula.FalseClauses(after);
+            string now = still.Count == 0 ? "Every clause now has a true literal." : $"Now {ClauseNames(still)} {(still.Count == 1 ? "has" : "have")} no true literal.";
+            return $"Flip {number}: C{f.Clause + 1} {ClauseText(formula.Written[f.Clause])} has no true literal. {how} {now}";
+        },
+        skippedWhy: (t, from, to, after) => {
+            var still = formula.FalseClauses(after);
+            return $"{(from == to ? $"Flip {from} of try {t.Number} is" : $"Flips {from}–{to} of try {t.Number} are")} not shown one by one. After them, "
+                + (still.Count == 0 ? "every clause has a true literal." : $"{ClauseNames(still)} {(still.Count == 1 ? "has" : "have")} no true literal.");
+        },
+        closeWhy: (t, end) => {
+            var still = formula.FalseClauses(end);
+            return $"Try {t.Number} ends after {Count(t.Moves.Count, "flip")}: "
+                + (still.Count == 0 ? "every clause has a true literal." : $"{ClauseNames(still)} {(still.Count == 1 ? "has" : "have")} no true literal.");
+        },
+        betweenWhy: (from, to) => from == to
+            ? $"Try {from} ends after {Count(maxFlips, "flip")}: no satisfying assignment."
+            : $"Tries {from}–{to}: no satisfying assignment (each ends after {Count(maxFlips, "flip")}).",
+        solvedWhy: (t, end) => $"Every clause has a true literal under {Assigned(formula.Values(end))}: found by "
+            + (t.Moves.Count == 0 ? $"the random start of try {t.Number}." : $"try {t.Number} after {Count(t.Moves.Count, "flip")}."),
+        gaveUpWhy: begun => $"Gave up after {Count(begun, "try", "tries")}: no answer found. WalkSAT can miss an answer, so the formula may still have one.");
+
     public string Solve(SAT3 sat3, StepRecorder<Assignment> rec) {
         // The order of first appearance, so the same seed gives the same run in every process (a HashSet's order would not).
         var formula = SatFormula.Of(sat3);
         int n = formula.Variables.Count;
         if (n == 0) {
-            Steps.NoVariables(rec);
+            rec.Done(new Assignment([]), false, "The formula has no variables to set: no answer found.");
             return "{}";
         }
         var clauses = formula.Clauses;
 
         int maxFlips = _flipsPerVariable * n;
         Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);
-        var steps = new Steps(formula, rec.Enabled, maxFlips);
+        var steps = NewSteps(formula, maxFlips, rec);
         bool[]? solution = null;
 
         for (int tryIdx = 0; tryIdx < _maxTries && solution == null; tryIdx++) {
@@ -92,13 +154,13 @@ partial class WalkSAT : ISolver<SAT3, Assignment>, IRandomizedSolver {
 
                 // Flip assignment
                 assignments[varToFlip] = !assignments[varToFlip];
-                steps.Flipped(clause, varToFlip, kind, breaks);
+                steps.Add(new Flip(clause, varToFlip, kind, breaks));
             }
 
             steps.End(assignments, solution != null);
         }
 
-        steps.Record(rec);
+        steps.Record(new Assignment([]));
         // Stopped by the time limit, not out of tries: that is no verdict at all.
         if (solution == null && timerHasExpired) return SolveRun.TimedOutAnswer;
         return solution == null ? "{}" : formula.Certificate(solution); // "{}": failure to satisfy within caps

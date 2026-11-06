@@ -732,6 +732,9 @@ static class LayeredFrames {
 
     // ---- Captions, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
+    /// <summary>A distance for a caption: the number, or ∞ for <see cref="int.MaxValue"/> (not reached).</summary>
+    public static string Distance(int distance) => distance == int.MaxValue ? "∞" : distance.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     /// <summary>"{a,b,c}" for captions.</summary>
     public static string Braces(IEnumerable<string> names) => "{" + string.Join(",", names) + "}";
 

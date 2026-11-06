@@ -302,6 +302,17 @@ static class GroupedGraphFrames {
     public static string Assigned(IEnumerable<KeyValuePair<string, bool>> values) =>
         string.Join(", ", values.Select(p => $"{p.Key} = {p.Value}"));
 
+    /// <summary>
+    /// The clauses (0-based) by the names the picture gives them: "C2", "C2 and C3", "C1, C2 and C3", or "5 clauses" past
+    /// three. Empty for none.
+    /// </summary>
+    public static string ClauseNames(IReadOnlyList<int> clauses) => clauses.Count switch {
+        0 => "",
+        1 => $"C{clauses[0] + 1}",
+        <= 3 => $"{string.Join(", ", clauses.SkipLast(1).Select(c => $"C{c + 1}"))} and C{clauses[^1] + 1}",
+        _ => $"{clauses.Count} clauses",
+    };
+
     /// <summary>"(x1 | !x2 | x3)": a clause as the instance writes it.</summary>
     public static string ClauseText(IEnumerable<string> literals) => "(" + string.Join(" | ", literals) + ")";
 
