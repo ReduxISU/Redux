@@ -22,6 +22,7 @@ namespace redux_tests;
 //
 // No difference means every answer, every recorded step and every frame is the same. It writes one JSON file per solver
 // (named after the solver class) and _summary.txt, which lists what was captured and what could not be.
+// ReductionCapture_Tests is the reductions' half: the same filter runs it too, into the same folder.
 //
 // What it runs, for each solver on each instance: a plain solve (steps off), a run with steps at the default cap and at
 // small caps (where Accept past the cap and the cap's last step matter), runs with a time limit on a fake clock (every
@@ -244,7 +245,7 @@ public class StepCapture_Tests {
     }
 
     // A few seeded random instances in the shape of the default instance, for the shapes made here; none for the rest.
-    private static IEnumerable<string> RandomInstances(string defaultInstance) {
+    internal static IEnumerable<string> RandomInstances(string defaultInstance) {
         var rnd = new Random(defaultInstance.Length * 31 + 5573);
         string d = defaultInstance.Trim();
         if (d.Contains('&') && d.Contains('|')) {
