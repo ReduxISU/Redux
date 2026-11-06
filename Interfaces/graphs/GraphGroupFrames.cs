@@ -31,11 +31,11 @@ sealed record GroupFailure(string Reason, string[] Focus);
 /// <list type="bullet">
 /// <item><b>Coloring</b>: an edge whose two ends share a group is <c>Rejected</c> (a clash). Other edges are plain.</item>
 /// <item><b>Clique cover</b>: an edge inside a group is <c>Solution</c> in the confirmed answer (the clique is drawn solid),
-/// <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in a grouping kept so far (#886), or <c>ElementHighlight</c> in a step that only tries a whole grouping
+/// <c>Rejected</c> in a Done with ok = false (the run found nothing), <c>Committed</c> in a grouping kept so far, or <c>ElementHighlight</c> in a step that only tries a whole grouping
 /// (Try, Reject of a run that is not <see cref="SolveRun.Incremental"/>: see <see cref="GraphSubsetFrames.Picked"/>); a missing edge
 /// between two nodes of one group is a <c>Rejected</c> phantom, as in the Clique rule of <see cref="GraphSubsetFrames"/>.</item>
 /// <item><b>Clique cover</b>: in a step that judges a whole candidate (a Reject of a run that is not incremental, or a Done
-/// with ok = false that carries a grouping), a node in no group is <c>Rejected</c>: no clique covers it (#889).</item>
+/// with ok = false that carries a grouping), a node in no group is <c>Rejected</c>: no clique covers it.</item>
 /// <item>Either rule: a node whose group index is K or more (more colors, or more cliques, than allowed) is <c>Rejected</c>.</item>
 /// <item>What the solver is looking at (the node being colored) is <c>ElementHighlight</c>; in a
 /// <see cref="StepEvent.Reject"/> step it is the thing that failed, so <c>Rejected</c>.</item>
@@ -100,7 +100,7 @@ static class GraphGroupFrames {
 
             case GroupRule.CliqueCover:
                 // A step that judges a whole candidate (a Reject of a run that is not incremental, or a failed Done that
-                // carries one) shows a node in no group as Rejected: the candidate covers it with no clique (#889).
+                // carries one) shows a node in no group as Rejected: the candidate covers it with no clique.
                 bool judgesCandidate = (ev == StepEvent.Reject && !incremental) || (ev == StepEvent.Done && ok != true && groups.Count > 0);
                 if (judgesCandidate)
                     foreach (var id in spec.Nodes)
@@ -182,7 +182,7 @@ static class GraphGroupFrames {
     /// <summary>
     /// The first thing wrong with a candidate grouping, or null if it is fine. Coloring: two neighbours that share a color
     /// ("1 and 2 are both color 0"), else a node that has no color. Clique cover: the nodes in no clique, all of them
-    /// ("node 1 is in no clique", #889), else a pair in one clique that is not joined ("1 and 4 are in one group but
+    /// ("node 1 is in no clique"), else a pair in one clique that is not joined ("1 and 4 are in one group but
     /// aren't joined"). Sizes against K are the solver's own business.
     /// </summary>
     public static GroupFailure? Why(GroupRule rule, IReadOnlyList<string> nodes, IReadOnlyList<KeyValuePair<string, string>> edges, IReadOnlyDictionary<string, int> of) {
@@ -191,7 +191,7 @@ static class GraphGroupFrames {
                 if (e.Key != e.Value && of.TryGetValue(e.Key, out int a) && of.TryGetValue(e.Value, out int b) && a == b)
                     return new($"{e.Key} and {e.Value} are both color {a}", [e.Key, e.Value]);
         } else {
-            // A node in no clique is the first thing wrong with a cover candidate (#889), so name every such node.
+            // A node in no clique is the first thing wrong with a cover candidate, so name every such node.
             var left = nodes.Where(n => !of.ContainsKey(n)).Distinct(StringComparer.Ordinal).ToList();
             if (left.Count > 0)
                 return new(left.Count == 1 ? $"node {left[0]} is in no clique" : $"nodes {And(left)} are in no clique", left.ToArray());
