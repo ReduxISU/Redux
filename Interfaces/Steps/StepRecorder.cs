@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace API.Interfaces.Steps;
 
@@ -6,9 +7,13 @@ namespace API.Interfaces.Steps;
 /// Collects <see cref="SolverStep{TPartial}"/>s while a solver runs.
 /// <para>
 /// Guidance for solver authors: record decisions (choose, reject, back out), not loop iterations. A step's
-/// caption is one plain sentence. Pass the step as a lambda, <c>rec.Try(() =&gt; new(partial, caption) { Focus = [id] })</c>
-/// (see <see cref="Step{TPartial}"/>), or its partial answer and caption as separate lambdas, so that nothing is built when
-/// recording is off or the cap has been reached.
+/// caption is one plain sentence. Say the event first, then the partial answer as a lambda, the caption as an interpolated
+/// string and the ids the step is about: <c>rec.Reject(() =&gt; partial, $"{x} = {v} fails: ...", id)</c>. The caption is a
+/// <see cref="ShownText"/> (an Accept's a <see cref="KeptText"/>), so nothing in its braces is evaluated, and the lambda is not
+/// invoked, when recording is off or the cap has been reached. The older forms, the whole step as one lambda,
+/// <c>rec.Try(() =&gt; new(partial, caption) { Focus = [id] })</c> (see <see cref="Step{TPartial}"/>), or the partial answer and
+/// caption as separate lambdas, do the same. A solver that branches records through a <see cref="SearchTree{TState, TPartial}"/>,
+/// which builds the search-tree nodes from the same keywords.
 /// </para>
 /// <para>
 /// Only the first <c>cap</c> non-<see cref="StepEvent.Done"/> steps are kept; the rest are counted in
@@ -27,7 +32,7 @@ namespace API.Interfaces.Steps;
 /// <see cref="ClockCheckInterval"/>th step (the first included), so a solve that records nothing still stops (#935).
 /// </para>
 /// </summary>
-sealed class StepRecorder<TPartial> {
+sealed class StepRecorder<TPartial> : IStepGate {
     public const int DefaultCap = 150;
 
     /// <summary>A shared recorder that is disabled: every method does nothing and no lambda is invoked.</summary>
@@ -146,6 +151,47 @@ sealed class StepRecorder<TPartial> {
     public void Accept(Func<Step<TPartial>> step) => Add(StepEvent.Accept, step);
     public void Reject(Func<Step<TPartial>> step) => Add(StepEvent.Reject, step);
     public void Backtrack(Func<Step<TPartial>> step) => Add(StepEvent.Backtrack, step);
+
+    // Keyword-first: the event, the partial answer (a lambda), the caption (an interpolated string, formatted only for a step
+    // that is kept) and the ids the step is about. The ids are evaluated at the call, but no array is made unless the step is
+    // kept; pass a lambda instead for ids that cost something to build.
+    public void Try(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, params ReadOnlySpan<string> focus) => Add(StepEvent.Try, partial, caption.ToStringAndClear(), focus);
+    public void Accept(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] KeptText caption, params ReadOnlySpan<string> focus) => Add(StepEvent.Accept, partial, caption.ToStringAndClear(), focus);
+    public void Reject(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, params ReadOnlySpan<string> focus) => Add(StepEvent.Reject, partial, caption.ToStringAndClear(), focus);
+    public void Backtrack(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, params ReadOnlySpan<string> focus) => Add(StepEvent.Backtrack, partial, caption.ToStringAndClear(), focus);
+
+    public void Try(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Try, partial, caption.ToStringAndClear(), focus, null);
+    public void Accept(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] KeptText caption, Func<string[]> focus) => Add(StepEvent.Accept, partial, caption.ToStringAndClear(), focus, null);
+    public void Reject(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Reject, partial, caption.ToStringAndClear(), focus, null);
+    public void Backtrack(Func<TPartial> partial, [InterpolatedStringHandlerArgument("")] ShownText caption, Func<string[]> focus) => Add(StepEvent.Backtrack, partial, caption.ToStringAndClear(), focus, null);
+
+    bool IStepGate.Recording => _enabled;
+    bool IStepGate.ShowsNextStep => _enabled && _shownDecisions < _cap;
+
+    /// <summary>Whether a step reported now does anything: recording, or a <see cref="DeadlineOnly"/> recorder counting it.</summary>
+    internal bool CountsSteps => _enabled || _deadlineOnly;
+
+    /// <summary>Whether a step of <paramref name="kind"/> reported now will be built (see <see cref="Count"/>).</summary>
+    internal bool Builds(StepEvent kind) => _enabled && (_shownDecisions < _cap || kind == StepEvent.Accept);
+
+    // The keyword-first forms: the caption was formatted by its handler, so it is null exactly when the step is not built.
+    private void Add(StepEvent kind, Func<TPartial> partial, string? caption, ReadOnlySpan<string> focus) {
+        if (!_enabled) { StepWhileOff(); return; }
+        if (Count(kind))
+            Keep(new SolverStep<TPartial>(partial(), kind, focus.ToArray(), caption!));
+        CheckDeadline();
+    }
+
+    /// <summary>
+    /// A keyword-first step with its search-tree nodes, for <see cref="SearchTree{TState, TPartial}"/>: the caption and
+    /// <paramref name="tree"/> are null unless <see cref="Builds"/> said the step is built.
+    /// </summary>
+    internal void Add(StepEvent kind, Func<TPartial> partial, string? caption, Func<string[]>? focus, SearchNode[]? tree) {
+        if (!_enabled) { StepWhileOff(); return; }
+        if (Count(kind))
+            Keep(new SolverStep<TPartial>(partial(), kind, focus?.Invoke() ?? [], caption!) { Tree = tree });
+        CheckDeadline();
+    }
 
     private void Add(StepEvent kind, Func<TPartial> partial, Func<string> caption, string[] focus) {
         if (!_enabled) { StepWhileOff(); return; }
