@@ -336,6 +336,7 @@ Its step lines name the choice too, for example `steps.Try(curSat, value, $"Try 
    ```
 
    A plain solve gets `FlowPush.None` and does no extra work. Facts the algorithm already has (the bottleneck, the flow's value) need no guard: keep them as plain values and let the `$"..."` holes format them only for a kept step.
+10. **A caption never starts with its own counter.** The step bar already shows "Step N of M", and a count of your own would not match it, because a capped or summarized run skips steps. Say what the step does instead. A number that is real information can stay inside the sentence ("found by try 37", "In pass 2, ..."), but not as a leading "Try 2:" label. Before (WalkSAT's flip): `$"Flip {number}: {FailedClause(...)}. {how} {now}"`, which reads "Flip 3: C2 (x1 | !x2 | x3) has no true literal. ...". After: `$"{FailedClause(...)}. {how} {now}"`, which reads "C2 (x1 | !x2 | x3) has no true literal. ...". [CaptionCounter_Tests.cs](../../redux-tests/Steps/CaptionCounter_Tests.cs) checks every recording solver for this.
 
 To draw your steps you also need a visualization that draws your answer's shape. Most shapes already have one. See [adding-a-visualization.md](adding-a-visualization.md) for the other half.
 

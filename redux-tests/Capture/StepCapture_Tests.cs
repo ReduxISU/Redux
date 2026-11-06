@@ -90,7 +90,7 @@ public class StepCapture_Tests {
 
     // Every concrete class implementing ISolver<TProblem, TPartial>, and those in OwnRun, with its problem, step shape and
     // recording solve, by name.
-    private static IEnumerable<(Type Solver, Type Problem, Type Partial, object Direct)> RecordingSolvers() =>
+    internal static IEnumerable<(Type Solver, Type Problem, Type Partial, object Direct)> RecordingSolvers() =>
         typeof(ISolver).Assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract && !t.ContainsGenericParameters && t.GetConstructor(Type.EmptyTypes) != null)
             .SelectMany(t => t.GetInterfaces()
@@ -164,7 +164,7 @@ public class StepCapture_Tests {
 
     // A random solver that is not an IRandomizedSolver but takes its seed in a constructor (int seed): it runs with fixed seeds
     // through that constructor, since its plain one would draw a new run each time.
-    private static System.Reflection.ConstructorInfo? SeedConstructor(Type solverType) =>
+    internal static System.Reflection.ConstructorInfo? SeedConstructor(Type solverType) =>
         typeof(IRandomizedSolver).IsAssignableFrom(solverType) ? null
             : solverType.GetConstructors(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .FirstOrDefault(c => c.GetParameters() is [{ Name: "seed" } p] && p.ParameterType == typeof(int));
