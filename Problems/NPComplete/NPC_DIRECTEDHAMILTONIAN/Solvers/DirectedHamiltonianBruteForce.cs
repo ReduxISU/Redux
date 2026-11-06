@@ -7,8 +7,16 @@ using System.Linq;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Solvers;
 
+// The steps Directed Hamiltonian Brute Force records, in the order the search runs:
+//   - a Try for each node the tour starts at;
+//   - an Accept for each edge the path walks on to a new node;
+//   - a Reject for a node the path can't go to next, because there is no edge to it;
+//   - a Backtrack when every way on from a node has failed, giving the node up;
+//   - for each complete tour, closing edge included, an Accept if the verifier agrees (the run ends there), else a
+//     Reject naming the first hop that is not an edge;
+//   - the Done, with the cycle or none.
 // Despite its name it is a backtracking search: it builds the path one edge at a time and backs out of dead ends, so
-// it is an IIncrementalSolver (its steps hold the path so far).
+// it is an IIncrementalSolver (its steps hold the path so far). It records no search tree, so it uses RunSteps.
 class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncrementalSolver {
 
     // --- Fields ---
@@ -47,44 +55,54 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
         return graph.edges.Any(e => e.Key == fromNode && e.Value == toNode);
     }
 
-    // Steps: the search in the order it runs. Start (Try) picks the first node; Accept walks one edge on; Reject is a node
-    // the path cannot go to (no such edge: the partial includes it, so the missing edge is drawn); Backtrack gives a node
-    // up after every way on from it failed. When the last node is placed the whole tour, closing edge included, is checked
-    // once: Accept if the verifier agrees (and the run ends), else Reject naming the first missing edge. The nodes are
-    // permuted in a copy, in the order the solver always tried them, so the answer is the same as before and the problem's
-    // own node list is left alone. Recorder state lives only in this call.
+    // How the steps show the search: the path so far (the first Length nodes of the order), and the node the step is
+    // about, with the edge it came by when From (the node before it) is given. The two steps about a whole tour show the
+    // closed tour and say their own focus.
+    private static RunSteps<(int Length, string Node, string? From), Tour> NewSteps(List<string> order, StepRecorder<Tour> rec) => new(rec,
+        // What every picture shows: the path so far, and the node (and edge) the step is about.
+        partial: s => new Tour(order.Take(s.Length)),
+        focus: s => s.From == null ? [s.Node] : [s.Node, GraphTourFrames.EdgeId(true, s.From, s.Node)]);
+
     public string solve(DIRECTEDHAMILTONIAN directedhamiltonian) => Solve(directedhamiltonian, StepRecorder<Tour>.Off);
 
+    // The nodes are permuted in a copy, in the order the solver always tried them, so the answer is the same as before
+    // and the problem's own node list is left alone.
     public string Solve(DIRECTEDHAMILTONIAN directedhamiltonian, StepRecorder<Tour> rec) {
         var order = new List<string>(directedhamiltonian.nodes);
+        var steps = NewSteps(order, rec);
         int tried = 0;
-        string? answer = Search(directedhamiltonian, order, 0, rec, ref tried);
+        string? answer = Search(directedhamiltonian, order, 0, steps, ref tried);
         if (answer != null) {
-            rec.Done(GraphTourFrames.ParseTour(answer), true, $"Found the Hamiltonian cycle {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)} after checking {tried} complete {(tried == 1 ? "tour" : "tours")}.");
+            steps.Done(GraphTourFrames.ParseTour(answer), true, $"Found the Hamiltonian cycle {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)} after checking {tried} complete {(tried == 1 ? "tour" : "tours")}.");
             return answer;
         }
-        if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: Search unwinds at the time limit
-        rec.Done(new Tour([]), false, order.Count == 0
-            ? "The graph has no nodes, so there is no cycle."
-            : "No Hamiltonian cycle: every way of walking the edges was tried, and none visits every node once and returns to its start.");
+        if (timerHasExpired) return SolveRun.TimedOutAnswer; // Search unwinds at the time limit
+        if (order.Count == 0)
+            steps.Done(new Tour([]), false, $"The graph has no nodes, so there is no cycle.");
+        else
+            steps.Done(new Tour([]), false, $"No Hamiltonian cycle: every way of walking the edges was tried, and none visits every node once and returns to its start.");
         return "{}";
     }
 
-    private string? Search(DIRECTEDHAMILTONIAN directedhamiltonian, List<string> order, int start, StepRecorder<Tour> rec, ref int tried) {
-        // #935: unwind at the time limit (pruned branches can run long); Solve then returns the timed-out answer.
+    // Places order[start], trying each node not yet on the path in turn (by swapping it into place), and goes on only
+    // along an edge from the node before it. When one node is left, the whole tour, closing edge included, goes to the
+    // verifier. Returns the tour's certificate, or null when no tour follows from the path so far.
+    private string? Search(DIRECTEDHAMILTONIAN directedhamiltonian, List<string> order, int start, RunSteps<(int Length, string Node, string? From), Tour> steps, ref int tried) {
+        // Unwind at the time limit (pruned branches can run long); Solve then returns the timed-out answer.
         if (timerHasExpired) return null;
         if (start == order.Count - 1) {
             tried++;
             string certificate = CombinationToCertificate(order);
             if (directedhamiltonian.defaultVerifier.verify(directedhamiltonian, certificate)) {
-                rec.Accept(() => GraphTourFrames.ParseTour(certificate),
-                    () => $"Close the tour {order[^1]} → {order[0]}: every node is visited once, so {GraphTourFrames.Arrows(order.Append(order[0]))} is a Hamiltonian cycle.",
-                    order[^1], order[0]);
+                steps.Accept((order.Count, order[0], null),
+                    $"Close the tour {order[^1]} → {order[0]}: every node is visited once, so {GraphTourFrames.Arrows(order.Append(order[0]))} is a Hamiltonian cycle.",
+                    focus: () => [order[^1], order[0]], partial: () => GraphTourFrames.ParseTour(certificate));
                 return certificate;
             }
-            rec.Reject(() => GraphTourFrames.ParseTour(certificate),
-                () => $"Try the tour {GraphTourFrames.Arrows(order.Append(order[0]))}: there is no edge from {FirstMissingHop(directedhamiltonian, order)?.From} to {FirstMissingHop(directedhamiltonian, order)?.To}.",
-                () => FirstMissingHop(directedhamiltonian, order) is { } hop ? new[] { hop.From, hop.To } : Array.Empty<string>());
+            // The verifier only says no, so the hop that is not an edge is looked up for the step alone.
+            steps.Reject((order.Count, order[0], null),
+                $"Try the tour {GraphTourFrames.Arrows(order.Append(order[0]))}: there is no edge from {FirstMissingHop(directedhamiltonian, order)?.From} to {FirstMissingHop(directedhamiltonian, order)?.To}.",
+                focus: () => FirstMissingHop(directedhamiltonian, order) is { } hop ? [hop.From, hop.To] : [], partial: () => GraphTourFrames.ParseTour(certificate));
             return null;
         }
         for (int i = start; i < order.Count; i++) {
@@ -92,21 +110,21 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
             string node = order[start];
 
             if (start == 0) {
-                rec.Try(() => new Tour([node]), () => $"Start the tour at {node}.", node);
-                string? found = Search(directedhamiltonian, order, start + 1, rec, ref tried);
+                steps.Try((1, node, null), $"Start the tour at {node}.");
+                string? found = Search(directedhamiltonian, order, start + 1, steps, ref tried);
                 if (found != null) return found;
-                rec.Backtrack(() => new Tour([]), () => $"Every tour that starts at {node} fails.", node);
+                steps.Backtrack((0, node, null), $"Every tour that starts at {node} fails.");
             }
             // Early pruning: check the edge between the last node in the partial path and the current node.
             else if (HasEdge(directedhamiltonian, order[start - 1], node)) {
                 string previous = order[start - 1];
-                rec.Accept(() => new Tour(order.Take(start + 1)), () => $"Go {previous} → {node}: the path is {GraphTourFrames.Arrows(order.Take(start + 1))}.", node, GraphTourFrames.EdgeId(true, previous, node));
-                string? found = Search(directedhamiltonian, order, start + 1, rec, ref tried);
+                steps.Accept((start + 1, node, previous), $"Go {previous} → {node}: the path is {GraphTourFrames.Arrows(order.Take(start + 1))}.");
+                string? found = Search(directedhamiltonian, order, start + 1, steps, ref tried);
                 if (found != null) return found;
-                rec.Backtrack(() => new Tour(order.Take(start)), () => $"Every way on from {node} fails: back up to {previous}.", previous);
+                steps.Backtrack((start, previous, null), $"Every way on from {node} fails: back up to {previous}.");
             } else {
                 string previous = order[start - 1];
-                rec.Reject(() => new Tour(order.Take(start + 1)), () => $"There is no edge from {previous} to {node}, so {node} can't come after {previous}.", node);
+                steps.Reject((start + 1, node, null), $"There is no edge from {previous} to {node}, so {node} can't come after {previous}.");
             }
 
             (order[start], order[i]) = (order[i], order[start]);
