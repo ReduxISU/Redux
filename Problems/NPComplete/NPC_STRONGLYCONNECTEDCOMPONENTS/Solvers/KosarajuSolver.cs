@@ -7,6 +7,13 @@ using API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS;
 
 namespace API.Problems.NPComplete.NPC_STRONGLYCONNECTEDCOMPONENTS.Solvers;
 
+// The steps Kosaraju's Algorithm records, for the Components picture:
+//   - pass 1 (a depth-first search on the graph): an Update when a node is visited and one when it is finished, with its
+//     finish number;
+//   - pass 2 (depth-first searches on the reversed graph, in falling finish order): an Accept when a node starts a new
+//     component, and an Accept per node that joins it along an edge followed backward;
+//   - the Done, listing the components.
+// Pass 1 only orders the nodes, so its steps are Updates; pass 2 puts each node in its component for good.
 // Incremental: the second pass commits one component at a time, and a node never leaves its component.
 class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrementalSolver {
     public string solverName { get; } = "Kosaraju's Algorithm";
@@ -30,6 +37,15 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
     // Builds proper adjacency and reverse-adjacency dictionaries (O(V + E)) and runs two DFS
     // passes over them, each O(V + E) — the standard bound, no linear edge-list rescans.
     public MathematicalFunction timeComplexity { get; } = new("V + E", "");
+
+    // How the steps show a node: the passes so far, and the node, with the edge it was reached along in pass 2 (Via, the
+    // node it leads to; null for none).
+    private static RunSteps<(string Node, string? Via), Components> NewSteps(StepRecorder<Components> rec, Dictionary<string, int> of,
+                                                                           List<string> seen, List<string> finished) => new(rec,
+        // What every picture shows: each node's component so far, the nodes pass 1 has visited and the order it finished
+        // them in, and the node with its edge.
+        partial: _ => new Components(of, seen, finished),
+        focus: s => s.Via == null ? [LayeredFrames.NodeId(s.Node)] : [LayeredFrames.NodeId(s.Node), LayeredFrames.ArcId(s.Node, s.Via)]);
 
     public string solve(STRONGLYCONNECTEDCOMPONENTS problem) => Solve(problem, StepRecorder<Components>.Off);
 
@@ -57,15 +73,15 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
         var seen = new List<string>();
         var finished = new List<string>();
         var of = new Dictionary<string, int>();
-        Components Partial() => new(of, seen, finished);
+        var steps = NewSteps(rec, of, seen, finished);
 
         var visited = new HashSet<string>();
         var order = new Stack<string>();
 
         foreach (var node in nodes) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             if (!visited.Contains(node))
-                FirstDfs(node, adj, visited, order, rec, seen, finished, Partial);
+                FirstDfs(node, adj, visited, order, steps, seen, finished);
         }
 
         visited.Clear();
@@ -79,10 +95,8 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
                 var component = new List<string>();
                 int g = components.Count;
                 of[node] = g;
-                rec.Accept(Partial,
-                    () => $"Pass 2: {node} has the highest finish number left, so it starts component {g + 1}.",
-                    LayeredFrames.NodeId(node));
-                SecondDfs(node, rev, visited, component, rec, of, g, Partial);
+                steps.Accept((node, null), $"Pass 2: {node} has the highest finish number left, so it starts component {g + 1}.");
+                SecondDfs(node, rev, visited, component, steps, of, g);
                 components.Add(component.OrderBy(x => x).ToList());
             }
         }
@@ -90,53 +104,51 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
         components = components.OrderBy(c => c.First()).ToList();
 
         string answer = "{" + string.Join(",", components.Select(c => "{" + string.Join(",", c) + "}")) + "}";
-        rec.Done(Partial(), true, $"{components.Count} strongly connected {(components.Count == 1 ? "component" : "components")}: "
-            + string.Join(", ", components.Select(c => LayeredFrames.Braces(c))) + ".");
+        steps.Done(new Components(of, seen, finished), true, $"{Words.Count(components.Count, "strongly connected component")}: {string.Join(", ", components.Select(c => LayeredFrames.Braces(c)))}.");
         return answer;
     }
 
+    // Pass 1: a depth-first search from node; a node is finished (pushed on the order) once every node it leads to is.
     private static void FirstDfs(
         string node,
         Dictionary<string, List<string>> adj,
         HashSet<string> visited,
         Stack<string> order,
-        StepRecorder<Components> rec,
+        RunSteps<(string Node, string? Via), Components> steps,
         List<string> seen,
-        List<string> finished,
-        Func<Components> partial) {
+        List<string> finished) {
         visited.Add(node);
         seen.Add(node);
-        rec.Try(partial, () => $"Pass 1: visit {node}.", LayeredFrames.NodeId(node));
+        steps.Update((node, null), $"Pass 1: visit {node}.");
 
         foreach (var next in adj[node]) {
             if (!visited.Contains(next))
-                FirstDfs(next, adj, visited, order, rec, seen, finished, partial);
+                FirstDfs(next, adj, visited, order, steps, seen, finished);
         }
 
         order.Push(node);
         finished.Add(node);
-        rec.Try(partial, () => $"Pass 1: {node} is finished (number {finished.Count}).", LayeredFrames.NodeId(node));
+        steps.Update((node, null), $"Pass 1: {node} is finished (number {finished.Count}).");
     }
 
+    // Pass 2: a depth-first search from node on the reversed graph; every node it reaches that has no component yet joins
+    // component g.
     private static void SecondDfs(
         string node,
         Dictionary<string, List<string>> rev,
         HashSet<string> visited,
         List<string> component,
-        StepRecorder<Components> rec,
+        RunSteps<(string Node, string? Via), Components> steps,
         Dictionary<string, int> of,
-        int g,
-        Func<Components> partial) {
+        int g) {
         visited.Add(node);
         component.Add(node);
 
         foreach (var next in rev[node]) {
             if (!visited.Contains(next)) {
                 of[next] = g;
-                rec.Accept(partial,
-                    () => $"Pass 2: follow the edge {next} → {node} backward, so {next} joins component {g + 1}.",
-                    LayeredFrames.NodeId(next), LayeredFrames.ArcId(next, node));
-                SecondDfs(next, rev, visited, component, rec, of, g, partial);
+                steps.Accept((next, node), $"Pass 2: follow the edge {next} → {node} backward, so {next} joins component {g + 1}.");
+                SecondDfs(next, rev, visited, component, steps, of, g);
             }
         }
     }
