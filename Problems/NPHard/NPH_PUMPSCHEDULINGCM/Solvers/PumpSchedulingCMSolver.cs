@@ -149,7 +149,7 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM, PumpPlan>, IIncremental
                 return "{}";
             }
             reached.Add(new ReachedHour(states, low, high, cheapest));
-            steps.Update(h, $"{ScheduleFrames.ForwardCaption(h, states, low, high)}, cheapest so far {ScheduleFrames.Money(cheapest)}.");
+            steps.Update(h, $"Forward pass, hour {h}: {ScheduleFrames.ReachableStates(states)}, {ScheduleFrames.LevelRange(low, high)}, cheapest so far {ScheduleFrames.Money(cheapest)}.");
         }
 
         var last = dp[Hours];

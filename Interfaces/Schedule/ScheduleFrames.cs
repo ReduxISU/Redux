@@ -527,6 +527,11 @@ static class ScheduleFrames {
     /// A replay caption for hour <paramref name="hour"/> of a schedule: "Hour 9 (peak): PumpA and PumpB on. In 550, out 1,000
     /// gal, so the tank drops to 4,100 gal. Hour cost $1.62." With a <paramref name="budget"/>, it also says how much of it
     /// the day has spent so far.
+    /// <para>
+    /// A whole caption rather than a phrase, because it describes one hour of the schedule picture from the schedule alone
+    /// (its pumps, the water in and out, the tank level, the cost), not a solver's reasoning, and every clause of it branches
+    /// on that hour. Both pump-scheduling solvers replay their schedule with it.
+    /// </para>
     /// </summary>
     public static string ReplayCaption(PumpScheduleSpec spec, IReadOnlyList<IReadOnlyCollection<string>> on, int hour, double? budget) {
         var hours = Simulate(spec, on);
@@ -549,13 +554,17 @@ static class ScheduleFrames {
         return text;
     }
 
-    /// <summary>
-    /// The start of a forward-pass caption: "Forward pass, hour 3: 64 reachable (tank level, pumps on) states, levels 3,800 to
-    /// 5,900 gal".
-    /// </summary>
-    public static string ForwardCaption(int hour, int states, double low, double high) =>
-        $"Forward pass, hour {hour}: {Num(states)} reachable (tank level, pumps on) {(states == 1 ? "state" : "states")}, "
-        + (low == high ? $"level {Gallons(low)} gal" : $"levels {Gallons(low)} to {Gallons(high)} gal");
+    // Phrases of a forward-pass caption, which the pump-scheduling solvers share: $"Forward pass, hour {h}:
+    // {ReachableStates(states)}, {LevelRange(low, high)}, cheapest so far {Money(cheapest)}." Each is a piece of the
+    // sentence that would need a branch inside the why line (state or states, level or levels).
+
+    /// <summary>"64 reachable (tank level, pumps on) states", "1 reachable (tank level, pumps on) state".</summary>
+    public static string ReachableStates(int states) =>
+        $"{Num(states)} reachable (tank level, pumps on) {(states == 1 ? "state" : "states")}";
+
+    /// <summary>"levels 3,800 to 5,900 gal", or "level 4,000 gal" when the lowest and highest are the same.</summary>
+    public static string LevelRange(double low, double high) =>
+        low == high ? $"level {Gallons(low)} gal" : $"levels {Gallons(low)} to {Gallons(high)} gal";
 
     /// <summary>"a", "a and b", "a, b and c".</summary>
     public static string AndList(IReadOnlyList<string> items) =>

@@ -279,7 +279,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM, PumpPlan>, IIncremental
                 return (null, 0);
             }
             reached.Add(new ReachedHour(states, low, high, most));
-            steps.Update(h, $"{ScheduleFrames.ForwardCaption(h, states, low, high)}, most water stored so far {ScheduleFrames.Gallons(most)} gal·h.");
+            steps.Update(h, $"Forward pass, hour {h}: {ScheduleFrames.ReachableStates(states)}, {ScheduleFrames.LevelRange(low, high)}, most water stored so far {ScheduleFrames.Gallons(most)} gal·h.");
         }
 
         // Pick the terminal label with the highest cumulative water score.
