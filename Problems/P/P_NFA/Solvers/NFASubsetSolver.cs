@@ -2,6 +2,7 @@ using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using API.Problems.P.P_NFA;
+using static API.Interfaces.Graphs.AutomatonFrames;
 
 namespace API.Problems.P.P_NFA.Solvers;
 
@@ -10,6 +11,14 @@ namespace API.Problems.P.P_NFA.Solvers;
 /// input is accepted when an accept state is in the set at the end. Polynomial, unlike <see cref="NFASolver"/>, which
 /// follows one run at a time; its steps are the "all branches at once" view of the Automaton picture.
 /// </summary>
+// The steps NFA Subset Simulation records, for the Automaton picture (ids from AutomatonFrames). Each shows the set of
+// active states, how much of the input is read, and the states and arrows the step is about:
+//   - an Update for the start: the start state and the states its ε-moves reach;
+//   - an Update per symbol read: every arrow the active states take on it, then the ε-moves from there;
+//   - a Reject when no active state can read the next symbol (one outside the alphabet included): every branch dies;
+//   - at the end, an Accept on the accept states among the active ones (a run accepts), or a Reject on the active
+//     states when none of them accepts;
+//   - the Done, with whether a run accepts.
 class NFASubsetSolver : ISolver<NFA, ActiveStates> {
     public string solverName { get; } = "NFA Subset Simulation";
     public string solverDefinition { get; } = "Tracks the set of states the NFA can be in after each input symbol, following ε-transitions, and accepts when an accept state is in the set once the input is used up. Every branch runs at once, so the work is polynomial. For each accept state reached it returns one accepting run.";
@@ -26,13 +35,20 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
 
     public NFASubsetSolver() { }
 
+    // How the steps show the simulation: the active states, how many symbols are read, and the states the step is about.
+    // The arrows the step took are in `taken`.
+    private static RunSteps<(IReadOnlyList<string> Active, int Read, IReadOnlyList<string> On), ActiveStates> NewSteps(
+        StepRecorder<ActiveStates> rec, List<(string From, string To)> taken) => new(rec,
+        // What every picture shows: the active states, and how far into the input the simulation is.
+        partial: s => new ActiveStates(s.Active, s.Read),
+        // The states the step is about, then every arrow it took.
+        focus: s => [.. s.On.Select(StateId), .. taken.Select(t => TransitionId(t.From, t.To)).Distinct()]);
+
     public string solve(NFA problem) => Solve(problem, StepRecorder<ActiveStates>.Off);
 
-    // Steps, for the Automaton picture (ids from AutomatonFrames): a Try for the start (the start state and its ε-closure;
-    // focus: the start state and the ε arrows followed), a Try per symbol read (the new set; focus: every arrow taken,
-    // ε moves included), a Reject when no active state can read the next symbol, one outside the alphabet included (every
-    // branch dies; the set is empty), then an Accept on the accept states in the final set or a Reject on the set, and Done.
-    // Recorder state lives only in this call.
+    // Keeps the set of states the NFA can be in: start with the start state's ε-closure, then for each symbol move every
+    // active state along its arrows for it and take the ε-closure of where they land. A run accepts when an accept state
+    // is active once the input is used up.
     public string Solve(NFA problem, StepRecorder<ActiveStates> rec) {
         string input = problem.inputString == "ε" ? "" : problem.inputString;
 
@@ -42,7 +58,9 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
 
         // How each (state, position) was first reached, so one run can be read back for each accept state.
         var parent = new Dictionary<(string State, int Pos), (string State, int Pos)>();
+        // The arrows the current step took (symbol and ε moves), for its focus.
         var taken = new List<(string From, string To)>();
+        var steps = NewSteps(rec, taken);
 
         // The states reachable from `from` at position `pos` by ε moves alone (the states themselves included), in the
         // order they are reached.
@@ -65,17 +83,11 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
             return result;
         }
 
-        string Names(IEnumerable<string> states) => AutomatonFrames.Braces(states);
-        string[] Arrows() => taken.Select(t => AutomatonFrames.TransitionId(t.From, t.To)).Distinct().ToArray();
-
         var active = Closure([problem.startState], 0);
-        {
-            var extra = active.Skip(1).ToList();
-            rec.Try(() => new ActiveStates(active, 0),
-                () => extra.Count == 0 ? $"Start in {problem.startState}."
-                    : $"Start in {problem.startState}, and follow ε to {AutomatonFrames.List(extra)}. The active states are {Names(active)}.",
-                () => [AutomatonFrames.StateId(problem.startState), .. Arrows()]);
-        }
+        if (active.Count == 1)
+            steps.Update((active, 0, [problem.startState]), $"Start in {problem.startState}.");
+        else
+            steps.Update((active, 0, [problem.startState]), $"Start in {problem.startState}, and follow ε to {List(active.Skip(1).ToList())}. The active states are {Braces(active)}.");
 
         for (int i = 0; i < input.Length; i++) {
             char symbol = input[i];
@@ -90,45 +102,41 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
                         moved.Add(e.To);
                     }
                 }
+            // No arrow on the symbol from any active state (so none was taken): every branch dies.
             if (moved.Count == 0) {
-                var stuck = active;
-                bool known = problem.alphabet.Contains(symbol);
-                rec.Reject(() => new ActiveStates([], i),
-                    () => known ? $"Read '{symbol}': no active state has a '{symbol}' transition, so every branch dies."
-                        : $"Read '{symbol}': '{symbol}' is not in the alphabet, so no active state has a move on it, and every branch dies.",
-                    () => stuck.Select(AutomatonFrames.StateId).ToArray());
-                rec.Done(new ActiveStates([], i), false, known ? $"Rejected: every branch died at symbol {pos}, '{symbol}'."
-                    : $"Rejected: every branch died at symbol {pos}, '{symbol}', which is not in the alphabet.");
+                if (problem.alphabet.Contains(symbol)) {
+                    steps.Reject(([], i, active), $"Read '{symbol}': no active state has a '{symbol}' transition, so every branch dies.");
+                    steps.Done(new ActiveStates([], i), false, $"Rejected: every branch died at symbol {pos}, '{symbol}'.");
+                } else {
+                    steps.Reject(([], i, active), $"Read '{symbol}': '{symbol}' is not in the alphabet, so no active state has a move on it, and every branch dies.");
+                    steps.Done(new ActiveStates([], i), false, $"Rejected: every branch died at symbol {pos}, '{symbol}', which is not in the alphabet.");
+                }
                 return offAlphabet is char off ? $"No Solution: Input contains character '{off}' not in NFA alphabet"
                     : "No Solution Exists: No run accepts the input";
             }
             int symbolMoves = taken.Count;
             active = Closure(moved, pos);
-            var now = active;
             bool viaEpsilon = taken.Count > symbolMoves;
-            rec.Try(() => new ActiveStates(now, pos),
-                () => $"Read '{symbol}'. The active states are now {Names(now)}{(viaEpsilon ? ", including ε moves" : "")}.",
-                () => Arrows());
+            steps.Update((active, pos, []), $"Read '{symbol}'. The active states are now {Braces(active)}{(viaEpsilon ? ", including ε moves" : "")}.");
         }
 
+        // The end check takes no arrows.
+        taken.Clear();
         var accepting = active.Where(problem.acceptStates.Contains).ToList();
         if (accepting.Count == 0) {
-            var end = active;
-            rec.Reject(() => new ActiveStates(end, input.Length),
-                () => $"The input is used up with {Names(end)} active, and none of them is an accept state.",
-                () => end.Select(AutomatonFrames.StateId).ToArray());
-            rec.Done(new ActiveStates(end, input.Length), false, "Rejected: no run accepts the input.");
+            steps.Reject((active, input.Length, active), $"The input is used up with {Braces(active)} active, and none of them is an accept state.");
+            steps.Done(new ActiveStates(active, input.Length), false, $"Rejected: no run accepts the input.");
             return "No Solution Exists: No run accepts the input";
         }
 
-        rec.Accept(() => new ActiveStates(accepting, input.Length),
-            () => $"The input is used up with {Names(active)} active; {AutomatonFrames.List(accepting)} {(accepting.Count == 1 ? "is an accept state" : "are accept states")}, so a run accepts.",
-            () => accepting.Select(AutomatonFrames.StateId).ToArray());
-        rec.Done(new ActiveStates(accepting, input.Length), true,
-            accepting.Count == 1 ? "Accepted: a run ends in an accept state." : $"Accepted: runs end in {accepting.Count} accept states.");
+        steps.Accept((accepting, input.Length, accepting), $"The input is used up with {Braces(active)} active; {List(accepting)} {(accepting.Count == 1 ? "is an accept state" : "are accept states")}, so a run accepts.");
+        if (accepting.Count == 1)
+            steps.Done(new ActiveStates(accepting, input.Length), true, $"Accepted: a run ends in an accept state.");
+        else
+            steps.Done(new ActiveStates(accepting, input.Length), true, $"Accepted: runs end in {accepting.Count} accept states.");
 
         // One run per accept state reached, read back from how each (state, position) was first reached. Each line is a
-        // certificate NFAVerifier accepts ("1,2") (#896).
+        // certificate NFAVerifier accepts ("1,2").
         var lines = accepting.Select(a => {
             var run = new List<string>();
             var at = (State: a, Pos: input.Length);

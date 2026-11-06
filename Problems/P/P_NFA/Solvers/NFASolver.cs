@@ -5,9 +5,20 @@ using API.Problems.P.P_NFA;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static API.Interfaces.Graphs.AutomatonFrames;
 
 namespace API.Problems.P.P_NFA.Solvers;
 
+// The steps NFA Backtracking records, for the Automaton picture (ids from AutomatonFrames). The search follows one run
+// at a time, depth first:
+//   - an Update for the start state;
+//   - an Update per move a run makes (an ε-move, or reading the next symbol): the run follows one arrow;
+//   - an Accept when a run uses up the input in an accept state: the search keeps that run;
+//   - a Reject when a run is a dead end: it has no move left and does not accept;
+//   - a Backtrack each time the search backs out of a move to try the next one;
+//   - the Done, with the end states of every accepting run.
+// NFATableVisualization reads the runs back from these steps (RunsFromSteps): an Update is recorded as a Try, the first
+// one is the start, and each later one is a move.
 class NFASolver : ISolver<NFA, ActiveStates> {
     public string solverName { get; } = "NFA Backtracking";
     public string solverDefinition { get; } = "This solver enumerates all accepting runs of a nondeterministic finite automaton (returns all successful state sequences).";
@@ -27,14 +38,22 @@ class NFASolver : ISolver<NFA, ActiveStates> {
 
     public NFASolver() { }
 
+    // How the steps show the search: the state the run is in, how many symbols it has read, and the arrow the step is
+    // about (a move taken or backed out of; null when the step is about the state alone).
+    private static RunSteps<(string In, int Read, (string From, string To)? Arrow), ActiveStates> NewSteps(StepRecorder<ActiveStates> rec) => new(rec,
+        // What every picture shows: the state the run is in, and how far into the input it is.
+        partial: s => new ActiveStates([s.In], s.Read),
+        // The arrow the step is about; else the state the run is in.
+        focus: s => s.Arrow is { } arrow ? [TransitionId(arrow.From, arrow.To)] : [StateId(s.In)]);
+
     public string solve(NFA problem) => Solve(problem, StepRecorder<ActiveStates>.Off);
 
-    // Steps: Try for each move taken (an input symbol or an epsilon move), Accept when a run uses up the
-    // input in an accept state, Reject at a dead end, Backtrack when the search backs out of a move, and
-    // Done with the end states of all accepting runs. Focus names ids of the Automaton picture (AutomatonFrames): the
-    // arrow of a move (taken or backed out of), the state of an Accept or a Reject. Recorder state lives only in this call.
+    // A depth-first search over the NFA's runs: from each (state, position), follow every ε-move, and every move on the
+    // next symbol, recursing on each and backing out to try the next. A run that uses up the input in an accept state is
+    // kept. A (state, position) already on the current run is not entered again, so ε cycles end.
     public string Solve(NFA problem, StepRecorder<ActiveStates> rec) {
         SolveProbe.Hit(GetType());
+        var steps = NewSteps(rec);
         // Normalize empty-input representation "ε"
         string rawInput = problem.inputString ?? "";
         string input = rawInput == "ε" ? "" : rawInput;
@@ -53,8 +72,7 @@ class NFASolver : ISolver<NFA, ActiveStates> {
             bool moved = false;
             if (acceptingHere) {
                 acceptPaths.Add(new List<string>(path));
-                rec.Accept(() => new ActiveStates([state], pos),
-                    () => $"The input is used up in {state}, an accept state: this run accepts.", () => [AutomatonFrames.StateId(state)]);
+                steps.Accept((state, pos, null), $"The input is used up in {state}, an accept state: this run accepts.");
                 // Do not return: still allow further epsilon transitions that may produce other accept runs
             }
 
@@ -65,11 +83,9 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                 visitedPerPath.Add(key);
                 path.Add(e.To);
                 moved = true;
-                rec.Try(() => new ActiveStates([e.To], pos),
-                    () => $"Take an ε-move from {state} to {e.To}.", () => [AutomatonFrames.TransitionId(state, e.To)]);
+                steps.Update((e.To, pos, (state, e.To)), $"Take an ε-move from {state} to {e.To}.");
                 DFS(e.To, pos, path, visitedPerPath);
-                rec.Backtrack(() => new ActiveStates([state], pos),
-                    () => $"Back out of {e.To} to {state} to try another move.", () => [AutomatonFrames.TransitionId(state, e.To)]);
+                steps.Backtrack((state, pos, (state, e.To)), $"Back out of {e.To} to {state} to try another move.");
                 path.RemoveAt(path.Count - 1);
                 visitedPerPath.Remove(key);
             }
@@ -83,48 +99,49 @@ class NFASolver : ISolver<NFA, ActiveStates> {
                     visitedPerPath.Add(key);
                     path.Add(e.To);
                     moved = true;
-                    rec.Try(() => new ActiveStates([e.To], pos + 1),
-                        () => $"Read '{need}': move from {state} to {e.To}.", () => [AutomatonFrames.TransitionId(state, e.To)]);
+                    steps.Update((e.To, pos + 1, (state, e.To)), $"Read '{need}': move from {state} to {e.To}.");
                     DFS(e.To, pos + 1, path, visitedPerPath);
-                    rec.Backtrack(() => new ActiveStates([state], pos),
-                        () => $"Back out of {e.To} to {state} to try another move.", () => [AutomatonFrames.TransitionId(state, e.To)]);
+                    steps.Backtrack((state, pos, (state, e.To)), $"Back out of {e.To} to {state} to try another move.");
                     path.RemoveAt(path.Count - 1);
                     visitedPerPath.Remove(key);
                 }
             }
 
+            // A dead end: no move left, and the run does not accept here.
             if (!moved && !acceptingHere) {
-                rec.Reject(() => new ActiveStates([state], pos),
-                    () => pos < input.Length
-                        ? problem.alphabet.Contains(input[pos])
-                            ? $"{state} has no move on '{input[pos]}': this run is a dead end."
-                            : $"'{input[pos]}' is not in the alphabet, so {state} has no move on it: this run is a dead end."
-                        : $"The input is used up in {state}, which is not an accept state: this run is a dead end.",
-                    () => [AutomatonFrames.StateId(state)]);
+                if (pos >= input.Length)
+                    steps.Reject((state, pos, null), $"The input is used up in {state}, which is not an accept state: this run is a dead end.");
+                else if (problem.alphabet.Contains(input[pos]))
+                    steps.Reject((state, pos, null), $"{state} has no move on '{input[pos]}': this run is a dead end.");
+                else
+                    steps.Reject((state, pos, null), $"'{input[pos]}' is not in the alphabet, so {state} has no move on it: this run is a dead end.");
             }
         }
 
         // Seed DFS with start state
         var startPath = new List<string> { problem.startState };
         var startVisited = new HashSet<(string, int)> { (problem.startState, 0) };
-        rec.Try(() => new ActiveStates([problem.startState], 0),
-            () => $"Start in {problem.startState}.", () => [AutomatonFrames.StateId(problem.startState)]);
+        steps.Update((problem.startState, 0, null), $"Start in {problem.startState}.");
         DFS(problem.startState, 0, startPath, startVisited);
 
         // Build output
         if (offAlphabet is char off) {
-            rec.Done(new ActiveStates([], input.Length), false, $"Rejected: '{off}' is not in the alphabet, so no run can read the whole input.");
+            steps.Done(new ActiveStates([], input.Length), false, $"Rejected: '{off}' is not in the alphabet, so no run can read the whole input.");
             return $"No Solution: Input contains character '{off}' not in NFA alphabet";
         }
         if (acceptPaths.Count == 0) {
-            rec.Done(new ActiveStates([], input.Length), false, "Rejected: no run accepts the input.");
+            steps.Done(new ActiveStates([], input.Length), false, $"Rejected: no run accepts the input.");
             return "No Solution Exists: No run accepts the input";
         }
 
-        rec.Done(new ActiveStates(acceptPaths.Select(p => p[^1]), input.Length), true,
-            acceptPaths.Count == 1 ? "Accepted: one run accepts the input." : $"Accepted: {acceptPaths.Count} runs accept the input.");
+        // The Done shows the state every accepting run ends in.
+        var ends = new ActiveStates(acceptPaths.Select(p => p[^1]), input.Length);
+        if (acceptPaths.Count == 1)
+            steps.Done(ends, true, $"Accepted: one run accepts the input.");
+        else
+            steps.Done(ends, true, $"Accepted: {acceptPaths.Count} runs accept the input.");
 
-        // One accepting run per line, each a certificate NFAVerifier accepts ("1,2") (#896).
+        // One accepting run per line, each a certificate NFAVerifier accepts ("1,2").
         var sb = new StringBuilder();
         foreach (var p in acceptPaths) {
             sb.AppendLine(string.Join(",", p));
