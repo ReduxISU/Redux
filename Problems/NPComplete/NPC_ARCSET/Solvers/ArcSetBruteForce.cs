@@ -39,6 +39,7 @@ class ArcSetBruteForce : ISolver<ARCSET> {
         UtilCollectionGraph graph = arc.graph;
 
         foreach (UtilCollection potentialSolution in graph.Edges.ChooseUpTo(arc.K)) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             string certificate = potentialSolution.ToString();
             if (arc.defaultVerifier.verify(arc, certificate)) return certificate;
         }

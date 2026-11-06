@@ -110,4 +110,46 @@ public class LOSSLESSDATACOMPRESSION_Tests {
         Assert.Equal("()", result);
         Assert.True(problem.defaultVerifier.verify(problem, result));
     }
+
+    // optimality (#712): the verifier accepts only optimal-length prefix-free codes
+
+    [Theory]
+    // three equally frequent symbols: several optimal codes exist (any choice of which symbol gets the short code)
+    [InlineData("aabbcc", "({(97,0),(98,10),(99,11)},0010101111)", true)]
+    [InlineData("aabbcc", "({(99,0),(97,10),(98,11)},1010111100)", true)]
+    [InlineData("aabbcc", "({(98,0),(99,10),(97,11)},1111001010)", true)]
+    // prefix-free and decodes correctly, but 12 bits instead of the optimal 10
+    [InlineData("aabbcc", "({(97,00),(98,01),(99,10)},000001011010)", false)]
+    // banana: optimal is 9 bits; giving the frequent letter a long code costs more
+    [InlineData("banana", "({(97,10),(98,0),(110,11)},011011011010)", false)]
+    [InlineData("banana", "({(97,0),(98,10),(110,11)},100110110)", true)]  // a different optimal tie-break
+    [InlineData("banana", "({(97,0),(98,10),(110,11)},0110110100)", false)] // decodes to a different string
+    [InlineData("banana", "({(97,0),(98,11),(110,10)},110100100)", true)]
+    // single symbol: one bit per symbol is optimal, two bits per symbol is not
+    [InlineData("aaa", "({(97,0)},000)", true)]
+    [InlineData("aaa", "({(97,00)},000000)", false)]
+    // not prefix-free
+    [InlineData("aabbcc", "({(97,0),(98,01),(99,1)},0001010111)", false)]
+    // malformed certificates return false rather than throwing
+    [InlineData("abc", "", false)]
+    [InlineData("abc", "garbage", false)]
+    [InlineData("abc", "({(97,x),(98,10),(99,11)},0x011)", false)]
+    [InlineData("abc", "({(97,0),(98,10),(99,11)},01012)", false)]
+    [InlineData("abc", "({},)", false)]
+    [InlineData("abc", "()", false)]
+    public void LOSSLESS_Verifier_Requires_Optimal_Length(string instance, string certificate, bool expected) {
+        LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
+        Assert.Equal(expected, problem.defaultVerifier.verify(problem, certificate));
+    }
+
+    [Theory]
+    [InlineData("a")]
+    [InlineData("ab")]
+    [InlineData("aaaabbbcc")]
+    [InlineData("this is an example of lossless data compression using huffman encoding")]
+    public void LOSSLESS_Verifier_Accepts_Solver_Output(string instance) {
+        LOSSLESSDATACOMPRESSION problem = new LOSSLESSDATACOMPRESSION(instance);
+        string solution = problem.defaultSolver.solve(problem);
+        Assert.True(problem.defaultVerifier.verify(problem, solution));
+    }
 }

@@ -42,6 +42,8 @@ class SUDOKU : IProblem<SudokuSolver, SudokuVerifier, SudokuVisualization> {
     // same NP-complete family.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
+    // Variant (#616): Judgement call: no bound or objective; the question is whether the clues can be completed.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     // TODO: keep Eric? I think so but not sure
     public string[] contributors { get; } = { "Eric Hill", "Carter Luker", "Collin M Kress", "Danny Fawson" };
 

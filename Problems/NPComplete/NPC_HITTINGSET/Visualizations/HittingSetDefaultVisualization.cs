@@ -7,8 +7,8 @@ using API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 namespace API.Problems.NPComplete.NPC_HITTINGSET.Visualizations;
 
 class HittingSetDefaultVisualization : IVisualization<HITTINGSET, API_SET> {
-    public string visualizationName { get; } = "Hitting Set Visualization";
-    public string visualizationDefinition { get; } = "This is a default visualization for Hitting Set";
+    public string visualizationName { get; } = "Exact Hitting Set Visualization";
+    public string visualizationDefinition { get; } = "This is a default visualization for Exact Hitting Set";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Andrija Sevaljevic" };

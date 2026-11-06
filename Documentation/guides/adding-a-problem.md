@@ -23,19 +23,28 @@ Everyday analogy: a problem is a recipe card in a recipe box. The card says what
 
 In Redux:
 
-- A problem is one C# class, for example `SUBSETSUM`. It implements `IProblem<Solver, Verifier, Visualization>` ([Interfaces/ProblemInterface.cs](../../Interfaces/ProblemInterface.cs)). The three type parameters name its **default solver, default verifier, and default visualization**.
+- A problem is one C# class, for example `SUBSETSUM`. It implements `IProblem` ([Interfaces/ProblemInterface.cs](../../Interfaces/ProblemInterface.cs)).
+- The class does **not** name its default solver, verifier, or visualization. Each of those classes says which problem it is the default for, with an attribute: `[DefaultFor(typeof(SUBSETSUM))]` ([Interfaces/DefaultFor.cs](../../Interfaces/DefaultFor.cs)).
+- Older problems, including the worked example `SUBSETSUM`, name all three in the class instead, as type parameters: `IProblem<Solver, Verifier, Visualization>`. That still works, but new problems use plain `IProblem` and the attribute.
 - The class holds the problem's description (name, definitions, citation), its default instance, and the code that **parses** (reads) an instance string into C# fields.
 - You do not write a controller or register anything. Redux finds every problem class automatically (see section 3), and the API exposes it.
 
-### The minimum you need so it compiles
+### The minimum you need
 
-Because of those three type parameters, a problem cannot compile alone. You need at least:
+The problem class compiles on its own. Until a class declares `[DefaultFor(typeof(YourProblem))]`, the problem uses a placeholder for that kind ([Interfaces/DummyClasses/](../../Interfaces/DummyClasses/)): `DummySolver` answers `""`, `DummyVisualization` draws nothing, and with `DummyVerifier` the verify endpoint answers 400 `no_verifier`.
 
-| Piece | Minimum | Where to learn how |
+**The problem class alone is a complete pull request** (#919). The solver, verifier and visualization can each come in the same PR or a later one, from you or someone else:
+
+| Piece | Needed? | Where to learn how |
 | --- | --- | --- |
-| Default solver | One class implementing `ISolver<YourProblem>` | [adding-a-solver.md](adding-a-solver.md) |
-| Default verifier | One class implementing `IVerifier<YourProblem>` | [adding-a-verifier.md](adding-a-verifier.md) |
-| Default visualization | A real one, **or** the built-in `DummyVisualization` placeholder | [adding-a-visualization.md](adding-a-visualization.md) |
+| The problem class | Yes | This guide |
+| Default solver | Optional. One class implementing `ISolver<YourProblem>`, marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-solver.md](adding-a-solver.md) |
+| Default verifier | Optional. One class implementing `IVerifier<YourProblem>`, marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-verifier.md](adding-a-verifier.md) |
+| Default visualization | Optional. A real one marked `[DefaultFor(typeof(YourProblem))]` | [adding-a-visualization.md](adding-a-visualization.md) |
+
+**Only commit the parts you have finished.** If you are not writing a solver, verifier or visualization yet, delete its generated file instead of leaving it half done. The placeholder takes its place, and the tests pass. Also delete any tests that use the deleted part and the `using` line for its folder (`...Solvers` or `...Verifiers`), or the test project will not compile. A generated file left with `TODO`s, `Unclassified` values or `NotImplementedException` fails the tests on purpose.
+
+A problem has at most one `[DefaultFor]` class of each kind; a test checks that (section 5).
 
 `DummyVisualization` ([Interfaces/DummyClasses/DummyVisualization.cs](../../Interfaces/DummyClasses/DummyVisualization.cs), namespace `API.DummyClasses`) is the official "no visualization yet" answer. The worked example below uses it. If you do write a real visualization that introduces a new drawing type, the extra steps (a manifest file and a GUI check) are in [adding-a-visualization.md](adding-a-visualization.md).
 
@@ -85,7 +94,7 @@ Rules that matter:
 | Namespace | Matches the folder path, see the table above | `API.Problems.NPComplete.NPC_SUBSETSUM` |
 | Class name | Unique across the project; **no** `NPC_`/`NPH_`/`P_` prefix | `SUBSETSUM` |
 | Sub-folders | `Solvers/`, `Verifiers/`, `Visualizations/`, `ReduceTo/`, each with its own sub-namespace | `...NPC_SUBSETSUM.Solvers` |
-| Implements | `IProblem<Solver, Verifier, Visualization>`, or `IGraphProblem<...>` for graph problems | `IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualization>` |
+| Implements | `IProblem`, or `IGraphProblem` for graph problems | `IProblem` (the older worked example uses `IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualization>`) |
 
 **The folder is a filing label, not the truth.** A problem's real complexity class is the `complexityClass` value you declare in the class ([Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs)). The API trusts that value, not the folder. A few existing problems sit in a folder that does not match their declared class (for example `NPC_MAXCUT` declares `NPHard`). Put yours in the folder that matches your declared class, and make the two agree.
 
@@ -149,21 +158,25 @@ Paths are from the repo root (the folder that contains `Redux.slnx`), shown for 
 | `README.md` | Nowhere. It is not copied into the repo. | Reference only: a field-by-field description of every member you fill in. Read it, then leave it in the zip. |
 | `NPC_SUBSETSUM/SUBSETSUM_Class.cs` | `Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs` | The problem class. Fill in the metadata and the constructor that parses the instance (Steps 2 and 3). |
 | `NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Solvers/SubsetSumSolver.cs` | The default solver. Throws `NotImplementedException` until you write it ([adding-a-solver.md](adding-a-solver.md)). |
-| `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | The default verifier, already named `"Default Subset Sum Verifier"`. Throws `NotImplementedException` until you write it ([adding-a-verifier.md](adding-a-verifier.md)). |
-| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | A starting visualization ([adding-a-visualization.md](adding-a-visualization.md)). **If you use `DummyVisualization` instead, delete this file and the `Visualizations` folder**, and point the class's `defaultVisualization` at `DummyVisualization`. |
+| `NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumVerifier.cs` | The default verifier, already named `"Subset Sum Solution Verifier"`. Throws `NotImplementedException` until you write it ([adding-a-verifier.md](adding-a-verifier.md)). |
+| `NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Visualizations/SubsetSumVisualization.cs` | A starting visualization ([adding-a-visualization.md](adding-a-visualization.md)). **If you use `DummyVisualization` instead, delete this file and the `Visualizations` folder.** With no `[DefaultFor]` visualization, the problem uses `DummyVisualization` by itself. |
 | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | `redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs` | Your test file. Some tests are finished and some contain a `TODO` and fail on purpose until you fill them in (section 5 below). |
 
 The `NPC_` folders go under `Problems/NPComplete/`, as in the table. If your problem belongs in `Problems/NPHard/` or `Problems/P/`, put the folder there instead, rename it with the `NPH_` or `P_` prefix, and fix the namespaces in the class, solver, verifier, and visualization (see section 3). The test file's folder uses the same prefix, and its `using` lines need the same fix.
 
 There are separate download endpoints for just a solver, verifier, visualization, or reduction. Those are covered in the matching guides.
 
+The generated solver, verifier, and visualization each start with `[DefaultFor(typeof(SUBSETSUM))]`, which makes them the problem's defaults. The class file names none of them, so it compiles even before you copy the other three in.
+
 **The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
-1. In the class, `complexityClass` and `problemType` are declared as `Unclassified` (Step 2).
-2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `complexity` are left for you to fill in. The verifier is already named `"Default <Problem Name> Verifier"`, which is what a test requires. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
+1. In the class, `complexityClass`, `problemType` and `problemVariant` are declared as `Unclassified` (Step 2).
+2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `timeComplexity` are left for you to fill in. The verifier is already named `"<Problem Name> Solution Verifier"`; change it to the optimality form only if its implemented behavior proves optimality. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
 3. The generated visualization has `VisualizationType.Unimplemented`. A test rejects new classes that stay `Unimplemented`. Either finish it ([adding-a-visualization.md](adding-a-visualization.md)) or delete the generated visualization and use `DummyVisualization`.
 
-Also remove every `"TODO"` before you open the PR (the contributor name `"TODO"` is tolerated by one test, but it is not acceptable in a PR).
+The same goes for the solver and verifier: if you are not writing one in this PR, delete its generated file, and the problem uses the placeholder.
+
+Also remove every `"TODO"` before you open the PR. A test fails on any value that still has one, and names the class and field (section 5).
 
 ### Step 2. Fill in the members
 
@@ -172,42 +185,46 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 | Member | What it is for | Worked example value |
 | --- | --- | --- |
 | `problemName` | The name people see in the GUI. | `"Subset Sum"` |
-| `problemLink` | A link to a page that explains the problem. Not in the interface, but every template and problem has it. | the Wikipedia page |
+| `problemLink` | A link to a page that explains the problem. | the Wikipedia page |
 | `formalDefinition` | The problem written like math: `Name = <inputs> \| condition`. | `"Subset Sum = <S, T> \| S is a set of positive integers and ..."` |
 | `problemDefinition` | The same idea in plain English. | `"The problem is to determine whether there exists a sum of elements that totals to the number T."` |
 | `inputDescription` | A short name for the input. | `"S, a set of integers, and T, a target sum"` |
 | `outputDescription` | A short description of the answer. | `"True or False, whether some subset of S sums to T"` |
 | `source` | A proper citation for where the problem comes from. | Karp, "Reducibility among combinatorial problems", 1972 |
 | `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
-| `sourceLink` | A link to that citation. Not in the interface, but present in the template and in problems. | the Karp PDF link |
+| `sourceLink` | A link to that citation. Optional in the interface (it defaults to `""`), but the template has it; fill it in. | the Karp PDF link |
 | `defaultInstance` | A reasonably sized example instance. Used by the tests and the GUI. It **must** parse. | `"({1,7,12,15},28)"` |
 | `instance` | The instance string this object was built from. The constructor sets it. | set in the constructor |
 | `instanceFormat` | One sentence plus a real example that tells a human, the GUI, or an AI agent how to write an instance. Returned inside every parse-error response. | `"Format: {(S,T) \| S subset int, T is int} Example: ({1,7,12,15},28)"` |
 | `certificateFormat` | The same, for the certificate the **default verifier** accepts. | built from the verifier's `CertificateGrammar` and `CertificateExample` |
 | `complexityClass` | The complexity class you declare (see below). | `ComplexityClass.NPComplete` |
-| `problemType` | The subject area you declare (see below). | `ProblemType.SetsAndPartitions` |
+| `problemType` | The subject areas you declare (see below). | `ProblemType.SetsAndPartitions` |
+| `problemVariant` | Decision, optimization, or both (see below). | `ProblemVariant.Decision` |
 | `contributors` | Full names of the people who wrote it (see below). | `{ "Garret Stouffer", "Caleb Eardley" }` |
 | `wikiName` | Deprecated, but still required by the interface. Set it to an empty string. | `""` |
-| `defaultSolver` | An object of the default solver. | `new SubsetSumBruteForce()` |
-| `defaultVerifier` | An object of the default verifier. | `new SubsetSumVerifier()` |
-| `defaultVisualization` | An object of the default visualization. | `new DummyVisualization()` |
+| `defaultSolver`, `defaultVerifier`, `defaultVisualization` | The defaults. **Do not declare them** in a new problem: the interface supplies them from the `[DefaultFor]` classes (or the placeholders). Older problems such as the worked example declare them, for example `new SubsetSumBruteForce()`. | not declared |
 
 Your class also needs the **fields that hold the parsed instance** (here a list `S` and a number `T`) and **two constructors** (see Step 3).
 
-**The two declared metadata members** are the ones people forget. The template declares both as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5):
+**The three declared metadata members** are the ones people forget. The template declares them as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5):
 
 - `complexityClass`: pick from [Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs): `P`, `NPComplete`, `NPHard`, `NP`, or one of the quantum classes. It is a public correctness claim the API serves to callers, so check the literature.
-- `problemType`: pick the subject area from [Interfaces/ProblemType.cs](../../Interfaces/ProblemType.cs) (for example `GraphTheory`, `SetsAndPartitions`, `Logic`). Use `Miscellaneous` only when nothing else fits.
+- `problemType`: pick the subject area from [Interfaces/ProblemType.cs](../../Interfaces/ProblemType.cs) (for example `GraphTheory`, `SetsAndPartitions`, `Logic`). Use `Miscellaneous` only when nothing else fits. If several fit, declare each, joined with `|`: `ProblemType.GraphTheory | ProblemType.NetworkDesign`. There is no main one, and the order you write them in doesn't matter.
+- `problemVariant`: `Decision` if the instance carries a bound (like `K`) and the answer is yes/no, which the verifier checks; `Optimization` if the problem asks for the best value or object; `ProblemVariant.Decision | ProblemVariant.Optimization` only if your class really supports both. See [Interfaces/ProblemVariant.cs](../../Interfaces/ProblemVariant.cs).
+
+The API returns each of these as a list in the enum's order (`problemTypes`, `problemVariants`). The old single `problemType` field is still there for older clients, holding the first of the list; it is deprecated, so new code should read the list.
 
 "Declared" means a human decides. No tool computes them for you.
 
-**Contributors.** `contributors` is a list of names. Every name must match a key in [wwwroot/contributorInfo.json](../../wwwroot/contributorInfo.json) exactly (ignoring upper/lower case). A test checks every problem, solver, verifier, visualization, and reduction (section 5). If you are new:
+**Contributors.** `contributors` is a list of full names, one person per array element. A test checks every problem, solver, verifier, visualization, and reduction (section 5). You do not have to edit any other file for a new name: a weekly job adds an entry to [wwwroot/contributorInfo.json](../../wwwroot/contributorInfo.json) after your work merges, and that entry is what puts you on the About Us page.
 
-1. Add an entry for yourself to `wwwroot/contributorInfo.json`, copying the shape of an existing entry: `email`, `education`, `major`, `bio`, `githubUsername`, and the two stats objects.
+If you are already in that file, write your name exactly as it appears there, so your work counts toward your profile. If you want to add your own entry, with a bio, in your PR, you can:
+
+1. Copy the shape of an existing entry: `email`, `education`, `major`, `bio`, `githubUsername`, and the two stats objects.
 2. **Leave both stats objects at zero** (`"reduxStats": { "prsMerged": 0, "reviews": 0 }` and the same for `reduxGuiStats`). A test fails if non-zero counts are committed; the release build fills them in. The tool that does this is in [Tools/ContributorStatsSync](../../Tools/ContributorStatsSync/Program.cs).
 3. A GitHub account can belong to only one entry. If you use a second account, list the extra one under `"otherGithubUsernames"`.
 
-Use full names ("Garret Stouffer", not "Garret"), one name per array element.
+Use full names ("Garret Stouffer", not "Garret").
 
 ### Step 3. Parse the instance
 
@@ -248,7 +265,23 @@ SPADE's own documentation lives in the [SPADE repository](https://github.com/Jet
 | Weighted undirected graph | `{(N,E) \| N is set, E subset {(e, w) \| e is N unorderedcross N, w is int}}` | [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) |
 | Unweighted undirected graph | `{(N,E) \| N is set, E subset N unorderedcross N}` | the template's comments |
 
-**Match existing formats.** If your problem is a graph, a set, or a number list, use the same instance shape as the problems above, so the GUI and reductions can share code. For graph problems, implement `IGraphProblem<Solver, Verifier, Visualization, Graph>` and expose a `graph` property (see [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) and the graph helpers in [Interfaces/graphs](../../Interfaces/graphs/)).
+**Match existing formats.** If your problem is a graph, a set, or a number list, use the same instance shape as the problems above, so the GUI and reductions can share code. For graph problems, implement `IGraphProblem` and expose a `Graph graph` property (the graph helpers are in [Interfaces/graphs](../../Interfaces/graphs/)):
+
+```csharp
+class MYGRAPHPROBLEM : IGraphProblem {
+    // ...the same fields as any other problem...
+    public Graph graph { get; }
+
+    public MYGRAPHPROBLEM(string instance) {
+        this.instance = instance;
+        StringParser parser = new("{(N,E) | N is set, E subset N unorderedcross N}");
+        parser.parse(instance);
+        graph = new UtilCollectionGraph(parser["N"], parser["E"]);
+    }
+}
+```
+
+The property must be declared as `Graph`, not `UtilCollectionGraph`, or the class will not compile. Older problems such as [MAXCUT_Class.cs](../../Problems/NPComplete/NPC_MAXCUT/MAXCUT_Class.cs) use `IGraphProblem<Solver, Verifier, Visualization, GraphType>` instead. If your branch started from that form, switch to `IGraphProblem`, change the property to `Graph`, and put `[DefaultFor(typeof(YourProblem))]` on the parts you keep.
 
 **Throw `ProblemParseException` on bad input.** [Interfaces/ParseExceptions.cs](../../Interfaces/ParseExceptions.cs) defines it. Its arguments are the problem name, the text you received, and a short reason. The controllers catch it and answer with HTTP 400 and your `instanceFormat`, so a caller can fix the input. The worked example does it twice:
 
@@ -273,15 +306,17 @@ If you forget, the API still protects itself. `ParseGuard` ([ParseExceptions.cs]
 
 **Hand parsing** (without SPADE) is allowed for odd formats, as long as the same rules hold: a clear error on bad input, never a crash.
 
-### Step 4. Add the solver, verifier, and visualization
+### Step 4. Add a solver, verifier, or visualization (optional)
 
-Your class refers to these three by name, so they must exist before it compiles. Follow the matching guide for each:
+Your class does not refer to these, so it compiles without them, and the PR doesn't need them. For each one you write, mark the default of its kind `[DefaultFor(typeof(YOURPROBLEM))]`. Follow the matching guide for each:
 
-1. [adding-a-solver.md](adding-a-solver.md): at least one solver, in `Solvers/`. It becomes `defaultSolver`.
-2. [adding-a-verifier.md](adding-a-verifier.md): at least one verifier, in `Verifiers/`. It becomes `defaultVerifier`. Its `CertificateGrammar` and `CertificateExample` constants are what your `certificateFormat` quotes, so the two stay in sync.
-3. [adding-a-visualization.md](adding-a-visualization.md): a real visualization in `Visualizations/`, or `DummyVisualization`.
+1. [adding-a-solver.md](adding-a-solver.md): a solver, in `Solvers/`. The one marked `[DefaultFor]` becomes `defaultSolver`.
+2. [adding-a-verifier.md](adding-a-verifier.md): a verifier, in `Verifiers/`. The one marked `[DefaultFor]` becomes `defaultVerifier`. Its `CertificateGrammar` and `CertificateExample` constants are what your `certificateFormat` quotes, so the two stay in sync.
+3. [adding-a-visualization.md](adding-a-visualization.md): a real visualization in `Visualizations/`.
 
-Tip: get the problem class compiling with a very small solver and verifier first, then improve them.
+For any you skip, delete the generated file and the problem uses a placeholder: `DummySolver` answers `""`, `DummyVerifier` makes the API answer 400 with "no verifier yet", and `DummyVisualization` draws nothing.
+
+Tip: the problem class runs on its own with the placeholders, so get it parsing and serving its default instance first. Then add a solver and verifier, in this PR or a later one.
 
 ### Step 5. Reductions (optional)
 
@@ -297,15 +332,18 @@ You do not have to register your problem with these tests. They find it automati
 
 | Test file | What it checks about your problem |
 | --- | --- |
+| [Interfaces/DefaultFor_Tests.cs](../../redux-tests/Interfaces/DefaultFor_Tests.cs) | Each `[DefaultFor]` is on a solver, verifier, or visualization, names a problem that class handles, and appears at most once per problem and kind. |
 | [Metadata/ProblemInstantiation_Tests.cs](../../redux-tests/Metadata/ProblemInstantiation_Tests.cs) | Your class can be built with its empty constructor, which means `defaultInstance` parses. A problem that throws here silently disappears from several endpoints. |
 | [Metadata/ComplexityClass_Tests.cs](../../redux-tests/Metadata/ComplexityClass_Tests.cs) | `complexityClass` is not `Unclassified`, and the value is served as text (`"NPComplete"`) by the API. |
 | [Metadata/ProblemType_Tests.cs](../../redux-tests/Metadata/ProblemType_Tests.cs) | `problemType` is not `Unclassified`. |
-| [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier is named exactly `"Default <problemName> Verifier"`, and your solver and reduction names match the naming shapes (see their guides). |
+| [Metadata/ProblemVariant_Tests.cs](../../redux-tests/Metadata/ProblemVariant_Tests.cs) | `problemVariant` is not `Unclassified`. |
+| [Metadata/NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) | The class name has no `P_`, `NPC_`, or `NPH_` prefix. Also, your verifier uses the matching solution or optimality name and is unique within the problem ignoring case, and your solver and reduction names match the naming shapes (see their guides). |
 | [Metadata/VisualizationType_Tests.cs](../../redux-tests/Metadata/VisualizationType_Tests.cs) | Your visualization's `visualizationType` is not `Unimplemented` (only a short list of existing classes, including `DummyVisualization`, is excused), and the list of visualization types matches the manifest [Documentation/visualization-types.json](../visualization-types.json) (only matters if you add a new type). |
-| [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and Big-O text (see [adding-a-solver.md](adding-a-solver.md)). |
-| [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) has an entry in `wwwroot/contributorInfo.json`; the file is valid; committed stats are zero; no GitHub account is shared between two people. |
+| [Metadata/NoPlaceholder_Tests.cs](../../redux-tests/Metadata/NoPlaceholder_Tests.cs) | No value in your problem, solver, verifier, visualization, or reduction still says `TODO`, and your constructor refuses garbage instead of accepting anything. |
+| [Metadata/SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) | Your solver declares its type, complexity bucket, and `timeComplexity` (see [adding-a-solver.md](adding-a-solver.md)). |
+| [Navigation/ContributorProfile_Tests.cs](../../redux-tests/Navigation/ContributorProfile_Tests.cs) | Every name in `contributors` (problems, solvers, verifiers, visualizations, reductions) is one person's full name; `wwwroot/contributorInfo.json` is valid; committed stats are zero; no GitHub account is shared between two people. |
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) to `/problemInstance` for your problem, and to your solver, verifier, and visualization, **never produces a 500**. A bad instance must be a 400. |
-| [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) | The navigation lists put each problem in the list for its declared class, and find its solvers, verifiers, and visualizations. **This one needs an edit from you:** it keeps a hard-coded list of every problem in each class (`NpcProblems_MembershipIsExactlyDeclaredNPComplete`, `PProblems_MembershipIsExactlyDeclaredP`, `NpHardProblems_MembershipIsExactlyDeclaredNPHard`), so the API's lists never change by accident. Add your problem's class name (for example `"SUBSETSUM"`) to the list for the `complexityClass` you declared. |
+| [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) | The navigation lists put each problem in the list for its declared class, and find its solvers, verifiers, and visualizations. Your problem is checked automatically from the `complexityClass` you declare; you do not edit this file. |
 | [Endpoints/ProblemProvider_Endpoint_Tests.cs](../../redux-tests/Endpoints/ProblemProvider_Endpoint_Tests.cs) | `/info` and the other `ProblemProvider` endpoints work across the discovered classes. |
 | [Endpoints/Performance_Tests.cs](../../redux-tests/Endpoints/Performance_Tests.cs) | The `allInfo` and `allProblems` lists, and startup, stay inside a time budget. Building every problem's default instance counts, so keep your constructor fast. These run as a separate "Performance" step; see [building-and-testing.md](building-and-testing.md). |
 
@@ -317,7 +355,7 @@ Those tests only prove the basics. They do not prove your problem, solver, or ve
 
 ### Tests you write yourself
 
-> **The build check won't tell you if you skipped this.** CI checks that every test passes, not that you wrote any. Your own tests are the only thing that proves your code gives the right answers, so reviewers will look for the ones in this guide's checklist. See [building-and-testing.md](building-and-testing.md#4-how-to-read-the-rbs-report).
+> **A problem class on its own doesn't need tests of its own.** The shared tests above already check it. They are optional but welcome. If your PR includes a solver, verifier, visualization or reduction, add tests for that part, as its guide explains. CI checks that every test passes, not that you wrote any, but your own tests are the only thing that proves that code gives the right answers, so reviewers will look for them. See [building-and-testing.md](building-and-testing.md#4-how-to-read-the-rbs-report).
 
 Problem tests live in the test project, one folder per problem:
 
@@ -325,7 +363,7 @@ Problem tests live in the test project, one folder per problem:
 redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs
 ```
 
-**If you used the template download in Step 1, you already have this file.** It is the last file in the zip, `redux-tests/Problems/NPC_<NAME>/<NAME>_Tests.cs`, and it is generated for your problem's name. The generic tests (the default instance builds, bad instances and bad certificates throw the right exceptions, the solver's answer is accepted by the verifier) pass once your code follows the rules. The stub tests (the default instance's fields, a valid certificate, a wrong certificate, no solution, the timer) contain a `TODO` and fail on purpose until you replace each `TODO` with a value you worked out by hand. Copy-paste examples of finished tests are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
+**If you used the template download in Step 1, you already have this file.** If you aren't writing tests, delete it, because its stub tests fail on purpose. If you keep it, also remove the tests for any part you deleted. It is the last file in the zip, `redux-tests/Problems/NPC_<NAME>/<NAME>_Tests.cs`, and it is generated for your problem's name. The generic tests (the default instance builds, bad instances and bad certificates throw the right exceptions, the solver's answer is accepted by the verifier) pass once your code follows the rules. The stub tests (the default instance's fields, a valid certificate, a wrong certificate, no solution, the timer) contain a `TODO` and fail on purpose until you replace each `TODO` with a value you worked out by hand. Copy-paste examples of finished tests are in [building-and-testing.md, section 5](building-and-testing.md#5-required-tests-for-each-kind-of-change).
 
 If you copied the template by hand, create the file yourself at that path, using the template [PROBLEM_Tests.txt](../../ProblemTemplate/Templates/Tests/PROBLEM_Tests.txt) the same way as the other templates.
 
@@ -376,7 +414,7 @@ public void NAME_Constructor_Throws_On_Invalid_Instance(string instance) {
 }
 ```
 
-Aim for at least: one instantiation test, one bad-instance test, and the verifier and solver tests described in their guides.
+If you write tests for the problem class, a good start is one instantiation test and one bad-instance test. If your PR includes a solver or verifier, add the tests described in its guide.
 
 ## 6. Build, test, and get CI green
 
@@ -397,6 +435,14 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM"
 
 (Replace the text after `~` with part of your test names.)
 
+**Check your problem before you push.** This runs the checks on every problem's fields, names and contributors, plus your own tests. Replace `SUBSETSUM` with your class name:
+
+```bash
+dotnet test Redux.slnx -c Release --filter "Category=Metadata|FullyQualifiedName~SUBSETSUM"
+```
+
+Each failure names your class and says what to change. CI still runs every test, so run the full commands above once before you open the PR.
+
 To see your problem working, start the API (see [setup.md](setup.md)) and call `GET /ProblemProvider/info?interface=<ClassName>`. Success looks like a JSON object with your `problemName`, `defaultInstance`, `instanceFormat`, and the declared `complexityClass` as text.
 
 ## 7. Definition of done
@@ -404,23 +450,22 @@ To see your problem working, start the API (see [setup.md](setup.md)) and call `
 A new problem is done when:
 
 - It implements the interfaces correctly.
-- It has at least one solver and one verifier.
+- Any solver, verifier or visualization you include is finished. None is required: the problem class alone is a complete PR.
 - Its tests pass (including the automatic ones above).
-- Every metadata field is filled in. No `"TODO"` is left, and `complexityClass` and `problemType` are declared.
+- Every metadata field is filled in. No `"TODO"` is left, and `complexityClass`, `problemType` and `problemVariant` are declared.
 
 ## 8. Checklist before opening the PR
 
 - [ ] The folder is `Problems/<Folder>/<Prefix>_<NAME>/`, the file is `<NAME>_Class.cs`, and the namespace matches the folder.
 - [ ] The class name is unique in the whole project and has no `NPC_`/`NPH_`/`P_` prefix.
-- [ ] The class implements `IProblem<Solver, Verifier, Visualization>` (or `IGraphProblem<...>`) and has both constructors.
+- [ ] The class implements `IProblem` (or `IGraphProblem`) and has both constructors. It does not declare `defaultSolver`, `defaultVerifier`, or `defaultVisualization`.
 - [ ] `problemName`, `problemLink`, `formalDefinition`, `problemDefinition`, `inputDescription`, `outputDescription`, `source`, and `sourceLink` are filled in.
 - [ ] `defaultInstance` parses, and `instanceFormat` and `certificateFormat` each have a real example.
-- [ ] `complexityClass` and `problemType` are declared (not `Unclassified`), and the folder matches the class.
-- [ ] Your problem's class name is added to the matching hard-coded list in [Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) (NP-complete, P, or NP-hard).
+- [ ] `complexityClass`, `problemType` and `problemVariant` are declared (not `Unclassified`), and the folder matches the class.
 - [ ] Bad instances throw `ProblemParseException`.
-- [ ] There is a default solver, verifier, and visualization (or `DummyVisualization`), each following its own guide.
-- [ ] Every name in every `contributors` list is in `wwwroot/contributorInfo.json`, with stats left at zero.
-- [ ] You added `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`.
+- [ ] Any solver, verifier or visualization you include is finished, marked `[DefaultFor(typeof(YOURPROBLEM))]`, and follows its own guide. Generated files for parts you are not writing yet are deleted.
+- [ ] Every name in every `contributors` list is one person's full name. If you edited `wwwroot/contributorInfo.json`, its stats are left at zero.
+- [ ] If your PR includes a solver, verifier, visualization or reduction, you added tests for it in `redux-tests/Problems/<Prefix>_<NAME>/<NAME>_Tests.cs`. A problem class on its own doesn't need this file.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).
 - [ ] The PR targets `CSharpAPI`.
@@ -429,17 +474,17 @@ A new problem is done when:
 
 - **Running `dotnet build` with no file name.** It fails with `MSB1011`. Always add `Redux.slnx`.
 - **Skipping `dotnet format`.** Bad formatting fails the Release build itself, not only a separate check.
-- **Leaving `complexityClass` or `problemType` as `Unclassified`.** The generated template declares both as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
-- **Forgetting the hard-coded list in `Navigation_Endpoint_Tests.cs`.** This failure only appears *after* you declare `complexityClass`, so it can look like fixing one test broke another. The message says `NPC_ProblemsRefactor membership changed` (or the P / NP-hard version) and prints an Expected and an Actual list. Your problem is the one name in Actual that is missing from Expected. Add it to that test's list.
+- **Leaving `complexityClass`, `problemType` or `problemVariant` as `Unclassified`.** The generated template declares them as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
+- **Committing half-finished generated files.** A solver, verifier or visualization left with `TODO`s, `Unclassified` values or `NotImplementedException` fails the tests. Finish it, or delete the file and let the placeholder stand in.
 - **A class name with a prefix** such as `NPC_MYPROBLEM`. The folder gets the prefix, the class does not.
 - **Reusing a class name**, even with different capitals. Names are keys, ignoring case. A duplicate crashes startup.
 - **Folder and declared class disagree**, or the namespace does not match the folder.
 - **A `defaultInstance` that does not parse.** The empty constructor fails, and the problem vanishes from several endpoints.
 - **Not throwing `ProblemParseException`** (or letting a weird exception escape from the solver instead of the constructor). Garbage input must give a 400, never a 500.
 - **Only checking the shape of the input.** `{1,x,3}` looks like a set. Check that each value is a number.
-- **Renaming the generated verifier away from `"Default <Problem Name> Verifier"`.** The template already uses that name, and a test requires it. If you change the problem's `problemName`, change the verifier's name to match.
+- **Giving the generated verifier a name outside the solution/optimality forms.** The template uses `"<Problem Name> Solution Verifier"`. If you change the problem's `problemName`, change the verifier's name to match; use the optimality form only when its behavior proves optimality.
 - **A generated visualization left as `Unimplemented`.** Finish it or use `DummyVisualization`.
-- **A name in `contributors` that is not in `contributorInfo.json`**, or a first name only. Use the full name as it appears in the file.
+- **A first name only, or several people in one string, in `contributors`.** Use one full name per array element, written as it appears in `contributorInfo.json` if you are already there.
 - **Committing non-zero contributor stats.** Leave them at zero.
 - **Writing a controller.** Not needed. Reflection exposes your class.
 - **Editing the test allowlists** to turn a failure green. Fix the cause.

@@ -34,14 +34,13 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
 
     // --- Methods ---
 
+    // On any failure of the quantum service this throws SolverUnavailableException (HTTP 503 solver_unavailable), never
+    // an error text in place of the answer (#625).
     public string solve(BERNSTEINVAZIRANI problem) {
-        try {
-            // Get the function values as a boolean array
-            bool[] requestBody = problem.funcValues.ToArray();
+        // Get the function values as a boolean array
+        bool[] requestBody = problem.funcValues.ToArray();
 
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/bernstein-vazirani-quantum", requestBody).Result;
 
@@ -49,8 +48,12 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
-                string answer = answerElement.GetString() ?? "No answer found";
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer", out JsonElement answerElement)
+                && answerElement.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(answerElement.GetString())) {
+                string answer = answerElement.GetString()!;
+                // Anything but exactly NBits binary digits is not an answer: fail as a missing one does, not pass it on (#625).
+                if (answer.Length != problem.NBits || answer.Any(c => c != '0' && c != '1'))
+                    throw new InvalidDataException($"its 'answer' is not {problem.NBits} binary digits: {response}");
                 // Quantum server returns a bare bit string ("101"); translate to certificate format
                 UtilCollection result = new("()");
                 foreach (char c in answer)
@@ -58,11 +61,8 @@ class BernsteinVaziraniQuantumSolver : ISolver<BERNSTEINVAZIRANI> {
                 return result.ToString();
             }
 
-            // If no answer field, return the whole response
-            return response;
-        } catch (Exception ex) {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
-        }
+            // No answer in the response: not an answer to pass on.
+            throw QuantumServerAPI.MissingAnswer("answer", response);
+        });
     }
 }

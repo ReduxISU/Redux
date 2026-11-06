@@ -6,12 +6,12 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Verifiers;
 
 class GraphColoringVerifier : IVerifier<GRAPHCOLORING> {
     public const string CertificateGrammar = "{c1,...,cK} | color classes partition N, no edge in E has both endpoints in the same class";
-    public const string CertificateExample = "{{a},{b,d,f,h},{c,e,g,i}}";
+    public const string CertificateExample = "{{a,f},{b,d},{c,e}}";
 
 
 
     #region Fields
-    public string verifierName { get; } = "Default Graph Coloring Verifier";
+    public string verifierName { get; } = "Graph Coloring Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Graph Coloring.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

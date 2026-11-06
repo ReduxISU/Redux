@@ -12,9 +12,9 @@
 
 
   <ItemGroup>
-    <PackageReference Include="NCalc" Version="7.2.0" />
+    <PackageReference Include="NCalc" Version="7.3.0" />
     <PackageReference Include="SPADE" Version="0.1.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
     <Content Include="Problems\**" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="ProblemTemplate\Templates\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
@@ -35,6 +35,14 @@
     <Compile Remove="Tools/ContributorStatsSync/**" />
     <Content Remove="Tools/ContributorStatsSync/**" />
     <None Remove="Tools/ContributorStatsSync/**" />
+  </ItemGroup>
+
+  <!-- Integration tests against the built image live in integration/ (Redux.Integration.csproj),
+       outside the solution. Same reasoning again: keep them out of API.dll. -->
+  <ItemGroup>
+    <Compile Remove="integration/**" />
+    <Content Remove="integration/**" />
+    <None Remove="integration/**" />
   </ItemGroup>
 
 

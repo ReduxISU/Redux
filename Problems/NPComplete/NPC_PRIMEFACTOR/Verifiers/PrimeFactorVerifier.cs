@@ -5,10 +5,10 @@ namespace API.Problems.NPComplete.NPC_PRIMEFACTOR.Verifiers;
 
 class PrimeFactorVerifier : IVerifier<PRIMEFACTOR> {
     public const string CertificateGrammar = "(f1,...,fn) | product of factors equals the original number";
-    public const string CertificateExample = "(2,2,3)";
+    public const string CertificateExample = "(3,5)";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Prime Factorization Verifier";
+    public string verifierName { get; } = "Prime Factorization Solution Verifier";
     public string verifierDefinition { get; } = "Verifies that the product of the proposed factors equals the original input number.";
     public string source { get; } = " ";
     public string sourceFile { get; } = SourceFile.Path();

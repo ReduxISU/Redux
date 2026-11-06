@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using API.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -65,8 +66,12 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
     //   - P_ProblemsRefactor: 6 -> 12 (gains the 6 misfiled-as-NPComplete P problems).
     //   - NPHard_ProblemsRefactor: 2 -> 2 (already filed correctly; unchanged).
     // This was verified safe pre-merge: the GUI only calls ALL_ProblemsRefactor
-    // (redux/index.js:328) and never these three per-class endpoints. These exact-set
-    // assertions exist so that fact can't silently stop being true.
+    // (redux/index.js:328) and never these three per-class endpoints.
+    //
+    // Each endpoint must list exactly the top-level problems that declare that class. The
+    // expected set is read from the problems themselves, not kept by hand, so adding a
+    // problem needs no edit here (#919). The named misfiled problems below still guard the
+    // original risk: membership must follow the declared class, never the folder.
 
     private static async Task<HashSet<string>> GetStringSet(HttpClient client, string path) {
         var response = await client.GetAsync(path, TestContext.Current.CancellationToken);
@@ -77,23 +82,23 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
         return new HashSet<string>(arr!, StringComparer.OrdinalIgnoreCase);
     }
 
+    private static HashSet<string> Declared(ComplexityClass complexityClass) =>
+        MetadataReflection.TopLevelClassNames
+            .Where(name => MetadataReflection.Instances.TryGetValue(name, out var instance)
+                && instance.complexityClass == complexityClass)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    private static void AssertSameMembers(string endpoint, HashSet<string> expected, HashSet<string> actual) {
+        Assert.True(expected.SetEquals(actual),
+            $"{endpoint} membership doesn't match the problems' declared complexityClass.\n" +
+            $"Declared: {string.Join(", ", expected.OrderBy(s => s))}\n" +
+            $"Listed:   {string.Join(", ", actual.OrderBy(s => s))}");
+    }
+
     [Fact]
     public async Task NpcProblems_MembershipIsExactlyDeclaredNPComplete() {
         var actual = await GetStringSet(_client, "/Navigation/NPC_ProblemsRefactor");
-        var expected = new HashSet<string>(
-            new[]
-            {
-                "ARCSET", "BINPACKING", "CLIQUE", "CLIQUECOVER", "CUT", "DIRECTEDHAMILTONIAN",
-                "DM3", "DOMINATINGSET", "EXACTCOVER", "GRAPHCOLORING", "HAMILTONIAN",
-                "HITTINGSET", "INDEPENDENTSET", "INTPROGRAMMING01", "JOBSEQ", "KNAPSACK",
-                "NODESET", "PARTITION", "SAT", "SAT3", "SETCOVER", "STEINERTREE",
-                "SUBSETSUM", "SUDOKU", "TSP", "VERTEXCOVER", "WEIGHTEDCUT",
-            },
-            StringComparer.OrdinalIgnoreCase);
-
-        Assert.True(expected.SetEquals(actual),
-            $"NPC_ProblemsRefactor membership changed.\nExpected: {string.Join(", ", expected.OrderBy(s => s))}\n" +
-            $"Actual:   {string.Join(", ", actual.OrderBy(s => s))}");
+        AssertSameMembers("NPC_ProblemsRefactor", Declared(ComplexityClass.NPComplete), actual);
 
         // The six problems Problems/NPComplete/ misfiles as P must NOT be here.
         foreach (var shouldBeGone in new[] { "MINIMUMSPANNINGTREE", "SHORTESTPATH", "TOPOLOGICALSORT", "STRONGLYCONNECTEDCOMPONENTS", "EDITDISTANCE", "CONVEXHULL" })
@@ -111,25 +116,13 @@ public class Navigation_Endpoint_Tests : IClassFixture<AppFactory> {
     [Fact]
     public async Task PProblems_MembershipIsExactlyDeclaredP() {
         var actual = await GetStringSet(_client, "/Navigation/P_ProblemsRefactor");
-        var expected = new HashSet<string>(
-            new[] { "CONVEXHULL", "DFA", "EDITDISTANCE", "LOSSLESSDATACOMPRESSION", "MINCUT", "MINIMUMSPANNINGTREE", "MINSTCUT", "NFA", "NQUEENS", "SPSP", "SSSP", "STRONGLYCONNECTEDCOMPONENTS", "TOPOLOGICALSORT" },
-            StringComparer.OrdinalIgnoreCase);
-
-        Assert.True(expected.SetEquals(actual),
-            $"P_ProblemsRefactor membership changed.\nExpected: {string.Join(", ", expected.OrderBy(s => s))}\n" +
-            $"Actual:   {string.Join(", ", actual.OrderBy(s => s))}");
+        AssertSameMembers("P_ProblemsRefactor", Declared(ComplexityClass.P), actual);
     }
 
     [Fact]
     public async Task NpHardProblems_MembershipIsExactlyDeclaredNPHard() {
         var actual = await GetStringSet(_client, "/Navigation/NPHard_ProblemsRefactor");
-        var expected = new HashSet<string>(
-            new[] { "MAXCUT", "MINIMUMVERTEXCOVER", "PUMPSCHEDULINGCM", "PUMPSCHEDULINGEM" },
-            StringComparer.OrdinalIgnoreCase);
-
-        Assert.True(expected.SetEquals(actual),
-            $"NPHard_ProblemsRefactor membership changed.\nExpected: {string.Join(", ", expected.OrderBy(s => s))}\n" +
-            $"Actual:   {string.Join(", ", actual.OrderBy(s => s))}");
+        AssertSameMembers("NPHard_ProblemsRefactor", Declared(ComplexityClass.NPHard), actual);
     }
 
     // ── Problem_VerifiersRefactor: lookup must not depend on problemType ──────

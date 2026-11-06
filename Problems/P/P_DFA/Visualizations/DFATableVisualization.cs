@@ -1,9 +1,9 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.P.P_DFA;
 using API.Problems.P.P_DFA.Solvers;
-using DFATableStep = API.Problems.P.P_DFA.Solvers.DFASolver.DFATableStep;
 
 namespace API.Problems.P.P_DFA.Visualizations;
 
@@ -15,6 +15,18 @@ class DFATableVisualization : IVisualization<DFA, API_empty> {
     public string[] contributors { get; } = { "Michael Trosper" };
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new DFASolver();
+
+    // Implemented explicitly so it is not a public member (and so not part of /info).
+    Type? IVisualization.StepShape => typeof(ActiveStates);
+
+    // One row of the trace table.
+    private sealed class Row {
+        public int step { get; init; }
+        public string symbol { get; init; } = "-";
+        public string fromState { get; init; } = "-";
+        public string toState { get; init; } = "";
+        public bool accepting { get; init; }
+    }
 
     public DFATableVisualization() { }
 
@@ -31,12 +43,29 @@ class DFATableVisualization : IVisualization<DFA, API_empty> {
     }
 
     public List<API_JSON> StepsVisualization(DFA problem, List<Object> steps) {
-        var dfaSolver = new DFASolver();
-        var tableSteps = dfaSolver.GetTableSteps(problem);
-        return tableSteps.Select(s => (API_JSON)TranslateToTableJSON((DFATableStep)s)).ToList();
+        // The trace is the start state plus one row per transition taken (the solver's Try steps). Every
+        // frame carries every row and only the highlighted row moves, so the table never changes shape.
+        var rows = new List<Row>();
+        string previous = "-";
+        foreach (var s in steps.Cast<SolverStep<ActiveStates>>().Where(s => s.Event == StepEvent.Try)) {
+            string state = s.Partial.States[0];
+            int n = s.Partial.Position;
+            rows.Add(new Row {
+                step = n,
+                symbol = n == 0 ? "-" : problem.inputString[n - 1].ToString(),
+                fromState = previous,
+                toState = state,
+                accepting = problem.acceptStates.Contains(state)
+            });
+            previous = state;
+        }
+
+        return rows
+            .Select((_, i) => (API_JSON)TranslateToTableJSON(rows, i))
+            .ToList();
     }
 
-    private static API_TableJSON TranslateToTableJSON(DFATableStep step) {
+    private static API_TableJSON TranslateToTableJSON(List<Row> rows, int currentRow) {
         var result = new API_TableJSON {
             columns = new List<TableColumn>
             {
@@ -48,9 +77,9 @@ class DFATableVisualization : IVisualization<DFA, API_empty> {
             }
         };
 
-        for (int i = 0; i < step.rows.Count; i++) {
-            var row = step.rows[i];
-            bool isCurrent = i == step.currentRow;
+        for (int i = 0; i < rows.Count; i++) {
+            var row = rows[i];
+            bool isCurrent = i == currentRow;
 
             result.rows.Add(new TableRow {
                 id = row.step.ToString(),

@@ -94,22 +94,22 @@ Every reduction implements the members in [Interfaces/ReductionInterface.cs](../
 | `reductionDefinition` | One sentence on what the algorithm does. | `"Karp's Reduction from Subset Sum to Partition"` |
 | `source` | A proper citation for where the algorithm comes from. | Karp, "Reducibility among combinatorial problems", 1972 |
 | `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
-| `sourceLink` | A link to that source. The template includes it. | the Karp PDF link |
+| `sourceLink` | A link to that source. Optional in the interface (it defaults to `""`), but the template includes it. | the Karp PDF link |
 | `contributors` | Names of the people who wrote it. | `{ "Andrija Sevaljevic" }` |
 | `cost` | How much bigger the produced instance is than the input (see below). | `ReductionCost.Linear` |
 | `reductionType` | What kind of proof technique the construction uses (see below). | `ReductionType.Restriction` |
 | `complexityBucket` | How long `reduce()` takes to run (see below). | `ReductionComplexityBucket.Linear` |
-| `complexity` | Free-text Big-O note about running time. It is not part of the interface, but a metadata test requires it to be non-empty. | `"O(n), n = \|SUBSETSUM.S\|"` |
+| `complexity` | Free-text Big-O note about running time. Required by the interface, and a metadata test requires it to be non-empty. | `"O(n), n = \|SUBSETSUM.S\|"` |
 | `reductionFrom` | The FROM problem instance you were given. | a `SUBSETSUM` |
 | `reductionTo` | The TO problem instance you produced. | a `PARTITION` |
 | `reduce()` | **The actual algorithm.** Reads `reductionFrom`, builds and returns the TO instance. | see Step 3 |
 | `mapSolutions(string)` | Takes a solution to the FROM problem and returns the matching solution to the TO problem. | see Step 4 |
-| `gadgets` | Pieces the GUI draws to show how parts of A become parts of B. Optional: the interface supplies an empty list if you do nothing. | not used here |
+| `gadgets` | Pieces the GUI draws to show how parts of A become parts of B. Optional: the interface supplies an empty list if you do nothing. Build each with `new Gadget(GadgetKind.Element, sourceIds, targetIds)`; `GadgetKind` is the one shared list (`Element`, `Group`, `EdgeRule`, `Palette`, `OrGadget`, `Bound`). Use the same ids as that problem's picture: graph problems use node names; SAT formulas use `c{i}` for clause i, `c{i}-{j}` for its j-th literal, `v:{name}` for a variable. Pass `legacyFromIds`/`legacyToIds` only if the old GUI ids differ (SAT uses `i` and `i-j`). | not used here |
 
 The four **declared metadata** members (`cost`, `reductionType`, `complexityBucket`, and `complexity`) are the ones people forget. Their rules are in [ReductionCost.cs](../../Interfaces/ReductionCost.cs), [ReductionType.cs](../../Interfaces/ReductionType.cs), and [ReductionComplexityBucket.cs](../../Interfaces/ReductionComplexityBucket.cs). The doc comments there explain every choice. Short version:
 
 - `cost`: read your `reduce()`. If the output has about as many numbers/nodes as the input, that is `Linear`. If it loops over all pairs, that is `Quadratic`. And so on.
-- `reductionType`: `Restriction` (the instance is mostly relabeled), `LocalReplacement` (each piece is swapped for a fixed piece), or `ComponentDesign` (gadgets that must work together).
+- `reductionType`: `Restriction` (the instance is mostly relabeled), `LocalReplacement` (each piece is swapped for a fixed piece), or `ComponentDesign` (gadgets that must work together). If the construction uses more than one, declare each, joined with `|`; the API lists them as `reductionTypes` (the single `reductionType` field is deprecated and holds the first).
 - `complexityBucket`: how long `reduce()` itself runs: `Linear`, `Polynomial`, and so on.
 - `complexity`: a Big-O string for `reduce()`, such as `"O(n), n = |SUBSETSUM.S|"`. Only write one you are confident about.
 

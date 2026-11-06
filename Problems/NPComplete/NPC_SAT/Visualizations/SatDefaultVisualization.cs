@@ -25,6 +25,9 @@ class SatDefaultVisualization : IVisualization<SAT, API_SAT> {
         HashSet<string> highlight = new();
         foreach (string item in items) {
             List<string> split = item.Split(":").ToList();
+            // "No solution exists" (an unsatisfiable formula) has no assignments to highlight.
+            if (split.Count != 2)
+                continue;
             if (split[1] == "True")
                 highlight.Add(split[0]);
             else

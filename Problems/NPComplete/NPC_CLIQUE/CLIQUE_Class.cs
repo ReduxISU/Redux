@@ -16,7 +16,7 @@ class CLIQUE : IGraphProblem<CliqueBruteForce, CliqueVerifier, CliqueDefaultVisu
     public string inputDescription { get; } = "G, a graph, and k, the size of clique to find";
     public string outputDescription { get; } = "True or False, whether G contains a clique of size k";
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
-    // Virtual so subclasses (e.g. Inherited/SipserClique) can report their own file.
+    // Virtual so subclasses can report their own file.
     public virtual string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
@@ -38,6 +38,7 @@ class CLIQUE : IGraphProblem<CliqueBruteForce, CliqueVerifier, CliqueDefaultVisu
     // Declared, not derived. CLIQUE is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Properties ---
     public List<string> nodes {

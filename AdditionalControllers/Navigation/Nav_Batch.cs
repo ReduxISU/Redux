@@ -1,3 +1,4 @@
+using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -29,12 +30,14 @@ public class BatchController : ControllerBase {
     // Mirrors ProblemProvider's reflected-object serialization: IncludeFields so public
     // fields serialize (System.Text.Json omits them by default, whereas the previous
     // Newtonsoft path serialized them), plus cycle handling to replace the old
-    // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized.
-    private static readonly JsonSerializerOptions ReflectedIndented = new() {
+    // ReferenceLoopHandling.Ignore now that arbitrary reflected instances are serialized. Also writes
+    // the defaults a plain-IProblem problem inherits and the tag lists, as /info does (see ProblemDefaultsJson
+    // and TagListJson).
+    private static readonly JsonSerializerOptions ReflectedIndented = API.Interfaces.TagListJson.Apply(API.Interfaces.ProblemDefaultsJson.Apply(new() {
         WriteIndented = true,
         IncludeFields = true,
         ReferenceHandler = ReferenceHandler.IgnoreCycles
-    };
+    }));
 
     // All top-level problem names, from the same reflected source as the singular
     // Navigation/*Problems* endpoints (see ProblemNavigationData in Nav_Problems.cs).
@@ -47,24 +50,30 @@ public class BatchController : ControllerBase {
     private static readonly Lazy<string> VerifiersJson = new(() =>
         GroupedJson(VerifierNavigationData.Entries.Select(e => (e.problemName, e.className))));
 
-    private static readonly Lazy<string> VisualizationsJson = new(() =>
-        GroupedJson(VisualizationNavigationData.Entries.Select(e => (e.problemName, e.className))));
+    // Each visualization listing comes in two variants: the default one, without the opt-in visualizations
+    // (IOptInVisualization: picture-type views Redux_GUI cannot draw yet), and the includePictures=true one, with them.
+    private static readonly Lazy<string>[] VisualizationsJson = ByOptIn(include =>
+        GroupedJson(VisualizationNavigationData.ListedEntries(include).Select(e => (e.problemName, e.className))));
 
-    // className -> declared VisualizationType wire value, for every reflected
+    // className -> declared VisualizationType wire value (the deprecated single value, the first tag), for every reflected
     // visualizer. Backed by VisualizationTypeCatalog.ByClassName (see
     // Nav_Visualizations.cs), which already does the per-type try/catch instantiation.
     // Exists so the GUI can resolve renderability without walking allInfo, which would
     // instantiate and serialize every problem/solver/verifier/visualization/
     // reduction just to read one string per visualization.
-    private static readonly Lazy<string> VisualizationTypesJson = new(() =>
-        JsonSerializer.Serialize(VisualizationTypeCatalog.ByClassName.Value, Indented));
+    private static readonly Lazy<string>[] VisualizationTypesJson = ByOptIn(include =>
+        JsonSerializer.Serialize(VisualizationTypeCatalog.ByClassName.Value
+            .Where(p => VisualizationNavigationData.Listed(p.Key, include))
+            .ToDictionary(p => p.Key, p => include ? p.Value : VisualizationTypeCatalog.LegacyByClassName.Value.GetValueOrDefault(p.Key, p.Value),
+                StringComparer.OrdinalIgnoreCase), Indented));
 
     // Instances of every reflected interface type, mirroring ProblemProvider.info
     // (System.Text.Json with IncludeFields) but for all interfaces at once. Types that
     // cannot be default-constructed are skipped rather than failing the whole payload.
-    private static readonly Lazy<string> InfoJson = new(() => {
+    private static readonly Lazy<string>[] InfoJson = ByOptIn(include => {
         var result = new Dictionary<string, object>();
         foreach (var (_, type) in ProblemProvider.Interfaces) {
+            if (!OptInVisualizations.Listed(type, include)) continue;
             try {
                 if (Activator.CreateInstance(type) is object instance)
                     result[type.Name] = instance;
@@ -73,8 +82,12 @@ public class BatchController : ControllerBase {
                 // failing the whole response.
             }
         }
-        return JsonSerializer.Serialize(result, ReflectedIndented);
+        // A client that has not opted in also sees each problem's pre-redesign default and each visualization's legacy type (GuiView).
+        return JsonSerializer.Serialize(result, GuiView.Options(ReflectedIndented, include));
     });
+
+    // [0]: the default listing; [1]: the includePictures=true one. Each is built once, on first use.
+    private static Lazy<string>[] ByOptIn(Func<bool, string> build) => [new(() => build(false)), new(() => build(true))];
 
     // Group (problemName -> className) pairs into a sorted map of sorted class names.
     private static string GroupedJson(IEnumerable<(string problemName, string className)> entries) =>
@@ -109,20 +122,26 @@ public class BatchController : ControllerBase {
     public IActionResult AllVerifiers() => Content(VerifiersJson.Value, "application/json");
 
     /// <summary>Returns the visualizations for every problem, keyed by problem name.</summary>
+    /// <param name="includePictures">True to also list the opt-in visualizations (IOptInVisualization: picture-type views only frames clients can draw). Default false: the listing Redux_GUI reads.</param>
     /// <response code="200">Map of problem name to its visualization class names.</response>
     [ProducesResponseType(typeof(Dictionary<string, List<string>>), 200)]
     [HttpGet("allVisualizations")]
-    public IActionResult AllVisualizations() => Content(VisualizationsJson.Value, "application/json");
+    public IActionResult AllVisualizations([FromQuery] bool includePictures = false) =>
+        Content(VisualizationsJson[includePictures ? 1 : 0].Value, "application/json");
 
     /// <summary>Returns info objects for every reflected interface, keyed by class name.</summary>
+    /// <param name="includePictures">True to also include the opt-in visualizations (IOptInVisualization). Default false: the payload Redux_GUI reads.</param>
     /// <response code="200">Map of interface class name to its instance info.</response>
     [ProducesResponseType(typeof(Dictionary<string, object>), 200)]
     [HttpGet("allInfo")]
-    public IActionResult AllInfo() => Content(InfoJson.Value, "application/json");
+    public IActionResult AllInfo([FromQuery] bool includePictures = false) =>
+        Content(InfoJson[includePictures ? 1 : 0].Value, "application/json");
 
     /// <summary>Returns the declared VisualizationType wire value for every visualizer, keyed by class name.</summary>
+    /// <param name="includePictures">True to also include the opt-in visualizations (IOptInVisualization). Default false: the map Redux_GUI reads.</param>
     /// <response code="200">Map of visualization class name to its VisualizationType wire value.</response>
     [ProducesResponseType(typeof(Dictionary<string, string>), 200)]
     [HttpGet("allVisualizationTypes")]
-    public IActionResult AllVisualizationTypes() => Content(VisualizationTypesJson.Value, "application/json");
+    public IActionResult AllVisualizationTypes([FromQuery] bool includePictures = false) =>
+        Content(VisualizationTypesJson[includePictures ? 1 : 0].Value, "application/json");
 }

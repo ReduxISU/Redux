@@ -38,11 +38,30 @@ internal class ReductionInputException : Exception {
     public IReduction Reduction { get; }
     public string Received { get; }
     public string ExpectedFormat { get; }
-    public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null, Exception? innerException = null)
+    /// <summary>The problem whose text was malformed, when that is not the reduction's source problem (a backward map reads the target's answer).</summary>
+    public string? ProblemName { get; }
+    public ReductionInputException(IReduction reduction, string received, string expectedFormat, string? detail = null, Exception? innerException = null, string? problemName = null)
         : base(detail ?? $"could not parse input to {reduction.reductionName}", innerException) {
+        ProblemName = problemName;
         Reduction = reduction;
         Received = received;
         ExpectedFormat = expectedFormat;
+    }
+}
+
+// Thrown when an exact algorithm refuses an instance that exceeds its supported search size.
+// Controllers translate this to HTTP 400 without classifying it as an instance or certificate
+// parsing failure.
+internal class ExactSearchLimitExceededException : Exception {
+    public string ProblemName { get; }
+    public int VariableCount { get; }
+    public int MaxVariables { get; }
+
+    public ExactSearchLimitExceededException(string problemName, int variableCount, int maxVariables)
+        : base($"{problemName} exact search supports at most {maxVariables} variables; received {variableCount}.") {
+        ProblemName = problemName;
+        VariableCount = variableCount;
+        MaxVariables = maxVariables;
     }
 }
 

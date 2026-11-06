@@ -12,15 +12,15 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Boolean_satisfiability_problem#3-satisfiability";
     public string formalDefinition { get; } = "3SAT = {Φ | Φ is a satisfiable Boolean formula in 3CNF}";
     public string problemDefinition { get; } = "3SAT is the Boolean satisfiability problem restricted to formulas in conjunctive normal form with at most three literals per clause. It asks whether there is an assignment of True/False values to the variables of Φ that makes the whole formula True.";
-    public string inputDescription { get; } = "Φ, a boolean formula";
+    public string inputDescription { get; } = "Φ, a Boolean formula in 3-CNF";
     public string outputDescription { get; } = "True or False, whether Φ is satisfiable";
     public string[] contributors { get; } = { "Kaden Marchetti" };
     public string source { get; } = "Karp, Richard M. Reducibility among combinatorial problems. Complexity of computer computations. Springer, Boston, MA, 1972. 85-103.";
     public string sourceFile { get; } = SourceFile.Path();
     public string sourceLink { get; } = "https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf";
-    public static string _defaultInstance { get; } = "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1)";
+    public static string _defaultInstance { get; } = "(x1 | x2 | x3) & (!x1 | !x2 | !x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)";
     public string defaultInstance { get; } = _defaultInstance;
-    public string instanceFormat { get; } = "Boolean formula in 3-CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has at most 3 literals. Example: (x1 | !x2 | x3) & (!x1 | x3 | x1)";
+    public string instanceFormat { get; } = "Boolean formula in 3-CNF. Clauses joined by '&', literals within a clause joined by '|', negation prefix '!'. Each clause has at most 3 literals. Example: (x1 | x2 | x3) & (!x1 | !x2 | !x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)";
     public string certificateFormat { get; } = "Comma-separated variable:Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every variable you are assigning. Example: (x1:True,x2:False,x3:True)";
     public Sat3BacktrackingSolver defaultSolver { get; } = new Sat3BacktrackingSolver();
     public SAT3Verifier defaultVerifier { get; } = new SAT3Verifier();
@@ -30,6 +30,7 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     // most of this repo's NP-completeness reductions.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.Logic;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     public string instance { get; set; } = string.Empty;
 
     public string wikiName { get; } = "";

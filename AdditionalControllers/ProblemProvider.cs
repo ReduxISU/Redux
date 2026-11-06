@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects.Graphs;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using API.Interfaces.Tools;
@@ -17,6 +18,74 @@ using System.Dynamic;
 [Route("[controller]")]
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase {
+    /// <summary>
+    /// The older configuration key for the time budget of a solve that records steps for a picture (#885). The one
+    /// limit for every compute request is now <see cref="ComputeLimits.TimeLimitKey"/>; this key, when it is set
+    /// explicitly, still decides the visualize limit, so a deployment that set it keeps what it chose.
+    /// </summary>
+    public const string SolveTimeLimitKey = "Visualization:SolveTimeLimitSeconds";
+    /// <summary>The budget used when neither key is set.</summary>
+    public const double DefaultSolveTimeLimitSeconds = ComputeLimits.DefaultTimeLimitSeconds;
+
+    private readonly IConfiguration? _configuration;
+
+    /// <summary>Creates the controller; <paramref name="configuration"/> supplies the solve time limit.</summary>
+    public ProblemProvider(IConfiguration? configuration = null) {
+        _configuration = configuration;
+    }
+
+    /// <summary>
+    /// The time budget for the visualize endpoint: <see cref="SolveTimeLimitKey"/> when it is set, else
+    /// <see cref="ComputeLimits.TimeLimitKey"/> (seconds, default <see cref="DefaultSolveTimeLimitSeconds"/>). Zero or
+    /// less means no limit. See <see cref="ISolver.Run"/> for how a solver is stopped.
+    /// </summary>
+    private TimeSpan? SolveTimeLimit {
+        get {
+            double? old = _configuration?.GetValue<double?>(SolveTimeLimitKey);
+            return old is { } seconds ? ComputeLimits.FromSeconds(seconds) : ComputeLimit;
+        }
+    }
+
+    /// <summary>The time limit of every other compute request, from <see cref="ComputeLimits.TimeLimitKey"/>.</summary>
+    private TimeSpan? ComputeLimit => ComputeLimits.TimeLimit(_configuration);
+
+    /// <summary>
+    /// <see cref="ComputeLimits.WithBackstop{T}"/> with this request's slot in the cap on jobs running at once (#936), so
+    /// work the backstop gives up on keeps the slot until it finishes.
+    /// </summary>
+    private Task<(bool Finished, T? Result)> Backstop<T>(Func<T> work, TimeSpan? backstop) =>
+        ComputeLimits.WithBackstop(work, backstop, HttpContext?.Items[ComputeJob.ItemKey] as ComputeJob);
+
+    /// <summary>The backstop for a request whose solver stops itself at <paramref name="limit"/> (see <see cref="ComputeLimits.SolverBackstopGrace"/>).</summary>
+    private static TimeSpan? SolverBackstop(TimeSpan? limit) => limit is { } l ? l + ComputeLimits.SolverBackstopGrace : null;
+
+    /// <summary>HTTP 422 with the <c>time_limit</c> body (#935); see <see cref="ComputeLimits.TimeLimitBody"/>.</summary>
+    private IActionResult TimeLimitError(string job, TimeSpan limit, string detail, string hint, IReadOnlyDictionary<string, object?>? context = null) =>
+        UnprocessableEntity(ComputeLimits.TimeLimitBody(job, limit, detail, hint, context));
+
+    /// <summary>The time-limit error of a solve, naming the solver, its problem and the problem's other solvers.</summary>
+    private IActionResult SolveTimeLimitError(string job, Type solverType, TimeSpan limit, string detail) {
+        Type? problemType = ProblemTypeOf(solverType, typeof(ISolver<>));
+        var others = problemType == null ? new List<string>() : Solvers.Values
+            .Where(t => t != solverType && ProblemTypeOf(t, typeof(ISolver<>)) == problemType)
+            .Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        string? problemName = null;
+        try { problemName = problemType == null ? null : (Activator.CreateInstance(problemType) as IProblem)?.problemName; } catch { /* unnamed */ }
+        string hint = others.Count > 0
+            ? $"Try a smaller instance, or a faster solver for this problem: {string.Join(", ", others)}."
+            : "Try a smaller instance.";
+        return TimeLimitError(job, limit, detail, hint, new Dictionary<string, object?> {
+            ["solver"] = solverType.Name,
+            ["problem"] = problemName,
+            ["options"] = others,
+        });
+    }
+
+    /// <summary>The time-limit error of a reduction (or a chain of them, separated by dashes).</summary>
+    private IActionResult ReductionTimeLimitError(TimeSpan limit, string reduction) =>
+        TimeLimitError("reduction", limit, ComputeLimits.BackstopDetail, "Try a smaller instance.",
+            new Dictionary<string, object?> { ["reduction"] = reduction });
+
     // Buckets every loaded type into its marker-interface dictionary in a single pass over
     // AppDomain.GetAssemblies().SelectMany(GetTypes()) instead of one full assembly scan per
     // dictionary. .Add (not the indexer) preserves the original ToDictionary behavior of
@@ -81,9 +150,17 @@ public class ProblemProvider : ControllerBase {
     /// Serializer options for the <c>info</c> and <c>problemInstance</c> endpoints, which reflect over an
     /// arbitrary problem/interface object. <see cref="JsonSerializerOptions.IncludeFields"/> is enabled so that
     /// public fields (e.g. <c>ARCSET.K</c>, the <c>UtilCollectionGraph.Nodes</c>/<c>Edges</c> fields) are emitted,
-    /// matching the previous Newtonsoft.Json output which serialized public fields by default.
+    /// matching the previous Newtonsoft.Json output which serialized public fields by default. Also writes the
+    /// defaults a plain-IProblem problem inherits (<see cref="ProblemDefaultsJson"/>) and the tag lists
+    /// (<see cref="TagListJson"/>).
     /// </summary>
-    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions = new() { IncludeFields = true };
+    private static readonly JsonSerializerOptions ReflectedObjectJsonOptions =
+        TagListJson.Apply(ProblemDefaultsJson.Apply(new() { IncludeFields = true }));
+
+    // The reduce endpoint's options, one object so GuiView.Options makes its copy once. No IncludeFields and no
+    // ProblemDefaultsJson (the reduction is written through IReduction, as it always was), but the tag lists, as
+    // every response that carries a tag has them beside its single field.
+    private static readonly JsonSerializerOptions ReduceJsonOptions = TagListJson.Apply(new() { WriteIndented = true });
 
 #pragma warning disable CS8603 // Possible null reference return.
     static IProblem Problem(string name) {
@@ -143,6 +220,16 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
+    // The backward map reads B's answer, so malformed text is reported against B's certificate format
+    // (and B's name), not A's. Same translation as MapSolutions above.
+    static SolveRun MapSolutionsBack(IReduction red, string solution, bool withSteps) {
+        try {
+            return red.MapBackRun(solution, withSteps)!;
+        } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
+            throw new ReductionInputException(red, solution, red.reductionTo.certificateFormat, ex.Message, ex, red.reductionTo.problemName);
+        }
+    }
+
     static IReduction Reduction(string name) {
         return Activator.CreateInstance(Reductions[name.ToLower()]) as IReduction;
     }
@@ -157,11 +244,20 @@ public class ProblemProvider : ControllerBase {
     /// <returns>true or false</returns>
     [ProducesResponseType(typeof(bool), 200)]
     [ProducesResponseType(400)]
+    [ProducesResponseType(422)]
     [HttpPost("verify")]
-    public IActionResult verify(string verifier, [FromBody] Verify verify) {
+    [ComputeJob]
+    public async Task<IActionResult> verify(string verifier, [FromBody] Verify verify) {
         try {
+            // Verifiers have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
+            TimeSpan? limit = ComputeLimit;
+            var (finished, verdict) = await Backstop(
+                () => Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate), limit);
+            if (!finished)
+                return TimeLimitError("verification", limit!.Value, ComputeLimits.BackstopDetail,
+                    "Try a smaller instance or a shorter certificate.", new Dictionary<string, object?> { ["verifier"] = verifier });
             string result = JsonSerializer.Serialize(
-                Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate).ToString(),
+                verdict.ToString(),
                 new JsonSerializerOptions { WriteIndented = true }
             );
             return Content(result, "application/json");
@@ -171,6 +267,10 @@ public class ProblemProvider : ControllerBase {
         } catch (CertificateParseException ex) {
             return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
+        } catch (API.DummyClasses.NoVerifierException ex) {
+            return BadRequest(new { error = "no_verifier", received = verifier, detail = ex.Message });
+        } catch (ExactSearchLimitExceededException ex) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -196,12 +296,25 @@ public class ProblemProvider : ControllerBase {
     private static bool IsParseError(Exception ex) =>
         Unwrap(ex) is ProblemParseException or ReductionInputException or CertificateParseException;
 
+    private static bool IsExactSearchLimitError(Exception ex) =>
+        Unwrap(ex) is ExactSearchLimitExceededException;
+
+    private IActionResult ExactSearchLimitError(Exception ex) {
+        var limit = (ExactSearchLimitExceededException)Unwrap(ex);
+        return BadRequest(new {
+            error = "exact_search_limit_exceeded",
+            variableCount = limit.VariableCount,
+            maxVariables = limit.MaxVariables,
+            detail = limit.Message
+        });
+    }
+
     /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
     private IActionResult ParseError(Exception ex) => Unwrap(ex) switch {
         ProblemParseException p => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
                                            LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
         ReductionInputException r => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
-                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message)),
+                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.ProblemName)),
         CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
                                            c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
         _ => throw ex,
@@ -231,22 +344,34 @@ public class ProblemProvider : ControllerBase {
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">The instance of the problem to solve</param>
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
+    [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult solve(string solver, [FromBody] string problemInstance) {
-        if (!Solvers.TryGetValue(solver.ToLower(), out _))
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> solve(string solver, [FromBody] string problemInstance) {
+        if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
             return BadRequest(new { error = "unknown_solver", received = solver });
         try {
+            // The solver stops itself at the limit (ISolver.Run: the recorder of a typed solver, the timerHasExpired
+            // flag of a legacy one), and the run is then marked TimedOut; the backstop answers a little later for a
+            // solver that does not stop (#935). With no limit this is solve(problemInstance), as before.
+            TimeSpan? limit = ComputeLimit;
+            ISolver chosen = Solver(solver);
+            var (finished, run) = await Backstop(
+                () => limit == null ? new SolveRun(chosen.solve(problemInstance), new List<object>(), null)
+                                    : chosen.Run(problemInstance, withSteps: false, limit),
+                SolverBackstop(limit));
+            if (!finished || run!.TimedOut)
+                return SolveTimeLimitError("solve", solverType, limit!.Value,
+                    finished ? ComputeLimits.StoppedBySolverDetail : ComputeLimits.BackstopDetail);
             return Content(
                 JsonSerializer.Serialize(
-                    Solver(solver).solve(problemInstance),
+                    run.Answer,
                     new JsonSerializerOptions { WriteIndented = true }),
                 "application/json");
-        } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
-        } catch (ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
-                LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -254,17 +379,18 @@ public class ProblemProvider : ControllerBase {
     /// Gets info about a particular object
     /// </summary>
     /// <param name="interface" example = "SAT3">the name of the object to get the info of</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations: a problem's default and a visualization's type are its own. Default false, what Redux_GUI reads: what they were before the redesign (see GuiView).</param>
     /// <returns>an object instance</returns>
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(400)]
     [HttpGet("info")]
-    public IActionResult info(string @interface) {
+    public IActionResult info(string @interface, [FromQuery] bool includePictures = false) {
         if (string.IsNullOrEmpty(@interface) || !Interfaces.TryGetValue(@interface.ToLower(), out var type))
             return BadRequest(new { error = "unknown_interface", received = @interface });
         object? obj = Activator.CreateInstance(type);
         // Serialize by the runtime type: System.Text.Json serializes by the declared type, and `object`/`IProblem`
         // would emit an empty `{}` instead of the concrete object's members.
-        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, ReflectedObjectJsonOptions), "application/json");
+        return Content(JsonSerializer.Serialize(obj, obj?.GetType() ?? type, GuiView.Options(ReflectedObjectJsonOptions, includePictures)), "application/json");
     }
 
     /// <summary>
@@ -272,16 +398,17 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="problem" example = "3SAT">problem name</param>
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance string</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>object instance</returns>
     [ProducesResponseType(typeof(IProblem), 200)]
     [ProducesResponseType(400)]
     [HttpPost("problemInstance")]
-    public IActionResult problemInstance(string problem, [FromBody] string problemInstance) {
+    public IActionResult problemInstance(string problem, [FromBody] string problemInstance, [FromQuery] bool includePictures = false) {
         try {
             IProblem p = ProblemInstance(problem, problemInstance);
             // Serialize by the runtime type; see the note in `info`.
             return Content(
-                JsonSerializer.Serialize(p, p.GetType(), ReflectedObjectJsonOptions),
+                JsonSerializer.Serialize(p, p.GetType(), GuiView.Options(ReflectedObjectJsonOptions, includePictures)),
                 "application/json");
         } catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is ProblemParseException ex) {
             return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
@@ -306,27 +433,79 @@ public class ProblemProvider : ControllerBase {
         return false;
     }
 
-    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance) {
+    internal static JsonSerializerOptions VisualizeJsonOptions() {
         var options = new JsonSerializerOptions {
             WriteIndented = true,
         };
         options.Converters.Add(new API_JSON_Converter());
+        return options;
+    }
 
+    /// <summary>
+    /// Builds the non-empty visualization items in display order: the initial visual, any solver steps, then the
+    /// solved visual. The initial visual is returned separately so each response shape can place it.
+    /// <para>
+    /// For a run stopped by the time limit (<paramref name="stopped"/>) there is no answer to draw: the frames are
+    /// the recorded steps only (ending with the stopped Done step, for a visualization that draws Done), and
+    /// <paramref name="unsolvedLast"/> asks for the unsolved picture in place of the solved one (the list format).
+    /// </para>
+    /// </summary>
+    private static (API_JSON? Initial, List<API_JSON> Frames) buildFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, bool unsolvedLast = false, TimeSpan? timeLimit = null) {
         API_JSON visual = visualization.visualize(instance);
-        List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps);
-        API_JSON solutionJson = visualization.SolvedVisualization(instance, solution);
+        List<API_JSON> apiSteps = visualization.StepsVisualization(instance, steps, timeLimit);
 
+        List<API_JSON> frames = new List<API_JSON>();
+        frames.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
+        if (!stopped || unsolvedLast) {
+            API_JSON last = stopped ? visualization.visualize(instance) : visualization.SolvedVisualization(instance, solution);
+            if (!IsEmptyVisualization(last))
+                frames.Add(last);
+        }
+
+        return (IsEmptyVisualization(visual) ? null : visual, frames);
+    }
+
+    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, unsolvedLast: true, timeLimit);
         List<API_JSON> list = new List<API_JSON>();
+        if (initial != null)
+            list.Add(initial);
+        list.AddRange(frames);
+        return JsonSerializer.Serialize(list, VisualizeJsonOptions());
+    }
 
-        if (!IsEmptyVisualization(visual))
-            list.Add(visual);
+    // Declared-type properties (not object) so payload/frames go through API_JSON_Converter exactly like list items.
+    private sealed record VisualizeFramesResponse(
+        [property: System.Text.Json.Serialization.JsonPropertyName("type")] string Type,
+        [property: System.Text.Json.Serialization.JsonPropertyName("payload")] API_JSON? Payload,
+        [property: System.Text.Json.Serialization.JsonPropertyName("frames")] List<API_JSON> Frames);
 
-        list.AddRange(apiSteps.Where(step => !IsEmptyVisualization(step)));
+    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+        var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, timeLimit: timeLimit);
+        var body = new VisualizeFramesResponse(Tags.First(visualization.visualizationType), initial, frames);
+        return JsonSerializer.Serialize(body, VisualizeJsonOptions());
+    }
 
-        if (!IsEmptyVisualization(solutionJson))
-            list.Add(solutionJson);
+    // The T of the first ISolver<T> (or IVisualization<U>'s U) a type implements, if any.
+    internal static Type? ProblemTypeOf(Type type, Type openGeneric) =>
+        type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGeneric)
+            ?.GetGenericArguments()[0];
 
-        return JsonSerializer.Serialize(list, options);
+    /// <summary>
+    /// Whether a solver can run on the problem a visualization draws. The visualization's own solver always
+    /// matches. Any other solver must declare its problem through ISolver&lt;T&gt;; if either problem type cannot
+    /// be determined, the solver is rejected.
+    /// </summary>
+    internal static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
+        if (solverType == vis.solver.GetType())
+            return true;
+        Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
+        Type? visProblem = ProblemTypeOf(vis.GetType(), typeof(IVisualization<>))
+            ?? ProblemTypeOf(vis.solver.GetType(), typeof(ISolver<>));
+        if (solverProblem == null || visProblem == null)
+            return false;
+        return solverProblem == visProblem || solverProblem.IsAssignableFrom(visProblem);
     }
 
     /// <summary>
@@ -334,17 +513,61 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="visualization" example = "Sat3DefaultVisualization">The visualization to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
-    /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
+    /// <param name="solver" example = "Sat3BacktrackingSolver">Optional. The solver whose steps and solution are visualized. Defaults to the visualization's own solver. Must solve the same problem as the visualization</param>
+    /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual). A picture type that builds its own frames (type "Graph") returns its own payload and frames instead</param>
+    /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
+    [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult visualize(string visualization, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null) {
         if (!Visualizers.TryGetValue(visualization.ToLower(), out _))
             return BadRequest(new { error = "unknown_visualization", received = visualization });
+        bool asFrames;
+        if (string.IsNullOrEmpty(format) || format.Equals("list", StringComparison.OrdinalIgnoreCase))
+            asFrames = false;
+        else if (format.Equals("frames", StringComparison.OrdinalIgnoreCase))
+            asFrames = true;
+        else
+            return BadRequest(new { error = "unknown_format", received = format });
         var vis = Visualization(visualization);
+        ISolver chosen = vis.solver;
+        if (!string.IsNullOrEmpty(solver)) {
+            if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
+                return BadRequest(new { error = "unknown_solver", received = solver });
+            if (!SolverMatchesVisualization(solverType, vis))
+                return BadRequest(new { error = "solver_mismatch", received = solver, visualization });
+            chosen = Solver(solver);
+        }
         try {
-            return Content(getVisualize(vis, vis.solver.GetSteps(instance), vis.solver.solve(instance), instance), "application/json");
+            // A solver that runs past the time limit is stopped and its run comes back with TimedOut set (a typed one by
+            // its recorder, a legacy one by its timerHasExpired flag); the stopped run is drawn, not reported as an
+            // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit.
+            TimeSpan? limit = SolveTimeLimit;
+            var (finished, body) = await Backstop(() => {
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var run = chosen.Run(instance, withSteps: true, limit);
+                // A picture type that builds its own frames serves them only for format=frames.
+                if (asFrames && vis is IFramesVisualization framesVis)
+                    return JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions);
+                // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what
+                // is left of the limit, so the whole request stays within it (#764).
+                TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
+                // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
+                // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
+                var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
+                var solution = run.Answer;
+                return asFrames
+                    ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
+                    : getVisualize(vis, steps, solution, instance, run.TimedOut, left);
+            }, SolverBackstop(limit));
+            if (!finished)
+                return SolveTimeLimitError("visualization", chosen.GetType(), limit!.Value, ComputeLimits.BackstopDetail);
+            return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
+        } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
+            return ExactSearchLimitError(ex);
         }
     }
 
@@ -354,30 +577,42 @@ public class ProblemProvider : ControllerBase {
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">List of reductions to use, separated by a dash. Can use a single reduction</param>
     /// <param name="solution" example = "(x1:True,x2:True)">The solution to visualize</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance string of the problem</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations: the target's own default is drawn. Default false, what Redux_GUI reads: an opt-in default is drawn as the placeholder (see GuiView).</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
+    [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult visualizeReduction(string reduction, string solution, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> visualizeReduction(string reduction, string solution, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         List<string> reds = reduction.Split("-").ToList();
         foreach (string r in reds)
             if (!Reductions.TryGetValue(r.ToLower(), out _))
                 return BadRequest(new { error = "unknown_reduction", received = r });
 
-        IReduction? red = null;
+        // Reductions have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
+        TimeSpan? limit = ComputeLimit;
+        bool finished;
+        string? body;
         try {
-            foreach (string reductionname in reds) {
-                red = Reduction(reductionname, instance);
-                solution = MapSolutions(red, solution);
-                instance = red.reductionTo.instance;
-            }
+            (finished, body) = await Backstop(() => {
+                IReduction? red = null;
+                foreach (string reductionname in reds) {
+                    red = Reduction(reductionname, instance);
+                    solution = MapSolutions(red, solution);
+                    instance = red.reductionTo.instance;
+                }
+                return red is null ? null : getVisualize(GuiView.Shown(red.visualization, includePictures), new List<Object>(), solution, instance);
+            }, limit);
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
+        if (!finished)
+            return ReductionTimeLimitError(limit!.Value, reduction);
 
-        if (red is null)
+        if (body is null)
             return BadRequest(new { error = "no_reductions_provided" });
 
-        return Content(getVisualize(red.visualization, new List<Object>(), solution, instance), "application/json");
+        return Content(body, "application/json");
     }
 
     /// <summary>
@@ -385,14 +620,24 @@ public class ProblemProvider : ControllerBase {
     /// </summary>
     /// <param name="reduction" example = "SipserReduceToCliqueStandard">the reduction to use</param>
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of a problem</param>
+    /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
+    [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult reduce(string reduction, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> reduce(string reduction, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            return Content(JsonSerializer.Serialize(Reduction(reduction, instance), new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+            // The reduction runs in its constructor, and serializing it can run more (computed members), so both are
+            // inside the backstop, which is the limit itself: reductions have no time checks (see ComputeLimits).
+            TimeSpan? limit = ComputeLimit;
+            var (finished, body) = await Backstop(
+                () => JsonSerializer.Serialize(Reduction(reduction, instance), GuiView.Options(ReduceJsonOptions, includePictures)), limit);
+            if (!finished)
+                return ReductionTimeLimitError(limit!.Value, reduction);
+            return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }
@@ -406,13 +651,18 @@ public class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the problem</param>
     /// <returns>solution certificate of the reduction</returns>
     [HttpPost("mapSolution")]
+    [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult mapSolution(string reduction, string solution, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> mapSolution(string reduction, string solution, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            IReduction red = Reduction(reduction, instance);
-            string mappedSolution = MapSolutions(red, solution);
+            TimeSpan? limit = ComputeLimit;
+            var (finished, mappedSolution) = await Backstop(
+                () => MapSolutions(Reduction(reduction, instance), solution), limit);
+            if (!finished)
+                return ReductionTimeLimitError(limit!.Value, reduction);
             return Content(
                 JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
                 "application/json");
@@ -421,11 +671,45 @@ public class ProblemProvider : ControllerBase {
         }
     }
 
-    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail) {
+    /// <summary>
+    /// Maps an answer for the target problem back to an answer for the source problem, the direction
+    /// students need after solving the target. The body is the SOURCE instance (the reduction is rebuilt from it,
+    /// so the backward map knows the construction); <c>solution</c> is the target problem's certificate.
+    /// "{}" (no answer) maps to "{}", unless the empty set is itself a valid answer for the target instance
+    /// (e.g. the empty cover of an edgeless graph); then it is mapped like any other answer. Not every reduction has a backward map yet: those answer 400 with
+    /// <c>no_backward_map</c> (a request this reduction cannot serve, like <c>unknown_reduction</c>, rather
+    /// than a server fault). With <c>steps=true</c> the response is <c>{ answer, steps }</c> instead of the bare string.
+    /// </summary>
+    /// <param name="reduction" example = "SipserReduceToCliqueStandard">reduction to use</param>
+    /// <param name="solution" example = "{x1_0,x1_1,x1_2}">solution certificate of the TARGET problem</param>
+    /// <param name="steps" example = "false">true to also return the steps that mapped the answer back</param>
+    /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
+    /// <returns>solution certificate of the source problem, or { answer, steps }</returns>
+    [HttpPost("mapSolutionBack")]
+    [ComputeJob]
+    [ProducesResponseType(400)]
+    public IActionResult mapSolutionBack(string reduction, string solution, [FromBody] string instance, bool steps = false) {
+        if (!Reductions.TryGetValue(reduction.ToLower(), out _))
+            return BadRequest(new { error = "unknown_reduction", received = reduction });
+        try {
+            IReduction red = Reduction(reduction, instance);
+            if (!red.hasBackwardMap())
+                return BadRequest(new { error = "no_backward_map", reduction });
+            SolveRun run = MapSolutionsBack(red, solution, steps);
+            object body = steps ? new { answer = run.Answer, steps = run.Steps } : run.Answer;
+            return Content(
+                JsonSerializer.Serialize(body, new JsonSerializerOptions() { WriteIndented = true }),
+                "application/json");
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return ParseError(ex);
+        }
+    }
+
+    private static object ReductionParseErrorBody(string error, IReduction reduction, string expected, string received, string detail, string? problem = null) {
         return new {
             error,
             reduction = reduction.reductionName,
-            problem = reduction.reductionFrom.problemName,
+            problem = problem ?? reduction.reductionFrom.problemName,
             expected,
             received,
             detail
@@ -440,13 +724,19 @@ public class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>gadget map</returns>
     [HttpPost("gadgets")]
+    [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult gadgets(string reduction, [FromBody] string instance) {
+    [ProducesResponseType(422)]
+    public async Task<IActionResult> gadgets(string reduction, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
-            IReduction red = Reduction(reduction, instance);
-            return Content(JsonSerializer.Serialize(red.gadgets, new JsonSerializerOptions() { WriteIndented = true }), "application/json");
+            TimeSpan? limit = ComputeLimit;
+            var (finished, body) = await Backstop(
+                () => JsonSerializer.Serialize(Reduction(reduction, instance).gadgets, new JsonSerializerOptions() { WriteIndented = true }), limit);
+            if (!finished)
+                return ReductionTimeLimitError(limit!.Value, reduction);
+            return Content(body!, "application/json");
         } catch (Exception ex) when (IsParseError(ex)) {
             return ParseError(ex);
         }

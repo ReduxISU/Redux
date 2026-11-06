@@ -7,8 +7,8 @@ namespace API.Problems.NPComplete.NPC_HITTINGSET.Solvers;
 class HittingSetBruteForce : ISolver<HITTINGSET> {
 
     // --- Fields ---
-    public string solverName { get; } = "Hitting Set Brute Force";
-    public string solverDefinition { get; } = "This is a brute force solver for Hitting Set";
+    public string solverName { get; } = "Exact Hitting Set Brute Force";
+    public string solverDefinition { get; } = "This is a brute force solver for Exact Hitting Set. It tests every subset of U and returns the first one that intersects every subset in S in exactly one element.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Russell Phillips" };
@@ -43,6 +43,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET> {
     public string solve(HITTINGSET hittingSet) {
         List<UtilCollection> items = hittingSet.universalSet.ToList();
         foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             UtilCollection certificate = new UtilCollection("{}");
             for (int i = 0; i < items.Count; i++) {
                 if (possibleSolution[i] == 1) certificate.Add(items[i]);
