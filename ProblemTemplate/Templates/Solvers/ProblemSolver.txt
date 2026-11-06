@@ -28,6 +28,34 @@ class {SOLVER_PASCAL_CASE} : ISolver<{PROBLEM}> {
     // --- Methods Including Constructors ---
     public {SOLVER_PASCAL_CASE}() { }
 
+    // Optional: recording steps for the step-by-step visualizations. Read Documentation/guides/adding-a-solver.md, step 5.
+    // Keep everything in this one file:
+    //   1. Write a comment above the class saying which steps the solver records and what each one means.
+    //   2. Implement ISolver<{PROBLEM}, TPartial> instead of ISolver<{PROBLEM}>, where TPartial is the shape of the answer a
+    //      visualization draws (see Interfaces/Steps/Shapes.cs), add using API.Interfaces.Steps;, and let solve call Solve
+    //      with recording off:
+    //
+    //      public string solve({PROBLEM} problem) => Solve(problem, StepRecorder<TPartial>.Off);
+    //
+    //   3. Say once, here, how a step shows the solver's state. Use RunSteps for a solver that does not branch, and
+    //      SearchSteps for one that branches and backtracks:
+    //
+    //      private static RunSteps<TState, TPartial> NewSteps(StepRecorder<TPartial> rec) => new(rec,
+    //          // What every picture shows: (say what, in plain words)
+    //          partial: state => ...,
+    //          focus: state => [...]);
+    //
+    //   4. In the algorithm, one line per step: the keyword, the state, then why, written inline as $"..." even when the
+    //      text has no {holes}:
+    //
+    //      public string Solve({PROBLEM} problem, StepRecorder<TPartial> rec) {
+    //          var steps = NewSteps(rec);
+    //          ...
+    //          steps.Reject(candidate, $"Try ...: it fails because ...");
+    //          ...
+    //          steps.Done(answer, true, $"... is a solution because ...");
+    //      }
+
     public string solve({PROBLEM} problem) {
         // TODO: implement {SOLVER} for {PROBLEM}
 

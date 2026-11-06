@@ -59,7 +59,11 @@ Rules that matter:
 | Implements | `ISolver<PROBLEM>` | `ISolver<SUBSETSUM>` |
 | `solverName` | Matches one of two name shapes (see section 5) | `"Subset Sum Brute Force"` |
 
-The `Solvers` folder holds only solver classes. A solver may split its class over two files with `partial` (the algorithm in `<ClassName>.cs`, the steps it records in `<ClassName>.Steps.cs`); `sourceFile` stays in `<ClassName>.cs`. A helper that is not a solver goes elsewhere: step helpers shared by several solvers in a sibling `Steps` folder (for example [NPC_SAT3/Steps/RestartingSearchSteps.cs](../../Problems/NPComplete/NPC_SAT3/Steps/RestartingSearchSteps.cs)), other shared code next to the problem class (for example [NPC_SAT3/SatFormula.cs](../../Problems/NPComplete/NPC_SAT3/SatFormula.cs)).
+The `Solvers` folder holds only solver classes, and **a solver is one file**: the algorithm and the steps it records for the visualizations are written together in `<ClassName>.cs`. A problem has no `Steps` folder (a metadata test fails if one appears). Code that several solvers share goes somewhere else:
+
+- **A fact about the instance** (the cost of a tour, the clauses an assignment leaves false) goes on the problem class or next to it: for example `TSP.Cost` in [TSP_Class.cs](../../Problems/NPComplete/NPC_TSP/TSP_Class.cs), or [NPC_SAT3/SatFormula.cs](../../Problems/NPComplete/NPC_SAT3/SatFormula.cs).
+- **A picture's ids and names** (`VariableId`, `ClauseId`, `EdgeIds`, `Assigned`) live with that picture's frames in `Interfaces/`, for example [GroupedGraphFrames.cs](../../Interfaces/graphs/GroupedGraphFrames.cs) and [GraphTourFrames.cs](../../Interfaces/graphs/GraphTourFrames.cs).
+- **A recorder that a whole family of algorithms shares** goes in [Interfaces/Steps/](../../Interfaces/Steps/), for example [RestartSteps.cs](../../Interfaces/Steps/RestartSteps.cs) for local searches that restart.
 
 **How Redux finds your solver.** At startup, `ProblemProvider` ([AdditionalControllers/ProblemProvider.cs](../../AdditionalControllers/ProblemProvider.cs)) scans every class in the project. Any class that implements `ISolver` is registered under its **lowercased class name**. Because of that:
 
@@ -76,7 +80,7 @@ curl -X POST "http://localhost:27000/ProblemProvider/solve?solver=SubsetSumBrute
   -d '"({1,7,12,15},28)"'
 ```
 
-Success looks like `"{1,12,15}"`. A solver is also used by the visualization endpoint (`POST /ProblemProvider/visualize`), which calls `solve` and, if you wrote one, `GetSteps` (section 4, step 5). You can read any solver's metadata with `GET /ProblemProvider/info?interface=SubsetSumBruteForce`.
+Success looks like `"{1,12,15}"`. A solver is also used by the visualization endpoint (`POST /ProblemProvider/visualize`), which calls `solve`, or, if the solver records steps, `Solve(problem, rec)` (section 4, step 5). You can read any solver's metadata with `GET /ProblemProvider/info?interface=SubsetSumBruteForce`.
 
 > The folder layout above matches the one in [ProblemTemplate/Templates/README.md](../../ProblemTemplate/Templates/README.md), but that file lists the interface fields only loosely. The interface itself, [Interfaces/SolverInterface.cs](../../Interfaces/SolverInterface.cs), is the source of truth.
 
@@ -114,7 +118,7 @@ Every solver implements the members in [Interfaces/SolverInterface.cs](../../Int
 | `complexityBucket` | How the worst-case work grows (see below). | `SolverComplexityBucket.Exponential` |
 | `timeComplexity` | The worst-case running time, as a function the API can evaluate. | `new("n * 2^n", ", n = \|S\|")` |
 | `solve(PROBLEM)` | **The actual algorithm.** Takes a problem object, returns a certificate string. | see step 3 |
-| `GetSteps(PROBLEM)` | Optional. Intermediate snapshots for step-by-step visualizations. Defaults to an empty list. | not used here |
+| `Solve(PROBLEM, StepRecorder<TPartial>)` | Optional. The same algorithm, also reporting its steps for step-by-step visualizations. See step 5. | not used here |
 
 The three **declared metadata** members are the ones people forget. "Declared" means a human decides. No tool works them out for you. Their rules are in [SolverType.cs](../../Interfaces/SolverType.cs) and [SolverComplexityBucket.cs](../../Interfaces/SolverComplexityBucket.cs), and the doc comments there explain every choice. Short version:
 
@@ -189,9 +193,86 @@ The string your solver returns **is** a certificate. It should look exactly like
 
 For Subset Sum the format is `{K | K is set}` with example `{1,12,15}`, and the solver builds exactly that shape. Check yours by feeding it to the verifier in a test (see section 5). Is a solver's answer required to pass the verifier? In practice, yes whenever the solver returns a real answer. There is no single automatic test that checks this for every solver, so **your own tests must** (for the empty/no-solution value you return, make sure you test what the verifier does with it).
 
-### Step 5 (optional). Step-by-step visualizations with `GetSteps`
+### Step 5 (optional). Record steps for the visualizations
 
-If a visualization wants to show the solver working step by step, override `GetSteps(PROBLEM)` and return a list of snapshots. By default it returns an empty list, which is fine. The visualization endpoint passes this list to the visualization class. See [adding-a-visualization.md](adding-a-visualization.md) for the other half. A tiny real example that returns a one-item list: `GetSteps` in [PumpSchedulingCMSolver.cs](../../Problems/NPHard/NPH_PUMPSCHEDULINGCM/Solvers/PumpSchedulingCMSolver.cs).
+A step-by-step visualization shows the solver at work, one picture per **step**. Each step has three parts:
+
+- the **partial answer** at that moment (the assignment so far, the tour so far);
+- the **focus**: the pieces of the picture the step is about (a variable, a clause, an edge);
+- the **why**: one sentence saying what happened and why.
+
+Each step is one of five kinds: **Try** (look at something), **Accept** (keep it), **Reject** (it fails), **Backtrack** (undo and go back), and **Done** (the end, with the answer).
+
+The idea is simple. You already know the algorithm, so you add one line wherever it does something worth showing. That line says the keyword and why, and you get the pictures for free. A visualization draws your steps only if they have the shape of answer it draws. If the shapes don't match, nothing breaks: the picture shows the start and the answer instead.
+
+#### What to change
+
+1. Implement `ISolver<PROBLEM, TPartial>` in place of `ISolver<PROBLEM>`. `TPartial` is the shape of the answer a visualization draws, such as `Assignment` for SAT or `Tour` for TSP. The shapes are in [Interfaces/Steps/Shapes.cs](../../Interfaces/Steps/Shapes.cs).
+2. Write the algorithm as `Solve(PROBLEM problem, StepRecorder<TPartial> rec)`. Make the plain `solve` call it with recording off: `public string solve(TSP tsp) => Solve(tsp, StepRecorder<Tour>.Off);`. With recording off, the steps cost nothing: no picture is built and no text is formatted.
+3. Pick the recorder that fits the algorithm:
+
+| The algorithm... | Use | Example |
+| --- | --- | --- |
+| does not branch: it tries candidates one after another, or builds one answer piece by piece | `RunSteps` ([RunSteps.cs](../../Interfaces/Steps/RunSteps.cs)) | [SATBruteForceSolver.cs](../../Problems/NPComplete/NPC_SAT/Solvers/SATBruteForceSolver.cs), [TSPGreedy.cs](../../Problems/NPComplete/NPC_TSP/Solvers/TSPGreedy.cs) |
+| branches and backtracks, so its steps form a search tree | `SearchSteps` ([SearchSteps.cs](../../Interfaces/Steps/SearchSteps.cs)) | [Sat3BacktrackingSolver.cs](../../Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs) |
+| is a local search that restarts from a random start | `RestartSteps` ([RestartSteps.cs](../../Interfaces/Steps/RestartSteps.cs)) | [WalkSAT.cs](../../Problems/NPComplete/NPC_SAT3/Solvers/WalkSAT.cs) |
+
+4. Say **once**, at the top of the class, how a step shows the solver's state. This is the **set-once block**, a `NewSteps` method. It has two group comments, so a reader can see what is shared and what is per picture.
+5. In the algorithm, write **one line per step**: the keyword, then the state, then (for a search) the choice, then the why, then any extras. For example, `steps.Reject(state, $"why")` or `steps.Try(state, value, $"why")`.
+
+#### Worked example: SAT brute force
+
+[SATBruteForceSolver.cs](../../Problems/NPComplete/NPC_SAT/Solvers/SATBruteForceSolver.cs) tries every assignment in turn. It does not branch, so it uses `RunSteps`. Its state is the candidate assignment, together with the first clause the candidate leaves false (`-1` means none). The set-once block says how that state shows:
+
+```csharp
+// How the steps show a candidate: the assignment, and the clause it leaves with no true literal (-1: none).
+private static RunSteps<(Dictionary<string, bool> Assignment, int FalseClause), Assignment> NewSteps(StepRecorder<Assignment> rec) => new(rec,
+    // What every picture shows: the candidate assignment, and the clause that fails it.
+    partial: s => ToAssignment(s.Assignment),
+    focus: s => s.FalseClause < 0 ? [] : [ClauseId(s.FalseClause)]);
+```
+
+The algorithm then gets one line per step. The why is written right there, in full:
+
+```csharp
+int failed = FirstFalseClause(formula, assignment);
+if (failed < 0) {
+    steps.Accept((assignment, -1), $"Try {Assigned(assignment)}: every clause has a true literal.");
+    steps.Done(ToAssignment(assignment), true, $"The formula is satisfied by {Assigned(assignment)}.");
+    return ...;
+}
+steps.Reject((assignment, failed),
+    $"Try {Assigned(assignment)}: clause C{failed + 1} {ClauseText(...)} has no true literal.");
+```
+
+The facts the why needs come from the algorithm itself. The search already worked out `failed` to decide what to do, so the step reuses that number instead of looking it up again.
+
+A step that is about something other than the usual state can say so for that one step. `TSPGreedy`'s dead end is about a single city:
+
+```csharp
+steps.Reject(route, $"Dead end at {currentNode}: ...", focus: () => [currentNode]);
+```
+
+**A solver that branches.** Read [Sat3BacktrackingSolver.cs](../../Problems/NPComplete/NPC_SAT3/Solvers/Sat3BacktrackingSolver.cs). Its `SearchSteps` block adds two things:
+
+- converters for a choice made from a state (`childPartial`, `rejectFocus`);
+- a second group, "The Search Tree picture's node text only." (`childLabel`, `rejectNote`, `solvedNote`).
+
+Its step lines name the choice too, for example `steps.Try(curSat, value, $"Try {curSat.nextVar} = {value}...")`. It also uses `steps.Root(...)` for the start and `steps.Expand(...)` each time it takes a state off its queue, which records a Backtrack when the search jumps back.
+
+**Always write the text as `$"..."`, even when it has no `{holes}`.** The text parameters are special string builders. They build the text only when the step will be kept, so a run with recording off formats nothing. A plain `"..."` string does not compile, on purpose. Otherwise text built in a variable, or joined with `+`, would be built on every step, even when nobody is watching.
+
+#### The rules
+
+1. **Picture helpers shared per picture type are fine.** They live in `Interfaces/`, next to that picture's frames. Examples: `VariableId`, `ClauseId`, `EdgeId`, `Assigned`, `Num`, `Words.Count`.
+2. **No shared step helpers for one problem.** A problem has no `Steps` folder. An instance fact goes on the problem class. A recorder shared by a family of algorithms goes in `Interfaces/Steps`.
+3. **No private why helpers in the solver.** Write each step's why inline, in the step line, even when it is long. A reader should see what a step says right where it happens.
+4. **The facts a why needs come from the algorithm where possible.** Reuse what the algorithm already worked out, such as the clause that failed or the path's cost. Look a fact up only when the algorithm never has it, and then do it inside the step line, so it runs only when the step is kept.
+5. **The solver's own algorithm helpers stay.** Examples: `FirstFalseClause`, or the next-permutation code. Those are the algorithm, not the steps.
+6. **Plumbing is set once.** How a state becomes the partial answer and the focus is said once, in `NewSteps`. Don't pass a lambda for it on every step.
+7. **Comment thoroughly, in plain words.** Put a header comment above the class that lists which steps the solver records and what each one means. Keep the two group comments in the set-once block. Write comments on the algorithm that a student can follow. Leave out issue numbers and change history; those belong in the PR.
+
+To draw your steps you also need a visualization that draws your answer's shape. Most shapes already have one. See [adding-a-visualization.md](adding-a-visualization.md) for the other half.
 
 ## 5. Write tests
 
@@ -204,7 +285,7 @@ You do not have to register your solver with these tests. They find it automatic
 | Test file | What it checks about your solver |
 | --- | --- |
 | [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) (`SolverName_MatchesNamingConvention`) | Your class builds with no arguments, and `solverName` matches one of two shapes: `"<Problem> <Approach>"` (title-case words, 2 or more, for example `"Subset Sum Brute Force"`) or `"<Person's name> ... Algorithm"` (for example `"Dijkstra's Algorithm"`). A raw class name like `SubsetSumBruteForce`, or a placeholder like `"Default Solver"`, fails. |
-| [SolverFolder_Tests.cs](../../redux-tests/Metadata/SolverFolder_Tests.cs) (`EveryTypeInASolversFolder_IsASolver`) | Every type declared in a file of a `Solvers` folder is a solver (implements `ISolver`). A helper class there fails: move it out (see section 3). |
+| [SolverFolder_Tests.cs](../../redux-tests/Metadata/SolverFolder_Tests.cs) (`EveryTypeInASolversFolder_IsASolver`, `NoProblemHasAStepsFolder`) | Every type declared in a file of a `Solvers` folder is a solver (implements `ISolver`), and no problem has a `Steps` folder. A helper class there fails: move it out (see section 3). |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredSolverType`) | `solverType` is not `Unclassified`. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexityBucket`) | `complexityBucket` is not `Unclassified`. |
 | [SolverType_Tests.cs](../../redux-tests/Metadata/SolverType_Tests.cs) (`NoNewUndeclaredComplexity`) | `timeComplexity` is declared, not `null`. |
@@ -278,6 +359,37 @@ Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(new SUBSETSUM("({1,7,12,15},2
 
 If you wrote an **approximation or heuristic** solver, it may legitimately return a wrong or empty answer. The worked example's second solver tests that rule: its answer is either `"{}"` or passes the verifier (`FastApproximation_NonEmptyResult_AlwaysPassesVerifier`). Copy that pattern.
 
+### Steps: the capture tool and step snapshots
+
+This part is only for a solver that records steps (section 4, step 5).
+
+**The capture tool.** [StepCapture_Tests.cs](../../redux-tests/Capture/StepCapture_Tests.cs) runs every solver that records steps on many instances: the default, the snapshot instances, and seeded random ones. It runs each one with recording off, with recording on at several caps, under fake time limits, and through every visualization that draws its steps. It writes everything each run gave (answers, steps and frames) to one file per solver. Use it when you change **how** steps are recorded but mean to keep **what** they show, for example when you move a solver to the set-once pattern. Run it once before your change and once after, into two folders, then compare them:
+
+```bash
+git stash                     # back to the code before your change
+REDUX_CAPTURE_DIR=/c/temp/capture/before dotnet test redux-tests --filter Category=Capture
+git stash pop                 # your change again
+REDUX_CAPTURE_DIR=/c/temp/capture/after dotnet test redux-tests --filter Category=Capture
+diff -r /c/temp/capture/before /c/temp/capture/after
+```
+
+In PowerShell, set the folder first with `$env:REDUX_CAPTURE_DIR = "C:\temp\capture\before"`. No output from `diff` means every answer, step and frame is the same. The tool takes about a minute and a half and writes about 150 MB. It is skipped when `REDUX_CAPTURE_DIR` is not set, so the normal test run and CI never run it. `_summary.txt` in each folder lists what was captured and what could not be.
+
+**When a step snapshot test changes.** Some tests compare a solver's steps with saved files in `redux-tests/Endpoints/Snapshots/`:
+
+- the answer files (such as `sat_solver_answers.tsv`) hold what each solver returned before it recorded steps. Recording steps must never change an answer, so these should never change because of steps.
+- the step files (such as `searchtree_sat3_steps.tsv`) hold a short hash of every step. They change when any step's words, focus or partial answer change, and the failure shows the step's new JSON.
+- the frame files (such as `formula.sat.frames.json`) hold whole pictures.
+
+The step tests in `redux-tests/Steps/` (such as `SatSolvers_Tests.cs`) also check the words and focus of chosen steps.
+
+These should change only when you **mean** to change what a step shows: new wording, a different focus, a new step. They should not change for a clean-up. When one fails:
+
+1. Read the failure. It names the solver, the instance and the step, and shows what the step is now.
+2. Check that every changed step is one you meant to change, and that no answer changed.
+3. Update the snapshot in the same commit as the change. Some snapshot tests rewrite their file when you run them with `REDUX_UPDATE_SNAPSHOTS=1` (the test file's header comment says so). For the others, copy the new value from the failure.
+4. Say in the PR description which steps changed and why, so the reviewer can check the new pictures.
+
 ## 6. Build, test, and get CI green
 
 Run these from the repo root (the folder that contains `Redux.slnx`). The full explanation, with what each result looks like and what to do when CI is red, is in [building-and-testing.md](building-and-testing.md).
@@ -310,6 +422,8 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 - [ ] The "no solution" and "timed out" results are documented in comments and tested.
 - [ ] If this is the problem's default solver, it is marked `[DefaultFor(typeof(PROBLEM))]` (or, for an older `IProblem<...>` problem, the problem class's `defaultSolver` points to it), and the problem's default instance solves quickly.
 - [ ] You added tests for solved, no-solution, and timer cases.
+- [ ] If it records steps: it is one file with a header comment listing its steps, a `NewSteps` block with its two group comments, and every why written inline as `$"..."` (the 7 rules in step 5).
+- [ ] If you changed how existing steps are recorded without meaning to change them, the capture tool shows no difference. If a step snapshot changed, the PR says which steps changed and why.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).
 - [ ] The PR targets `CSharpAPI`.
@@ -320,7 +434,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 - **A `solverName` that is just the class name** (`SubsetSumBruteForce`) or a placeholder. Use `"<Problem> <Approach>"` or `"<Person> ... Algorithm"`.
 - **Never checking `timerHasExpired`**, or checking it only once before the loop. Check it inside the loop.
 - **Output that does not match `certificateFormat`.** The verifier will throw `CertificateParseException`, or the GUI will not understand it. Always test your solver's output against the verifier.
-- **Forgetting the template's placeholder return.** The template ends with `return "{}";`, which means "no solution" for every input. Replace it with the real algorithm.
+- **Forgetting the template's placeholder.** The template ends with `throw new NotImplementedException(...)`. Replace it with the real algorithm.
 - **A default instance that takes forever.** Brute force grows exponentially. Keep the problem's `defaultInstance` small.
 - **Guessing the running time.** A wrong `timeComplexity` is a public claim. Leave out claims you are not sure about, and ask in the PR.
 - **Throwing for "no solution"** or for a timeout. Return a documented value instead.
@@ -329,3 +443,8 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Solver"
 - **Folder and namespace do not match**, or the file sits under the wrong problem.
 - **Writing a controller.** Not needed. Reflection exposes your class.
 - **Editing test allowlists** to turn a failure green. Fix the cause.
+- **Splitting a solver's steps into another file** (`<ClassName>.Steps.cs`, or a problem's `Steps` folder). Write them in the solver.
+- **A private helper that writes a step's sentence** (`RejectCaption(...)`). Write the why inline in the step line, even when it is long.
+- **Passing `partial:` or `focus:` lambdas on every step.** Say them once in `NewSteps`; pass one on a step only when that step is about something else.
+- **Building the text before the step** (`string why = ...; steps.Reject(s, $"{why}")`). That runs even when nobody is watching. Put the text in the step's own `$"..."`.
+- **Updating a snapshot just to make it green.** Read what changed first (section 5).
