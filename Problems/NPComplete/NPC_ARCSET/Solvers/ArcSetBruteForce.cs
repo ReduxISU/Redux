@@ -8,6 +8,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_ARCSET.Solvers;
 
+// The steps Arc Set Brute Force records: one per set of edges it tries removing, removing nothing first, then every set of
+// 1 edge, 2 edges, ... up to K. A set is a Reject naming a cycle that survives its removal, or the Accept that ends the
+// search; then the Done. The recorder's cap hides the rest of a long run.
 class ArcSetBruteForce : ISolver<ARCSET, EdgeSet> {
 
     // --- Fields ---
@@ -37,37 +40,50 @@ class ArcSetBruteForce : ISolver<ARCSET, EdgeSet> {
     * Returns the set of edges that if removed from arcset would turn it acyclic
     */
 
+    // How the steps show a candidate: the edges it removes (as arc ids), every one of them in focus.
+    private static RunSteps<UtilCollection?, EdgeSet> NewSteps(StepRecorder<EdgeSet> rec) => new(rec,
+        // What every picture shows: the edges removed (none for removing nothing).
+        partial: removed => new EdgeSet(ArcIds(removed)),
+        focus: removed => ArcIds(removed));
+
+    // The arc ids of a set of edges, each edge written (from, to); none for removing nothing (null).
+    private static string[] ArcIds(UtilCollection? removed) =>
+        removed == null ? [] : removed.ToList().Select(e => LayeredFrames.ArcId(e[0].ToString(), e[1].ToString())).ToArray();
+
     public string solve(ARCSET arc) => Solve(arc, StepRecorder<EdgeSet>.Off);
 
+    // Tries removing nothing, then every set of 1 edge, 2 edges, ... up to K, until what is left has no cycle.
     public string Solve(ARCSET arc, StepRecorder<EdgeSet> rec) {
+        var steps = NewSteps(rec);
         UtilCollectionGraph graph = arc.graph;
-        var cycle = LayeredFrames.SurvivingCycle(ArcSetDefaultVisualization.Spec(arc));
+        // The verifier only says no, so a cycle that survives is found for the steps alone (a plain solve builds no finder).
+        var cycle = rec.Enabled ? LayeredFrames.SurvivingCycle(ArcSetDefaultVisualization.Spec(arc)) : null;
         int tried = 0;
 
-        // Removing nothing comes first: an acyclic graph needs no edge removed (#789).
+        // Removing nothing comes first: an acyclic graph needs no edge removed.
         tried++;
         if (arc.defaultVerifier.verify(arc, "{}")) {
-            rec.Accept(() => new EdgeSet([]), () => "Try removing nothing. No cycle is left.");
-            rec.Done(new EdgeSet([]), true, "The graph has no cycle, so removing nothing is enough. Found after 1 try.");
+            steps.Accept(null, $"Try removing nothing. No cycle is left.");
+            steps.Done(new EdgeSet([]), true, $"The graph has no cycle, so removing nothing is enough. Found after 1 try.");
             return "{}";
         }
-        rec.Reject(() => new EdgeSet([]), () => $"Try removing nothing: the cycle {cycle([], [])} is there.");
+        steps.Reject(null, $"Try removing nothing: the cycle {cycle!([], [])} is there.");
 
         foreach (UtilCollection potentialSolution in graph.Edges.ChooseUpTo(arc.K)) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             string certificate = potentialSolution.ToString();
             tried++;
-            string[] Ids() => potentialSolution.ToList().Select(e => LayeredFrames.ArcId(e[0].ToString(), e[1].ToString())).ToArray();
             if (arc.defaultVerifier.verify(arc, certificate)) {
-                rec.Accept(() => new EdgeSet(Ids()), () => $"Try removing {certificate}. No cycle is left.", Ids);
-                rec.Done(new EdgeSet(Ids()), true, $"Removing {certificate} leaves no cycle, within K = {arc.K}. Found after {tried} {(tried == 1 ? "try" : "tries")}.");
+                steps.Accept(potentialSolution, $"Try removing {certificate}. No cycle is left.");
+                steps.Done(new EdgeSet(ArcIds(potentialSolution)), true,
+                    $"Removing {certificate} leaves no cycle, within K = {arc.K}. Found after {Words.Count(tried, "try", "tries")}.");
                 return certificate;
             }
-            rec.Reject(() => new EdgeSet(Ids()), () => $"Try removing {certificate}: the cycle {cycle(Ids(), [])} is still there.", Ids);
+            steps.Reject(potentialSolution, $"Try removing {certificate}: the cycle {cycle!(ArcIds(potentialSolution), [])} is still there.");
         }
         // Removing nothing failed above, and so did every set of 1 to K edges.
-        rec.Done(new EdgeSet([]), false,
-            $"Checked every way to remove up to K = {arc.K} {(arc.K == 1 ? "edge" : "edges")} ({tried} {(tried == 1 ? "try" : "tries")}). A cycle always survives.");
+        steps.Done(new EdgeSet([]), false,
+            $"Checked every way to remove up to K = {Words.Count(arc.K, "edge")} ({Words.Count(tried, "try", "tries")}). A cycle always survives.");
         return "{}";
     }
 }
