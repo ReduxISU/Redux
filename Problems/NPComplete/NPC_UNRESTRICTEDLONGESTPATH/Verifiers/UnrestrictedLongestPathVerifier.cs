@@ -6,10 +6,10 @@ namespace API.Problems.NPComplete.NPC_UNRESTRICTEDLONGESTPATH.Verifiers;
 class UnrestrictedLongestPathVerifier : IVerifier<UNRESTRICTEDLONGESTPATH> {
     public const string CertificateGrammar =
         "{v1,v2,...,vt} | all vertices are distinct, consecutive vertices share an edge, and t - 1 >= K";
-    public const string CertificateExample = "{1,2,3}";
+    public const string CertificateExample = "{1,2,3,5,4,6}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Unrestricted Longest Path Verifier";
+    public string verifierName { get; } = "Unrestricted Longest Path Solution Verifier";
     public string verifierDefinition { get; } =
         "Checks that the certificate lists a simple path in the input graph with at least K edges.";
     public string source { get; } =

@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_UNRESTRICTEDLONGESTPATH.Solvers;
 class UnrestrictedLongestPathSolver : ISolver<UNRESTRICTEDLONGESTPATH> {
 
     // --- Fields ---
-    public string solverName { get; } = "Longest Path Solver - Color Coding Algorithm";
+    public string solverName { get; } = "Alon-Yuster-Zwick Color Coding Algorithm";
     public string solverDefinition { get; } =
         "Uses the Alon-Yuster-Zwick color-coding algorithm. In each iteration, it colors"
         + " vertices uniformly with K+1 colors and uses subset dynamic programming to find"
@@ -24,14 +24,25 @@ class UnrestrictedLongestPathSolver : ISolver<UNRESTRICTEDLONGESTPATH> {
         "2^(K+1) * (n + m) * (K+1)^(K+1) / (K+1)!",
         ", n = |nodes|, m = |edges|, K = required number of edges"
     );
-    public bool timerHasExpired { get; set; }
+    // Redux sets this flag when the compute time limit runs out; the solver must notice it and stop.
+    // volatile: the flag is written by the timer thread while solve() is running on another thread.
+    private volatile bool _timerHasExpired;
+    public bool timerHasExpired { get => _timerHasExpired; set => _timerHasExpired = value; }
 
     public string sourceFile { get; } = SourceFile.Path();
 
     // --- Methods Including Constructors ---
     public UnrestrictedLongestPathSolver() { }
 
+    // ln(1 - p) for 0 < p < 1. For small p it uses the series -p - p^2/2 - p^3/3 (the error is below 1e-12 of the
+    // result for p < 1e-4); otherwise 1 - p is exact enough for Math.Log.
+    private static double LogOneMinus(double p) =>
+        p < 1e-4 ? -p * (1 + p / 2 + p * p / 3) : Math.Log(1 - p);
+
     public string solve(UNRESTRICTEDLONGESTPATH problem) {
+        if (timerHasExpired)
+            return SolveRun.TimedOutAnswer;
+
         int n = problem.nodes.Count;
         if (n == 0)
             return "{}";
@@ -48,9 +59,11 @@ class UnrestrictedLongestPathSolver : ISolver<UNRESTRICTEDLONGESTPATH> {
 
         double colorfulProbability = Math.Exp(logColorfulProbability);
         double missProbability = 0.001;
+        // Math.Log(1 - p) rounds 1 - p to 1 once p is below about 1e-16 (a target of 40 or more vertices), which made
+        // the trial count too small or infinite. LogOneMinus stays accurate for tiny p.
         double trialLimit = colorfulProbability >= 1
             ? 1
-            : Math.Ceiling(Math.Log(missProbability) / Math.Log(1 - colorfulProbability));
+            : Math.Ceiling(Math.Log(missProbability) / LogOneMinus(colorfulProbability));
         if (double.IsInfinity(trialLimit) || trialLimit > long.MaxValue)
             throw new InvalidOperationException(
                 "The requested path length requires more color-coding iterations than this solver can represent."
@@ -75,6 +88,9 @@ class UnrestrictedLongestPathSolver : ISolver<UNRESTRICTEDLONGESTPATH> {
 
         var neighbors = adjacency.Select(set => set.ToArray()).ToArray();
         for (long trial = 0; trial < trialLimit; trial++) {
+            if (timerHasExpired)
+                return SolveRun.TimedOutAnswer;
+
             var colorBit = new BigInteger[n];
             for (int v = 0; v < n; v++) {
                 colorBit[v] = BigInteger.One << Random.Shared.Next(targetVertices);
@@ -88,6 +104,8 @@ class UnrestrictedLongestPathSolver : ISolver<UNRESTRICTEDLONGESTPATH> {
             BigInteger maskLimit = BigInteger.One << targetVertices;
             BigInteger fullMask = maskLimit - BigInteger.One;
             for (BigInteger mask = BigInteger.One; mask < maskLimit; mask++) {
+                if (timerHasExpired)
+                    return SolveRun.TimedOutAnswer;
 
                 for (int v = 0; v < n; v++) {
                     if ((mask & colorBit[v]) == BigInteger.Zero)

@@ -84,7 +84,7 @@ public class UNRESTRICTEDLONGESTPATH_Tests {
     [Fact]
     public void VerifierName_MatchesProblemName() {
         var problem = new UNRESTRICTEDLONGESTPATH();
-        Assert.Equal($"Default {problem.problemName} Verifier", problem.defaultVerifier.verifierName);
+        Assert.Equal($"{problem.problemName} Solution Verifier", problem.defaultVerifier.verifierName);
     }
 
     [Theory]

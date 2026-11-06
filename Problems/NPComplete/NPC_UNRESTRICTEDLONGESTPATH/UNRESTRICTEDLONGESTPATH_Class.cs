@@ -52,6 +52,8 @@ class UNRESTRICTEDLONGESTPATH : IGraphProblem<UnrestrictedLongestPathSolver, Unr
 
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
 
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
+
     // --- Properties ---
     public IReadOnlyList<string> nodes { get; }
     public IReadOnlyList<KeyValuePair<string, string>> edges { get; }
