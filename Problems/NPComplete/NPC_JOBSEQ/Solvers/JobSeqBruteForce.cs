@@ -6,6 +6,10 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_JOBSEQ.Solvers;
 
+// The steps Job Sequencing Brute Force records, for the Schedule picture: one per order of the jobs, in the order Orders
+// hands them out. An order is a Reject saying which jobs finish late and what penalty that costs (the late jobs in focus),
+// or the Accept of the first order whose penalty is within K; then the Done. The recorder's cap hides the rest of a long
+// run.
 // Not incremental: every step judges a whole order of the jobs.
 class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
 
@@ -28,7 +32,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
     public JobSeqBruteForce() {
 
     }
-    // #935: lazy (same order as before), so solve() can stop at the time limit without first building all p! permutations.
+    // Lazy (same order as before), so solve() can stop at the time limit without first building all p! permutations.
     public static IEnumerable<List<int>> GenerateCombinations(int x) {
         List<int> currentCombination = new List<int>();
         for (int i = 0; i < x; i++) {
@@ -48,7 +52,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
 
     /// <summary>
     /// The orders of <paramref name="x"/> jobs, one at a time, in the same order as <see cref="GenerateCombinations"/>
-    /// (lexicographic, starting from 0, 1, ..., x - 1), without building them all first (#802). Each order is a new list.
+    /// (lexicographic, starting from 0, 1, ..., x - 1), without building them all first. Each order is a new list.
     /// </summary>
     public static IEnumerable<List<int>> Orders(int x) {
         List<int> current = Enumerable.Range(0, x).ToList();
@@ -90,29 +94,48 @@ class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
         }
         return certificate.TrimEnd(',') + ")";
     }
+    // How the steps show an order: the jobs in that order, and the ones that finish late.
+    private static RunSteps<(List<int> Order, IReadOnlyList<int> Late), JobOrder> NewSteps(StepRecorder<JobOrder> rec) => new(rec,
+        // What every picture shows: the order, and its late jobs.
+        partial: s => ScheduleFrames.Order(s.Order),
+        focus: s => s.Late.Select(ScheduleFrames.JobId).ToArray());
+
     public string solve(JOBSEQ jobseq) => Solve(jobseq, StepRecorder<JobOrder>.Off);
 
-    // Steps: one per order tried, in the order Orders hands them out; the first order whose late penalty fits K is accepted.
+    // Tries every order of the jobs until one keeps the late penalty within K.
     public string Solve(JOBSEQ jobseq, StepRecorder<JobOrder> rec) {
         int tried = 0;
+        var steps = NewSteps(rec);
         foreach (List<int> permutation in Orders(jobseq.T.Count())) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
             tried++;
-            // Read only inside recorder lambdas (and for Done), so they cost nothing when recording is off.
-            JobOrder Order() => ScheduleFrames.Order(permutation);
-            string[] LateIds() => Late(jobseq, permutation).Select(ScheduleFrames.JobId).ToArray();
+            // The verifier only says yes or no, so which jobs finish late, and the penalty they cost, are worked out for the
+            // steps alone (only while recording).
+            IReadOnlyList<int> late = rec.Enabled ? Late(jobseq, permutation) : [];
+            int penalty = rec.Enabled ? late.Sum(j => jobseq.P[j]) : 0;
             if (jobseq.defaultVerifier.verify(jobseq, permutation)) {
-                rec.Accept(Order, () => TryCaption(jobseq, permutation, fits: true));
-                rec.Done(Order(), true,
-                    $"{permToCertificate(permutation)} is the first order that keeps the late penalty within K = {jobseq.K}, found after {Tries(tried)}.");
+                // The answer's step is about the whole order, not its late jobs.
+                if (late.Count == 0)
+                    steps.Accept((permutation, late), $"Try {permToCertificate(permutation)}: every job finishes on time, penalty {penalty}, within K = {jobseq.K}. It works.", focus: () => []);
+                else if (late.Count == 1)
+                    steps.Accept((permutation, late), $"Try {permToCertificate(permutation)}: job {late[0]} finishes late, penalty {penalty}, within K = {jobseq.K}. It works.", focus: () => []);
+                else
+                    steps.Accept((permutation, late), $"Try {permToCertificate(permutation)}: jobs {ScheduleFrames.AndList(late.Select(j => j.ToString()).ToList())} finish late, penalty {penalty}, within K = {jobseq.K}. It works.", focus: () => []);
+                steps.Done(ScheduleFrames.Order(permutation), true, $"{permToCertificate(permutation)} is the first order that keeps the late penalty within K = {jobseq.K}, found after {ScheduleFrames.Num(tried)} {(tried == 1 ? "order" : "orders")}.");
                 return permToCertificate(permutation);
             }
-            rec.Reject(Order, () => TryCaption(jobseq, permutation, fits: false), LateIds);
+            if (late.Count == 0)
+                steps.Reject((permutation, late), $"Try {permToCertificate(permutation)}: every job finishes on time, penalty {penalty} > K = {jobseq.K}.");
+            else if (late.Count == 1)
+                steps.Reject((permutation, late), $"Try {permToCertificate(permutation)}: job {late[0]} finishes late, penalty {penalty} > K = {jobseq.K}.");
+            else
+                steps.Reject((permutation, late), $"Try {permToCertificate(permutation)}: jobs {ScheduleFrames.AndList(late.Select(j => j.ToString()).ToList())} finish late, penalty {penalty} > K = {jobseq.K}.");
         }
-        rec.Done(new JobOrder([]), false, tried == 1
-            ? $"There is only one order, and its late penalty is more than K = {jobseq.K}."
-            : $"Checked all {Tries(tried)}. None keeps the late penalty within K = {jobseq.K}.");
-        // No order keeps the penalty within K: "{}" is "no answer" (#801, #605).
+        if (tried == 1)
+            steps.Done(new JobOrder([]), false, $"There is only one order, and its late penalty is more than K = {jobseq.K}.");
+        else
+            steps.Done(new JobOrder([]), false, $"Checked all {ScheduleFrames.Num(tried)} {(tried == 1 ? "order" : "orders")}. None keeps the late penalty within K = {jobseq.K}.");
+        // No order keeps the penalty within K: "{}" is "no answer".
         return "{}";
     }
 
@@ -126,22 +149,6 @@ class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
         }
         return late;
     }
-
-    // "Try (0,1,2,5,3,4): jobs 2, 3 and 4 finish late, penalty 10 > K = 4."
-    private string TryCaption(JOBSEQ jobseq, List<int> order, bool fits) {
-        var late = Late(jobseq, order);
-        int penalty = late.Sum(j => jobseq.P[j]);
-        string which = late.Count switch {
-            0 => "every job finishes on time",
-            1 => $"job {late[0]} finishes late",
-            _ => $"jobs {ScheduleFrames.AndList(late.Select(j => j.ToString()).ToList())} finish late",
-        };
-        return fits
-            ? $"Try {permToCertificate(order)}: {which}, penalty {penalty}, within K = {jobseq.K}. It works."
-            : $"Try {permToCertificate(order)}: {which}, penalty {penalty} > K = {jobseq.K}.";
-    }
-
-    private static string Tries(int n) => n == 1 ? "1 order" : $"{ScheduleFrames.Num(n)} orders";
 
     /// <summary>
     /// Given Independent Set instance in string format and solution string, outputs a solution dictionary with 
