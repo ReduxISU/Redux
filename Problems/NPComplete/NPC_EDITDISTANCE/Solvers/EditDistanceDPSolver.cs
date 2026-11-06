@@ -95,8 +95,16 @@ class EditDistanceDPSolver : ISolver<EDITDISTANCE, TableCells>, IIncrementalSolv
                     int replace = dp[i - 1, j - 1], delete = dp[i - 1, j], insert = dp[i, j - 1];
                     int cheapest = Math.Min(replace, Math.Min(delete, insert));
                     dp[i, j] = 1 + cheapest;
-                    if (byCell)
-                        steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is {(replace == cheapest ? "replace" : delete == cheapest ? "delete" : "insert")}, so {dp[i, j]}.");
+                    // The why names the cheapest edit (replace first, then delete, then insert on a tie): one step line
+                    // per edit, so each reads as a plain sentence. Picking the line is skipped when nothing is recorded.
+                    if (byCell && rec.Enabled) {
+                        if (replace == cheapest)
+                            steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is replace, so {dp[i, j]}.");
+                        else if (delete == cheapest)
+                            steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is delete, so {dp[i, j]}.");
+                        else
+                            steps.Update((i, j, true), $"Cell ({i},{j}): '{x[i - 1]}' ≠ '{y[j - 1]}'. Replace '{x[i - 1]}' with '{y[j - 1]}': 1 + {replace}. Delete '{x[i - 1]}': 1 + {delete}. Insert '{y[j - 1]}': 1 + {insert}. The cheapest is insert, so {dp[i, j]}.");
+                    }
                 }
             }
             if (!byCell && n > 0) {

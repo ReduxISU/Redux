@@ -298,6 +298,32 @@ Its step lines name the choice too, for example `steps.Try(curSat, value, $"Try 
 5. **The solver's own algorithm helpers stay.** Examples: `FirstFalseClause`, or the next-permutation code. Those are the algorithm, not the steps.
 6. **Plumbing is set once.** How a state becomes the partial answer and the focus is said once, in `NewSteps`. Don't pass a lambda for it on every step.
 7. **Comment thoroughly, in plain words.** Put a header comment above the class that lists which steps the solver records and what each one means. Keep the two group comments in the set-once block. Write comments on the algorithm that a student can follow. Leave out issue numbers and change history; those belong in the PR.
+8. **One sentence per step line: no branching inside a why.** `dotnet format` joins any line break inside a `{ }` hole, so a why with two or more `?:` (or `switch`) choices inside it ends up as one very long line nobody can read. When the sentence changes by case, write one step line per case instead. One short `?:` that picks a word (`is` or `are`) is fine. Before (Edit Distance's mismatched cell):
+
+   ```csharp
+   steps.Update(cell, $"... Insert '{y[j - 1]}': 1 + {insert}. The cheapest is {(replace == cheapest ? "replace" : delete == cheapest ? "delete" : "insert")}, so {dp[i, j]}.");
+   ```
+
+   After:
+
+   ```csharp
+   if (replace == cheapest)
+       steps.Update(cell, $"... Insert '{y[j - 1]}': 1 + {insert}. The cheapest is replace, so {dp[i, j]}.");
+   else if (delete == cheapest)
+       steps.Update(cell, $"... Insert '{y[j - 1]}': 1 + {insert}. The cheapest is delete, so {dp[i, j]}.");
+   else
+       steps.Update(cell, $"... Insert '{y[j - 1]}': 1 + {insert}. The cheapest is insert, so {dp[i, j]}.");
+   ```
+
+   The lines repeat, but each one reads as the sentence the step will show. [UnstructuredGroverSolver.cs](../../Problems/NPComplete/NPC_UNSTRUCTUREDSEARCH/Solvers/UnstructuredGroverSolver.cs) does the same with one `Done` per outcome.
+9. **A fact only the picture needs, and that costs work, is worked out only when recording.** Check `rec.Enabled` before computing it, and use an empty value otherwise. Edmonds-Karp ([MinSTCutSolver.cs](../../Problems/P/P_MINSTCUT/Solvers/MinSTCutSolver.cs)) works on the residual graph, but its picture and why need what each push did to the instance's edges (where it ran backward, which edges it filled). The algorithm never needs that, so it is read off the residual graph only while recording:
+
+   ```csharp
+   // What the push did on the instance's edges, for the step (worked out only while recording).
+   FlowPush push = rec.Enabled ? flow.Value.Push(residual, parent, s, t, bottleneck) : FlowPush.None;
+   ```
+
+   A plain solve gets `FlowPush.None` and does no extra work. Facts the algorithm already has (the bottleneck, the flow's value) need no guard: keep them as plain values and let the `$"..."` holes format them only for a kept step.
 
 To draw your steps you also need a visualization that draws your answer's shape. Most shapes already have one. See [adding-a-visualization.md](adding-a-visualization.md) for the other half.
 
