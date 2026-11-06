@@ -6,6 +6,12 @@ using System.Collections.Generic;
 
 namespace API.Problems.NPComplete.NPC_DEUTSCHJOZSA.Solvers;
 
+// The steps Deutsch-Jozsa Classical records, for the Quantum Circuit picture (which this solver never runs, so only its
+// oracle is drawn as the focus):
+//   - a Reject when f breaks the promise (neither constant nor balanced): there is no answer to find;
+//   - otherwise an Update per oracle call whose value matches the first: asking the oracle has no verdict;
+//   - an Accept with the answer: balanced at the first call that differs, or constant once more than half agree;
+//   - the Done, with the verifier's verdict.
 // Incremental: each oracle call adds to what the solver knows about f, and none is taken back.
 class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IIncrementalSolver {
 
@@ -29,11 +35,19 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IInc
     // --- Methods Including Constructors ---
     public DeutschJozsaClassicalSolver() { }
 
+    // How the steps show the run: the input the step calls the oracle with (null: a step that calls nothing), and the
+    // answer once there is one.
+    private static RunSteps<(int? Call, string? Answer), QuantumProgress> NewSteps(StepRecorder<QuantumProgress> rec,
+        List<OracleQuery> queries, string? oracle) => new(rec,
+        // What every picture shows: the oracle calls made so far, and the answer.
+        partial: s => new QuantumProgress(queries: queries, result: s.Answer),
+        // The oracle gate, for a step that calls it.
+        focus: s => s.Call != null && oracle != null ? [oracle] : []);
+
     public string solve(DEUTSCHJOZSA problem) => Solve(problem, StepRecorder<QuantumProgress>.Off);
 
-    // Steps (the Quantum Circuit picture, which this solver never runs): a Reject when f breaks the promise; otherwise a Try
-    // per oracle call with the oracle as the focus, an Accept for the call that settles it (or once more than half the
-    // inputs agree), and Done with the verifier's verdict.
+    // f is promised to be constant or balanced, so calling it on one more than half of its inputs settles which: the first
+    // value that differs from f's first value proves balanced, and if more than half agree f cannot be balanced.
     public string Solve(DEUTSCHJOZSA problem, StepRecorder<QuantumProgress> rec) {
         //
         // Solves the Deutsch-Jozsa problem by classically querying the oracle.
@@ -50,15 +64,11 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IInc
         // I kept the idea for education purposes
 
         List<int> oracle = problem.w;
+        int n = problem.n;
+        // The oracle gate is looked up only for the steps: a plain solve never builds the circuit.
         string? gate = QuantumSteps.Recording(rec) ? QuantumCircuits.DeutschJozsa(oracle).OracleGateId : null;
-        string[] Focus() => gate == null ? [] : [gate];
-        string In(int x) => QuantumSteps.Input(x, problem.n);
         var queries = new List<OracleQuery>();
-        string Finish(string answer) {
-            QuantumSteps.Done(rec, () => problem.defaultVerifier.verify(problem, answer), new QuantumProgress(queries: queries, result: answer),
-                ok => ok ? $"f is {answer}." : answer == "Breaks DJ Promise" ? "No answer: f breaks the promise." : $"The answer {answer} is not correct.");
-            return answer;
-        }
+        var steps = NewSteps(rec, queries, gate);
 
         // get output for the first input
         int first_value = oracle[0];
@@ -67,39 +77,49 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IInc
         int total_inputs = (int)Math.Pow(2, problem.n);
         int queries_to_be_certain = (total_inputs / 2) + 1;
 
+        string answer;
         // Check DJ promise
         if (!(oracle.All(v => v == 0) || oracle.All(v => v == 1) || oracle.Count(v => v == 0) * 2 == oracle.Count)) {
-            rec.Reject(() => new QuantumProgress(), () => $"f gives 1 for {oracle.Count(v => v == 1)} of its {QuantumCircuits.Count(oracle.Count)} inputs: "
-                + "not none, not all and not exactly half. It breaks the promise, so there is no answer to find.");
-            return Finish("Breaks DJ Promise");
-        }
+            steps.Reject((null, null), $"f gives 1 for {oracle.Count(v => v == 1)} of its {QuantumCircuits.Count(oracle.Count)} inputs: not none, not all and not exactly half. It breaks the promise, so there is no answer to find.");
+            answer = "Breaks DJ Promise";
+        } else {
+            queries.Add(new OracleQuery(0, first_value));
+            steps.Update((0, null), $"Call the oracle with x = {QuantumSteps.Input(0, n)}: f({QuantumSteps.Input(0, n)}) = {first_value}.");
 
-        queries.Add(new OracleQuery(0, first_value));
-        rec.Try(() => new QuantumProgress(queries: queries), () => $"Call the oracle with x = {In(0)}: f({In(0)}) = {first_value}.", Focus);
+            // check the inputs, until one differs from the first
+            bool balanced = false;
+            for (int i = 1; i < queries_to_be_certain && !balanced; i++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer;
+                // query the oracle
+                int current_value = oracle[i];
+                queries.Add(new OracleQuery(i, current_value));
 
-        // check the inputs
-        for (int i = 1; i < queries_to_be_certain; i++) {
-            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
-            // query the oracle
-            int current_value = oracle[i];
-            queries.Add(new OracleQuery(i, current_value));
-            int x = i;
-
-            // check if different than first
-            if (current_value != first_value) {
-                rec.Accept(() => new QuantumProgress(queries: queries, result: "balanced"),
-                    () => $"Call the oracle with x = {In(x)}: f({In(x)}) = {current_value}, unlike f({In(0)}) = {first_value}. f is not constant, so it is balanced, after {x + 1} calls.",
-                    Focus);
-                return Finish("balanced");
+                // check if different than first
+                balanced = current_value != first_value;
+                if (balanced)
+                    steps.Accept((i, "balanced"), $"Call the oracle with x = {QuantumSteps.Input(i, n)}: f({QuantumSteps.Input(i, n)}) = {current_value}, unlike f({QuantumSteps.Input(0, n)}) = {first_value}. f is not constant, so it is balanced, after {i + 1} calls.");
+                else
+                    steps.Update((i, null), $"Call the oracle with x = {QuantumSteps.Input(i, n)}: f({QuantumSteps.Input(i, n)}) = {current_value}, the same as f({QuantumSteps.Input(0, n)}).");
             }
-            rec.Try(() => new QuantumProgress(queries: queries), () => $"Call the oracle with x = {In(x)}: f({In(x)}) = {current_value}, the same as f({In(0)}).", Focus);
+
+            // if no input differed, all the inputs were the same
+            answer = balanced ? "balanced" : "constant";
+            if (!balanced && total_inputs == 1)
+                steps.Accept((null, answer), $"f has a single input, so it is constant.");
+            else if (!balanced)
+                steps.Accept((null, answer), $"The first {queries_to_be_certain} of {QuantumCircuits.Count(total_inputs)} inputs all give {first_value}: more than half, so f cannot be balanced. It is constant. That took {queries_to_be_certain} oracle calls; the Deutsch-Jozsa algorithm needs 1.");
         }
 
-        // if we reach this point, all the inputs were the same
-        rec.Accept(() => new QuantumProgress(queries: queries, result: "constant"), () => total_inputs == 1
-            ? "f has a single input, so it is constant."
-            : $"The first {queries_to_be_certain} of {QuantumCircuits.Count(total_inputs)} inputs all give {first_value}: more than half, so f cannot be balanced. It is constant. "
-                + $"That took {queries_to_be_certain} oracle calls; the Deutsch-Jozsa algorithm needs 1.");
-        return Finish("constant");
+        // The verdict is only for the steps: a plain solve never runs the verifier.
+        if (QuantumSteps.Recording(rec)) {
+            var final = new QuantumProgress(queries: queries, result: answer);
+            if (QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer)))
+                steps.Done(final, true, $"f is {answer}.");
+            else if (answer == "Breaks DJ Promise")
+                steps.Done(final, false, $"No answer: f breaks the promise.");
+            else
+                steps.Done(final, false, $"The answer {answer} is not correct.");
+        }
+        return answer;
     }
 }
