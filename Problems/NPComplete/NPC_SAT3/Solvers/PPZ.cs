@@ -99,8 +99,9 @@ class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
         // The order of first appearance, so the same seed gives the same run in every process (a HashSet's order would not).
         var formula = SatFormula.Of(sat3);
         int n = formula.Variables.Count;
+        var steps = NewSteps(formula, rec);
         if (n == 0) {
-            rec.Done(new Assignment([]), false, "The formula has no variables to set: no answer found.");
+            steps.Done(new Assignment([]), false, $"The formula has no variables to set: no answer found.");
             return "{}";
         }
         var clauses = formula.Clauses;
@@ -108,7 +109,6 @@ class PPZ : ISolver<SAT3, Assignment>, IRandomizedSolver, IIncrementalSolver {
         double neededTrials = Math.Pow(2.0, n * (2.0 / 3.0));
         int trials = _trials ?? (neededTrials >= MaxTrials ? MaxTrials : (int)Math.Max(1, neededTrials));
         Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);
-        var steps = NewSteps(formula, rec);
         var variables = Enumerable.Range(0, n).ToList();
         bool[]? solution = null;
 

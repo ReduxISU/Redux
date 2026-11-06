@@ -106,16 +106,16 @@ class Schoning : ISolver<SAT3, Assignment>, IRandomizedSolver {
         // The order of first appearance, so the same seed gives the same run in every process (a HashSet's order would not).
         var formula = SatFormula.Of(sat3);
         int n = formula.Variables.Count;
+        int maxFlips = _flipsPerVariable * n;
+        var steps = NewSteps(formula, maxFlips, rec);
         if (n == 0) {
-            rec.Done(new Assignment([]), false, "The formula has no variables to set: no answer found.");
+            steps.Done(new Assignment([]), false, $"The formula has no variables to set: no answer found.");
             return "{}";
         }
         var clauses = formula.Clauses;
 
         int trials = _trials ?? Trials(n);
-        int maxFlips = _flipsPerVariable * n;
         Random rnd = RandomizedSolvers.Generator(((IRandomizedSolver)this).Seed);
-        var steps = NewSteps(formula, maxFlips, rec);
         bool[]? solution = null;
 
         for (int i = 0; i < trials && solution == null; i++) {

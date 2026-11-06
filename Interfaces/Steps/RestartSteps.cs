@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace API.Interfaces.Steps;
 
 /// <summary>
@@ -35,7 +37,7 @@ sealed class RestartTry<TValues, TMove>(int number, TValues start) {
 /// so a plain solve makes none of the converters.
 /// </para>
 /// </summary>
-sealed class RestartSteps<TValues, TMove, TPartial> {
+sealed class RestartSteps<TValues, TMove, TPartial> : IStepGate {
     private readonly StepRecorder<TPartial> _rec;
     private readonly Func<TValues, TValues> _copy;
     private readonly Action<TMove, TValues> _apply;
@@ -138,6 +140,21 @@ sealed class RestartSteps<TValues, TMove, TPartial> {
         _current.End = _copy(end);
         _current.Solved = solved;
         if (!solved && _current != _first) _lastFailed = _current;
+    }
+
+    // ---- A Done before any try ----
+
+    bool IStepGate.Recording => _rec.Enabled;
+    bool IStepGate.ShowsNextStep => ((IStepGate)_rec).ShowsNextStep;
+
+    /// <summary>
+    /// A Done the solver records itself, before any try begins: a run with nothing to search (a formula with no variables).
+    /// Its why is written at the call, <c>steps.Done(noAnswer, false, $"...")</c>, and formatted only while recording. A run
+    /// that tries ends with <see cref="Record"/> instead.
+    /// </summary>
+    public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText why) {
+        if (!_rec.Enabled) return;
+        _rec.Done(answer, ok, why.ToStringAndClear()!);
     }
 
     // ---- Recording ----
