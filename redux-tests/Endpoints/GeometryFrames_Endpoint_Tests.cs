@@ -1,7 +1,11 @@
-using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using API.Interfaces;
+using API.Interfaces.Steps;
+using API.Problems.NPComplete.NPC_CONVEXHULL;
+using API.Problems.NPComplete.NPC_CONVEXHULL.Solvers;
+using API.Problems.NPComplete.NPC_CONVEXHULL.Visualizations;
 using Xunit;
 
 namespace redux_tests;
@@ -228,29 +232,24 @@ public class GeometryFrames_Endpoint_Tests : IClassFixture<AppFactory> {
     }
 }
 
-// Stopped runs, under the 0.05 s budget of TinyBudgetAppFactory.
-[Collection(TimingCollection.Name)]
-public class GeometryFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> {
-    private readonly HttpClient _client;
-
-    public GeometryFrames_StoppedRun_Endpoint_Tests(TinyBudgetAppFactory factory) {
-        _client = factory.CreateClient();
-    }
-
+// A stopped run of Convex Hull's solver, drawn as the visualize endpoint draws it for format=frames. The run is stopped by a
+// test clock, not the real one: the clock moves one millisecond every 8 reads, and the recorder reads it once per step, so
+// the 0.05 s limit passes after about 400 steps, past the recorder's cap of 150, on every machine and under any load. Through
+// the endpoint, with the real clock, the run had to take more than 0.05 s (else the solver finished) and the whole request
+// less than the 2 s backstop (else it answered 422), and under the full suite's load parsing and drawing a big enough
+// instance sometimes took longer than that.
+public class GeometryFrames_StoppedRun_Tests {
     [Fact]
-    public async Task Frames_Stopped_EndsBlank_NotOk() {
-        // 12,000 points on a parabola: every point is a corner, and recording the merges' pushes and pops takes well over
-        // 0.05 s (40,000 took 0.4 to 0.8 s). The clock is read only on a step, and the verdict after the last step is not one,
-        // so a run whose steps all fit in 0.05 s finishes; 3,000 points took only 0.05 to 0.1 s and sometimes did (#837). Not
-        // 40,000 any more: the whole request must now end within the backstop, 2 s past the limit (#935), and under the full
-        // suite's load parsing and drawing 40,000 points did not.
-        string instance = "{" + string.Join(",", Enumerable.Range(0, 12000).Select(i => $"({i},{(long)i * i})")) + "}";
-        var sw = Stopwatch.StartNew();
-        var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync("/ProblemProvider/visualize?visualization=convexhullvisualization&format=frames", content, TestContext.Current.CancellationToken);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(20), $"took {sw.Elapsed}");
+    public void Frames_Stopped_EndsBlank_NotOk() {
+        // 2,000 points on a parabola: every point is a corner, so the merges take far more than 400 steps.
+        string instance = "{" + string.Join(",", Enumerable.Range(0, 2000).Select(i => $"({i},{(long)i * i})")) + "}";
+        long reads = 0;
+        var run = SolveRun.Record<HullBuild>(true, TimeSpan.FromSeconds(0.05),
+            rec => new ConvexHullSolver().Solve(new CONVEXHULL(instance), rec), clock: () => reads++ / 8) with { Incremental = true };
+        Assert.True(run.TimedOut);
+        IFramesVisualization vis = new ConvexHullVisualization();
+        // What the endpoint sends for format=frames.
+        string body = JsonSerializer.Serialize(vis.BuildFrames(instance, run) with { Seed = run.Seed }, FramesResponse.JsonOptions);
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal("Geometry", root.GetProperty("type").GetString());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
@@ -259,7 +258,7 @@ public class GeometryFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         var done = frames[^1];
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         Assert.False(done.GetProperty("ok").GetBoolean());
-        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
+        Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished \(\d+ not shown\)\.", done.GetProperty("caption").GetString());
         Assert.Empty(done.GetProperty("focus").EnumerateArray());
         Assert.Empty(done.GetProperty("pieces").EnumerateArray());
         Assert.Empty(done.GetProperty("chain").EnumerateArray());
