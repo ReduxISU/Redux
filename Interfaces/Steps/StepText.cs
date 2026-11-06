@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace API.Interfaces.Steps;
 
@@ -29,31 +30,31 @@ interface IBacktrackGate {
 /// </summary>
 [InterpolatedStringHandler]
 ref struct ShownText {
-    private DefaultInterpolatedStringHandler _text;
-    private readonly bool _on;
+    // The text being built; null when it is not formatted.
+    private readonly StringBuilder? _text;
 
     public ShownText(int literalLength, int formattedCount, IStepGate gate, out bool shouldAppend) {
-        _on = shouldAppend = gate.ShowsNextStep;
-        _text = _on ? new DefaultInterpolatedStringHandler(literalLength, formattedCount) : default;
+        shouldAppend = gate.ShowsNextStep;
+        _text = shouldAppend ? StepTextFormat.Builder(literalLength, formattedCount) : null;
     }
 
     // For SearchSteps.Expand: formatted only when the expansion is a kept Backtrack.
     public ShownText(int literalLength, int formattedCount, IBacktrackGate gate, object state, out bool shouldAppend) {
-        _on = shouldAppend = gate.ShowsBacktrackTo(state);
-        _text = _on ? new DefaultInterpolatedStringHandler(literalLength, formattedCount) : default;
+        shouldAppend = gate.ShowsBacktrackTo(state);
+        _text = shouldAppend ? StepTextFormat.Builder(literalLength, formattedCount) : null;
     }
 
 
-    public void AppendLiteral(string value) => _text.AppendLiteral(value);
-    public void AppendFormatted<T>(T value) => _text.AppendFormatted(value);
-    public void AppendFormatted<T>(T value, string? format) => _text.AppendFormatted(value, format);
-    public void AppendFormatted<T>(T value, int alignment) => _text.AppendFormatted(value, alignment);
-    public void AppendFormatted<T>(T value, int alignment, string? format) => _text.AppendFormatted(value, alignment, format);
-    public void AppendFormatted(string? value) => _text.AppendFormatted(value);
-    public void AppendFormatted(ReadOnlySpan<char> value) => _text.AppendFormatted(value);
+    public void AppendLiteral(string value) => _text!.Append(value);
+    public void AppendFormatted<T>(T value) => StepTextFormat.Into(_text!).AppendFormatted(value);
+    public void AppendFormatted<T>(T value, string? format) => StepTextFormat.Into(_text!).AppendFormatted(value, format);
+    public void AppendFormatted<T>(T value, int alignment) => StepTextFormat.Into(_text!).AppendFormatted(value, alignment);
+    public void AppendFormatted<T>(T value, int alignment, string? format) => StepTextFormat.Into(_text!).AppendFormatted(value, alignment, format);
+    public void AppendFormatted(string? value) => _text!.Append(value);
+    public void AppendFormatted(ReadOnlySpan<char> value) => _text!.Append(value);
 
     /// <summary>The text; null when it was not formatted (the step is not kept, or no text was given).</summary>
-    internal string? ToStringAndClear() => _on ? _text.ToStringAndClear() : null;
+    internal string? ToStringAndClear() => _text?.ToString();
 }
 
 /// <summary>
@@ -63,23 +64,37 @@ ref struct ShownText {
 /// </summary>
 [InterpolatedStringHandler]
 ref struct KeptText {
-    private DefaultInterpolatedStringHandler _text;
-    private readonly bool _on;
+    // The text being built; null when it is not formatted.
+    private readonly StringBuilder? _text;
 
     public KeptText(int literalLength, int formattedCount, IStepGate gate, out bool shouldAppend) {
-        _on = shouldAppend = gate.Recording;
-        _text = _on ? new DefaultInterpolatedStringHandler(literalLength, formattedCount) : default;
+        shouldAppend = gate.Recording;
+        _text = shouldAppend ? StepTextFormat.Builder(literalLength, formattedCount) : null;
     }
 
 
-    public void AppendLiteral(string value) => _text.AppendLiteral(value);
-    public void AppendFormatted<T>(T value) => _text.AppendFormatted(value);
-    public void AppendFormatted<T>(T value, string? format) => _text.AppendFormatted(value, format);
-    public void AppendFormatted<T>(T value, int alignment) => _text.AppendFormatted(value, alignment);
-    public void AppendFormatted<T>(T value, int alignment, string? format) => _text.AppendFormatted(value, alignment, format);
-    public void AppendFormatted(string? value) => _text.AppendFormatted(value);
-    public void AppendFormatted(ReadOnlySpan<char> value) => _text.AppendFormatted(value);
+    public void AppendLiteral(string value) => _text!.Append(value);
+    public void AppendFormatted<T>(T value) => StepTextFormat.Into(_text!).AppendFormatted(value);
+    public void AppendFormatted<T>(T value, string? format) => StepTextFormat.Into(_text!).AppendFormatted(value, format);
+    public void AppendFormatted<T>(T value, int alignment) => StepTextFormat.Into(_text!).AppendFormatted(value, alignment);
+    public void AppendFormatted<T>(T value, int alignment, string? format) => StepTextFormat.Into(_text!).AppendFormatted(value, alignment, format);
+    public void AppendFormatted(string? value) => _text!.Append(value);
+    public void AppendFormatted(ReadOnlySpan<char> value) => _text!.Append(value);
 
     /// <summary>The text; null when it was not formatted (the recorder is off, or no text was given).</summary>
-    internal string? ToStringAndClear() => _on ? _text.ToStringAndClear() : null;
+    internal string? ToStringAndClear() => _text?.ToString();
+}
+
+/// <summary>
+/// How <see cref="ShownText"/> and <see cref="KeptText"/> build their text. They hold only a <see cref="StringBuilder"/>,
+/// null when the text is not formatted, so a step whose text is skipped (every step of a run with recording off) passes one
+/// null reference rather than a whole string handler. Each hole is formatted by the framework's own
+/// <see cref="StringBuilder.AppendInterpolatedStringHandler"/>, so the text reads exactly as <c>$"..."</c> would.
+/// </summary>
+static class StepTextFormat {
+    /// <summary>A builder sized for the literal text and a few characters per hole.</summary>
+    public static StringBuilder Builder(int literalLength, int formattedCount) => new(literalLength + formattedCount * 11);
+
+    /// <summary>The framework's handler appending to <paramref name="text"/>, for one hole.</summary>
+    public static StringBuilder.AppendInterpolatedStringHandler Into(StringBuilder text) => new(0, 1, text);
 }
