@@ -11,6 +11,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_INDEPENDENTSET.ReduceTo.NPC_CLIQUE;
 
+// Independent Set to Clique: the same nodes, an edge for every pair of nodes the graph does not join (its complement), and
+// the same K. It records the construction steps (the nodes copied, one per node for the complement edges its turn adds,
+// then K; see Build) and the backward map's steps (one per clique node read; see MapBack).
 class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IRecordedReduction<INDEPENDENTSET, CLIQUE> {
 
 
@@ -82,16 +85,41 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
     public reduceToCLIQUE(string instance, StepRecorder<BuildDelta> rec) : this(new INDEPENDENTSET(instance), rec) { }
 
     /// <summary>
-    /// Reduces a CLIQUE instance to a VERTEXCOVER instance.
+    /// Reduces an INDEPENDENTSET instance to a CLIQUE instance.
     /// </summary>
-    /// <returns> A Vertexcover instance</returns>
+    /// <returns> A Clique instance</returns>
     /// <remarks>
     /// authored by Janita Aamir. Contributed to by Alex Diviney.
     /// </remarks>
     public CLIQUE reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
-    // edges it gets, then K unchanged. The per-node edges are collected inside the loop that builds them.
+    // How the construction steps show the nodes copied: every node of the graph, the same nodes added to the clique graph,
+    // and their element gadgets (the first elementGadgets gadgets, one per node). The state is the graph's nodes.
+    private static RunSteps<List<string>, BuildDelta> NewCopySteps(StepRecorder<BuildDelta> rec, int elementGadgets) => new(rec,
+        // What the Reduction View shows: the nodes in both graphs, and the gadgets that copy them.
+        partial: nodes => new BuildDelta { SourceFocus = nodes.ToArray(), Nodes = nodes.ToArray(), Gadgets = Enumerable.Range(0, elementGadgets).ToArray() },
+        focus: nodes => nodes.ToArray());
+
+    // How the construction steps show a node's turn: the node in the graph, the complement edges its turn adds, and its edge
+    // rule. The state is (Node, Later, Rule): the node, the nodes it gets an edge to, and its edge rule's index (-1 when its
+    // turn adds no edge).
+    private static RunSteps<(string Node, string[] Later, int Rule), BuildDelta> NewNodeSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the node, the edges added, and the edge rule that adds them.
+        partial: s => new BuildDelta {
+            SourceFocus = [s.Node],
+            Edges = BuildEdge.Sorted(s.Later.Select(v => new BuildEdge(s.Node, v))),
+            Gadgets = s.Rule >= 0 ? [s.Rule] : [],
+        },
+        focus: s => [s.Node, .. s.Later]);
+
+    // Builds the clique graph, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept for the nodes: every node of the graph is copied, with the same name;
+    //   - one step per node, in the graph's order: an Accept when its turn adds edges (to the later nodes it has no edge
+    //     to), or a Reject when it adds none (it is the last node, or it already has an edge to every later node);
+    //   - the Done: K stays the same.
+    // A construction has no verdicts, so Accept means "these pieces go into the target" and Reject "this node's turn adds
+    // nothing to it". The steps come from the very decisions below, so what is recorded is what is built.
+    // Gadgets: an element per node, an edge rule per node whose turn adds edges, then the bound (K unchanged).
     private CLIQUE Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -101,8 +129,8 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
 
         List<KeyValuePair<string, string>> edges = new List<KeyValuePair<string, string>>();
 
-        bool recording = rec.Enabled;
-        // The complement edges each node's turn adds; the edge-rule gadgets are made from them whether or not steps are recorded.
+        var nodeSteps = NewNodeSteps(rec);
+        // The complement edges each node's turn adds: the later nodes it has no edge to in the graph.
         var perNodeEdges = new List<(string Node, string[] Later)>();
         foreach (var i in INDPENDENTSETInstance.nodes) {
             int before = edges.Count;
@@ -120,16 +148,34 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
         foreach (UtilCollection node in INDPENDENTSETInstance.graph.Nodes) {
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
-        int elementGadgets = gadgets.Count;
+        var copySteps = NewCopySteps(rec, gadgets.Count);
+        var allNodes = INDPENDENTSETInstance.nodes;
+        if (allNodes.Count > 0)
+            copySteps.Accept(allNodes, $"Copy every node of the graph ({BuildCaptions.Names(allNodes)}) into the clique graph, with the same names. Its edges will be the pairs the graph is missing.");
+        else
+            copySteps.Accept(allNodes, $"The graph has no nodes, so the clique graph has none either.");
+
         // An edge rule per node that gets complement edges: the pairs the graph is missing, filed under the node whose turn
-        // added them, as the steps below do. Then the bound, K unchanged (#694).
+        // added them. Each node's turn is then one step.
         var edgeRuleOf = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var (u, later) in perNodeEdges) {
-            if (later.Length == 0 || edgeRuleOf.ContainsKey(u)) continue;
-            edgeRuleOf[u] = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { u }, later.Select(v => new BuildEdge(u, v).Id).ToList(),
-                note: $"{u} is joined to the nodes it has no edge to in the graph."));
+        for (int n = 0; n < perNodeEdges.Count; n++) {
+            var (u, later) = perNodeEdges[n];
+            if (later.Length == 0) {
+                if (n == perNodeEdges.Count - 1)
+                    nodeSteps.Reject((u, later, -1), $"Node {u} is the last node: the steps above already gave it its edges in the complement.");
+                else
+                    nodeSteps.Reject((u, later, -1), $"Node {u} is already joined to every later node in the original graph, so it gets no new edges.");
+                continue;
+            }
+            if (!edgeRuleOf.TryGetValue(u, out int rule)) {
+                edgeRuleOf[u] = rule = gadgets.Count;
+                gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { u }, later.Select(v => new BuildEdge(u, v).Id).ToList(),
+                    note: $"{u} is joined to the nodes it has no edge to in the graph."));
+            }
+            nodeSteps.Accept((u, later, rule),
+                $"Node {u} has no edge to {BuildCaptions.Names(later)} in the original graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement.");
         }
+        // Then the bound: K stays the same. The clique graph has no piece of its own for it.
         int boundGadget = gadgets.Count;
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(), note: $"K stays {INDPENDENTSETInstance.K}"));
 
@@ -151,33 +197,10 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
         reducedCLIQUE = new CLIQUE(G);
         reductionTo = reducedCLIQUE;
 
-        if (recording) {
-            string[] all = INDPENDENTSETInstance.nodes.ToArray();
-            int[] gadgetIdx = Enumerable.Range(0, elementGadgets).ToArray();
-            rec.Accept(
-                () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
-                () => all.Length > 0
-                    ? $"Copy every node of the graph ({BuildCaptions.Names(all)}) into the clique graph, with the same names. Its edges will be the pairs the graph is missing."
-                    : "The graph has no nodes, so the clique graph has none either.",
-                all);
-            for (int n = 0; n < perNodeEdges.Count; n++) {
-                var (u, later) = perNodeEdges[n];
-                bool lastNode = n == perNodeEdges.Count - 1;
-                BuildEdge[] added = BuildEdge.Sorted(later.Select(v => new BuildEdge(u, v)));
-                int[] rule = edgeRuleOf.TryGetValue(u, out int r) && later.Length > 0 ? [r] : [];
-                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added, Gadgets = rule };
-                Func<string> caption = () => later.Length > 0
-                    ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the original graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
-                    : lastNode
-                        ? $"Node {u} is the last node: the steps above already gave it its edges in the complement."
-                        : $"Node {u} is already joined to every later node in the original graph, so it gets no new edges.";
-                string[] focus = new[] { u }.Concat(later).ToArray();
-                if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
-            }
-            int k = INDPENDENTSETInstance.K;
-            rec.Done(new BuildDelta { Bound = k, Gadgets = [boundGadget] }, true,
-                $"K stays {k}. {k} nodes with no edge between them in the original graph are {k} nodes joined to each other in the complement.");
-        }
+        // The closing step, on either recorder (both record to rec).
+        int k = INDPENDENTSETInstance.K;
+        nodeSteps.Done(new BuildDelta { Bound = k, Gadgets = [boundGadget] }, true,
+            $"K stays {k}. {k} nodes with no edge between them in the original graph are {k} nodes joined to each other in the complement.");
         return reducedCLIQUE;
 
     }
@@ -191,21 +214,30 @@ class reduceToCLIQUE : IReversibleReduction<INDEPENDENTSET, CLIQUE, NodeSet>, IR
     // "{}" is a real answer on either side only when K = 0 (B's K is A's K); both verifiers read it as the empty
     // set, so TargetAcceptsEmpty and SourceAcceptsEmpty keep the default.
 
+    // How the map-back steps show a clique node read: the independent set so far, and the node.
+    private static RunSteps<string, NodeSet> NewMapSteps(StepRecorder<NodeSet> rec, List<string> independent) => new(rec,
+        // What every picture shows: the independent set so far, and the node the step is about.
+        partial: _ => new NodeSet(independent),
+        focus: node => [node]);
+
     // Backward map: reduce() keeps the nodes and complements the edges, so a clique of the complement
     // graph is exactly an independent set of the original. The same nodes are the answer; if the clique
     // is larger than K, any K of its nodes are still independent, so the first K are kept.
+    // Its steps: an Accept per clique node put in the independent set, and a Reject per clique node past the first K (it is
+    // left out). The caller adds the Done.
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         List<string> cliqueNodes = ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes);
         int k = reductionFrom.K;
 
         var independent = new List<string>();
+        var steps = NewMapSteps(rec, independent);
         foreach (string node in cliqueNodes) {
             if (independent.Contains(node)) continue;
             if (independent.Count < k) {
                 independent.Add(node);
-                rec.Accept(() => new NodeSet(independent), () => $"Node {node} is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.", node);
+                steps.Accept(node, $"Node {node} is in the clique of the complement graph, so it shares no edge with the others in the original: it is in the independent set.");
             } else {
-                rec.Reject(() => new NodeSet(independent), () => $"Node {node} is in the clique, but the independent set already has {k} nodes, so it is left out.", node);
+                steps.Reject(node, $"Node {node} is in the clique, but the independent set already has {k} nodes, so it is left out.");
             }
         }
         return (ReductionBack.FormatNodeSet(independent), new NodeSet(independent));
