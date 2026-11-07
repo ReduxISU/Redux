@@ -210,6 +210,13 @@ public class ReductionCapture_Tests : IClassFixture<AppFactory> {
         },
         // One clique of one node: every other node is in no clique, so it gets no color.
         ["GraphColoringToCliqueCover"] = red => "{{" + string.Join(",", ((API.Problems.NPComplete.NPC_CLIQUECOVER.CLIQUECOVER)red.reductionTo).nodes.Take(1)) + "}}",
+        // The first node's sets for colors 1 and 2: the second gives it a color it already has, and every other node gets none.
+        ["KarpGraphColorToExactCover"] = red => "{" + string.Join(",", ((API.Problems.NPComplete.NPC_EXACTCOVER.EXACTCOVER)red.reductionTo).S.Take(2).Select(s => "{" + string.Join(",", s) + "}")) + "}",
+        // Only the two added numbers, one on each side: every number of S is on neither side.
+        ["SubsetSumToPartitionReduction"] = red => {
+            var numbers = ((API.Problems.NPComplete.NPC_PARTITION.PARTITION)red.reductionTo).S;
+            return "{(" + numbers[^1] + "),(" + numbers[^2] + ")}";
+        },
     };
 
     private async Task<string> Post(string path, string instance) {
