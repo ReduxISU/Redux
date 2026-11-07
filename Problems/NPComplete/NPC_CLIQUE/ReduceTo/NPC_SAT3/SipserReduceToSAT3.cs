@@ -16,11 +16,15 @@ namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
 // '<literal>_<clauseIdx>') -- see SipserNodes.Parse and reductionDefinition. An
 // arbitrary CLIQUE instance (e.g. CLIQUE.defaultInstance, plain node names) has no such
 // structure to invert, so the parameterless constructor starts from SipserReduceToCliqueStandard's
-// output for 3SAT's default formula instead of `new CLIQUE()` (#767). Excluded from
+// output for 3SAT's default formula instead of `new CLIQUE()`. Excluded from
 // ReductionGraphData's navigable graph so it isn't advertised as
 // a working CLIQUE -> SAT3 reduction for any input; still directly callable by name via
 // /ProblemProvider/reduce for its actual purpose (mapping a solution back through a
 // paired SipserReduceToCliqueStandard run).
+//
+// Sipser's Clique to 3SAT reads the formula back out of a Sipser-formatted clique graph: the nodes that end in _i are the
+// literals of clause i. It records the construction steps (one per clause, then the Done; see Build) and the backward map's
+// steps (one per clause read; see MapBack).
 [NotAGeneralReduction]
 class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3, NodeSet>, IRecordedReduction<CLIQUE, API.Problems.NPComplete.NPC_SAT3.SAT3> {
     // --- Fields ---
@@ -47,8 +51,8 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
     public string? complexity { get; set; } = "O(n), n = |CLIQUE.nodes|";
 
     /// <summary>
-    /// The gadgets (#694): per clause, a group (the clique nodes of that clause to the clause and its literals), and per node,
-    /// an element (the node to the literal it is written as).
+    /// The gadgets: per clause, a group (the clique nodes of that clause to the clause and its literals), and per node, an
+    /// element (the node to the literal it is written as).
     /// </summary>
     public List<Gadget> gadgets { get; set; }
 
@@ -92,7 +96,7 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
     // Builds from the instance with rec recording the construction as it goes (IRecordedReduction).
     public SipserReduceToSAT3(string instance, StepRecorder<BuildDelta> rec) : this(new CLIQUE(instance), rec) { }
     // CLIQUE's own default instance has plain node names, which reduce() cannot invert, so the default is the
-    // Sipser-formatted CLIQUE that SipserReduceToCliqueStandard builds from 3SAT's default formula (#767).
+    // Sipser-formatted CLIQUE that SipserReduceToCliqueStandard builds from 3SAT's default formula.
     public SipserReduceToSAT3() : this(new SipserReduceToCliqueStandard(new API.Problems.NPComplete.NPC_SAT3.SAT3()).reductionTo) { }
 
     // --- Methods ---
@@ -103,8 +107,27 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
 
     public API.Problems.NPComplete.NPC_SAT3.SAT3 reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per clause, its nodes read back into the clause they were made from,
-    // then Done. The clique graph's edges and K are not read: Sipser's construction made them from the clauses.
+    // How the construction steps show a clause: its nodes in the clique graph; the clause, its literals, the variables no
+    // earlier clause mentions and the formula picture's edges it brings, added to 3SAT; and its gadgets. The state is
+    // (Clause, FirstGadget, Pieces): the clause's index, the index of its first gadget (its group, then one element per node),
+    // and those pieces.
+    private RunSteps<(int Clause, int FirstGadget, (List<string> Nodes, List<BuildEdge> Edges) Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the clause's nodes, the pieces added, and the gadgets that made them.
+        partial: s => new BuildDelta {
+            SourceFocus = _clauseNodes[s.Clause].Select(m => m.Node).ToArray(),
+            Nodes = s.Pieces.Nodes.ToArray(),
+            Edges = BuildEdge.Sorted(s.Pieces.Edges),
+            Gadgets = Enumerable.Range(s.FirstGadget, 1 + _clauseNodes[s.Clause].Count).ToArray(),
+        },
+        // The clause and its literals; the variables are not looked at.
+        focus: s => s.Pieces.Nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray());
+
+    // Builds the 3SAT formula, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per clause: the nodes that end in its suffix become the clause, each node the literal written before it;
+    //   - the Done: the formula, and the K the clique graph asks for.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The clique graph's edges and K are
+    // not read: Sipser's construction made them from the clauses.
+    // Gadgets: per clause a group (its nodes to the clause and its literals), then an element per node (to its literal).
     private API.Problems.NPComplete.NPC_SAT3.SAT3 Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -142,45 +165,34 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
             c++;
         }
 
-        var groupOf = new List<int>();
-        var elementsOf = new List<int[]>();
+        var clauseSteps = NewClauseSteps(rec);
+        var suffixes = clauseMap.Keys.ToList();
+        // The variables an earlier clause's step already added to the formula picture.
+        var builtVariables = new HashSet<string>(StringComparer.Ordinal);
         for (int i = 0; i < _clauseNodes.Count; i++) {
             var mine = _clauseNodes[i];
             var targetIds = GroupedGraphFrames.ClauseIds(i, target[i].Count).ToList();
-            groupOf.Add(gadgets.Count);
+            int firstGadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Group, mine.Select(m => m.Node).ToList(), targetIds,
                 legacyToIds: GroupedGraphFrames.LegacyIds(targetIds, target)));
-            var elements = new List<int>();
-            foreach (var (node, _, literalId) in mine) {
-                elements.Add(gadgets.Count);
+            foreach (var (node, _, literalId) in mine)
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { literalId },
                     legacyToIds: GroupedGraphFrames.LegacyIds([literalId], target)));
-            }
-            elementsOf.Add(elements.ToArray());
+
+            // What the clause adds to the formula picture, worked out only when the steps are recorded: finding its edges
+            // compares each of its literals with every earlier one, and only the picture needs them.
+            var pieces = rec.Enabled ? GroupedGraphFrames.ClausePieces(target, i, builtVariables) : default;
+            if (mine.Count == 1)
+                clauseSteps.Accept((i, firstGadget, pieces),
+                    $"Node {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph ends in _{suffixes[i]}, so it becomes clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffixes[i]}.");
+            else
+                clauseSteps.Accept((i, firstGadget, pieces),
+                    $"Nodes {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph all end in _{suffixes[i]}, so they become clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffixes[i]}.");
         }
 
-        if (rec.Enabled) {
-            var builtVariables = new HashSet<string>(StringComparer.Ordinal);
-            var suffixes = clauseMap.Keys.ToList();
-            for (int i = 0; i < _clauseNodes.Count; i++) {
-                int clause = i;
-                var (pieceNodes, pieceEdges) = GroupedGraphFrames.ClausePieces(target, clause, builtVariables);
-                string[] sourceIds = _clauseNodes[clause].Select(m => m.Node).ToArray();
-                int[] used = new[] { groupOf[clause] }.Concat(elementsOf[clause]).ToArray();
-                string[] focus = pieceNodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
-                string suffix = "_" + suffixes[clause];
-                bool one = sourceIds.Length == 1;
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = sourceIds, Nodes = pieceNodes.ToArray(), Edges = BuildEdge.Sorted(pieceEdges), Gadgets = used },
-                    () => $"{(one ? "Node" : "Nodes")} {BuildCaptions.Names(sourceIds)} of the clique graph {(one ? "ends" : "all end")} in {suffix}, "
-                        + $"so {(one ? "it becomes" : "they become")} clause C{clause + 1} {GroupedGraphFrames.ClauseText(target[clause])}: each node is the literal written before its {suffix}.",
-                    focus);
-            }
-            int k = _reductionFrom.K;
-            rec.Done(new BuildDelta(), true,
-                $"The formula has {Words.Count(target.Count, "clause")}. Sipser's construction joins two nodes exactly when they come from different clauses "
-                + $"and do not contradict, so a clique with a node from every clause picks literals that can all be true at once. The clique graph asks for K = {k}.");
-        }
+        // The closing step.
+        clauseSteps.Done(new BuildDelta(), true,
+            $"The formula has {Words.Count(target.Count, "clause")}. Sipser's construction joins two nodes exactly when they come from different clauses and do not contradict, so a clique with a node from every clause picks literals that can all be true at once. The clique graph asks for K = {_reductionFrom.K}.");
         return sat3;
     }
 
@@ -189,33 +201,38 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
     // A 3SAT answer is an assignment, never "{}": the target keeps the default (no answer). "{}" as a clique is the empty one,
     // which the Clique verifier judges against K.
 
-    /// <summary>
-    /// Backward map (#694): an assignment to a clique. Each clause, in order, gives the node of its first literal the
-    /// assignment makes true; nodes of different clauses whose literals are all true cannot contradict, so Sipser's construction
-    /// joined them. A clause with no true literal gives no node (a Reject on the clause), and once the clique has K nodes the
-    /// rest are left out (any K nodes of a clique are still one). The Done step reports what Clique's verifier says.
-    /// </summary>
+    // How the map-back steps show a clause read: the clique so far, and the id the step is about (the clause, or the literal
+    // whose node is read).
+    private static RunSteps<string, NodeSet> NewMapSteps(StepRecorder<NodeSet> rec, List<string> clique) => new(rec,
+        // What every picture shows: the clique so far, and the piece the step is about.
+        partial: _ => new NodeSet(clique),
+        focus: id => [id]);
+
+    // Backward map: an assignment to a clique. Each clause, in order, gives the node of its first literal the assignment makes
+    // true; nodes of different clauses whose literals are all true cannot contradict, so Sipser's construction joined them.
+    // Once the clique has K nodes the rest are left out (any K nodes of a clique are still one). Clique's verifier decides.
+    // Its steps: an Accept per clause whose true literal's node joins the clique, a Reject per clause with no true literal (it
+    // gives no node), and a Reject per clause past K (its node is left out). The caller adds the Done.
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         var values = SAT.ReadAssignment(problemToSolution, CnfFormula.VariablesOf(reductionTo.clauses), "3SAT");
         int k = reductionFrom.K;
         var clique = new List<string>();
-        for (int i = 0; i < _clauseNodes.Count; i++) {
-            int clause = i;
+        var steps = NewMapSteps(rec, clique);
+        for (int clause = 0; clause < _clauseNodes.Count; clause++) {
             var chosen = _clauseNodes[clause].FirstOrDefault(m => values.TryGetValue(CnfFormula.VariableOf(m.Literal), out bool v) && v == !m.Literal.StartsWith('!'));
             if (chosen.Node == null) {
-                rec.Reject(() => new NodeSet(clique),
-                    () => $"No literal of clause C{clause + 1} {GroupedGraphFrames.ClauseText(reductionTo.clauses[clause])} is true, so none of its nodes joins the clique.",
-                    GroupedGraphFrames.ClauseId(clause));
+                steps.Reject(GroupedGraphFrames.ClauseId(clause),
+                    $"No literal of clause C{clause + 1} {GroupedGraphFrames.ClauseText(reductionTo.clauses[clause])} is true, so none of its nodes joins the clique.");
                 continue;
             }
             string variable = CnfFormula.VariableOf(chosen.Literal);
-            string why = $"{variable} = {Assignment.Word(values[variable])}, so {chosen.Literal} is true";
             if (clique.Count < k) {
                 clique.Add(chosen.Node);
-                rec.Accept(() => new NodeSet(clique), () => $"{why} in clause C{clause + 1}: its node {chosen.Node} is in the clique.", chosen.LiteralId);
+                steps.Accept(chosen.LiteralId,
+                    $"{variable} = {Assignment.Word(values[variable])}, so {chosen.Literal} is true in clause C{clause + 1}: its node {chosen.Node} is in the clique.");
             } else {
-                rec.Reject(() => new NodeSet(clique),
-                    () => $"{why} in clause C{clause + 1}, but the clique already has K = {k} nodes, so node {chosen.Node} is left out.", chosen.LiteralId);
+                steps.Reject(chosen.LiteralId,
+                    $"{variable} = {Assignment.Word(values[variable])}, so {chosen.Literal} is true in clause C{clause + 1}, but the clique already has K = {k} nodes, so node {chosen.Node} is left out.");
             }
         }
         return (ReductionBack.FormatNodeSet(clique), new NodeSet(clique));
