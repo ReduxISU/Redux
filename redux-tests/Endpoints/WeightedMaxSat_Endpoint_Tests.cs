@@ -58,10 +58,12 @@ public class WeightedMaxSat_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(5, firstClause.GetProperty("weight").GetInt64());
     }
 
-    [Fact]
-    public async Task Solve_ExactSolverOverLimit_ReturnsStructuredBadRequest() {
+    [Theory]
+    [InlineData("weightedmaxsatbruteforcesolver")]
+    [InlineData("weightedmaxsatbranchandboundsolver")]
+    public async Task Solve_ExactSolverOverLimit_ReturnsStructuredBadRequest(string solver) {
         var response = await PostInstance(
-            "/ProblemProvider/solve?solver=weightedmaxsatbranchandboundsolver", LargeInstance);
+            $"/ProblemProvider/solve?solver={solver}", LargeInstance);
 
         await AssertLimitResponse(response);
     }
@@ -107,6 +109,7 @@ public class WeightedMaxSat_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("exact_search_limit_exceeded", body.GetProperty("error").GetString());
         Assert.Equal(21, body.GetProperty("variableCount").GetInt32());
         Assert.Equal(20, body.GetProperty("maxVariables").GetInt32());
+        Assert.Contains("Weighted Max-SAT", body.GetProperty("detail").GetString());
         Assert.Contains("21", body.GetProperty("detail").GetString());
         Assert.Contains("20", body.GetProperty("detail").GetString());
     }
