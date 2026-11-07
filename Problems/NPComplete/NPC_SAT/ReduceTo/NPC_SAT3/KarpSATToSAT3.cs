@@ -9,6 +9,11 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_SAT.ReduceTo.NPC_SAT3;
 
+// Karp's SAT to 3SAT: a clause of three literals stays as it is; a shorter one repeats its first literal to fill three; a
+// longer one is split into a chain of three-literal clauses joined by new variables (the old clause keeps !y, and the
+// new clause (l1 | l2 | y) takes its last two literals). It records the construction steps (one per clause of the SAT
+// formula, then the Done; see BuildVariables) and the backward map's steps (one per variable of the SAT formula; see
+// MapBack).
 class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedReduction<SAT, SAT3> {
 
     // --- Fields ---
@@ -82,6 +87,9 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
 
     public SAT3 reduce() => Build(StepRecorder<BuildDelta>.Off);
 
+    // Builds the 3SAT formula: every clause longer than three is split, then every clause shorter than three padded. Its
+    // construction steps are recorded where the variable gadgets are made, once the formula is done (see BuildVariables):
+    // one per clause of the SAT formula, then the Done.
     private SAT3 Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -155,7 +163,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         reducedSAT3.instance = instance;
 
         reductionTo = reducedSAT3;
-        RecordSteps(original, clauses, padded, rec);
+        BuildVariables(original, clauses, padded, rec);
         return reducedSAT3;
     }
 
@@ -238,7 +246,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
     private readonly List<(int Origin, int Made)> _chain = new();
 
     /// <summary>
-    /// Maps a SAT assignment to the 3SAT formula reduce() built (#821). The original variables keep their values. A new variable
+    /// Maps a SAT assignment to the 3SAT formula reduce() built. The original variables keep their values. A new variable
     /// y of a split is true exactly when both literals moved into its clause (l1 | l2 | y) are false: then that clause holds
     /// through y, and the shortened clause, which keeps !y, has to hold through the literals left in it, as the original
     /// clause did. Splits are read in the order they were made, so a literal that is an earlier split's !y already has a value.
@@ -273,18 +281,44 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         return "(" + string.Join(",", order.Select(v => $"{v}:{(values[v] ? "True" : "False")}")) + ")";
     }
 
-    // Construction steps (see IRecordedReduction), one per clause of the SAT formula: the clause as it is, padded, or split
-    // into a chain, with the 3SAT clauses, literals and variables it brings, then Done. Also adds the variable gadgets: each
-    // variable of the SAT formula is the same variable of the 3SAT formula, and each new variable comes from the clause whose
-    // split made it. Ids are the Grouped Graph picture's, on both sides.
-    private void RecordSteps(List<List<string>> original, List<List<string>> target, Dictionary<int, int> padded, StepRecorder<BuildDelta> rec) {
+    // How the construction steps show a clause of the SAT formula: the clause and its literals in SAT; the 3SAT clauses it
+    // becomes, their literals, the variables no earlier step mentions and the formula picture's edges, added to 3SAT; and its
+    // gadgets. The state is (Clause, Pieces): the clause's index, and those pieces.
+    private static RunSteps<(int Clause, ClausePieces Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec, List<List<string>> original) => new(rec,
+        // What the Reduction View shows: the clause, the pieces added, and the gadgets that made them.
+        partial: s => new BuildDelta {
+            SourceFocus = GroupedGraphFrames.ClauseIds(s.Clause, original[s.Clause].Count),
+            Nodes = s.Pieces.Nodes.ToArray(),
+            Edges = BuildEdge.Sorted(s.Pieces.Edges),
+            Gadgets = s.Pieces.Gadgets,
+        },
+        // The 3SAT clauses and their literals; the variables are not looked at.
+        focus: s => s.Pieces.Nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray());
+
+    // What a clause of the SAT formula adds to the 3SAT picture (its clauses and literals, then the variables no earlier step
+    // mentions; the edges between their literals and earlier ones), and the indices of the gadgets made from it.
+    private sealed record ClausePieces(List<string> Nodes, List<BuildEdge> Edges, int[] Gadgets);
+
+    // Makes the variable gadgets once the formula is built, recording the construction steps as it goes (see
+    // IRecordedReduction): each variable of the SAT formula is the same variable of the 3SAT formula, and each new variable
+    // comes from the clause whose split made it. Its steps, one per clause of the SAT formula:
+    //   - an Accept when the clause is split into a chain of clauses, joined by new variables;
+    //   - an Accept when it is padded to three literals by repeating its first;
+    //   - an Accept when it has three literals and stays as it is;
+    //   - then the Done: the 3SAT formula can be satisfied exactly when the SAT formula can.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". A clause's step is recorded where
+    // the last of its gadgets is made, the gadgets of the new variables its split brings. Ids are the Grouped Graph
+    // picture's, on both sides.
+    // Gadgets: these go after the legacy ones (a group per clause and an element per literal, then one per padding), so the
+    // legacy list keeps its order: an element per variable of the SAT formula, then an element per new variable.
+    private void BuildVariables(List<List<string>> original, List<List<string>> target, Dictionary<int, int> padded, StepRecorder<BuildDelta> rec) {
+        // The 3SAT clauses each clause of the SAT formula becomes: itself, then the clauses its split adds, in the order they
+        // were made (which is formula order).
         var targetOf = Enumerable.Range(0, original.Count).ToDictionary(i => i, i => new List<int> { i });
         foreach (var (origin, made) in _chain) targetOf[origin].Add(made);
-        var helperOf = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var (origin, made) in _chain) helperOf[target[made][2]] = origin;
         var sourceVariables = CnfFormula.VariablesOf(original);
 
-        // Variable gadgets go after the legacy ones, so the legacy list keeps its order.
+        // One element per variable of the SAT formula.
         var variableGadget = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (string variable in sourceVariables) {
             string id = GroupedGraphFrames.VariableId(variable);
@@ -293,22 +327,15 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { id }, new List<string> { id },
                 legacyFromIds: GroupedGraphFrames.LegacyIds([id], original), legacyToIds: GroupedGraphFrames.LegacyIds([id], target)));
         }
-        foreach (var (helper, origin) in helperOf) {
-            variableGadget[helper] = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.ClauseId(origin) }, new List<string> { GroupedGraphFrames.VariableId(helper) },
-                legacyToIds: GroupedGraphFrames.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
-                note: $"{helper} is new: it links the clauses that clause C{origin + 1} is split into."));
-        }
-        if (!rec.Enabled) return;
 
-        // The picture's literal occurrences, and its rule for edges (GroupedGraphFrames.Payload): two occurrences in one clause
-        // are a clause edge; a variable and its negation in two clauses are a complement edge. The earlier occurrence is written
-        // first.
+        // The 3SAT clauses and the variables an earlier step already added to the picture.
         var builtClauses = new List<int>();
         var builtVariables = new HashSet<string>(StringComparer.Ordinal);
-        for (int i = 0; i < original.Count; i++) {
-            int clause = i;
-            var mine = targetOf[clause].OrderBy(t => t).ToList();
+        // What the clause's 3SAT clauses add to the picture. Finding their edges compares each of their literals with every
+        // earlier one, and only the picture needs them, so it is called only when the steps are recorded. The picture's rule
+        // for edges (GroupedGraphFrames.Payload): two occurrences in one clause are a clause edge; a variable and its negation
+        // in two clauses are a complement edge. The earlier occurrence is written first.
+        ClausePieces Pieces(int clause, List<int> mine) {
             var nodes = new List<string>();
             var edges = new List<BuildEdge>();
             foreach (int t in mine) {
@@ -318,7 +345,6 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             var newVariables = mine.SelectMany(t => target[t]).Select(CnfFormula.VariableOf).Distinct(StringComparer.Ordinal)
                 .Where(builtVariables.Add).ToList();
             nodes.AddRange(newVariables.Select(GroupedGraphFrames.VariableId));
-            var before = builtClauses.ToList();
             builtClauses.AddRange(mine);
             foreach (int t in mine)
                 for (int j = 0; j < target[t].Count; j++)
@@ -333,32 +359,42 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                             string idA = GroupedGraphFrames.LiteralId(first.Item1, first.Item2), idB = GroupedGraphFrames.LiteralId(second.Item1, second.Item2);
                             edges.Add(new BuildEdge(GroupedGraphFrames.EdgeId(idA, idB), idA, idB));
                         }
-
+            // Its gadgets: the ones made from the clause or its literals, and the ones of the variables it brings.
             var used = gadgets.Select((g, index) => (g, index))
                 .Where(p => p.g.sourceIds.Count > 0 && (p.g.sourceIds[0] == GroupedGraphFrames.ClauseId(clause) || p.g.sourceIds[0].StartsWith(GroupedGraphFrames.ClauseId(clause) + "-", StringComparison.Ordinal)))
                 .Select(p => p.index)
                 .Concat(newVariables.Where(variableGadget.ContainsKey).Select(v => variableGadget[v]))
                 .Distinct().Order().ToArray();
-            string[] sourceIds = GroupedGraphFrames.ClauseIds(clause, original[clause].Count);
-            string[] focus = nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
-            var helpers = _chain.Where(c => c.Origin == clause).Select(c => target[c.Made][2]).ToList();
-            rec.Accept(
-                () => new BuildDelta { SourceFocus = sourceIds, Nodes = nodes.ToArray(), Edges = BuildEdge.Sorted(edges), Gadgets = used },
-                () => {
-                    string text = GroupedGraphFrames.ClauseText(original[clause]);
-                    int n = original[clause].Count;
-                    if (mine.Count > 1)
-                        return $"Clause C{clause + 1} {text} has {n} literals, so it is split into a chain of {mine.Count} clauses joined by the new "
-                            + $"{(helpers.Count == 1 ? "variable" : "variables")} {GraphGroupFrames.And(helpers)}: "
-                            + string.Join(", ", mine.Select(t => $"C{t + 1} {GroupedGraphFrames.ClauseText(target[t])}"))
-                            + ". Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.";
-                    if (padded.ContainsKey(clause))
-                        return $"Clause C{clause + 1} {text} has {Words.Count(n, "literal")}, so {original[clause][0]} is repeated to fill three: {GroupedGraphFrames.ClauseText(target[clause])}. A repeated literal does not change the clause.";
-                    return $"Clause C{clause + 1} {text} has three literals, so it stays as it is.";
-                },
-                focus);
+            return new ClausePieces(nodes, edges, used);
         }
-        rec.Done(new BuildDelta(), true,
+
+        // Then each clause of the SAT formula, in order: an element per new variable its split brings (from the clause to the
+        // variable), and one step.
+        var clauseSteps = NewClauseSteps(rec, original);
+        for (int clause = 0; clause < original.Count; clause++) {
+            var mine = targetOf[clause];
+            for (int m = 1; m < mine.Count; m++) {
+                string helper = target[mine[m]][2];
+                variableGadget[helper] = gadgets.Count;
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { GroupedGraphFrames.VariableId(helper) },
+                    legacyToIds: GroupedGraphFrames.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
+                    note: $"{helper} is new: it links the clauses that clause C{clause + 1} is split into."));
+            }
+            // None when the steps are not recorded: no step then reads them.
+            var pieces = rec.Enabled ? Pieces(clause, mine) : null!;
+            if (mine.Count > 1)
+                clauseSteps.Accept((clause, pieces),
+                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has {original[clause].Count} literals, so it is split into a chain of {mine.Count} clauses joined by the new {(mine.Count == 2 ? "variable" : "variables")} {GraphGroupFrames.And(mine.Skip(1).Select(t => target[t][2]).ToList())}: {string.Join(", ", mine.Select(t => $"C{t + 1} {GroupedGraphFrames.ClauseText(target[t])}"))}. Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.");
+            else if (padded.ContainsKey(clause))
+                clauseSteps.Accept((clause, pieces),
+                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has {Words.Count(original[clause].Count, "literal")}, so {original[clause][0]} is repeated to fill three: {GroupedGraphFrames.ClauseText(target[clause])}. A repeated literal does not change the clause.");
+            else
+                clauseSteps.Accept((clause, pieces),
+                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has three literals, so it stays as it is.");
+        }
+
+        // The closing step.
+        clauseSteps.Done(new BuildDelta(), true,
             $"{Words.Count(target.Count, "clause")} of three literals: the 3SAT formula can be satisfied exactly when the SAT formula can.");
     }
 
@@ -366,49 +402,32 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
 
     // A SAT or 3SAT answer is an assignment, never "{}": both keep the default (no answer).
 
-    /// <summary>
-    /// Backward map (#693): a 3SAT assignment to a SAT assignment. Every variable of the SAT formula is the same variable of the
-    /// 3SAT formula, so it keeps its value; the new variables of the splits only link the halves of a clause, so they are
-    /// dropped. A variable the answer does not give is set to False and the step is a Reject; the Done step then reports what
-    /// SAT's verifier says.
-    /// </summary>
+    // How the map-back steps show a variable read: the assignment so far, and the id the step is about (the variable).
+    private static RunSteps<string, Assignment> NewMapSteps(StepRecorder<Assignment> rec, Dictionary<string, bool> values) => new(rec,
+        // What every picture shows: the assignment so far, and the piece the step is about.
+        partial: _ => GroupedGraphFrames.ToAssignment(values),
+        focus: id => [id]);
+
+    // Backward map: a 3SAT assignment to a SAT assignment. Every variable of the SAT formula is the same variable of the 3SAT
+    // formula, so it keeps its value; the new variables of the splits only link the halves of a clause, so they are dropped.
+    // SAT's verifier decides whether the assignment satisfies the formula.
+    // Its steps: an Accept per variable the 3SAT answer gives (it keeps that value), and a Reject per variable it does not
+    // give (it is set to False). The caller adds the Done.
     public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
-        var given = ReadAssignment(problemToSolution);
+        var given = SAT.ReadAssignment(problemToSolution, CnfFormula.VariablesOf(reductionTo.clauses), "3SAT");
         var values = new Dictionary<string, bool>();
+        var steps = NewMapSteps(rec, values);
         var order = CnfFormula.VariablesOf(reductionFrom.clauses);
         foreach (string variable in order) {
             string id = GroupedGraphFrames.VariableId(variable);
             if (given.TryGetValue(variable, out bool value)) {
                 values[variable] = value;
-                rec.Accept(() => GroupedGraphFrames.ToAssignment(values),
-                    () => $"{variable} = {Assignment.Word(value)} in the 3SAT answer, and it is the same variable in the SAT formula: {variable} = {Assignment.Word(value)}.", id);
+                steps.Accept(id, $"{variable} = {Assignment.Word(value)} in the 3SAT answer, and it is the same variable in the SAT formula: {variable} = {Assignment.Word(value)}.");
             } else {
                 values[variable] = false;
-                rec.Reject(() => GroupedGraphFrames.ToAssignment(values), () => $"The 3SAT answer does not give {variable}, so it is set to False.", id);
+                steps.Reject(id, $"The 3SAT answer does not give {variable}, so it is set to False.");
             }
         }
         return (SAT.Certificate(order, values), GroupedGraphFrames.ToAssignment(values));
-    }
-
-    // A 3SAT assignment, (x1:True,x2:False) (':' or '=', T and F accepted). Every name must be a variable of the 3SAT formula;
-    // malformed text throws FormatException, which the endpoint reports as a 400.
-    private Dictionary<string, bool> ReadAssignment(string certificate) {
-        var known = new HashSet<string>(reductionTo.clauses.SelectMany(c => c).Select(CnfFormula.VariableOf), StringComparer.Ordinal);
-        var values = new Dictionary<string, bool>(StringComparer.Ordinal);
-        string text = certificate.Trim();
-        if (text.StartsWith('(') && text.EndsWith(')')) text = text[1..^1];
-        foreach (string raw in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-            string[] parts = raw.Split(':', '=');
-            bool? value = parts.Length != 2 ? null : parts[1].Trim().ToLowerInvariant() switch {
-                "true" or "t" => true,
-                "false" or "f" => false,
-                _ => null,
-            };
-            if (value is not bool v) throw new FormatException($"'{raw}' is not a variable:True or variable:False pair");
-            string name = parts[0].Trim();
-            if (!known.Contains(name)) throw new FormatException($"'{name}' is not a variable of the 3SAT formula");
-            values[name] = v;
-        }
-        return values;
     }
 }
