@@ -186,9 +186,9 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             }
             var (elements, triples) = Added();
             var pieces = elements.Concat(triples).ToList();
-            string variableId = GroupedGraphFrames.VariableId(literal);
+            string variableId = CnfPieces.VariableId(literal);
             int index = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, literal)).ToList(),
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(SAT3Instance.clauses, literal)).ToList(),
                 pieces));
             wheelSteps.Accept((variableId, pieces, index),
                 $"Variable {literal} occurs {Words.Count(count, "time")}, so it becomes a wheel of {Words.Count(count, "spoke")}: x_{literal}_i and y_{literal}_i, the markers z_{literal}_i and z_!{literal}_i, and {Words.Count(2 * count, "triple")}. Covering the x's and y's takes either every z_{literal} marker or every z_!{literal} marker, so the wheel picks one value for {literal}: it leaves the z_{literal} markers free for clauses with {literal} when {literal} is True, the z_!{literal} markers when it is False.");
@@ -213,15 +213,15 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             var (elements, triples) = Added();
             int clause = i, firstGadget = gadgets.Count;
             List<string> literals = SAT3Instance.clauses[clause];
-            string[] sourceIds = GroupedGraphFrames.ClauseIds(clause, literals.Count);
+            string[] sourceIds = CnfPieces.ClauseIds(clause, literals.Count);
             // The clause's own elements (x_clause, y_clause) come first, then its triples.
             var pieces = elements.Concat(triples).ToList();
             gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), pieces));
             foreach (var take in takes)
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.LiteralId(clause, take.Position) },
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { CnfPieces.LiteralId(clause, take.Position) },
                     new List<string> { TripartiteFrames.ZId(Z.IndexOf(take.Z)), TripartiteFrames.TripleId(take.Triple) }));
             clauseSteps.Accept((sourceIds, pieces, firstGadget, takes.Count),
-                $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, through {TripartiteFrames.AndList(takes.Select(t => t.Z).ToList())}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.");
+                $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, through {TripartiteFrames.AndList(takes.Select(t => t.Z).ToList())}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.");
         }
         // gaebage gadget
         for (int i = 0; i < SAT3Instance.literals.Count() - SAT3Instance.clauses.Count(); i++) {
@@ -263,7 +263,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             $"{Words.Count(X.Count, "element")} in each of X, Y and Z and {Words.Count(M.Count, "triple")}: some triples cover every element exactly once exactly when the formula can be satisfied.");
 
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
-        foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, SAT3Instance.clauses);
+        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, SAT3Instance.clauses);
         return reduced3DM;
     }
 

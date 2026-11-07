@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CLIQUE;
 using API.Problems.NPComplete.NPC_SAT3;
@@ -342,7 +343,7 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
             if (values.ContainsKey(variable)) continue;
             values[variable] = "False";
             // No clique node stands for the variable, so the step is about the 3SAT picture's own id for it.
-            steps.Accept((values, GroupedGraphFrames.VariableId(variable)), $"No clique node mentions {variable}, so it can be anything: {variable} = False.");
+            steps.Accept((values, CnfPieces.VariableId(variable)), $"No clique node mentions {variable}, so it can be anything: {variable} = False.");
         }
 
         string answer = "(" + string.Join(",", order.Select(v => $"{v}:{values[v]}")) + ")";

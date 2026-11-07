@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
 using Xunit;
@@ -50,11 +51,11 @@ public class KeywordSteps_Tests {
         IEnumerable<string> Clause() { c.Count++; yield return "x1"; yield return "!x2"; }
         var clause = Clause();
         foreach (var off in new[] { StepRecorder<NodeSet>.Off, StepRecorder<NodeSet>.DeadlineOnly(TimeSpan.FromMinutes(5)) })
-            off.Reject(() => Nodes("a"), $"Try a: clause {GroupedGraphFrames.FailedClause(0, clause)}.");
+            off.Reject(() => Nodes("a"), $"Try a: clause {CnfPieces.FailedClause(0, clause)}.");
         Assert.Equal(0, c.Count);
 
         var on = new StepRecorder<NodeSet>();
-        on.Reject(() => Nodes("a"), $"Try a: clause {GroupedGraphFrames.FailedClause(0, clause)}.");
+        on.Reject(() => Nodes("a"), $"Try a: clause {CnfPieces.FailedClause(0, clause)}.");
         Assert.Equal(1, c.Count);
         Assert.Equal("Try a: clause C1 (x1 | !x2) has no true literal.", on.Steps[0].Caption);
     }

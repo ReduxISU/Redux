@@ -3,6 +3,7 @@ using API.Interfaces.Logic;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SAT;
 using static API.Interfaces.Graphs.GroupedGraphFrames;
+using static API.Interfaces.Logic.CnfPieces;
 
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 #pragma warning disable CS1591

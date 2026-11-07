@@ -87,7 +87,7 @@ sealed record GroupedGraphFrame(
 /// <b>Ids</b> (a contract: the Reduction View matches gadgets on them). Clause <c>i</c> (0-based, in formula order) is
 /// <c>c{i}</c>. The <c>j</c>-th literal of clause <c>i</c> (0-based) is <c>c{i}-{j}</c>, one node per occurrence, so a
 /// literal written twice is two nodes. Variable <c>v</c> is <c>v:{name}</c>, with the name written by
-/// <see cref="EscapeName"/> (a <c>\</c> before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> in it), so two variables never
+/// <see cref="CnfPieces.EscapeName"/> (a <c>\</c> before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> in it), so two variables never
 /// share an id and a separator inside a variable id never comes bare from a name. An edge id joins its two literal ids with
 /// <c>~</c> (<c>c0-1~c2-0</c>); the separator is not <c>-</c>, because literal ids contain it. Clause and literal ids hold no
 /// names, so they never contain <c>~</c>. The earlier occurrence (by clause, then position, compared as numbers, so
@@ -127,39 +127,11 @@ static class GroupedGraphFrames {
 
     // ---- Ids ----
 
-    public static string ClauseId(int clause) => $"c{clause}";
-    public static string LiteralId(int clause, int position) => $"c{clause}-{position}";
-    /// <summary><c>v:{name}</c>, the name written with <see cref="EscapeName"/>.</summary>
-    public static string VariableId(string name) => "v:" + EscapeName(name);
-
-    /// <summary>
-    /// A variable name as it is written inside an id: a backslash before every <c>\</c>, <c>~</c>, <c>-</c> and <c>:</c> (the
-    /// separators of this picture's ids), so no two different names give the same id. Ordinary names (<c>x1</c>) are
-    /// unchanged. The same rule as <see cref="GraphSubsetFrames.EscapeName"/>, over this picture's separators.
-    /// </summary>
-    public static string EscapeName(string name) =>
-        name.IndexOfAny(['\\', '~', '-', ':']) < 0
-            ? name
-            : name.Replace(@"\", @"\\").Replace("~", @"\~").Replace("-", @"\-").Replace(":", @"\:");
-
     /// <summary>The id of an edge between two literals: <c>"a~b"</c>, written in the order given (callers give the earlier first).</summary>
     public static string EdgeId(string a, string b) => $"{a}~{b}";
 
-    // ---- The pieces a reduction names in its gadgets and build steps ----
+    // ---- The pieces a reduction builds, clause by clause, in this picture ----
     // For a formula written the way Redux's CNF problems keep it (clauses as ["!x1", "x2"]).
-
-    /// <summary>A clause and its literals: <c>c{i}</c>, <c>c{i}-0</c>, ...</summary>
-    public static string[] ClauseIds(int clause, int literals) =>
-        new[] { ClauseId(clause) }.Concat(Enumerable.Range(0, literals).Select(j => LiteralId(clause, j))).ToArray();
-
-    /// <summary>The ids of every occurrence of <paramref name="variable"/>, plain or negated, in formula order.</summary>
-    public static List<string> OccurrenceIds(IReadOnlyList<List<string>> clauses, string variable) {
-        var ids = new List<string>();
-        for (int i = 0; i < clauses.Count; i++)
-            for (int j = 0; j < clauses[i].Count; j++)
-                if (CnfFormula.VariableOf(clauses[i][j]) == variable) ids.Add(LiteralId(i, j));
-        return ids;
-    }
 
     /// <summary>
     /// What the picture of <paramref name="clauses"/> gains with clause <paramref name="clause"/>, when the clauses are built
@@ -169,44 +141,24 @@ static class GroupedGraphFrames {
     /// first. Replaying every clause gives the whole picture.
     /// </summary>
     public static (List<string> Nodes, List<BuildEdge> Edges) ClausePieces(IReadOnlyList<List<string>> clauses, int clause, HashSet<string> builtVariables) {
-        var nodes = new List<string> { ClauseId(clause) };
+        var nodes = new List<string> { CnfPieces.ClauseId(clause) };
         var mine = clauses[clause];
-        for (int j = 0; j < mine.Count; j++) nodes.Add(LiteralId(clause, j));
+        for (int j = 0; j < mine.Count; j++) nodes.Add(CnfPieces.LiteralId(clause, j));
         foreach (string variable in mine.Select(CnfFormula.VariableOf).Distinct(StringComparer.Ordinal))
-            if (builtVariables.Add(variable)) nodes.Add(VariableId(variable));
+            if (builtVariables.Add(variable)) nodes.Add(CnfPieces.VariableId(variable));
         var edges = new List<BuildEdge>();
         for (int u = 0; u < clause; u++)
             for (int k = 0; k < clauses[u].Count; k++)
                 for (int j = 0; j < mine.Count; j++)
                     if (CnfFormula.VariableOf(clauses[u][k]) == CnfFormula.VariableOf(mine[j]) && clauses[u][k].StartsWith('!') != mine[j].StartsWith('!'))
-                        edges.Add(PieceEdge(LiteralId(u, k), LiteralId(clause, j)));
+                        edges.Add(PieceEdge(CnfPieces.LiteralId(u, k), CnfPieces.LiteralId(clause, j)));
         for (int j = 0; j < mine.Count; j++)
             for (int k = j + 1; k < mine.Count; k++)
-                edges.Add(PieceEdge(LiteralId(clause, j), LiteralId(clause, k)));
+                edges.Add(PieceEdge(CnfPieces.LiteralId(clause, j), CnfPieces.LiteralId(clause, k)));
         return (nodes, edges);
     }
 
     private static BuildEdge PieceEdge(string a, string b) => new(EdgeId(a, b), a, b);
-
-    /// <summary>
-    /// The ids Redux_GUI reads for the same pieces (a gadget's legacy <c>reductionFromIds</c>/<c>reductionToIds</c>), which it
-    /// matches against the list-format SAT picture (<see cref="API.Interfaces.JSON_Objects.API_SAT"/>). That picture gives
-    /// clauses and literals the same ids (<c>c{i}</c>, <c>c{i}-{j}</c>), so those are kept; a variable <c>v:{name}</c>, which it
-    /// does not draw, is every occurrence of it. Other ids are kept as they are. Each id once, in order.
-    /// </summary>
-    public static List<string> LegacyIds(IEnumerable<string> stableIds, IReadOnlyList<List<string>> clauses) {
-        var result = new List<string>();
-        foreach (string id in stableIds) {
-            if (id.StartsWith("v:", StringComparison.Ordinal)) {
-                for (int i = 0; i < clauses.Count; i++)
-                    for (int j = 0; j < clauses[i].Count; j++)
-                        if (VariableId(CnfFormula.VariableOf(clauses[i][j])) == id) result.Add(LiteralId(i, j));
-            } else {
-                result.Add(id);
-            }
-        }
-        return result.Distinct(StringComparer.Ordinal).ToList();
-    }
 
     // ---- The payload ----
 
@@ -223,12 +175,12 @@ static class GroupedGraphFrames {
                 int literal = spec.Clauses[i][j];
                 int variable = Math.Abs(literal);
                 string name = spec.Variables[variable - 1];
-                string id = LiteralId(i, j);
+                string id = CnfPieces.LiteralId(i, j);
                 members.Add(id);
-                nodes.Add(new GroupedGraphNodeDto(id, LabelOf(literal > 0, name), VariableId(name), literal > 0, ClauseId(i)));
+                nodes.Add(new GroupedGraphNodeDto(id, LabelOf(literal > 0, name), CnfPieces.VariableId(name), literal > 0, CnfPieces.ClauseId(i)));
                 occurrences.Add((id, i, variable, literal > 0));
             }
-            groups.Add(new GroupedGraphGroupDto(ClauseId(i), $"C{i + 1}", members));
+            groups.Add(new GroupedGraphGroupDto(CnfPieces.ClauseId(i), $"C{i + 1}", members));
         }
 
         // occurrences is in (clause, position) order, so a pair (a before b) is already written earlier-first.
@@ -242,7 +194,7 @@ static class GroupedGraphFrames {
                 else if (x.Variable == y.Variable && x.Positive != y.Positive) complement.Add(new GraphEdgeDto(EdgeId(x.Id, y.Id), x.Id, y.Id));
             }
 
-        var variables = spec.Variables.Select(n => new GroupedGraphVariableDto(VariableId(n), n)).ToList();
+        var variables = spec.Variables.Select(n => new GroupedGraphVariableDto(CnfPieces.VariableId(n), n)).ToList();
         return new GroupedGraphPayload(KindName, LayoutName, ShapeName, RuleName, groups, nodes, variables, complement, within);
     }
 
@@ -266,7 +218,7 @@ static class GroupedGraphFrames {
         for (int v = 1; v <= spec.Variables.Count; v++)
             if (partial.Values.TryGetValue(spec.Variables[v - 1], out var text) && ParseValue(text) is bool value) {
                 values[v] = value;
-                assignment[VariableId(spec.Variables[v - 1])] = value;
+                assignment[CnfPieces.VariableId(spec.Variables[v - 1])] = value;
             }
 
         // A true literal of a whole candidate that is only being tried is highlighted, not drawn as the answer; in an
@@ -280,9 +232,9 @@ static class GroupedGraphFrames {
             int[] clause = spec.Clauses[i];
             int trues = 0, falses = 0;
             for (int j = 0; j < clause.Length; j++) {
-                string id = LiteralId(i, j);
+                string id = CnfPieces.LiteralId(i, j);
                 int variable = Math.Abs(clause[j]);
-                string variableId = VariableId(spec.Variables[variable - 1]);
+                string variableId = CnfPieces.VariableId(spec.Variables[variable - 1]);
                 if (!literalsOfVariable.TryGetValue(variableId, out var list)) literalsOfVariable[variableId] = list = [];
                 list.Add(id);
                 if (!values.TryGetValue(variable, out bool assigned)) continue;   // unassigned: Background
@@ -294,10 +246,10 @@ static class GroupedGraphFrames {
                     GraphSubsetFrames.Raise(nodes, id, PictureState.False);
                 }
             }
-            if (trues > 0) GraphSubsetFrames.Raise(groups, ClauseId(i), PictureState.Covered);
+            if (trues > 0) GraphSubsetFrames.Raise(groups, CnfPieces.ClauseId(i), PictureState.Covered);
             else if (clause.Length > 0 && falses == clause.Length) {
-                GraphSubsetFrames.Raise(groups, ClauseId(i), PictureState.Rejected);
-                for (int j = 0; j < clause.Length; j++) GraphSubsetFrames.Raise(nodes, LiteralId(i, j), PictureState.Rejected);
+                GraphSubsetFrames.Raise(groups, CnfPieces.ClauseId(i), PictureState.Rejected);
+                for (int j = 0; j < clause.Length; j++) GraphSubsetFrames.Raise(nodes, CnfPieces.LiteralId(i, j), PictureState.Rejected);
             }
         }
 
@@ -319,14 +271,14 @@ static class GroupedGraphFrames {
     }
 
     private static bool IsClauseId(GroupedGraphSpec spec, string id) =>
-        id.Length > 1 && id[0] == 'c' && int.TryParse(id.AsSpan(1), out int clause) && clause >= 0 && clause < spec.Clauses.Count && id == ClauseId(clause);
+        id.Length > 1 && id[0] == 'c' && int.TryParse(id.AsSpan(1), out int clause) && clause >= 0 && clause < spec.Clauses.Count && id == CnfPieces.ClauseId(clause);
 
     private static bool IsLiteralId(GroupedGraphSpec spec, string id) {
         var match = LiteralIdPattern.Match(id);
         return match.Success
             && int.TryParse(match.Groups[1].Value, out int clause) && clause < spec.Clauses.Count
             && int.TryParse(match.Groups[2].Value, out int position) && position < spec.Clauses[clause].Length
-            && id == LiteralId(clause, position);
+            && id == CnfPieces.LiteralId(clause, position);
     }
 
     private static readonly Regex LiteralIdPattern = new(@"^c(\d+)-(\d+)$", RegexOptions.Compiled);
@@ -352,7 +304,8 @@ static class GroupedGraphFrames {
         return new Assignment(pairs.GroupBy(p => p.Key, StringComparer.Ordinal).Select(g => g.First()));
     }
 
-    // ---- Captions and reasons, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
+    // ---- Assignment snapshots and clause checks, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
+    // The ids and words of the pieces are in CnfPieces.
 
     /// <summary>A solver's values as the Assignment shape (<c>x1</c> to <c>"True"</c>), in the order given.</summary>
     public static Assignment ToAssignment(IEnumerable<KeyValuePair<string, bool>> values) =>
@@ -361,69 +314,6 @@ static class GroupedGraphFrames {
     /// <summary>A copy of <paramref name="values"/> with <paramref name="variable"/> set to <paramref name="value"/>: the values once a choice is made.</summary>
     public static Dictionary<string, bool> WithValue(IReadOnlyDictionary<string, bool> values, string variable, bool value) =>
         new(values) { [variable] = value };
-
-    /// <summary>"x1 = True, x2 = False", in the order given.</summary>
-    public static string Assigned(IEnumerable<KeyValuePair<string, bool>> values) =>
-        string.Join(", ", values.Select(p => $"{p.Key} = {p.Value}"));
-
-    /// <summary>
-    /// The clauses (0-based) by the names the picture gives them: "C2", "C2 and C3", "C1, C2 and C3", or "5 clauses" past
-    /// three. Empty for none.
-    /// </summary>
-    public static string ClauseNames(IReadOnlyList<int> clauses) => clauses.Count switch {
-        0 => "",
-        1 => $"C{clauses[0] + 1}",
-        <= 3 => $"{string.Join(", ", clauses.SkipLast(1).Select(c => $"C{c + 1}"))} and C{clauses[^1] + 1}",
-        _ => $"{clauses.Count} clauses",
-    };
-
-    /// <summary>"(x1 | !x2 | x3)": a clause as the instance writes it.</summary>
-    public static string ClauseText(IEnumerable<string> literals) => "(" + string.Join(" | ", literals) + ")";
-
-    // ---- Formula wording, shared by the SAT solvers' why text ----
-    // Phrases that more than one solver says, or that would need a branch (has or have, one or many) inside a why line. Each
-    // gives a piece of a sentence, with no capital letter and no full stop, so the step line still reads as the sentence it
-    // builds: $"Try {Assigned(a)}: clause {FailedClause(c, clause)}." Call them only inside a $"..." hole, or inside a
-    // converter that runs only while recording; then a run with steps off never builds them.
-
-    /// <summary>"C3 (x1 | !x2 | x3) has no true literal": one clause (0-based), written out, that fails.</summary>
-    public static string FailedClause(int clause, IEnumerable<string> literals) =>
-        $"C{clause + 1} {ClauseText(literals)} has no true literal";
-
-    /// <summary>
-    /// "C2 has no true literal", "C2 and C3 have no true literal": the clauses (0-based) that fail, by name. Give at least
-    /// one clause; for a list that may be empty, use <see cref="ClauseCheck"/>.
-    /// </summary>
-    public static string NoTrueLiteral(IReadOnlyList<int> clauses) =>
-        $"{ClauseNames(clauses)} {(clauses.Count == 1 ? "has" : "have")} no true literal";
-
-    /// <summary>
-    /// The result of checking a whole assignment, given the clauses (0-based) it leaves false: "every clause has a true
-    /// literal" when there are none, otherwise <see cref="NoTrueLiteral"/> ("C2 has no true literal").
-    /// </summary>
-    public static string ClauseCheck(IReadOnlyList<int> falseClauses) =>
-        falseClauses.Count == 0 ? "every clause has a true literal" : NoTrueLiteral(falseClauses);
-
-    /// <summary>
-    /// A short note for a search tree node, naming the variables an answer never had to set: null when there are none,
-    /// "x1, x2 free" for one or two, and "5 free" for more (a node has little room).
-    /// </summary>
-    public static string? FreeVariables(IReadOnlyList<string> free) => free.Count switch {
-        0 => null,
-        <= 2 => $"{string.Join(", ", free)} free",
-        _ => $"{free.Count} free",
-    };
-
-    /// <summary>
-    /// What an answer does with the variables the search never had to set: " x1 is free (either value works), so the answer
-    /// sets it to False.", or " x1, x2 and x3 are free ... sets them to False." It starts with a space, so it can follow a
-    /// sentence directly, and it is empty when there are none.
-    /// </summary>
-    public static string FreeSetToFalse(IReadOnlyList<string> free) => free.Count switch {
-        0 => "",
-        1 => $" {free[0]} is free (either value works), so the answer sets it to False.",
-        _ => $" {string.Join(", ", free.SkipLast(1))} and {free[^1]} are free (either value works), so the answer sets them to False.",
-    };
 
     /// <summary>
     /// The index (0-based, formula order) of the first clause whose literals are all false under <paramref name="values"/>
@@ -492,7 +382,7 @@ static class GroupedGraphFrames {
     /// </summary>
     internal static string AnswerCaption(string answerText, Assignment answer) {
         if (answer.Values.Count > 0)
-            return $"The answer is {Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.";
+            return $"The answer is {CnfPieces.Assigned(answer.Values.Select(p => new KeyValuePair<string, bool>(p.Key, p.Value == "True")))}.";
         string text = answerText.Trim();
         return text.Length == 0 || text == "{}" || text.StartsWith("No ", StringComparison.OrdinalIgnoreCase)
             ? "No answer was found."

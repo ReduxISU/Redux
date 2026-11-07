@@ -1,6 +1,7 @@
 using API.Interfaces;
 using API.Interfaces.Steps;
 using static API.Interfaces.Graphs.GroupedGraphFrames;
+using static API.Interfaces.Logic.CnfPieces;
 using static API.Interfaces.Steps.Words;
 
 namespace API.Problems.NPComplete.NPC_SAT3.Solvers;

@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using System.Text.Json.Serialization;
 using API.Interfaces.Steps;
 
@@ -58,7 +59,7 @@ sealed record FactorGraphFrame(
 /// (<see cref="GroupedGraphFrames"/>), so every SAT solver animates on both pictures with no extra code.
 /// <para>
 /// <b>Ids</b> are the clause graph's, so the two pictures (and the Reduction View) can be linked: variable <c>v:{name}</c>
-/// (<see cref="GroupedGraphFrames.VariableId"/>, the name escaped), clause <c>c{i}</c>, and the edge of the <c>j</c>-th literal
+/// (<see cref="CnfPieces.VariableId"/>, the name escaped), clause <c>c{i}</c>, and the edge of the <c>j</c>-th literal
 /// of clause <c>i</c> is that literal's id, <c>c{i}-{j}</c>, so a variable written twice in one clause has two edges. Every
 /// edge gives its variable as <c>a</c> and its clause as <c>b</c>.
 /// </para>
@@ -84,18 +85,18 @@ static class FactorGraphFrames {
     public const string RuleName = GroupedGraphFrames.RuleName;
 
     public static FactorGraphPayload Payload(GroupedGraphSpec spec) {
-        var variables = spec.Variables.Select(n => new GraphNodeDto(GroupedGraphFrames.VariableId(n), n)).ToList();
+        var variables = spec.Variables.Select(n => new GraphNodeDto(CnfPieces.VariableId(n), n)).ToList();
         var clauses = new List<BipartiteSetDto>();
         var edges = new List<FactorGraphEdgeDto>();
         for (int i = 0; i < spec.Clauses.Count; i++) {
             var members = new List<string>();
             for (int j = 0; j < spec.Clauses[i].Length; j++) {
                 int literal = spec.Clauses[i][j];
-                string variable = GroupedGraphFrames.VariableId(spec.Variables[Math.Abs(literal) - 1]);
+                string variable = CnfPieces.VariableId(spec.Variables[Math.Abs(literal) - 1]);
                 if (!members.Contains(variable)) members.Add(variable);
-                edges.Add(new FactorGraphEdgeDto(GroupedGraphFrames.LiteralId(i, j), variable, GroupedGraphFrames.ClauseId(i), literal > 0));
+                edges.Add(new FactorGraphEdgeDto(CnfPieces.LiteralId(i, j), variable, CnfPieces.ClauseId(i), literal > 0));
             }
-            clauses.Add(new BipartiteSetDto(GroupedGraphFrames.ClauseId(i), $"C{i + 1}", members));
+            clauses.Add(new BipartiteSetDto(CnfPieces.ClauseId(i), $"C{i + 1}", members));
         }
         return new FactorGraphPayload(KindName, LayoutName, PickSideName, RuleName, variables, clauses, edges);
     }
@@ -111,7 +112,7 @@ static class FactorGraphFrames {
         for (int v = 1; v <= spec.Variables.Count; v++)
             if (partial.Values.TryGetValue(spec.Variables[v - 1], out var text) && ParseValue(text) is bool value) {
                 values[v] = value;
-                assignment[GroupedGraphFrames.VariableId(spec.Variables[v - 1])] = value;
+                assignment[CnfPieces.VariableId(spec.Variables[v - 1])] = value;
             }
 
         var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
@@ -123,18 +124,18 @@ static class FactorGraphFrames {
         var edgeIds = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var (v, value) in values)
-            GraphSubsetFrames.Raise(nodes, GroupedGraphFrames.VariableId(spec.Variables[v - 1]), value ? picked : PictureState.False);
+            GraphSubsetFrames.Raise(nodes, CnfPieces.VariableId(spec.Variables[v - 1]), value ? picked : PictureState.False);
 
         for (int i = 0; i < spec.Clauses.Count; i++) {
             int[] clause = spec.Clauses[i];
-            string clauseId = GroupedGraphFrames.ClauseId(i);
+            string clauseId = CnfPieces.ClauseId(i);
             clauseIds.Add(clauseId);
             int trues = 0, falses = 0;
             for (int j = 0; j < clause.Length; j++) {
-                string edge = GroupedGraphFrames.LiteralId(i, j);
+                string edge = CnfPieces.LiteralId(i, j);
                 edgeIds.Add(edge);
                 int variable = Math.Abs(clause[j]);
-                string variableId = GroupedGraphFrames.VariableId(spec.Variables[variable - 1]);
+                string variableId = CnfPieces.VariableId(spec.Variables[variable - 1]);
                 if (!edgesOfVariable.TryGetValue(variableId, out var list)) edgesOfVariable[variableId] = list = [];
                 list.Add(edge);
                 if (!values.TryGetValue(variable, out bool assigned)) continue;   // unassigned: Background
@@ -153,7 +154,7 @@ static class FactorGraphFrames {
                 // Every literal assigned and false: the clause and its edges are Rejected, as the clause graph marks the
                 // clause and its literals. Judged from the assignment alone, whatever the event.
                 GraphSubsetFrames.Raise(nodes, clauseId, PictureState.Rejected);
-                for (int j = 0; j < clause.Length; j++) GraphSubsetFrames.Raise(edges, GroupedGraphFrames.LiteralId(i, j), PictureState.Rejected);
+                for (int j = 0; j < clause.Length; j++) GraphSubsetFrames.Raise(edges, CnfPieces.LiteralId(i, j), PictureState.Rejected);
             }
         }
 

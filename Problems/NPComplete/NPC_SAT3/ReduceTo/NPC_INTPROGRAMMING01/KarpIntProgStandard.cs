@@ -122,7 +122,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
     private static RunSteps<(int Clause, List<string> Literals, int TableRow, int FirstGadget), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
         // What the Reduction View shows: the clause, the row added, and the gadgets that made it.
         partial: s => new BuildDelta {
-            SourceFocus = GroupedGraphFrames.ClauseIds(s.Clause, s.Literals.Count),
+            SourceFocus = CnfPieces.ClauseIds(s.Clause, s.Literals.Count),
             Nodes = [Row(s.TableRow)],
             Gadgets = Enumerable.Range(s.FirstGadget, s.Literals.Count + 2).ToArray(),
         },
@@ -163,8 +163,8 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
         var variableSteps = NewVariableSteps(rec);
         for (int j = 0; j < n; j++) {
             int index = gadgets.Count;
-            string variableId = GroupedGraphFrames.VariableId(variables[j]);
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
+            string variableId = CnfPieces.VariableId(variables[j]);
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
                 new List<string> { Column(j), Cell(0, j) }));
             // The 0-1 program names its variables x1, x2, ...: a variable already named so keeps its name. Only the caption
             // reads the name, so it is made only while recording.
@@ -202,18 +202,18 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
 
             int clause = i, tableRow = i + 1, firstGadget = gadgets.Count;
             List<string> literals = SAT3Instance.clauses[clause];
-            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(GroupedGraphFrames.ClauseIds(clause, literals.Count)), new List<string> { Row(tableRow) }));
+            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(CnfPieces.ClauseIds(clause, literals.Count)), new List<string> { Row(tableRow) }));
             for (int j = 0; j < literals.Count; j++)
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.LiteralId(clause, j) },
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { CnfPieces.LiteralId(clause, j) },
                     new List<string> { Cell(tableRow, variables.IndexOf(CnfFormula.VariableOf(literals[j]))) }));
-            gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { Cell(tableRow, n + 1) },
+            gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { CnfPieces.ClauseId(clause) }, new List<string> { Cell(tableRow, n + 1) },
                 note: $"Bound {dVector[clause]}: the number of negated literals minus 1."));
             if (cancels)
                 clauseSteps.Accept((clause, literals, tableRow, firstGadget),
-                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true. A variable written both ways cancels out, so this row always holds.");
+                    $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true. A variable written both ways cancels out, so this row always holds.");
             else
                 clauseSteps.Accept((clause, literals, tableRow, firstGadget),
-                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true.");
+                    $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true.");
         }
         // Single-space-separated within each row/vector, matching INTPROGRAMMING01's own
         // parser (getMatrixC/getVectorD both do a naive Split(" ") -- double spaces here
@@ -234,7 +234,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
         clauseSteps.Done(new BuildDelta(), true,
             $"The 0-1 program has {Words.Count(Cmatrix.Count, "constraint")} and {Words.Count(n, "variable")}: some 0-1 assignment meets them all exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
-        foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, SAT3Instance.clauses);
+        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, SAT3Instance.clauses);
         return reduced01INT;
     }
 

@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using System.Text.Json.Serialization;
 using API.Interfaces.Steps;
 
@@ -161,7 +162,7 @@ static class FormulaFrames {
         // The frame's assignment holds exactly the variables of this formula that the step assigns, keyed by variable id.
         foreach (var (id, value) in graph.Assignment)
             GraphSubsetFrames.Raise(variables, id, value ? picked : PictureState.False);
-        var known = new HashSet<string>(spec.Variables.Select(GroupedGraphFrames.VariableId), StringComparer.Ordinal);
+        var known = new HashSet<string>(spec.Variables.Select(CnfPieces.VariableId), StringComparer.Ordinal);
         foreach (var id in focus)
             if (known.Contains(id)) GraphSubsetFrames.Raise(variables, id, PictureState.ElementHighlight);
         return new FormulaFrame(graph.Event, graph.Caption, graph.Focus, graph.Nodes, graph.Groups, graph.Assignment, GraphSubsetFrames.ToRefs(variables)) { Ok = graph.Ok };

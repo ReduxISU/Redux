@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using System.Text.Json;
 using API.Interfaces;
 using API.Interfaces.Graphs;
@@ -161,16 +162,16 @@ public class GroupedGraphFrames_Tests {
 
     [Fact]
     public void EscapeName_PutsABackslashBeforeEachSeparatorAndBackslash_AndLeavesOrdinaryNamesAlone() {
-        Assert.Equal("x1", GroupedGraphFrames.EscapeName("x1"));
-        Assert.Equal(@"a\-b", GroupedGraphFrames.EscapeName("a-b"));
-        Assert.Equal(@"a\~b", GroupedGraphFrames.EscapeName("a~b"));
-        Assert.Equal(@"a\:b", GroupedGraphFrames.EscapeName("a:b"));
-        Assert.Equal(@"a\\b", GroupedGraphFrames.EscapeName(@"a\b"));
-        Assert.Equal(@"a\\\-b", GroupedGraphFrames.EscapeName(@"a\-b"));
-        Assert.Equal(@"v:a\-b", GroupedGraphFrames.VariableId("a-b"));
+        Assert.Equal("x1", CnfPieces.EscapeName("x1"));
+        Assert.Equal(@"a\-b", CnfPieces.EscapeName("a-b"));
+        Assert.Equal(@"a\~b", CnfPieces.EscapeName("a~b"));
+        Assert.Equal(@"a\:b", CnfPieces.EscapeName("a:b"));
+        Assert.Equal(@"a\\b", CnfPieces.EscapeName(@"a\b"));
+        Assert.Equal(@"a\\\-b", CnfPieces.EscapeName(@"a\-b"));
+        Assert.Equal(@"v:a\-b", CnfPieces.VariableId("a-b"));
         // Every name reads back from its id, so no two names share one.
-        foreach (var name in Awkward) Assert.Equal(name, Unescape(GroupedGraphFrames.VariableId(name)["v:".Length..]));
-        Assert.Equal(Awkward.Length, Awkward.Select(GroupedGraphFrames.VariableId).Distinct().Count());
+        foreach (var name in Awkward) Assert.Equal(name, Unescape(CnfPieces.VariableId(name)["v:".Length..]));
+        Assert.Equal(Awkward.Length, Awkward.Select(CnfPieces.VariableId).Distinct().Count());
     }
 
     [Fact]
@@ -206,7 +207,7 @@ public class GroupedGraphFrames_Tests {
     public void Frame_WithAwkwardNames_KeysTheAssignmentAndFocusByTheEscapedId() {
         var spec = GroupedGraphSpec.FromLiterals([["a-b", "!a:b"], ["!a-b", @"a\b"]]);
         var f = GroupedGraphFrames.Frame(spec, new Assignment([new("a-b", "True"), new("a:b", "True")]), StepEvent.Accept,
-            [GroupedGraphFrames.VariableId(@"a\b")], "x");
+            [CnfPieces.VariableId(@"a\b")], "x");
         Assert.Equal(new Dictionary<string, bool> { [@"v:a\-b"] = true, [@"v:a\:b"] = true }, f.Assignment);
         Assert.Equal(PictureState.Committed, f.Nodes["c0-0"].State);   // a-b, kept but not confirmed (#886)
         Assert.Equal(PictureState.False, f.Nodes["c0-1"].State);      // !a:b
@@ -459,25 +460,25 @@ public class GroupedGraphFrames_Tests {
         Assert.Equal(0, GroupedGraphFrames.FirstFalsifiedClause(clauses, new Dictionary<string, bool> { ["x1"] = true, ["x2"] = false }));
         Assert.Equal(1, GroupedGraphFrames.FirstFalsifiedClause(clauses, new Dictionary<string, bool> { ["x1"] = false, ["x3"] = false }));
         Assert.Equal(2, GroupedGraphFrames.FirstFalsifiedClause(clauses, new Dictionary<string, bool> { ["x2"] = true }));
-        Assert.Equal("(x1 | !x2)", GroupedGraphFrames.ClauseText(["x1", "!x2"]));
-        Assert.Equal("x1 = True, x2 = False", GroupedGraphFrames.Assigned(new Dictionary<string, bool> { ["x1"] = true, ["x2"] = false }));
+        Assert.Equal("(x1 | !x2)", CnfPieces.ClauseText(["x1", "!x2"]));
+        Assert.Equal("x1 = True, x2 = False", CnfPieces.Assigned(new Dictionary<string, bool> { ["x1"] = true, ["x2"] = false }));
     }
 
     // The shared formula wording: a phrase each, with has or have and one or many chosen for the caller.
     [Fact]
     public void FormulaWording_SaysOneClauseOrManyAndTheFreeVariables() {
-        Assert.Equal("C3 (x1 | !x2 | x3) has no true literal", GroupedGraphFrames.FailedClause(2, ["x1", "!x2", "x3"]));
-        Assert.Equal("C2 has no true literal", GroupedGraphFrames.NoTrueLiteral([1]));
-        Assert.Equal("C1 and C4 have no true literal", GroupedGraphFrames.NoTrueLiteral([0, 3]));
-        Assert.Equal("5 clauses have no true literal", GroupedGraphFrames.NoTrueLiteral([0, 1, 2, 3, 4]));
-        Assert.Equal("every clause has a true literal", GroupedGraphFrames.ClauseCheck([]));
-        Assert.Equal("C2 has no true literal", GroupedGraphFrames.ClauseCheck([1]));
-        Assert.Null(GroupedGraphFrames.FreeVariables([]));
-        Assert.Equal("x1, x2 free", GroupedGraphFrames.FreeVariables(["x1", "x2"]));
-        Assert.Equal("3 free", GroupedGraphFrames.FreeVariables(["x1", "x2", "x3"]));
-        Assert.Equal("", GroupedGraphFrames.FreeSetToFalse([]));
-        Assert.Equal(" x1 is free (either value works), so the answer sets it to False.", GroupedGraphFrames.FreeSetToFalse(["x1"]));
-        Assert.Equal(" x1, x2 and x3 are free (either value works), so the answer sets them to False.", GroupedGraphFrames.FreeSetToFalse(["x1", "x2", "x3"]));
+        Assert.Equal("C3 (x1 | !x2 | x3) has no true literal", CnfPieces.FailedClause(2, ["x1", "!x2", "x3"]));
+        Assert.Equal("C2 has no true literal", CnfPieces.NoTrueLiteral([1]));
+        Assert.Equal("C1 and C4 have no true literal", CnfPieces.NoTrueLiteral([0, 3]));
+        Assert.Equal("5 clauses have no true literal", CnfPieces.NoTrueLiteral([0, 1, 2, 3, 4]));
+        Assert.Equal("every clause has a true literal", CnfPieces.ClauseCheck([]));
+        Assert.Equal("C2 has no true literal", CnfPieces.ClauseCheck([1]));
+        Assert.Null(CnfPieces.FreeVariables([]));
+        Assert.Equal("x1, x2 free", CnfPieces.FreeVariables(["x1", "x2"]));
+        Assert.Equal("3 free", CnfPieces.FreeVariables(["x1", "x2", "x3"]));
+        Assert.Equal("", CnfPieces.FreeSetToFalse([]));
+        Assert.Equal(" x1 is free (either value works), so the answer sets it to False.", CnfPieces.FreeSetToFalse(["x1"]));
+        Assert.Equal(" x1, x2 and x3 are free (either value works), so the answer sets them to False.", CnfPieces.FreeSetToFalse(["x1", "x2", "x3"]));
     }
 
     // ---- the whole response ----

@@ -281,7 +281,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
         List<(string A, string B, int First, int Count)> edgeClauses, StepRecorder<BuildDelta> rec) {
         int k = _reductionFrom.K;
         List<string> ClauseIds(int first, int count) =>
-            Enumerable.Range(first, count).SelectMany(c => GroupedGraphFrames.ClauseIds(c, clauses[c].Count)).ToList();
+            Enumerable.Range(first, count).SelectMany(c => CnfPieces.ClauseIds(c, clauses[c].Count)).ToList();
         Dictionary<string, int> index = NodeIndexes();
         string Variable(string node, int color) => VariableName(index[node], color);
 
@@ -307,21 +307,21 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             _nodeClause.TryAdd(node, first);
             var ids = ClauseIds(first, count);
             int firstGadget = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, ids, legacyToIds: GroupedGraphFrames.LegacyIds(ids, clauses)));
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, ids, legacyToIds: CnfPieces.LegacyIds(ids, clauses)));
             for (int color = 0; color < k; color++) {
-                string id = GroupedGraphFrames.VariableId(Variable(node, color));
+                string id = CnfPieces.VariableId(Variable(node, color));
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { id },
-                    legacyToIds: GroupedGraphFrames.LegacyIds([id], clauses), note: $"{Variable(node, color)} is true when {node} takes color {color}."));
+                    legacyToIds: CnfPieces.LegacyIds([id], clauses), note: $"{Variable(node, color)} is true when {node} takes color {color}."));
             }
             var pieces = rec.Enabled ? Pieces(first, count) : default;
             // A node with only its "takes a color" clause (K = 1, or a name repeated in the graph, whose other clauses are
             // already written), or one with clauses that it takes only one color, which needs K of at least 2.
             if (count == 1)
                 nodeSteps.Accept((node, firstGadget, pieces),
-                    $"Node {node} becomes the {(k == 1 ? "variable" : "variables")} {BuildCaptions.Names(Enumerable.Range(0, k).Select(c => Variable(node, c)).ToList())}, one per color, and {Words.Count(count, "clause")}: {GroupedGraphFrames.ClauseText(clauses[first])} says {node} takes a color.");
+                    $"Node {node} becomes the {(k == 1 ? "variable" : "variables")} {BuildCaptions.Names(Enumerable.Range(0, k).Select(c => Variable(node, c)).ToList())}, one per color, and {Words.Count(count, "clause")}: {CnfPieces.ClauseText(clauses[first])} says {node} takes a color.");
             else
                 nodeSteps.Accept((node, firstGadget, pieces),
-                    $"Node {node} becomes the variables {BuildCaptions.Names(Enumerable.Range(0, k).Select(c => Variable(node, c)).ToList())}, one per color, and {Words.Count(count, "clause")}: {GroupedGraphFrames.ClauseText(clauses[first])} says {node} takes a color, and {BuildCaptions.Names(Enumerable.Range(first + 1, count - 1).Select(c => GroupedGraphFrames.ClauseText(clauses[c])).ToList(), 4)} {(count == 2 ? "says" : "say")} it takes only one.");
+                    $"Node {node} becomes the variables {BuildCaptions.Names(Enumerable.Range(0, k).Select(c => Variable(node, c)).ToList())}, one per color, and {Words.Count(count, "clause")}: {CnfPieces.ClauseText(clauses[first])} says {node} takes a color, and {BuildCaptions.Names(Enumerable.Range(first + 1, count - 1).Select(c => CnfPieces.ClauseText(clauses[c])).ToList(), 4)} {(count == 2 ? "says" : "say")} it takes only one.");
         }
 
         // Then a group per edge that writes a clause, and one step.
@@ -332,14 +332,14 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
                 var ids = ClauseIds(first, count);
                 used = [gadgets.Count];
                 gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, ids,
-                    legacyToIds: GroupedGraphFrames.LegacyIds(ids, clauses)));
+                    legacyToIds: CnfPieces.LegacyIds(ids, clauses)));
             }
             var pieces = rec.Enabled ? Pieces(first, count) : default;
             if (count == 0)
                 edgeSteps.Reject((a, b, used, pieces), $"Edge {{{a},{b}}} was already written the other way round, so it adds no clause.");
             else
                 edgeSteps.Accept((a, b, used, pieces),
-                    $"Edge {{{a},{b}}} becomes {Words.Count(count, "clause")}, {BuildCaptions.Names(Enumerable.Range(first, count).Select(c => GroupedGraphFrames.ClauseText(clauses[c])).ToList(), 4)}: {a} and {b} never take the same color.");
+                    $"Edge {{{a},{b}}} becomes {Words.Count(count, "clause")}, {BuildCaptions.Names(Enumerable.Range(first, count).Select(c => CnfPieces.ClauseText(clauses[c])).ToList(), 4)}: {a} and {b} never take the same color.");
         }
 
         // The closing step, on either recorder (both record to rec).
@@ -375,11 +375,11 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             int own = _nodeClause[node];
             int c = Enumerable.Range(0, k).FirstOrDefault(i => values.TryGetValue(Variable(i), out bool v) && v, -1);
             if (c < 0) {
-                steps.Reject(GroupedGraphFrames.ClauseId(own), $"No variable of {node} is true, so {node} gets no color.");
+                steps.Reject(CnfPieces.ClauseId(own), $"No variable of {node} is true, so {node} gets no color.");
                 continue;
             }
             color[node] = c;
-            steps.Accept(GroupedGraphFrames.VariableId(Variable(c)), $"{Variable(c)} = True, so node {node} takes color {c}.");
+            steps.Accept(CnfPieces.VariableId(Variable(c)), $"{Variable(c)} = True, so node {node} takes color {c}.");
         }
         string answer = "{" + string.Join(",", Enumerable.Range(0, k)
             .Select(c => _reductionFrom.nodes.Where(n => color.TryGetValue(n, out int x) && x == c).ToList())

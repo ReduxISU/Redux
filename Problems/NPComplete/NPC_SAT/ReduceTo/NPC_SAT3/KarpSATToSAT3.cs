@@ -287,7 +287,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
     private static RunSteps<(int Clause, List<string> Literals, ClausePieces Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
         // What the Reduction View shows: the clause, the pieces added, and the gadgets that made them.
         partial: s => new BuildDelta {
-            SourceFocus = GroupedGraphFrames.ClauseIds(s.Clause, s.Literals.Count),
+            SourceFocus = CnfPieces.ClauseIds(s.Clause, s.Literals.Count),
             Nodes = s.Pieces.Nodes.ToArray(),
             Edges = BuildEdge.Sorted(s.Pieces.Edges),
             Gadgets = s.Pieces.Gadgets,
@@ -321,11 +321,11 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         // One element per variable of the SAT formula.
         var variableGadget = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (string variable in sourceVariables) {
-            string id = GroupedGraphFrames.VariableId(variable);
+            string id = CnfPieces.VariableId(variable);
             variableGadget[variable] = gadgets.Count;
             // Redux_GUI draws literals, not variables: its legacy ids are the variable's occurrences on each side.
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { id }, new List<string> { id },
-                legacyFromIds: GroupedGraphFrames.LegacyIds([id], original), legacyToIds: GroupedGraphFrames.LegacyIds([id], target)));
+                legacyFromIds: CnfPieces.LegacyIds([id], original), legacyToIds: CnfPieces.LegacyIds([id], target)));
         }
 
         // The 3SAT clauses and the variables an earlier step already added to the picture; made by the first step recorded,
@@ -342,12 +342,12 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             var nodes = new List<string>();
             var edges = new List<BuildEdge>();
             foreach (int t in mine) {
-                nodes.Add(GroupedGraphFrames.ClauseId(t));
-                for (int j = 0; j < target[t].Count; j++) nodes.Add(GroupedGraphFrames.LiteralId(t, j));
+                nodes.Add(CnfPieces.ClauseId(t));
+                for (int j = 0; j < target[t].Count; j++) nodes.Add(CnfPieces.LiteralId(t, j));
             }
             var newVariables = mine.SelectMany(t => target[t]).Select(CnfFormula.VariableOf).Distinct(StringComparer.Ordinal)
                 .Where(builtVariables.Add).ToList();
-            nodes.AddRange(newVariables.Select(GroupedGraphFrames.VariableId));
+            nodes.AddRange(newVariables.Select(CnfPieces.VariableId));
             builtClauses.AddRange(mine);
             foreach (int t in mine)
                 for (int j = 0; j < target[t].Count; j++)
@@ -359,12 +359,12 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                             string a = target[first.Item1][first.Item2], b = target[second.Item1][second.Item2];
                             bool edge = first.Item1 == second.Item1 || (CnfFormula.VariableOf(a) == CnfFormula.VariableOf(b) && a.StartsWith('!') != b.StartsWith('!'));
                             if (!edge) continue;
-                            string idA = GroupedGraphFrames.LiteralId(first.Item1, first.Item2), idB = GroupedGraphFrames.LiteralId(second.Item1, second.Item2);
+                            string idA = CnfPieces.LiteralId(first.Item1, first.Item2), idB = CnfPieces.LiteralId(second.Item1, second.Item2);
                             edges.Add(new BuildEdge(GroupedGraphFrames.EdgeId(idA, idB), idA, idB));
                         }
             // Its gadgets: the ones made from the clause or its literals, and the ones of the variables it brings.
             var used = gadgets.Select((g, index) => (g, index))
-                .Where(p => p.g.sourceIds.Count > 0 && (p.g.sourceIds[0] == GroupedGraphFrames.ClauseId(clause) || p.g.sourceIds[0].StartsWith(GroupedGraphFrames.ClauseId(clause) + "-", StringComparison.Ordinal)))
+                .Where(p => p.g.sourceIds.Count > 0 && (p.g.sourceIds[0] == CnfPieces.ClauseId(clause) || p.g.sourceIds[0].StartsWith(CnfPieces.ClauseId(clause) + "-", StringComparison.Ordinal)))
                 .Select(p => p.index)
                 .Concat(newVariables.Where(variableGadget.ContainsKey).Select(v => variableGadget[v]))
                 .Distinct().Order().ToArray();
@@ -379,21 +379,21 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             for (int m = 1; m < mine.Count; m++) {
                 string helper = target[mine[m]][2];
                 variableGadget[helper] = gadgets.Count;
-                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { GroupedGraphFrames.VariableId(helper) },
-                    legacyToIds: GroupedGraphFrames.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
+                gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { CnfPieces.ClauseId(clause) }, new List<string> { CnfPieces.VariableId(helper) },
+                    legacyToIds: CnfPieces.LegacyIds([CnfPieces.VariableId(helper)], target),
                     note: $"{helper} is new: it links the clauses that clause C{clause + 1} is split into."));
             }
             // None when the steps are not recorded: no step then reads them.
             var pieces = rec.Enabled ? Pieces(clause, mine) : null!;
             if (mine.Count > 1)
                 clauseSteps.Accept((clause, original[clause], pieces),
-                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has {original[clause].Count} literals, so it is split into a chain of {mine.Count} clauses joined by the new {(mine.Count == 2 ? "variable" : "variables")} {GraphGroupFrames.And(mine.Skip(1).Select(t => target[t][2]).ToList())}: {string.Join(", ", mine.Select(t => $"C{t + 1} {GroupedGraphFrames.ClauseText(target[t])}"))}. Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.");
+                    $"Clause C{clause + 1} {CnfPieces.ClauseText(original[clause])} has {original[clause].Count} literals, so it is split into a chain of {mine.Count} clauses joined by the new {(mine.Count == 2 ? "variable" : "variables")} {GraphGroupFrames.And(mine.Skip(1).Select(t => target[t][2]).ToList())}: {string.Join(", ", mine.Select(t => $"C{t + 1} {CnfPieces.ClauseText(target[t])}"))}. Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.");
             else if (padded.ContainsKey(clause))
                 clauseSteps.Accept((clause, original[clause], pieces),
-                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has {Words.Count(original[clause].Count, "literal")}, so {original[clause][0]} is repeated to fill three: {GroupedGraphFrames.ClauseText(target[clause])}. A repeated literal does not change the clause.");
+                    $"Clause C{clause + 1} {CnfPieces.ClauseText(original[clause])} has {Words.Count(original[clause].Count, "literal")}, so {original[clause][0]} is repeated to fill three: {CnfPieces.ClauseText(target[clause])}. A repeated literal does not change the clause.");
             else
                 clauseSteps.Accept((clause, original[clause], pieces),
-                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has three literals, so it stays as it is.");
+                    $"Clause C{clause + 1} {CnfPieces.ClauseText(original[clause])} has three literals, so it stays as it is.");
         }
 
         // The closing step.
@@ -422,7 +422,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         var steps = NewMapSteps(rec, values);
         var order = CnfFormula.VariablesOf(reductionFrom.clauses);
         foreach (string variable in order) {
-            string id = GroupedGraphFrames.VariableId(variable);
+            string id = CnfPieces.VariableId(variable);
             if (given.TryGetValue(variable, out bool value)) {
                 values[variable] = value;
                 steps.Accept(id, $"{variable} = {Assignment.Word(value)} in the 3SAT answer, and it is the same variable in the SAT formula: {variable} = {Assignment.Word(value)}.");

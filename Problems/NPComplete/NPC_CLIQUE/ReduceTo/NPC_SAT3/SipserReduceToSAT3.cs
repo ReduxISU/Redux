@@ -164,27 +164,27 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
                 seen[literal] = nth + 1;
                 var places = Enumerable.Range(0, target[i].Count).Where(j => target[i][j] == literal).ToList();
                 int place = places.Count == 0 ? 0 : places[Math.Min(nth, places.Count - 1)];
-                mine.Add((node, literal, GroupedGraphFrames.LiteralId(i, place)));
+                mine.Add((node, literal, CnfPieces.LiteralId(i, place)));
             }
             _clauseNodes.Add(mine);
 
-            var targetIds = GroupedGraphFrames.ClauseIds(i, target[i].Count).ToList();
+            var targetIds = CnfPieces.ClauseIds(i, target[i].Count).ToList();
             int firstGadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Group, mine.Select(m => m.Node).ToList(), targetIds,
-                legacyToIds: GroupedGraphFrames.LegacyIds(targetIds, target)));
+                legacyToIds: CnfPieces.LegacyIds(targetIds, target)));
             foreach (var (node, _, literalId) in mine)
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { literalId },
-                    legacyToIds: GroupedGraphFrames.LegacyIds([literalId], target)));
+                    legacyToIds: CnfPieces.LegacyIds([literalId], target)));
 
             // What the clause adds to the formula picture, worked out only when the steps are recorded: finding its edges
             // compares each of its literals with every earlier one, and only the picture needs them.
             var pieces = rec.Enabled ? GroupedGraphFrames.ClausePieces(target, i, builtVariables ??= new(StringComparer.Ordinal)) : default;
             if (mine.Count == 1)
                 clauseSteps.Accept((mine, firstGadget, pieces),
-                    $"Node {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph ends in _{suffix}, so it becomes clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffix}.");
+                    $"Node {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph ends in _{suffix}, so it becomes clause C{i + 1} {CnfPieces.ClauseText(target[i])}: each node is the literal written before its _{suffix}.");
             else
                 clauseSteps.Accept((mine, firstGadget, pieces),
-                    $"Nodes {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph all end in _{suffix}, so they become clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffix}.");
+                    $"Nodes {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph all end in _{suffix}, so they become clause C{i + 1} {CnfPieces.ClauseText(target[i])}: each node is the literal written before its _{suffix}.");
             i++;
         }
 
@@ -219,8 +219,8 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
         for (int clause = 0; clause < _clauseNodes.Count; clause++) {
             var chosen = _clauseNodes[clause].FirstOrDefault(m => values.TryGetValue(CnfFormula.VariableOf(m.Literal), out bool v) && v == !m.Literal.StartsWith('!'));
             if (chosen.Node == null) {
-                steps.Reject(GroupedGraphFrames.ClauseId(clause),
-                    $"No literal of clause C{clause + 1} {GroupedGraphFrames.ClauseText(reductionTo.clauses[clause])} is true, so none of its nodes joins the clique.");
+                steps.Reject(CnfPieces.ClauseId(clause),
+                    $"No literal of clause C{clause + 1} {CnfPieces.ClauseText(reductionTo.clauses[clause])} is true, so none of its nodes joins the clique.");
                 continue;
             }
             string variable = CnfFormula.VariableOf(chosen.Literal);

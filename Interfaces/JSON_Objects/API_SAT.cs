@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.Xml;
 using API.Interfaces.Graphs;
@@ -36,8 +37,8 @@ class API_SAT : API_JSON {
         public long? weight { get; set; }
 
         public Clause(List<string> _literals, int index, long? _weight = null) {
-            id = GroupedGraphFrames.ClauseId(index);
-            literals = _literals.Select((s, j) => new Literal(s, GroupedGraphFrames.LiteralId(index, j))).ToList();
+            id = CnfPieces.ClauseId(index);
+            literals = _literals.Select((s, j) => new Literal(s, CnfPieces.LiteralId(index, j))).ToList();
             weight = _weight;
         }
     }

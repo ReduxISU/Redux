@@ -333,9 +333,9 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         foreach (string variable in variableNames) {
             Piece piece = byVariable[variable];
             int index = gadgets.Count;
-            string variableId = GroupedGraphFrames.VariableId(variable);
+            string variableId = CnfPieces.VariableId(variable);
             gadgets.Add(new Gadget(GadgetKind.Element,
-                new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(sourceClauses, variable)).ToList(), new List<string>(piece.Nodes)));
+                new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(sourceClauses, variable)).ToList(), new List<string>(piece.Nodes)));
             if (piece.Nodes.Count == 2)
                 gadgetSteps.Accept(([variableId], piece, index),
                     $"Variable {variable} becomes nodes {piece.Nodes[0]} and {piece.Nodes[1]}, each joined to B and to each other. B takes the base color, so one of them takes the true color and the other the false color.");
@@ -348,10 +348,10 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         for (int i = 0; i < clauses.Count; i++) {
             int index = gadgets.Count;
             Piece piece = byClause[i];
-            string[] sourceIds = GroupedGraphFrames.ClauseIds(i, sourceClauses[i].Count);
+            string[] sourceIds = CnfPieces.ClauseIds(i, sourceClauses[i].Count);
             gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), new List<string>(piece.Nodes)));
             gadgetSteps.Accept((sourceIds, piece, index),
-                $"Clause C{i + 1} {GroupedGraphFrames.ClauseText(sourceClauses[i])} becomes a 6-node OR gadget, {piece.Nodes[0]} to {piece.Nodes[5]}, wired to {GraphGroupFrames.And(PaddedClause(sourceClauses[i]).Distinct().ToList())}. Its output {piece.Nodes[5]} is joined to F and B, so it must take the true color, and that only works if one of those literals takes it too.");
+                $"Clause C{i + 1} {CnfPieces.ClauseText(sourceClauses[i])} becomes a 6-node OR gadget, {piece.Nodes[0]} to {piece.Nodes[5]}, wired to {GraphGroupFrames.And(PaddedClause(sourceClauses[i]).Distinct().ToList())}. Its output {piece.Nodes[5]} is joined to F and B, so it must take the true color, and that only works if one of those literals takes it too.");
         }
 
         int bound = gadgets.Count;
@@ -360,7 +360,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         gadgetSteps.Done(new BuildDelta { Bound = 3, Gadgets = [bound] }, true,
             $"K is 3, since the graph can be colored with 3 colors exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
-        foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, sourceClauses);
+        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, sourceClauses);
 
         return reducedGRAPHCOLORING;
     }

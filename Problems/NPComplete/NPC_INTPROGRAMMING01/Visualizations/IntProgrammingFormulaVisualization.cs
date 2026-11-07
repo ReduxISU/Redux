@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using API.Interfaces;
@@ -50,7 +51,7 @@ class IntProgrammingFormulaVisualization : IVisualization<INTPROGRAMMING01, API_
     private static int Variables(INTPROGRAMMING01 problem) => problem.C.Count == 0 ? 0 : problem.C[0].Count;
 
     internal static string Row(int i) => "r" + i.ToString(CultureInfo.InvariantCulture);
-    internal static string Var(int j) => GroupedGraphFrames.VariableId(IntegerProgrammingBruteForce.Variable(j));
+    internal static string Var(int j) => CnfPieces.VariableId(IntegerProgrammingBruteForce.Variable(j));
     private static string Id(int i, string piece, int j) => $"{Row(i)}-{piece}{j.ToString(CultureInfo.InvariantCulture)}";
 
     FormulaPayload IFormulaExprVisualization<INTPROGRAMMING01, Assignment>.Describe(INTPROGRAMMING01 problem) => Payload(problem);

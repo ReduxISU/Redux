@@ -1,3 +1,4 @@
+using API.Interfaces.Logic;
 using API.Interfaces;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
@@ -147,7 +148,7 @@ public class Ppz_Tests {
                     // The check of a failed try: every variable is set, and the clauses in focus are the false ones.
                     var values = Values(step.Partial);
                     Assert.Equal(variables, values.Count);
-                    var falseOnes = sat3.clauses.Select((c, k) => (c, k)).Where(x => !Holds(x.c, values)).Select(x => GroupedGraphFrames.ClauseId(x.k));
+                    var falseOnes = sat3.clauses.Select((c, k) => (c, k)).Where(x => !Holds(x.c, values)).Select(x => CnfPieces.ClauseId(x.k));
                     Assert.Equal(falseOnes, step.Focus);
                 }
             }
