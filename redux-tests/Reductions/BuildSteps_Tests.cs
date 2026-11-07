@@ -181,7 +181,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal(new[] { "c0", "c1" }, steps[3].Partial.SourceFocus);
         Assert.Equal(8, steps[3].Partial.Edges.Length);
 
-        Assert.Equal("K = 3, one node per clause: a clique of 3 nodes has to take one node from every clause.", steps[^1].Caption);
+        Assert.Equal("K is 3, one node per clause: a clique of 3 nodes has to take one node from every clause.", steps[^1].Caption);
         Assert.Equal(3, steps[^1].Partial.Bound);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
     }
@@ -231,7 +231,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Node b has no edge to d in the clique graph, so it gets that edge in the complement.", steps[2].Caption);
         Assert.Equal(StepEvent.Reject, steps[3].Event);
         Assert.Equal("Node c is already joined to every later node in the clique graph, so it gets no new edges.", steps[3].Caption);
-        Assert.Equal("K' = N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.", steps[^1].Caption);
+        Assert.Equal("K' is N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.", steps[^1].Caption);
         Assert.Equal(1, steps[^1].Partial.Bound);
     }
 
@@ -258,7 +258,7 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.StartsWith("The last 60 steps are combined into this one to keep the list short. Together they add ", combined.Caption);
         Assert.Equal(StepEvent.Done, steps[^1].Event);
         Assert.Equal(20, steps[^1].Partial.Bound);
-        Assert.Equal("K = 20, one node per clause: a clique of 20 nodes has to take one node from every clause.", steps[^1].Caption);
+        Assert.Equal("K is 20, one node per clause: a clique of 20 nodes has to take one node from every clause.", steps[^1].Caption);
         Assert.DoesNotContain(steps, s => s.Caption.Contains("not shown"));
     }
 

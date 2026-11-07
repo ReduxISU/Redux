@@ -507,7 +507,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "K stays 1: removing at most 1 arc can leave no cycle exactly when at most 1 node can cover every edge.",
+      "caption": "K stays 1, since removing at most 1 arc can leave no cycle exactly when at most 1 node can cover every edge.",
       "step": 5,
       "sourceFocus": [],
       "targetFocus": [],

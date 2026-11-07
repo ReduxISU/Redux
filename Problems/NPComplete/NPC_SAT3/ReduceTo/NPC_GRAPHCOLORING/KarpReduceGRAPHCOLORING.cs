@@ -327,7 +327,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         gadgets.Add(new Gadget(GadgetKind.Palette, new List<string>(), new List<string>(palette),
             note: "F, T and B form a triangle, so they take three different colors: false, true and base."));
         gadgetSteps.Accept(([], palettePiece, 0),
-            $"Palette: nodes F, T and B, joined in a triangle. In any 3-coloring they take three different colors; call them false, true and base.");
+            $"The palette is nodes F, T and B, joined in a triangle. In any 3-coloring they take three different colors; call them false, true and base.");
 
         // One element per variable, and one step.
         foreach (string variable in variableNames) {
@@ -338,7 +338,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
                 new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(sourceClauses, variable)).ToList(), new List<string>(piece.Nodes)));
             if (piece.Nodes.Count == 2)
                 gadgetSteps.Accept(([variableId], piece, index),
-                    $"Variable {variable}: nodes {piece.Nodes[0]} and {piece.Nodes[1]}, each joined to B and to each other. B takes the base color, so one of them takes the true color and the other the false color.");
+                    $"Variable {variable} becomes nodes {piece.Nodes[0]} and {piece.Nodes[1]}, each joined to B and to each other. B takes the base color, so one of them takes the true color and the other the false color.");
             else
                 gadgetSteps.Accept(([variableId], piece, index),
                     $"Variable {variable} only appears as {piece.Nodes[0]}: one node {piece.Nodes[0]}, joined to B, so it takes the true color or the false color.");
@@ -358,7 +358,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(), note: "K = 3, always."));
         // The closing step.
         gadgetSteps.Done(new BuildDelta { Bound = 3, Gadgets = [bound] }, true,
-            $"K = 3 colors: the graph can be colored with 3 colors exactly when the formula can be satisfied.");
+            $"K is 3, since the graph can be colored with 3 colors exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
         foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, sourceClauses);
 

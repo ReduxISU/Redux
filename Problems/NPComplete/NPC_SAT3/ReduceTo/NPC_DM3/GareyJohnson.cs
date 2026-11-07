@@ -239,7 +239,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             gadgets.Add(new Gadget(GadgetKind.Palette, new List<string>(), pieces,
                 note: "Garbage collection: one x, y pair for each occurrence beyond the number of clauses, each with a triple to every z, to cover the markers no clause takes."));
             garbageSteps.Accept((pieces, index),
-                $"Garbage collection: {Words.Count(pairs, "pair")} x_garb_i and y_garb_i, each with a triple to every one of the {Z.Count} z elements. The wheels take half of the z's and the clauses one each, so {SAT3Instance.literals.Count} − {SAT3Instance.clauses.Count} = {pairs} are left for these pairs to soak up.");
+                $"The garbage collection is {Words.Count(pairs, "pair")} x_garb_i and y_garb_i, each with a triple to every one of the {Z.Count} z elements. The wheels take half of the z's and the clauses one each, so {SAT3Instance.literals.Count} − {SAT3Instance.clauses.Count} = {pairs} are left for these pairs to soak up.");
         }
 
         // A DM3 instance starts with its three sets, {X}{Y}{Z}, and then lists M's triples.

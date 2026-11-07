@@ -357,7 +357,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "K stays 1: every cycle of the directed graph goes along some edge, so removing at most 1 node leaves no cycle exactly when they cover every edge.",
+      "caption": "K stays 1, since every cycle of the directed graph goes along some edge, so removing at most 1 node leaves no cycle exactly when they cover every edge.",
       "step": 3,
       "sourceFocus": [],
       "targetFocus": [],

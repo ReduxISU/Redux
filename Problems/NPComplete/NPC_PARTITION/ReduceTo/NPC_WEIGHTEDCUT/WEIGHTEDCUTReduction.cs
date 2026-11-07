@@ -193,7 +193,7 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
         long half = total / 2;
         if (total % 2 == 0)
             numberSteps.Done(new BuildDelta { SourceFocus = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [bound], Bound = k }, true,
-                $"K = {total}^2 / 4 = {k}. A cut between sides whose numbers add up to a and b weighs a * b, which reaches {half} * {half} = {k} only when a = b = {half}: an even split.");
+                $"K is {total}^2 / 4 = {k}. A cut between sides whose numbers add up to a and b weighs a * b, which reaches {half} * {half} = {k} only when a = b = {half}: an even split.");
         else
             numberSteps.Done(new BuildDelta { SourceFocus = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [bound], Bound = k }, true,
                 $"The numbers add up to {total}, an odd total, so no split is even and the best cut weighs {half} * {total - half} = {half * (total - half)}. K = ({total}^2 + 3) / 4 = {k} is one more, so no cut reaches it.");

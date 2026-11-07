@@ -342,7 +342,7 @@
     {
       "phase": "build",
       "event": "Accept",
-      "caption": "K stays 1: at most 1 set can cover every element exactly when at most 1 node can touch every edge.",
+      "caption": "K stays 1, since at most 1 set can cover every element exactly when at most 1 node can touch every edge.",
       "step": 3,
       "sourceFocus": [],
       "targetFocus": [],

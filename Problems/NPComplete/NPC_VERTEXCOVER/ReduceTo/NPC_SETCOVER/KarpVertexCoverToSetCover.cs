@@ -236,7 +236,7 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
 
         // The closing step, on either recorder (both record to rec).
         nodeSteps.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
-            $"K stays {k}: at most {Words.Count(k, "set")} can cover every element exactly when at most {Words.Count(k, "node")} can touch every edge.");
+            $"K stays {k}, since at most {Words.Count(k, "set")} can cover every element exactly when at most {Words.Count(k, "node")} can touch every edge.");
 
         return reducedSetCover;
     }

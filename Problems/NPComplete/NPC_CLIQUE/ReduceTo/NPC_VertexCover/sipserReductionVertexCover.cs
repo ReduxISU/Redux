@@ -208,7 +208,7 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
 
         // The closing step, on either recorder (both record to rec).
         nodeSteps.Done(new BuildDelta { Bound = vertexKInt, Gadgets = [boundGadget] }, true,
-            $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
+            $"K' is N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
         return reducedVERTEXCOVER;
 
     }

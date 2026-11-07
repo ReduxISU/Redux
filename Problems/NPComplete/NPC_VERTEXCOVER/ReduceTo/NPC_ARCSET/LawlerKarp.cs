@@ -227,7 +227,7 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
         // The closing step, on either recorder (both record to rec).
         int k = vertexcover.K;
         edgeSteps.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
-            $"K stays {k}: removing at most {Words.Count(k, "arc")} can leave no cycle exactly when at most {Words.Count(k, "node")} can cover every edge.");
+            $"K stays {k}, since removing at most {Words.Count(k, "arc")} can leave no cycle exactly when at most {Words.Count(k, "node")} can cover every edge.");
         return arcset;
     }
 

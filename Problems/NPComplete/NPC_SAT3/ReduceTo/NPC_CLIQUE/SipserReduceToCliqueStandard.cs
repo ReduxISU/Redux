@@ -249,7 +249,7 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
 
         // The closing step, on either recorder (both record to rec).
         clauseSteps.Done(new BuildDelta { SourceFocus = clauseIds.ToArray(), Bound = clauseCount, Gadgets = [boundGadget] }, true,
-            $"K = {clauseCount}, one node per clause: a clique of {clauseCount} nodes has to take one node from every clause.");
+            $"K is {clauseCount}, one node per clause: a clique of {clauseCount} nodes has to take one node from every clause.");
         return reductionTo;
     }
 
