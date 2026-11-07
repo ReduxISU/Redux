@@ -140,12 +140,15 @@ public class DominatingSetSearchTree_Tests {
     }
 
     [Fact]
-    public void ForcedVertex_ASetFoundPastK_IsCutOff_AndTheDoneFailsItsPicksAndTheRoot() {
+    public void ForcedVertex_ForcedPicksThatUseUpK_StopTheSearch_WithoutPickingPastK() {
+        // The forced pick of 2 uses up K = 1 with 1 and 3 still not dominated: the search stops there instead of branching
+        // past K, the pick is cut off, and the Done fails the root.
         var rec = new StepRecorder<NodeSet>();
         Assert.Equal("{}", new DominatingSetForcedVertex().Solve(new DOMINATINGSET(PastK), rec));
-        Assert.Equal(["0<-:start:Explored 1<0:2 (forced):Explored", "1<0:2 (forced):Explored", "2<1:3:Pruned(over K = 1)",
-            "2<1:3:Pruned(over K = 1) 1<0:2 (forced):Failed 0<-:start:Failed"], rec.Steps.Select(s => Text(s.Tree)));
-        Assert.Equal("The set found did not verify.", rec.Steps[^1].Caption);
+        Assert.Equal(["0<-:start:Explored 1<0:2 (forced):Explored", "1<0:2 (forced):Pruned(2 vertices not dominated)",
+            "0<-:start:Failed"], rec.Steps.Select(s => Text(s.Tree)));
+        Assert.Equal([StepEvent.Accept, StepEvent.Reject, StepEvent.Done], rec.Steps.Select(s => s.Event));
+        Assert.Equal("No dominating set of size 1 or less exists.", rec.Steps[^1].Caption);
     }
 
     // The steps up to the cap carry their nodes, and the Done still names the answer's path.

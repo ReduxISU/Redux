@@ -155,8 +155,8 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
                 tree: () => tree.AnswerPath(solution.Select(v => Pick(problem.nodes, adj, v)).ToList()));
         else
             steps.Done(new NodeSet([]), false, $"The set found did not verify.", tree: () => {
-                // The search stops at the first pick that dominates every vertex, even past K (then it is cut off): every
-                // pick of the set found fails, and so does the root.
+                // A safety net: the search never picks past K, so the set it finds should always verify. If one does not,
+                // every pick of it fails, and so does the root.
                 PicksFailed(solution.Count, 0, solution, problem.nodes, adj, tree);
                 return tree.NoAnswer();
             });
@@ -230,6 +230,14 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
                 }
             }
         } while (forcedApplied);
+
+        // The forced picks may have used up K: then no branch can pick again, and this path fails rather than going past
+        // K. In the tree, the newest pick is cut off and the forced picks before it fail.
+        if (K <= 0) {
+            steps.Reject((chosen, -1, SearchNodeState.Pruned), $"No picks left, and {dominated.Count(d => !d)} vertices are still not dominated.");
+            PicksFailed(chosen.Count - 1, picksBefore, chosen, names, adj, tree);
+            return false;
+        }
 
         int uPick = -1;
         int bestDeg = -1;
