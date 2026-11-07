@@ -146,7 +146,7 @@ class KarpVertexCoverToNodeSet : IReversibleReduction<VERTEXCOVER, NODESET, Node
             }
             int k = reductionFrom.K;
             rec.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
-                $"K stays {k}: every cycle of the directed graph goes along some edge, so removing at most {BuildCaptions.Count(k, "node")} leaves no cycle exactly when they cover every edge.");
+                $"K stays {k}: every cycle of the directed graph goes along some edge, so removing at most {Words.Count(k, "node")} leaves no cycle exactly when they cover every edge.");
         }
 
         reductionTo = reducedNODESET;

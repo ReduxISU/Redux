@@ -205,7 +205,7 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
             }
             int k = vertexcover.K;
             rec.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
-                $"K stays {k}: removing at most {BuildCaptions.Count(k, "arc")} can leave no cycle exactly when at most {BuildCaptions.Count(k, "node")} can cover every edge.");
+                $"K stays {k}: removing at most {Words.Count(k, "arc")} can leave no cycle exactly when at most {Words.Count(k, "node")} can cover every edge.");
         }
         return arcset;
     }

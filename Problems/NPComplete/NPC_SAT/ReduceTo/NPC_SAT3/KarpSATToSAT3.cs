@@ -353,13 +353,13 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                             + string.Join(", ", mine.Select(t => $"C{t + 1} {CnfPieces.ClauseText(target[t])}"))
                             + ". Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.";
                     if (padded.ContainsKey(clause))
-                        return $"Clause C{clause + 1} {text} has {BuildCaptions.Count(n, "literal")}, so {original[clause][0]} is repeated to fill three: {CnfPieces.ClauseText(target[clause])}. A repeated literal does not change the clause.";
+                        return $"Clause C{clause + 1} {text} has {Words.Count(n, "literal")}, so {original[clause][0]} is repeated to fill three: {CnfPieces.ClauseText(target[clause])}. A repeated literal does not change the clause.";
                     return $"Clause C{clause + 1} {text} has three literals, so it stays as it is.";
                 },
                 focus);
         }
         rec.Done(new BuildDelta(), true,
-            $"{BuildCaptions.Count(target.Count, "clause")} of three literals: the 3SAT formula can be satisfied exactly when the SAT formula can.");
+            $"{Words.Count(target.Count, "clause")} of three literals: the 3SAT formula can be satisfied exactly when the SAT formula can.");
     }
 
     public Assignment EmptyAnswer() => new Assignment([]);

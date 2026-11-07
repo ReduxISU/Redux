@@ -191,7 +191,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
 
         reductionTo = reduced01INT;
         rec.Done(new BuildDelta(), true,
-            $"The 0-1 program has {BuildCaptions.Count(Cmatrix.Count, "constraint")} and {BuildCaptions.Count(n, "variable")}: some 0-1 assignment meets them all exactly when the formula can be satisfied.");
+            $"The 0-1 program has {Words.Count(Cmatrix.Count, "constraint")} and {Words.Count(n, "variable")}: some 0-1 assignment meets them all exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
         foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, SAT3Instance.clauses);
         return reduced01INT;

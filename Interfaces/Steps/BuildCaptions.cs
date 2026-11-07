@@ -7,9 +7,6 @@ static class BuildCaptions {
         names.Count <= max
             ? string.Join(", ", names)
             : string.Join(", ", names.Take(max)) + $" and {names.Count - max} more";
-
-    /// <summary>"1 edge", "3 edges".</summary>
-    public static string Count(int n, string noun) => $"{n} {noun}{(n == 1 ? "" : "s")}";
 }
 
 /// <summary>
@@ -57,9 +54,9 @@ static class ConstructionSteps {
         };
         string[] focus = rest.SelectMany(s => s.Focus).Distinct(StringComparer.Ordinal).ToArray();
         string what = nodes.Length > 0
-            ? $"{BuildCaptions.Count(nodes.Length, "node")} and {BuildCaptions.Count(edges.Length, "edge")}"
-            : BuildCaptions.Count(edges.Length, "edge");
-        string left = skipped.Length > 0 ? $", and leave {BuildCaptions.Count(skipped.Length, "pair")} without an edge" : "";
+            ? $"{Words.Count(nodes.Length, "node")} and {Words.Count(edges.Length, "edge")}"
+            : Words.Count(edges.Length, "edge");
+        string left = skipped.Length > 0 ? $", and leave {Words.Count(skipped.Length, "pair")} without an edge" : "";
         string caption = $"The last {rest.Count} steps are combined into this one to keep the list short. Together they add {what}{left}.";
         StepEvent ev = rest.Any(s => s.Event == StepEvent.Accept) ? StepEvent.Accept : StepEvent.Reject;
         return new SolverStep<BuildDelta>(delta, ev, focus, caption);

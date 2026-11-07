@@ -177,7 +177,7 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
             }
             int k = _reductionFrom.K;
             rec.Done(new BuildDelta(), true,
-                $"The formula has {BuildCaptions.Count(target.Count, "clause")}. Sipser's construction joins two nodes exactly when they come from different clauses "
+                $"The formula has {Words.Count(target.Count, "clause")}. Sipser's construction joins two nodes exactly when they come from different clauses "
                 + $"and do not contradict, so a clique with a node from every clause picks literals that can all be true at once. The clique graph asks for K = {k}.");
         }
         return sat3;

@@ -154,8 +154,8 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
                 int spokes = count;
                 rec.Accept(
                     () => new BuildDelta { SourceFocus = [variableId], Nodes = elements.Concat(triples).ToArray(), Gadgets = [index] },
-                    () => $"Variable {variable} occurs {BuildCaptions.Count(spokes, "time")}, so it becomes a wheel of {BuildCaptions.Count(spokes, "spoke")}: "
-                        + $"x_{variable}_i and y_{variable}_i, the markers z_{variable}_i and z_!{variable}_i, and {BuildCaptions.Count(2 * spokes, "triple")}. "
+                    () => $"Variable {variable} occurs {Words.Count(spokes, "time")}, so it becomes a wheel of {Words.Count(spokes, "spoke")}: "
+                        + $"x_{variable}_i and y_{variable}_i, the markers z_{variable}_i and z_!{variable}_i, and {Words.Count(2 * spokes, "triple")}. "
                         + $"Covering the x's and y's takes either every z_{variable} marker or every z_!{variable} marker, so the wheel picks one value for {variable}: "
                         + $"it leaves the z_{variable} markers free for clauses with {variable} when {variable} is True, the z_!{variable} markers when it is False.",
                     elements.Concat(triples).ToArray());
@@ -215,7 +215,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
                 int occurrences = SAT3Instance.literals.Count, zs = Z.Count;
                 rec.Accept(
                     () => new BuildDelta { Nodes = elements.Concat(triples).ToArray(), Gadgets = [index] },
-                    () => $"Garbage collection: {BuildCaptions.Count(pairs, "pair")} x_garb_i and y_garb_i, each with a triple to every one of the {zs} z elements. "
+                    () => $"Garbage collection: {Words.Count(pairs, "pair")} x_garb_i and y_garb_i, each with a triple to every one of the {zs} z elements. "
                         + $"The wheels take half of the z's and the clauses one each, so {occurrences} − {SAT3Instance.clauses.Count} = {pairs} are left for these pairs to soak up.",
                     elements.Concat(triples).ToArray());
             }
@@ -238,7 +238,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
         reduced3DM.instance = instance;
 
         rec.Done(new BuildDelta(), true,
-            $"{BuildCaptions.Count(X.Count, "element")} in each of X, Y and Z and {BuildCaptions.Count(M.Count, "triple")}: "
+            $"{Words.Count(X.Count, "element")} in each of X, Y and Z and {Words.Count(M.Count, "triple")}: "
             + "some triples cover every element exactly once exactly when the formula can be satisfied.");
 
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.

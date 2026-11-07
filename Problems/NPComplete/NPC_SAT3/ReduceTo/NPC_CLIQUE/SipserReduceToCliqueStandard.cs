@@ -237,7 +237,7 @@ class SipserReduceToCliqueStandard : IReversibleReduction<SAT3, CLIQUE, Assignme
 
             if (bucket.Edges.Count > 0)
                 pairSteps.Accept((c1, c2, bucket, firstRule),
-                    $"Join clauses C{c1 + 1} and C{c2 + 1}: {BuildCaptions.Count(bucket.Edges.Count, "edge")}.{string.Concat(bucket.Skipped.Select(e => $" {e.A} and {e.B} contradict each other, so no edge."))}");
+                    $"Join clauses C{c1 + 1} and C{c2 + 1}: {Words.Count(bucket.Edges.Count, "edge")}.{string.Concat(bucket.Skipped.Select(e => $" {e.A} and {e.B} contradict each other, so no edge."))}");
             else
                 pairSteps.Reject((c1, c2, bucket, firstRule),
                     $"Join clauses C{c1 + 1} and C{c2 + 1}: 0 edges.{string.Concat(bucket.Skipped.Select(e => $" {e.A} and {e.B} contradict each other, so no edge."))}");

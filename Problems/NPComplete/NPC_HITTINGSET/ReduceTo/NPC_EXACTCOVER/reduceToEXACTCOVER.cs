@@ -162,7 +162,7 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
         if (rec.Enabled)
             rec.Done(new BuildDelta(), true, sourceSets.Count == 0
                 ? "Hitting Set has no subsets to hit, so Exact Cover has no elements to cover: choosing nothing does it."
-                : $"Exact Cover asks for sets that cover each of the {BuildCaptions.Count(sourceSets.Count, "element")} exactly once: items that hit each subset exactly once.");
+                : $"Exact Cover asks for sets that cover each of the {Words.Count(sourceSets.Count, "element")} exactly once: items that hit each subset exactly once.");
 
         return reductionTo;
     }

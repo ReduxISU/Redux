@@ -274,7 +274,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             string[] focus = pieces.ToArray();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = [node], Nodes = pieces, Edges = BuildEdge.Sorted(memberships), Gadgets = [index] },
-                () => $"Node {node} becomes the element {ElementName(node)}, {BuildCaptions.Count(slots, "slot")} (one per edge at {node} and color) and {BuildCaptions.Count(k, "set")}, "
+                () => $"Node {node} becomes the element {ElementName(node)}, {Words.Count(slots, "slot")} (one per edge at {node} and color) and {Words.Count(k, "set")}, "
                     + $"one per color: the set for color j holds {ElementName(node)} and {node}'s slots for color j. Exactly one of them covers {ElementName(node)}, so {node} gets one color.",
                 focus);
         }
@@ -282,13 +282,13 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             string[] sourceFocus = a == b ? [a] : [GraphSubsetFrames.EdgeId(a, b), a, b];
             rec.Accept(
                 () => new BuildDelta { SourceFocus = sourceFocus, Nodes = pieces, Edges = BuildEdge.Sorted(memberships), Gadgets = [index] },
-                () => $"Edge {{{a},{b}}} becomes the element {EdgeElement(a, b)} and {BuildCaptions.Count(k * (k - 1), "set")}, one per pair of different colors (f, g): "
+                () => $"Edge {{{a},{b}}} becomes the element {EdgeElement(a, b)} and {Words.Count(k * (k - 1), "set")}, one per pair of different colors (f, g): "
                     + $"each holds {EdgeElement(a, b)}, {a}'s slots for this edge except color f and {b}'s except color g. One fits exactly when {a} and {b} have different colors.",
                 pieces);
         }
         rec.Done(new BuildDelta(), true,
             $"An exact cover takes one color set per node and one set per edge, which fits only when the edge's two ends have different colors: "
-            + $"the sets have an exact cover exactly when the graph can be colored with {BuildCaptions.Count(k, "color")}.");
+            + $"the sets have an exact cover exactly when the graph can be colored with {Words.Count(k, "color")}.");
     }
 
     // A set's elements, sorted and each once: two sets have the same key exactly when they are equal as sets.

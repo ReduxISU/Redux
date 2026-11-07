@@ -295,7 +295,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             string variables = BuildCaptions.Names(Enumerable.Range(0, k).Select(c => Variable(node, c)).ToList());
             rec.Accept(
                 () => new BuildDelta { SourceFocus = [node], Nodes = nodes, Edges = edges, Gadgets = used },
-                () => $"Node {node} becomes the {(k == 1 ? "variable" : "variables")} {variables}, one per color, and {BuildCaptions.Count(count, "clause")}: "
+                () => $"Node {node} becomes the {(k == 1 ? "variable" : "variables")} {variables}, one per color, and {Words.Count(count, "clause")}: "
                     + $"{CnfPieces.ClauseText(clauses[first])} says {node} takes a color"
                     + (count > 1 ? $", and {Texts(first + 1, count - 1)} {(count == 2 ? "says" : "say")} it takes only one." : "."),
                 focus);
@@ -311,11 +311,11 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             string[] focus = nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = sourceFocus, Nodes = nodes, Edges = edges, Gadgets = used },
-                () => $"Edge {{{a},{b}}} becomes {BuildCaptions.Count(count, "clause")}, {Texts(first, count)}: {a} and {b} never take the same color.",
+                () => $"Edge {{{a},{b}}} becomes {Words.Count(count, "clause")}, {Texts(first, count)}: {a} and {b} never take the same color.",
                 focus);
         }
         rec.Done(new BuildDelta(), true,
-            $"The formula can be satisfied exactly when the graph can be colored with {BuildCaptions.Count(k, "color")}: a node takes the color whose variable is true.");
+            $"The formula can be satisfied exactly when the graph can be colored with {Words.Count(k, "color")}: a node takes the color whose variable is true.");
     }
 
     public Groups EmptyAnswer() => new Groups([]);

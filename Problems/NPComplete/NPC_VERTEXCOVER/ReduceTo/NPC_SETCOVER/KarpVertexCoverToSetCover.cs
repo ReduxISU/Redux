@@ -214,7 +214,7 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
             }
             int k = reductionFrom.K;
             rec.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
-                $"K stays {k}: at most {BuildCaptions.Count(k, "set")} can cover every element exactly when at most {BuildCaptions.Count(k, "node")} can touch every edge.");
+                $"K stays {k}: at most {Words.Count(k, "set")} can cover every element exactly when at most {Words.Count(k, "node")} can touch every edge.");
         }
 
         //return new THREE_DM();
