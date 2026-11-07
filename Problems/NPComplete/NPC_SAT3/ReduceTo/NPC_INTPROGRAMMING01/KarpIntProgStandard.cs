@@ -11,6 +11,10 @@ using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_INTPROGRAMMING01;
 
+// Karp's 3SAT to 0-1 Integer Programming: each variable becomes a 0-1 variable, and each clause a constraint row that holds
+// exactly when one of its literals is true (a plain literal counts -1, a negated one +1, and the bound is the number of
+// negated literals minus 1). It records the construction steps (the table's frame, one per variable, one per clause, then
+// the Done; see Build) and the backward map's steps (one per 0-1 variable read; see MapBack).
 class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignment>, IRecordedReduction<SAT3, INTPROGRAMMING01> {
 
     // --- Fields ---
@@ -78,7 +82,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
     public KarpIntProgStandard() : this(new SAT3()) { }
 
     /// <summary>
-    /// The gadgets (#693), in the 0-1 program's Table picture: each variable becomes a 0-1 variable (its column and its cell in
+    /// The gadgets, in the 0-1 program's Table picture: each variable becomes a 0-1 variable (its column and its cell in
     /// the row <c>x =</c>); each clause becomes a constraint row (an OR gadget: the row holds exactly when one of its literals
     /// is true), each literal its coefficient cell, and the clause's bound its bound cell.
     /// </summary>
@@ -97,8 +101,42 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
     private static string Column(int column) => API.Interfaces.Table.TableFrames.ColumnId(column);
     private static string Cell(int row, int column) => API.Interfaces.Table.TableFrames.CellId(row, column);
 
-    // Construction steps (see IRecordedReduction): the table's frame, one step per variable (its column), one per clause (its
-    // row), then Done. They are recorded from the decisions below, so what is recorded is what is built.
+    // How the construction steps show the table's frame: the row x = and the three columns every constraint row fills (its
+    // total, its bound and whether it holds). The state is those three columns' ids.
+    private static RunSteps<string[], BuildDelta> NewFrameSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the row and columns added.
+        partial: totals => new BuildDelta { Nodes = new[] { Row(0) }.Concat(totals).ToArray() },
+        focus: _ => [Row(0)]);
+
+    // How the construction steps show a variable: the variable in 3SAT, its column added to the table, and its gadget. The
+    // state is (Column, VariableId, Gadget): its column, its id in the formula picture, and its gadget's index.
+    private static RunSteps<(int Column, string VariableId, int Gadget), BuildDelta> NewVariableSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the variable, the column added, and the gadget.
+        partial: s => new BuildDelta { SourceFocus = [s.VariableId], Nodes = [Column(s.Column)], Gadgets = [s.Gadget] },
+        // The variable's cell in the row x =.
+        focus: s => [Cell(0, s.Column)]);
+
+    // How the construction steps show a clause: the clause and its literals in 3SAT, its row added to the table, and its
+    // gadgets. The state is (Clause, Literals, TableRow, FirstGadget): the clause's index and literals, its row, and the index
+    // of its first gadget (its OR gadget, then one element per literal, then its bound).
+    private static RunSteps<(int Clause, List<string> Literals, int TableRow, int FirstGadget), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the clause, the row added, and the gadgets that made it.
+        partial: s => new BuildDelta {
+            SourceFocus = GroupedGraphFrames.ClauseIds(s.Clause, s.Literals.Count),
+            Nodes = [Row(s.TableRow)],
+            Gadgets = Enumerable.Range(s.FirstGadget, s.Literals.Count + 2).ToArray(),
+        },
+        focus: s => [Row(s.TableRow)]);
+
+    // Builds the 0-1 program, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept for the table's frame: the row x = and the total, bound and holds columns;
+    //   - an Accept per variable: its 0-1 variable, a column of the table;
+    //   - an Accept per clause: its constraint row, which holds exactly when one of its literals is true;
+    //   - the Done: some 0-1 assignment meets every row exactly when the formula can be satisfied.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: an element per variable (to its column and its cell in x =), then per clause an OR gadget (to its row), an
+    // element per literal (to its coefficient cell) and its bound (to its bound cell).
     private INTPROGRAMMING01 Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -117,29 +155,28 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
             }
         }
         int n = variables.Count;
-        string[] totals = [Column(n), Column(n + 1), Column(n + 2)];
-        rec.Accept(
-            () => new BuildDelta { Nodes = new[] { Row(0) }.Concat(totals).ToArray() },
-            () => $"The 0-1 program is a table: the row x = holds one 0-1 value per variable, and each constraint row gets its total, its bound and whether it holds.",
-            Row(0));
+        // The table's frame, one step.
+        NewFrameSteps(rec).Accept([Column(n), Column(n + 1), Column(n + 2)],
+            $"The 0-1 program is a table: the row x = holds one 0-1 value per variable, and each constraint row gets its total, its bound and whether it holds.");
 
+        // One 0-1 variable per variable, and one step.
+        var variableSteps = NewVariableSteps(rec);
         for (int j = 0; j < n; j++) {
-            int column = j, index = gadgets.Count;
+            int index = gadgets.Count;
             string variableId = GroupedGraphFrames.VariableId(variables[j]);
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
-                new List<string> { Column(column), Cell(0, column) }));
-            rec.Accept(
-                () => new BuildDelta { SourceFocus = [variableId], Nodes = [Column(column)], Gadgets = [index] },
-                () => {
-                    string x = IntegerProgrammingBruteForce.Variable(column);
-                    return x == variables[column]
-                        ? $"Variable {x} becomes the 0-1 variable {x}: 1 means {x} is True, 0 means False."
-                        : $"Variable {variables[column]} becomes the 0-1 variable {x}: {x} = 1 means {variables[column]} is True, 0 means False.";
-                },
-                Cell(0, column));
+                new List<string> { Column(j), Cell(0, j) }));
+            // The 0-1 program names its variables x1, x2, ...: a variable already named so keeps its name.
+            string x = IntegerProgrammingBruteForce.Variable(j);
+            if (x == variables[j])
+                variableSteps.Accept((j, variableId, index), $"Variable {x} becomes the 0-1 variable {x}: 1 means {x} is True, 0 means False.");
+            else
+                variableSteps.Accept((j, variableId, index), $"Variable {variables[j]} becomes the 0-1 variable {x}: {x} = 1 means {variables[j]} is True, 0 means False.");
         }
 
         //Creates the rows or ineqlalities of the matrix C, for each clause in SAT3
+        // One constraint row per clause, and one step.
+        var clauseSteps = NewClauseSteps(rec);
         for (int i = 0; i < SAT3Instance.clauses.Count; i++) {
             List<int> row = new List<int>();
             dVector.Add(-1);
@@ -164,18 +201,13 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
                     new List<string> { Cell(tableRow, variables.IndexOf(CnfFormula.VariableOf(literals[j]))) }));
             gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { Cell(tableRow, n + 1) },
                 note: $"Bound {dVector[clause]}: the number of negated literals minus 1."));
-            if (rec.Enabled) {
-                int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
-                List<int> coefficients = row;
-                int bound = dVector[clause];
-                bool cancels = literals.Any(l => !l.StartsWith('!') && literals.Contains("!" + l));
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = GroupedGraphFrames.ClauseIds(clause, literals.Count), Nodes = [Row(tableRow)], Gadgets = gadgetIdx },
-                    () => $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(coefficients, bound)}. "
-                        + "Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true."
-                        + (cancels ? " A variable written both ways cancels out, so this row always holds." : ""),
-                    Row(tableRow));
-            }
+            // A variable written both ways in the clause cancels out of its row.
+            if (literals.Any(l => !l.StartsWith('!') && literals.Contains("!" + l)))
+                clauseSteps.Accept((clause, literals, tableRow, firstGadget),
+                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true. A variable written both ways cancels out, so this row always holds.");
+            else
+                clauseSteps.Accept((clause, literals, tableRow, firstGadget),
+                    $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true.");
         }
         // Single-space-separated within each row/vector, matching INTPROGRAMMING01's own
         // parser (getMatrixC/getVectorD both do a naive Split(" ") -- double spaces here
@@ -192,7 +224,8 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
         //K is the number of clauses
 
         reductionTo = reduced01INT;
-        rec.Done(new BuildDelta(), true,
+        // The closing step, on any of the recorders (they all record to rec).
+        clauseSteps.Done(new BuildDelta(), true,
             $"The 0-1 program has {Words.Count(Cmatrix.Count, "constraint")} and {Words.Count(n, "variable")}: some 0-1 assignment meets them all exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
         foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, SAT3Instance.clauses);
@@ -255,14 +288,20 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
 
     public Assignment EmptyAnswer() => new Assignment([]);
 
-    // "{}" is how a 0-1 program says it has no answer (#797): never an assignment, so it keeps the default. A's answer is an
+    // "{}" is how a 0-1 program says it has no answer: never an assignment, so it keeps the default. A's answer is an
     // assignment, never "{}".
 
-    /// <summary>
-    /// Backward map (#693): a 0-1 assignment to a truth assignment. The j-th 0-1 variable is the j-th variable of the formula
-    /// (in the order reduce() numbered them), and 1 means True. A value other than 0 or 1 says nothing: the variable is set to
-    /// False and the step is a Reject; the Done step then reports what 3SAT's verifier says.
-    /// </summary>
+    // How the map-back steps show a 0-1 variable read: the assignment so far, and the id the step is about (the variable's cell
+    // in the row x =).
+    private static RunSteps<string, Assignment> NewMapSteps(StepRecorder<Assignment> rec, Dictionary<string, bool> values) => new(rec,
+        // What every picture shows: the assignment so far, and the piece the step is about.
+        partial: _ => GroupedGraphFrames.ToAssignment(values),
+        focus: id => [id]);
+
+    // Backward map: a 0-1 assignment to a truth assignment. The j-th 0-1 variable is the j-th variable of the formula (in the
+    // order reduce() numbered them), and 1 means True. 3SAT's verifier decides whether the assignment satisfies the formula.
+    // Its steps: an Accept per 0-1 variable that is 0 or 1 (its variable takes that value), and a Reject per one that is not
+    // (it says nothing, and the variable is set to False). The caller adds the Done.
     public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
         var variables = new List<string>();
         foreach (var l in reductionFrom.literals)
@@ -278,15 +317,15 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
             throw new FormatException($"'{problemToSolution}' gives {x.Count} values, but the 0-1 program has {variables.Count} variables");
 
         var values = new Dictionary<string, bool>();
+        var steps = NewMapSteps(rec, values);
         for (int j = 0; j < variables.Count; j++) {
             string variable = variables[j], name = IntegerProgrammingBruteForce.Variable(j);
             int value = x[j];
             values[variable] = value == 1;
-            string of = name == variable ? "" : $" (the 0-1 variable for {variable})";
             if (value is 0 or 1)
-                rec.Accept(() => GroupedGraphFrames.ToAssignment(values), () => $"{name} = {value}{of}, so {variable} = {Assignment.Word(value == 1)}.", Cell(0, j));
+                steps.Accept(Cell(0, j), $"{name} = {value}{(name == variable ? "" : $" (the 0-1 variable for {variable})")}, so {variable} = {Assignment.Word(value == 1)}.");
             else
-                rec.Reject(() => GroupedGraphFrames.ToAssignment(values), () => $"{name} = {value}{of} is not 0 or 1, so it says nothing about {variable}: {variable} = False.", Cell(0, j));
+                steps.Reject(Cell(0, j), $"{name} = {value}{(name == variable ? "" : $" (the 0-1 variable for {variable})")} is not 0 or 1, so it says nothing about {variable}: {variable} = False.");
         }
         return (SAT.Certificate(variables, values), GroupedGraphFrames.ToAssignment(values));
     }
