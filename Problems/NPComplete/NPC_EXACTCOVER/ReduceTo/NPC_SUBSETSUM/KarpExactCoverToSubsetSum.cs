@@ -84,7 +84,7 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
     public KarpExactCoverToSubsetSum() : this(new EXACTCOVER()) { }
 
     /// <summary>
-    /// The gadgets: per set of S, an element (Exact Cover's set S{j}, in the Bipartite Graph's ids, to Subset Sum's item
+    /// The gadgets: per set of S, an element (Exact Cover's set S{j}, in the set problems' piece ids, to Subset Sum's item
     /// I{j}, its number); and the bound, every element of X (one digit each) to Subset Sum's container, whose target T has a 1 in
     /// every digit.
     /// </summary>
@@ -101,7 +101,7 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
     // and the gadget that makes it. The state is (Set, Gadget): the set's index and its gadget's index.
     private static RunSteps<(int Set, int Gadget), BuildDelta> NewSetSteps(StepRecorder<BuildDelta> rec) => new(rec,
         // What the Reduction View shows: the set, its item, and the gadget.
-        partial: s => new BuildDelta { SourceFocus = [BipartiteFrames.SetId(s.Set)], Nodes = [PackingFrames.ItemId(s.Set)], Gadgets = [s.Gadget] },
+        partial: s => new BuildDelta { SourceFocus = [SetPieces.SetId(s.Set)], Nodes = [PackingFrames.ItemId(s.Set)], Gadgets = [s.Gadget] },
         focus: s => [PackingFrames.ItemId(s.Set)]);
 
     // A number written in base d, one digit per element of X, its highest digit (the last element of X) first: a 1 where
@@ -164,16 +164,16 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
         var X = reductionFrom.X;
         var setSteps = NewSetSteps(rec);
         for (int j = 0; j < reductionFrom.S.Count; j++) {
-            string set = BipartiteFrames.SetId(j);
+            string set = SetPieces.SetId(j);
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { set }, new List<string> { PackingFrames.ItemId(j) }));
             setSteps.Accept((j, gadget),
-                $"Set {set} {BipartiteFrames.Braces(reductionFrom.S[j])} becomes the number {subsetSumS[j]}: {Digits(X, reductionFrom.S[j])} in base {d}, one digit per element of X{(digits == 0 ? "" : $" ({BuildCaptions.Names(Enumerable.Range(0, digits).Reverse().Select(i => X[i]).ToList())} from the left)")}, a 1 where {set} holds that element.");
+                $"Set {set} {SetPieces.Braces(reductionFrom.S[j])} becomes the number {subsetSumS[j]}: {Digits(X, reductionFrom.S[j])} in base {d}, one digit per element of X{(digits == 0 ? "" : $" ({BuildCaptions.Names(Enumerable.Range(0, digits).Reverse().Select(i => X[i]).ToList())} from the left)")}, a 1 where {set} holds that element.");
         }
         // Then the bound: every element of X (one digit each) to Subset Sum's container, whose target T has a 1 in every digit.
         int bound = gadgets.Count;
         string container = PackingFrames.ContainerId(0);
-        var elementIds = X.Select(BipartiteFrames.ElementId).ToList();
+        var elementIds = X.Select(SetPieces.ElementId).ToList();
         gadgets.Add(new Gadget(GadgetKind.Bound, elementIds, new List<string> { container }, note: $"T = {K}, a 1 in each of the {digits} digits"));
 
         // The closing step.
@@ -230,15 +230,15 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
         var picked = new List<string>();
         var steps = NewMapSteps(rec, picked);
         for (int j = 0; j < keys.Count; j++) {
-            string set = BipartiteFrames.SetId(j), number = reductionTo.S[j];
+            string set = SetPieces.SetId(j), number = reductionTo.S[j];
             if (chosen.Of(j) == 0) {
                 picked.Add(set);
-                steps.Accept(j, $"Number {number} is in the subset, so set {set} {BipartiteFrames.Braces(reductionFrom.S[j])} is in the exact cover: {number} is {set} written in base {Math.Max(reductionFrom.S.Count + 1, 2)}.");
+                steps.Accept(j, $"Number {number} is in the subset, so set {set} {SetPieces.Braces(reductionFrom.S[j])} is in the exact cover: {number} is {set} written in base {Math.Max(reductionFrom.S.Count + 1, 2)}.");
             } else {
-                steps.Reject(j, $"Number {number} is not in the subset, so set {set} {BipartiteFrames.Braces(reductionFrom.S[j])} is left out of the exact cover.");
+                steps.Reject(j, $"Number {number} is not in the subset, so set {set} {SetPieces.Braces(reductionFrom.S[j])} is left out of the exact cover.");
             }
         }
-        var cover = Enumerable.Range(0, keys.Count).Where(j => chosen.Of(j) == 0).Select(j => BipartiteFrames.Braces(reductionFrom.S[j]));
+        var cover = Enumerable.Range(0, keys.Count).Where(j => chosen.Of(j) == 0).Select(j => SetPieces.Braces(reductionFrom.S[j]));
         return ("{" + string.Join(",", cover) + "}", new ChosenSets(picked));
     }
 

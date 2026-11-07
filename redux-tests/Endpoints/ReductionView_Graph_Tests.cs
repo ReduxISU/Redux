@@ -295,8 +295,8 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     }
 
     private static (List<string>, List<string>) Bipartite(List<string> universe, List<List<string>> sets) =>
-        (universe.Select(BipartiteFrames.ElementId).Concat(sets.Select((_, i) => BipartiteFrames.SetId(i))).ToList(),
-         sets.SelectMany((set, i) => set.Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.EdgeId(BipartiteFrames.ElementId(e), BipartiteFrames.SetId(i)))).ToList());
+        (universe.Select(SetPieces.ElementId).Concat(sets.Select((_, i) => SetPieces.SetId(i))).ToList(),
+         sets.SelectMany((set, i) => set.Distinct(StringComparer.Ordinal).Select(e => SetPieces.EdgeId(SetPieces.ElementId(e), SetPieces.SetId(i)))).ToList());
 
     private static (List<string>, List<string>) Grouped(List<List<string>> clauses) {
         var payload = GroupedGraphFrames.Payload(GroupedGraphSpec.FromLiterals(clauses));

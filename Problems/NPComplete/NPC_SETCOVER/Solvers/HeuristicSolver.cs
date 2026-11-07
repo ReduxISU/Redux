@@ -62,10 +62,10 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
     private static RunSteps<Move, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec, int K, DepthFirstTree tree) => new(rec,
         // What every picture shows: the sets taken, and the set taken last.
         partial: m => Picked(m.Taken),
-        focus: m => m.Taken.Count > 0 ? [BipartiteFrames.SetId(int.Parse(m.Taken.Peek()))] : [],
+        focus: m => m.Taken.Count > 0 ? [SetPieces.SetId(int.Parse(m.Taken.Peek()))] : [],
         // The Search Tree picture's node only: the set taken ("S2"), noted when it goes over K, or the element in no set.
         tree: m => m.Element != null ? tree.Step(m.Depth, m.Element, m.Tree, "in no set")
-            : tree.Step(m.Depth, m.Row == null ? "" : BipartiteFrames.SetId(int.Parse(m.Row)), m.Tree, m.Tree == SearchNodeState.Pruned ? $"over K = {K}" : null));
+            : tree.Step(m.Depth, m.Row == null ? "" : SetPieces.SetId(int.Parse(m.Row)), m.Tree, m.Tree == SearchNodeState.Pruned ? $"over K = {K}" : null));
 
     public string solve(SETCOVER setCover) => Solve(setCover, StepRecorder<ChosenSets>.Off);
 
@@ -109,8 +109,8 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
         if (selectedSets.Any()) {
             // The answer's path in the tree: the sets in the order taken (the stack lists the last taken first).
             steps.Done(Picked(selectedSets), true,
-                $"{BipartiteFrames.Braces(Picked(selectedSets).Sets)} covers every element with {Words.Count(selectedSets.Count, "set")}, within K = {setCover.K}.",
-                tree: () => tree.AnswerPath(selectedSets.Reverse().Select(row => BipartiteFrames.SetId(int.Parse(row))).ToList()));
+                $"{SetPieces.Braces(Picked(selectedSets).Sets)} covers every element with {Words.Count(selectedSets.Count, "set")}, within K = {setCover.K}.",
+                tree: () => tree.AnswerPath(selectedSets.Reverse().Select(row => SetPieces.SetId(int.Parse(row))).ToList()));
             return solutionToCertificate(selectedSets, setCover);
         }
 
@@ -123,7 +123,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
     }
 
     // The sets on the stack, by id (S1, S2, ...).
-    private static ChosenSets Picked(Stack<string> solution) => new(solution.Select(row => BipartiteFrames.SetId(int.Parse(row))));
+    private static ChosenSets Picked(Stack<string> solution) => new(solution.Select(row => SetPieces.SetId(int.Parse(row))));
 
     private void iterate(Dictionary<string, List<string>> Y, ref Dictionary<string, List<string>> X, ref Stack<string> solution, ref bool foundSolution, int K,
         SETCOVER setCover, DepthFirstTree tree, RunSteps<Move, ChosenSets> steps) {
@@ -144,7 +144,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
                 // In the tree, the element is a dead end under the set taken last.
                 tree.Branch(solution.Count + 1);
                 steps.Reject(new(solution, solution.Count + 1, SearchNodeState.Pruned, Element: minimumColumn),
-                    $"No set contains {minimumColumn}, so no cover exists.", focus: () => [BipartiteFrames.ElementId(minimumColumn)]);
+                    $"No set contains {minimumColumn}, so no cover exists.", focus: () => [SetPieces.ElementId(minimumColumn)]);
             }
             bool first = true;
             foreach (var row in rows) {
@@ -155,9 +155,9 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
                 // In the tree, the set that covers the last element within K is the solution.
                 var taken = new Move(solution, solution.Count, X.Count == 0 && solution.Count <= K ? SearchNodeState.Solution : SearchNodeState.Explored, row);
                 if (first)
-                    steps.Accept(taken, $"{minimumColumn} is the uncovered element in the fewest sets ({rows.Count}). Take {BipartiteFrames.SetText(setCover.subsets, index)}.");
+                    steps.Accept(taken, $"{minimumColumn} is the uncovered element in the fewest sets ({rows.Count}). Take {SetPieces.SetText(setCover.subsets, index)}.");
                 else
-                    steps.Accept(taken, $"Take {BipartiteFrames.SetText(setCover.subsets, index)} for {minimumColumn} instead.");
+                    steps.Accept(taken, $"Take {SetPieces.SetText(setCover.subsets, index)} for {minimumColumn} instead.");
                 first = false;
                 iterate(Y, ref X, ref solution, ref foundSolution, K, setCover, tree, steps);
                 if (foundSolution == true || timerHasExpired) return;
@@ -165,7 +165,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
                 solution.Pop();
                 // In the tree, the set fails, unless it went over K (the tree keeps it pruned, with its note).
                 steps.Backtrack(new(solution, solution.Count + 1, SearchNodeState.Failed, row),
-                    $"Undo {BipartiteFrames.SetId(index)}: no cover within K = {K} follows from it.", focus: () => [BipartiteFrames.SetId(index)]);
+                    $"Undo {SetPieces.SetId(index)}: no cover within K = {K} follows from it.", focus: () => [SetPieces.SetId(index)]);
             }
         }
     }

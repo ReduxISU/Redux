@@ -65,7 +65,7 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER, ChosenSets> {
 
     // The ids (S1, S2, ...) of the sets a candidate's bits pick.
     private static string[] Picked(List<int> binary) =>
-        Enumerable.Range(0, binary.Count).Where(i => binary[i] == 1).Select(BipartiteFrames.SetId).ToArray();
+        Enumerable.Range(0, binary.Count).Where(i => binary[i] == 1).Select(SetPieces.SetId).ToArray();
 
     public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
 
@@ -86,12 +86,12 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER, ChosenSets> {
             certificate = BinaryToCertificate(binary, exactCover.S);
             tried++;
             if (exactCover.defaultVerifier.verify(exactCover, certificate)) {
-                steps.Accept(binary, $"Try {BipartiteFrames.Braces(Picked(binary))}. It covers every element exactly once.");
+                steps.Accept(binary, $"Try {SetPieces.Braces(Picked(binary))}. It covers every element exactly once.");
                 steps.Done(new ChosenSets(Picked(binary)), true,
-                    $"{BipartiteFrames.Braces(Picked(binary))} covers every element exactly once, found after {Words.Count(tried, "try", "tries")}.");
+                    $"{SetPieces.Braces(Picked(binary))} covers every element exactly once, found after {Words.Count(tried, "try", "tries")}.");
                 return certificate;
             }
-            steps.Reject(binary, $"Try {BipartiteFrames.Braces(Picked(binary))}: {BipartiteFrames.WhyRejected(spec!, Picked(binary))}.");
+            steps.Reject(binary, $"Try {SetPieces.Braces(Picked(binary))}: {BipartiteFrames.WhyRejected(spec!, Picked(binary))}.");
         }
         steps.Done(new ChosenSets([]), false, $"Checked all {tried} combinations of sets. None covers every element exactly once.");
         return "{}";

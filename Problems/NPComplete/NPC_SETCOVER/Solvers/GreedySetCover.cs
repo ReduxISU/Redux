@@ -39,8 +39,8 @@ class GreedySetCover : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
     // How the steps show the cover so far, given by the positions in S of the sets picked, in the order they were picked.
     private static RunSteps<List<int>, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec) => new(rec,
         // What every picture shows: the sets picked so far, and the set just picked.
-        partial: chosen => new ChosenSets(chosen.Select(BipartiteFrames.SetId)),
-        focus: chosen => chosen.Count > 0 ? [BipartiteFrames.SetId(chosen[^1])] : []);
+        partial: chosen => new ChosenSets(chosen.Select(SetPieces.SetId)),
+        focus: chosen => chosen.Count > 0 ? [SetPieces.SetId(chosen[^1])] : []);
 
     public string solve(SETCOVER setCover) => Solve(setCover, StepRecorder<ChosenSets>.Off);
 
@@ -74,26 +74,26 @@ class GreedySetCover : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
             chosenIndices.Add(bestIndex);
             covered.UnionWith(setCover.subsets[bestIndex]);
             steps.Accept(chosenIndices,
-                $"Pick {BipartiteFrames.SetText(setCover.subsets, bestIndex)}: it covers {bestNewCount} new {(bestNewCount == 1 ? "element" : "elements")}, the most of any set left.");
+                $"Pick {SetPieces.SetText(setCover.subsets, bestIndex)}: it covers {bestNewCount} new {(bestNewCount == 1 ? "element" : "elements")}, the most of any set left.");
         }
 
         if (covered.Count < universal.Count) {
             // No set covers anything still uncovered, so what is left is in no set at all (named only for a kept step).
             string[] Missing() => setCover.universal.Where(e => !covered.Contains(e)).ToArray();
-            steps.Reject(chosenIndices, $"{BipartiteFrames.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set, so no cover exists.",
-                focus: () => Missing().Select(BipartiteFrames.ElementId).ToArray());
-            steps.Done(new ChosenSets([]), false, $"No cover exists: {BipartiteFrames.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set.");
+            steps.Reject(chosenIndices, $"{SetPieces.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set, so no cover exists.",
+                focus: () => Missing().Select(SetPieces.ElementId).ToArray());
+            steps.Done(new ChosenSets([]), false, $"No cover exists: {SetPieces.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set.");
             return "{}";
         }
         if (chosenIndices.Count > setCover.K) {
             // The step is about the sets past the K-th, the ones the cover has too many of.
             steps.Reject(chosenIndices, $"Greedy's cover uses {chosenIndices.Count} sets, more than K = {setCover.K}.",
-                focus: () => chosenIndices.Skip(Math.Max(setCover.K, 0)).Select(BipartiteFrames.SetId).ToArray());
+                focus: () => chosenIndices.Skip(Math.Max(setCover.K, 0)).Select(SetPieces.SetId).ToArray());
             steps.Done(new ChosenSets([]), false,
                 $"Greedy's cover uses {chosenIndices.Count} sets, more than K = {setCover.K}. Greedy doesn't always find the smallest cover, so the brute force may still find one.");
             return "{}";
         }
-        steps.Done(new ChosenSets(chosenIndices.Select(BipartiteFrames.SetId)), true,
+        steps.Done(new ChosenSets(chosenIndices.Select(SetPieces.SetId)), true,
             $"Every element is covered with {Words.Count(chosenIndices.Count, "set")}, within K = {setCover.K}.");
 
         string solution = "{";

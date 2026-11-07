@@ -72,7 +72,7 @@ class SetCoverBruteForce : ISolver<SETCOVER, ChosenSets> {
         focus: combination => Picked(combination));
 
     // The ids (S1, S2, ...) of the sets at these positions of S.
-    private static string[] Picked(List<int> combination) => combination.Select(BipartiteFrames.SetId).ToArray();
+    private static string[] Picked(List<int> combination) => combination.Select(SetPieces.SetId).ToArray();
 
     public string solve(SETCOVER setCover) => Solve(setCover, StepRecorder<ChosenSets>.Off);
 
@@ -97,12 +97,12 @@ class SetCoverBruteForce : ISolver<SETCOVER, ChosenSets> {
                 string certificate = indexListToCertificate(combination, setCover.subsets);
                 tried++;
                 if (setCover.defaultVerifier.verify(setCover, certificate)) {
-                    steps.Accept(combination, $"Try {BipartiteFrames.Braces(Picked(combination))}. It covers every element.");
+                    steps.Accept(combination, $"Try {SetPieces.Braces(Picked(combination))}. It covers every element.");
                     steps.Done(new ChosenSets(Picked(combination)), true,
-                        $"{BipartiteFrames.Braces(Picked(combination))} covers U with {Words.Count(size, "set")}, found after {Words.Count(tried, "try", "tries")}. Smaller combinations were tried first, so no cover uses fewer sets.");
+                        $"{SetPieces.Braces(Picked(combination))} covers U with {Words.Count(size, "set")}, found after {Words.Count(tried, "try", "tries")}. Smaller combinations were tried first, so no cover uses fewer sets.");
                     return certificate;
                 }
-                steps.Reject(combination, $"Try {BipartiteFrames.Braces(Picked(combination))}: {BipartiteFrames.WhyRejected(spec!, Picked(combination))}.");
+                steps.Reject(combination, $"Try {SetPieces.Braces(Picked(combination))}: {BipartiteFrames.WhyRejected(spec!, Picked(combination))}.");
                 combination = nextComb(combination, setCover.subsets.Count);
 
             }

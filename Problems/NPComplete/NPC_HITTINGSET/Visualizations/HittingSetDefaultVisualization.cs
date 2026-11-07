@@ -21,7 +21,7 @@ class HittingSetDefaultVisualization : IVisualization<HITTINGSET, API_SET>, IBip
     public HittingSetDefaultVisualization() {
 
     }
-    // The pieces get the Bipartite Graph picture's ids (e:{x}, S{j}), the ids the gadgets of Hitting Set's reductions name.
+    // The pieces get the set problems' piece ids (SetPieces: e:{x}, S{j}), the ids the gadgets of Hitting Set's reductions name.
     public API_SET visualize(HITTINGSET hittingSet) {
         return new API_SET(new UtilCollection(hittingSet.instance)).UseBipartiteIds(Spec(hittingSet).Sets);
     }

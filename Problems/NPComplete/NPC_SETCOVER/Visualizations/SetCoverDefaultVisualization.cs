@@ -21,7 +21,7 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER, API_SET>, IBiparti
     public SetCoverDefaultVisualization() {
 
     }
-    // The pieces get the Bipartite Graph picture's ids (e:{x}, S{j}), the ids the gadgets of reductions into Set Cover name.
+    // The pieces get the set problems' piece ids (SetPieces: e:{x}, S{j}), the ids the gadgets of reductions into Set Cover name.
     public API_SET visualize(SETCOVER setcover) {
         return new API_SET(new UtilCollection(setcover.instance)).UseBipartiteIds(Spec(setcover).Sets);
     }

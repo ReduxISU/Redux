@@ -11,7 +11,7 @@ namespace redux_tests;
 #pragma warning disable CS1591
 
 // A frontend drawing the list-format set pictures (/visualize, /visualizeReduction) highlights a gadget by finding its ids in
-// them. A set system's picture (Exact Cover, Hitting Set, Set Cover) names its pieces with the Bipartite Graph picture's ids
+// them. A set system's picture (Exact Cover, Hitting Set, Set Cover) names its pieces with the set problems' piece ids (SetPieces)
 // (element e:{x}, set S{j}); a numbers problem's picture (Subset Sum, Partition, Knapsack) names its numbers with the Packing
 // picture's item ids (I{k}). Those are the ids the gadgets use, so they are found as they are. The one exception is a Packing
 // container (C{k}: Subset Sum's target, Partition's two sides, the knapsack), which the list picture does not draw.

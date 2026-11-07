@@ -256,7 +256,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
 
     // The memberships of the given read sets: one per element of each set, each element once.
     private static IEnumerable<BuildEdge> Memberships(List<List<string>> parsed, List<int> sets) =>
-        sets.SelectMany(s => parsed[s].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s)));
+        sets.SelectMany(s => parsed[s].Distinct(StringComparer.Ordinal).Select(e => SetPieces.BuildMembership(e, s)));
 
     // Works out the gadgets, recording the construction steps as it goes when rec records (see IRecordedReduction). reduce()
     // lists K sets per node (color 1 first), then K * (K - 1) sets per edge, one per ordered pair of different colors, so a
@@ -288,7 +288,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         List<int> NewSets(IEnumerable<int> listed) => listed.Select(i => read[i]).Distinct().Where(builtSets.Add).ToList();
         // The elements no earlier step added, as the picture's ids.
         List<string> Fresh(IEnumerable<string> elements) =>
-            elements.Where(built.Add).Select(BipartiteFrames.ElementId).ToList();
+            elements.Where(built.Add).Select(SetPieces.ElementId).ToList();
 
         // One group per node, and one step.
         var nodeSteps = NewNodeSteps(rec, parsed);
@@ -297,7 +297,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             var slots = edges.Where(e => e.Key == node || e.Value == node)
                 .SelectMany(e => Enumerable.Range(1, k).Select(j => SlotElement(node, e.Key, e.Value, j))).ToList();
             var sets = NewSets(Enumerable.Range(u * k, k));
-            var pieces = Fresh(new[] { ElementName(node) }.Concat(slots)).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
+            var pieces = Fresh(new[] { ElementName(node) }.Concat(slots)).Concat(sets.Select(SetPieces.SetId)).ToArray();
             int gadget = _gadgets.Count;
             _gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, pieces.ToList()));
             nodeSteps.Accept((node, gadget, pieces, sets),
@@ -309,7 +309,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         for (int e = 0; e < edges.Count; e++) {
             var (a, b) = (edges[e].Key, edges[e].Value);
             var sets = NewSets(Enumerable.Range(first + e * k * (k - 1), k * (k - 1)));
-            var pieces = Fresh([EdgeElement(a, b)]).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
+            var pieces = Fresh([EdgeElement(a, b)]).Concat(sets.Select(SetPieces.SetId)).ToArray();
             int gadget = _gadgets.Count;
             _gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, pieces.ToList()));
             edgeSteps.Accept((a, b, gadget, pieces, sets),
@@ -355,7 +355,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             if (p < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Exact Cover instance");
             int i = _listedAs[p];
             if (i >= reductionFrom.nodes.Count * k) continue;
-            string node = reductionFrom.nodes[i / k], setId = BipartiteFrames.SetId(p);
+            string node = reductionFrom.nodes[i / k], setId = SetPieces.SetId(p);
             int c = i % k;
             if (color.TryGetValue(node, out int had)) {
                 steps.Reject(setId, $"Set {setId} gives {node} color {c + 1}, but {node} already has color {had + 1}, so it keeps that.");
@@ -365,7 +365,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             steps.Accept(setId, $"Set {setId} {{{string.Join(",", target[p])}}} is in the exact cover. It is {node}'s set for color {c + 1}, so {node} takes color {c + 1}.");
         }
         foreach (string node in reductionFrom.nodes.Where(n => !color.ContainsKey(n)))
-            steps.Reject(BipartiteFrames.ElementId(ElementName(node)), $"No set of the exact cover is one of {node}'s color sets, so {node} gets no color.");
+            steps.Reject(SetPieces.ElementId(ElementName(node)), $"No set of the exact cover is one of {node}'s color sets, so {node} gets no color.");
         string answer = "{" + string.Join(",", Enumerable.Range(0, k)
             .Select(c => reductionFrom.nodes.Where(n => color.TryGetValue(n, out int x) && x == c).ToList())
             .Where(cls => cls.Count > 0)

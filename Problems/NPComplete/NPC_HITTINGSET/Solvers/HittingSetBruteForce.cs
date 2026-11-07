@@ -50,7 +50,7 @@ class HittingSetBruteForce : ISolver<HITTINGSET, NodeSet> {
     private static RunSteps<List<int>, NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<UtilCollection> items) => new(rec,
         // What every picture shows: the picked elements, every one of them in focus.
         partial: bits => new NodeSet(Picked(bits, items)),
-        focus: bits => Picked(bits, items).Select(BipartiteFrames.ElementId).ToArray());
+        focus: bits => Picked(bits, items).Select(SetPieces.ElementId).ToArray());
 
     // The elements of U a candidate's bits pick, in U's order.
     private static IEnumerable<string> Picked(List<int> bits, List<UtilCollection> items) =>
@@ -75,13 +75,13 @@ class HittingSetBruteForce : ISolver<HITTINGSET, NodeSet> {
             tried++;
             if (hittingSet.defaultVerifier.verify(hittingSet, strCertificate)) {
                 string[] found = Picked(possibleSolution, items).ToArray();
-                steps.Accept(possibleSolution, $"Try {BipartiteFrames.Braces(found)}. It hits every set exactly once.");
-                steps.Done(new NodeSet(found), true, $"{BipartiteFrames.Braces(found)} hits every set exactly once, found after {Words.Count(tried, "try", "tries")}.");
+                steps.Accept(possibleSolution, $"Try {SetPieces.Braces(found)}. It hits every set exactly once.");
+                steps.Done(new NodeSet(found), true, $"{SetPieces.Braces(found)} hits every set exactly once, found after {Words.Count(tried, "try", "tries")}.");
                 return strCertificate;
             }
             // The verifier only says no, so the step names what fails the subset: the sets it misses or hits twice.
             steps.Reject(possibleSolution,
-                $"Try {BipartiteFrames.Braces(Picked(possibleSolution, items))}: {BipartiteFrames.WhyRejected(spec!, Picked(possibleSolution, items).Select(BipartiteFrames.ElementId))}.");
+                $"Try {SetPieces.Braces(Picked(possibleSolution, items))}: {BipartiteFrames.WhyRejected(spec!, Picked(possibleSolution, items).Select(SetPieces.ElementId))}.");
         }
 
         // No hitting set exists. "{}", as the other set solvers answer; the verifier rejects it whenever S is not empty.

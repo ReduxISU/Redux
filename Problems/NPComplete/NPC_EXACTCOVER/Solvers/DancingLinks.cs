@@ -53,9 +53,9 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
     private static RunSteps<Move, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec, DepthFirstTree tree) => new(rec,
         // What every picture shows: the sets taken, and the set taken last.
         partial: m => Picked(m.Taken),
-        focus: m => m.Taken.Count > 0 ? [BipartiteFrames.SetId(m.Taken.Peek())] : [],
+        focus: m => m.Taken.Count > 0 ? [SetPieces.SetId(m.Taken.Peek())] : [],
         // The Search Tree picture's node only: the set taken ("S2"), or the element with no set left, noted.
-        tree: m => m.Row >= 0 ? tree.Step(m.Depth, BipartiteFrames.SetId(m.Row), m.Tree) : tree.Step(m.Depth, m.Element!, m.Tree, "no set left"));
+        tree: m => m.Row >= 0 ? tree.Step(m.Depth, SetPieces.SetId(m.Row), m.Tree) : tree.Step(m.Depth, m.Element!, m.Tree, "no set left"));
 
     public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
 
@@ -95,8 +95,8 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
 
         if (selectedSets.Any()) {
             // The answer's path in the tree: the sets in the order taken (the stack lists the last taken first).
-            steps.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(selectedSets).Sets)}.",
-                tree: () => tree.AnswerPath(selectedSets.Reverse().Select(BipartiteFrames.SetId).ToList()));
+            steps.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {SetPieces.Braces(Picked(selectedSets).Sets)}.",
+                tree: () => tree.AnswerPath(selectedSets.Reverse().Select(SetPieces.SetId).ToList()));
             return solutionToCertificate(selectedSets, exactCover);
         }
 
@@ -110,7 +110,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
     }
 
     // The sets on the stack, by id (S1, S2, ...).
-    private static ChosenSets Picked(Stack<int> solution) => new(solution.Select(BipartiteFrames.SetId));
+    private static ChosenSets Picked(Stack<int> solution) => new(solution.Select(SetPieces.SetId));
 
     private void iterate(Dictionary<int, List<int>> Y, ref Dictionary<int, List<int>> X, ref Stack<int> solution, ref bool foundSolution,
         EXACTCOVER exactCover, DepthFirstTree tree, RunSteps<Move, ChosenSets> steps) {
@@ -126,7 +126,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
                 // In the tree, the element is a dead end under the set taken last.
                 tree.Branch(solution.Count + 1);
                 steps.Reject(new(solution, solution.Count + 1, SearchNodeState.Pruned, Element: element),
-                    $"No set left can cover {element} without doubling up, so undo.", focus: () => [BipartiteFrames.ElementId(element)]);
+                    $"No set left can cover {element} without doubling up, so undo.", focus: () => [SetPieces.ElementId(element)]);
             }
             bool first = true;
             foreach (var row in rows) {
@@ -137,16 +137,16 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
                 // In the tree, the set that covers the last element is the solution.
                 var tried = new Move(solution, solution.Count, X.Count == 0 ? SearchNodeState.Solution : SearchNodeState.Explored, row);
                 if (first)
-                    steps.Accept(tried, $"{element} has the fewest options ({rows.Count}). Try {BipartiteFrames.SetText(exactCover.S, row)}.");
+                    steps.Accept(tried, $"{element} has the fewest options ({rows.Count}). Try {SetPieces.SetText(exactCover.S, row)}.");
                 else
-                    steps.Accept(tried, $"Try {BipartiteFrames.SetText(exactCover.S, row)} for {element} instead.");
+                    steps.Accept(tried, $"Try {SetPieces.SetText(exactCover.S, row)} for {element} instead.");
                 first = false;
                 iterate(Y, ref X, ref solution, ref foundSolution, exactCover, tree, steps);
                 if (foundSolution == true) return;
                 deselect(Y, ref X, row, ref columns);
                 solution.Pop();
                 steps.Backtrack(new(solution, solution.Count + 1, SearchNodeState.Failed, row),
-                    $"Undo {BipartiteFrames.SetId(row)}: no exact cover follows from it.", focus: () => [BipartiteFrames.SetId(row)]);
+                    $"Undo {SetPieces.SetId(row)}: no exact cover follows from it.", focus: () => [SetPieces.SetId(row)]);
             }
         }
     }

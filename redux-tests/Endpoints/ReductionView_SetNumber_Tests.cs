@@ -42,7 +42,7 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
         yield return (EcToSs, "({1,2,3},{{1,2},{2,3},{1,3}})", false);
         yield return (EcToSs, "({1,2,3},{{1,2},{2,3}})", false);
         yield return (EcToSs, "({a,b,c},{{a},{b,c},{a,b}})", true);
-        // ~ and : are separators of the Bipartite Graph's ids, escaped there (and Exact Cover's verifier once cut a certificate at
+        // ~ and : are separators of the set problems' piece ids, escaped there (and Exact Cover's verifier once cut a certificate at
         // its first ':', #833).
         yield return (EcToSs, "({a~b,c},{{a~b},{c}})", true);
         yield return (EcToSs, "({a~b,c:d},{{a~b},{c:d}})", true);
@@ -281,8 +281,8 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
                 }
             case API.Problems.NPComplete.NPC_EXACTCOVER.EXACTCOVER p: {
                     var parsed = new API.Problems.NPComplete.NPC_EXACTCOVER.EXACTCOVER(p.instance);
-                    return (parsed.X.Select(BipartiteFrames.ElementId).Concat(parsed.S.Select((_, i) => BipartiteFrames.SetId(i))).ToList(),
-                        parsed.S.SelectMany((set, i) => set.Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.EdgeId(BipartiteFrames.ElementId(e), BipartiteFrames.SetId(i)))).ToList());
+                    return (parsed.X.Select(SetPieces.ElementId).Concat(parsed.S.Select((_, i) => SetPieces.SetId(i))).ToList(),
+                        parsed.S.SelectMany((set, i) => set.Distinct(StringComparer.Ordinal).Select(e => SetPieces.EdgeId(SetPieces.ElementId(e), SetPieces.SetId(i)))).ToList());
                 }
             default:
                 throw new NotSupportedException(target.GetType().Name);

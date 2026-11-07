@@ -79,7 +79,7 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
     public reduceToEXACTCOVER() : this(new HITTINGSET()) { }
 
     /// <summary>
-    /// The gadgets, in the Bipartite Graph's ids on both sides: per subset, an element (Hitting Set's set S{i} to Exact
+    /// The gadgets, in the set problems' piece ids on both sides: per subset, an element (Hitting Set's set S{i} to Exact
     /// Cover's element i); per item, an element (Hitting Set's element to the Exact Cover set of the subsets that hold it).
     /// </summary>
     public List<Gadget> gadgets { get; } = new();
@@ -100,11 +100,11 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
     private static RunSteps<(int Subset, int Gadget), BuildDelta> NewSubsetSteps(StepRecorder<BuildDelta> rec) => new(rec,
         // What the Reduction View shows: the subset, its element, and the gadget.
         partial: s => new BuildDelta {
-            SourceFocus = [BipartiteFrames.SetId(s.Subset)],
-            Nodes = [BipartiteFrames.ElementId((s.Subset + 1).ToString())],
+            SourceFocus = [SetPieces.SetId(s.Subset)],
+            Nodes = [SetPieces.ElementId((s.Subset + 1).ToString())],
             Gadgets = [s.Gadget],
         },
-        focus: s => [BipartiteFrames.ElementId((s.Subset + 1).ToString())]);
+        focus: s => [SetPieces.ElementId((s.Subset + 1).ToString())]);
 
     // How the construction steps show an item: the item and its memberships in Hitting Set; the set it becomes, with the
     // set's memberships, added to Exact Cover (nothing added when an earlier item made the same set); and its gadget. The
@@ -115,13 +115,13 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
             StepRecorder<BuildDelta> rec, List<List<string>> targetSets) => new(rec,
         // What the Reduction View shows: the item and its memberships, the set added, and the gadget.
         partial: s => new BuildDelta {
-            SourceFocus = s.Holders.Select(i => BipartiteFrames.EdgeId(s.Item, BipartiteFrames.SetId(i))).Prepend(s.Item).ToArray(),
-            Nodes = s.Again ? [] : [BipartiteFrames.SetId(s.Set)],
-            Edges = s.Again ? [] : BuildEdge.Sorted(targetSets[s.Set].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s.Set))),
+            SourceFocus = s.Holders.Select(i => SetPieces.EdgeId(s.Item, SetPieces.SetId(i))).Prepend(s.Item).ToArray(),
+            Nodes = s.Again ? [] : [SetPieces.SetId(s.Set)],
+            Edges = s.Again ? [] : BuildEdge.Sorted(targetSets[s.Set].Distinct(StringComparer.Ordinal).Select(e => SetPieces.BuildMembership(e, s.Set))),
             Gadgets = [s.Gadget],
         },
         // The set and every element in it.
-        focus: s => targetSets[s.Set].Select(BipartiteFrames.ElementId).Append(BipartiteFrames.SetId(s.Set)).Distinct(StringComparer.Ordinal).ToArray());
+        focus: s => targetSets[s.Set].Select(SetPieces.ElementId).Append(SetPieces.SetId(s.Set)).Distinct(StringComparer.Ordinal).ToArray());
 
     // Builds the Exact Cover instance, recording the construction steps as it goes (see IRecordedReduction). Its steps:
     //   - an Accept per subset, in Hitting Set's order: the subset becomes an element to cover;
@@ -170,9 +170,9 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
         for (int i = 0; i < sourceSets.Count; i++) {
             string element = (i + 1).ToString();
             int gadget = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { BipartiteFrames.SetId(i) }, new List<string> { BipartiteFrames.ElementId(element) }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { SetPieces.SetId(i) }, new List<string> { SetPieces.ElementId(element) }));
             subsetSteps.Accept((i, gadget),
-                $"Subset {BipartiteFrames.SetId(i)} {BipartiteFrames.Braces(sourceSets[i].ToList().Select(x => x.ToString()))} becomes the element {element}: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.");
+                $"Subset {SetPieces.SetId(i)} {SetPieces.Braces(sourceSets[i].ToList().Select(x => x.ToString()))} becomes the element {element}: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.");
         }
         // The sets an earlier item already made.
         var built = new HashSet<int>();
@@ -180,7 +180,7 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
             var holders = Enumerable.Range(0, sourceSets.Count).Where(i => sourceSets[i].Contains(new UtilCollection(item))).ToList();
             var mine = holders.Select(i => (i + 1).ToString()).ToHashSet(StringComparer.Ordinal);
             int set = targetSets.FindIndex(s => s.ToHashSet(StringComparer.Ordinal).SetEquals(mine));
-            string setId = BipartiteFrames.SetId(set), element = BipartiteFrames.ElementId(item);
+            string setId = SetPieces.SetId(set), element = SetPieces.ElementId(item);
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { element }, new List<string> { setId }));
             bool again = !built.Add(set);
@@ -190,13 +190,13 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
 
             if (again)
                 itemSteps.Accept((element, holders, set, again, gadget),
-                    $"Item {item} is in the same subsets as {owner}, so its set is {setId} {BipartiteFrames.Braces(holders.Select(i => (i + 1).ToString()))} too: Exact Cover reads equal sets as one.");
+                    $"Item {item} is in the same subsets as {owner}, so its set is {setId} {SetPieces.Braces(holders.Select(i => (i + 1).ToString()))} too: Exact Cover reads equal sets as one.");
             else if (holders.Count == 0)
                 itemSteps.Accept((element, holders, set, again, gadget),
                     $"Item {item} is in no subset, so it becomes the empty set {setId}, which covers nothing.");
             else
                 itemSteps.Accept((element, holders, set, again, gadget),
-                    $"Item {item} is in {(holders.Count == 1 ? "subset" : "subsets")} {BuildCaptions.Names(holders.Select(i => BipartiteFrames.SetId(i)).ToList())}, so it becomes the set {setId} {BipartiteFrames.Braces(holders.Select(i => (i + 1).ToString()))} of their elements: taking {item} into the hitting set covers each of them once.");
+                    $"Item {item} is in {(holders.Count == 1 ? "subset" : "subsets")} {BuildCaptions.Names(holders.Select(i => SetPieces.SetId(i)).ToList())}, so it becomes the set {setId} {SetPieces.Braces(holders.Select(i => (i + 1).ToString()))} of their elements: taking {item} into the hitting set covers each of them once.");
         }
 
         // The closing step, on either recorder (both record to rec).
@@ -260,10 +260,10 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
             int p = Enumerable.Range(0, target.Count).FirstOrDefault(k => !used[k] && target[k].ToHashSet(StringComparer.Ordinal).SetEquals(listed), -1);
             if (p < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Exact Cover instance");
             used[p] = true;
-            string item = _itemOfSet[p], setId = BipartiteFrames.SetId(p);
+            string item = _itemOfSet[p], setId = SetPieces.SetId(p);
             if (!hitting.Contains(item)) hitting.Add(item);
             steps.Accept(setId,
-                $"Set {setId} {BipartiteFrames.Braces(target[p])} is in the exact cover. It is item {item}'s set, the subsets that hold {item}, so {item} is in the hitting set.");
+                $"Set {setId} {SetPieces.Braces(target[p])} is in the exact cover. It is item {item}'s set, the subsets that hold {item}, so {item} is in the hitting set.");
         }
         return (ReductionBack.FormatNodeSet(hitting), new NodeSet(hitting));
     }

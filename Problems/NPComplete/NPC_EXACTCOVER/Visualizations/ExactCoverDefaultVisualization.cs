@@ -22,7 +22,7 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET>, IBip
     public ExactCoverDefaultVisualization() {
 
     }
-    // The pieces get the Bipartite Graph picture's ids (e:{x}, S{j}), the ids the gadgets of Exact Cover's reductions name.
+    // The pieces get the set problems' piece ids (SetPieces: e:{x}, S{j}), the ids the gadgets of Exact Cover's reductions name.
     public API_SET visualize(EXACTCOVER exactCover) {
         return new API_SET(new UtilCollection(exactCover.instance)).UseBipartiteIds(Spec(exactCover).Sets);
     }

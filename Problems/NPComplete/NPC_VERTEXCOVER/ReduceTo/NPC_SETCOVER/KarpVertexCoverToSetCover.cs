@@ -87,7 +87,7 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
         name.IndexOfAny(['\\', '_']) < 0 ? name : name.Replace(@"\", @"\\").Replace("_", @"\_");
 
     /// <summary>
-    /// The gadgets: per node with edges, an element (the node to its set, in the Bipartite Graph's ids); per edge, an
+    /// The gadgets: per node with edges, an element (the node to its set, in the set problems' piece ids); per edge, an
     /// element (the edge to the element it becomes); and the bound, K unchanged.
     /// </summary>
     public List<Gadget> gadgets { get; } = new();
@@ -114,12 +114,12 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
         partial: s => new BuildDelta {
             SourceFocus = firstTouched[s.Node].Select(f => f.U == f.V ? f.U : GraphSubsetFrames.EdgeId(f.U, f.V))
                 .Prepend(reductionFrom.nodes[s.Node]).Distinct(StringComparer.Ordinal).ToArray(),
-            Nodes = s.Again ? [] : firstTouched[s.Node].Select(f => BipartiteFrames.ElementId(f.Element)).Append(BipartiteFrames.SetId(s.Set)).ToArray(),
-            Edges = s.Again ? [] : BuildEdge.Sorted(subsets[s.Node].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s.Set))),
+            Nodes = s.Again ? [] : firstTouched[s.Node].Select(f => SetPieces.ElementId(f.Element)).Append(SetPieces.SetId(s.Set)).ToArray(),
+            Edges = s.Again ? [] : BuildEdge.Sorted(subsets[s.Node].Distinct(StringComparer.Ordinal).Select(e => SetPieces.BuildMembership(e, s.Set))),
             Gadgets = Enumerable.Range(s.FirstGadget, 1 + firstTouched[s.Node].Count).ToArray(),
         },
         // The set and every element in it.
-        focus: s => subsets[s.Node].Select(BipartiteFrames.ElementId).Append(BipartiteFrames.SetId(s.Set)).Distinct(StringComparer.Ordinal).ToArray());
+        focus: s => subsets[s.Node].Select(SetPieces.ElementId).Append(SetPieces.SetId(s.Set)).Distinct(StringComparer.Ordinal).ToArray());
 
     // How the construction steps show a node that touches no edge: the node alone, since it adds nothing. The state is the node.
     private static RunSteps<string, BuildDelta> NewLoneNodeSteps(StepRecorder<BuildDelta> rec) => new(rec,
@@ -210,24 +210,24 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
             bool again = owner != "";
             if (!again) _nodeOfSet[set] = node;
             int firstGadget = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { BipartiteFrames.SetId(set) }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { SetPieces.SetId(set) }));
             var fresh = firstTouched[i];
             foreach (var (u, v, element) in fresh)
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { u == v ? u : GraphSubsetFrames.EdgeId(u, v) },
-                    new List<string> { BipartiteFrames.ElementId(element) }));
+                    new List<string> { SetPieces.ElementId(element) }));
 
             if (again)
                 nodeSteps.Accept((i, set, again, firstGadget),
-                    $"Node {node} touches the same edges as {owner}, {{{string.Join(",", mine)}}}, so its set is {BipartiteFrames.SetId(set)} too: Set Cover reads equal sets as one.");
+                    $"Node {node} touches the same edges as {owner}, {{{string.Join(",", mine)}}}, so its set is {SetPieces.SetId(set)} too: Set Cover reads equal sets as one.");
             else if (fresh.Count == 0)
                 nodeSteps.Accept((i, set, again, firstGadget),
-                    $"Node {node} becomes set {BipartiteFrames.SetId(set)}, the edges it touches: {{{string.Join(",", mine)}}}.");
+                    $"Node {node} becomes set {SetPieces.SetId(set)}, the edges it touches: {{{string.Join(",", mine)}}}.");
             else if (fresh.Count == 1)
                 nodeSteps.Accept((i, set, again, firstGadget),
-                    $"Node {node} becomes set {BipartiteFrames.SetId(set)}, the edges it touches: {{{string.Join(",", mine)}}}. Edge {{{fresh[0].U},{fresh[0].V}}} is new, so it joins the elements to cover.");
+                    $"Node {node} becomes set {SetPieces.SetId(set)}, the edges it touches: {{{string.Join(",", mine)}}}. Edge {{{fresh[0].U},{fresh[0].V}}} is new, so it joins the elements to cover.");
             else
                 nodeSteps.Accept((i, set, again, firstGadget),
-                    $"Node {node} becomes set {BipartiteFrames.SetId(set)}, the edges it touches: {{{string.Join(",", mine)}}}. Edges {BuildCaptions.Names(fresh.Select(f => $"{{{f.U},{f.V}}}").ToList())} are new, so they join the elements to cover.");
+                    $"Node {node} becomes set {SetPieces.SetId(set)}, the edges it touches: {{{string.Join(",", mine)}}}. Edges {BuildCaptions.Names(fresh.Select(f => $"{{{f.U},{f.V}}}").ToList())} are new, so they join the elements to cover.");
         }
         // Then the bound: K stays. The Set Cover picture has no piece of its own for it.
         int bound = gadgets.Count;
@@ -281,8 +281,8 @@ class KarpVertexCoverToSetCover : IReversibleReduction<VERTEXCOVER, SETCOVER, No
             if (i < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Set Cover instance");
             string node = _nodeOfSet[i];
             if (!cover.Contains(node)) cover.Add(node);
-            steps.Accept(BipartiteFrames.SetId(i),
-                $"Set {BipartiteFrames.SetId(i)} {{{string.Join(",", target[i])}}} is in the cover. It is node {node}'s set, the edges that touch {node}, so {node} is in the vertex cover.");
+            steps.Accept(SetPieces.SetId(i),
+                $"Set {SetPieces.SetId(i)} {{{string.Join(",", target[i])}}} is in the cover. It is node {node}'s set, the edges that touch {node}, so {node} is in the vertex cover.");
         }
         return (ReductionBack.FormatNodeSet(cover), new NodeSet(cover));
     }

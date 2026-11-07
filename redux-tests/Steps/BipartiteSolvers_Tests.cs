@@ -51,7 +51,7 @@ public class BipartiteSolvers_Tests {
         var parsed = new UtilCollection(answer).ToList();
         return spec.Pick == BipartitePick.Sets
             ? parsed.Select(s => string.Join(",", s.ToList().Select(x => x.ToString()).Order(StringComparer.Ordinal))).Distinct().Order(StringComparer.Ordinal).ToArray()
-            : parsed.Select(x => BipartiteFrames.ElementId(x.ToString())).Order(StringComparer.Ordinal).ToArray();
+            : parsed.Select(x => SetPieces.ElementId(x.ToString())).Order(StringComparer.Ordinal).ToArray();
     }
 
     private static readonly HashSet<string> Incremental = ["greedysetcover", "heuristicsolver", "dancinglinks", "exactcoverrecursive"];
