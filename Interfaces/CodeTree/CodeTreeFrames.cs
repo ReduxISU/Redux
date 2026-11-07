@@ -264,11 +264,6 @@ static class CodeTreeFrames {
         }
         return new FramesResponse(nameof(VisualizationType.CodeTree), Payload(spec), frames);
     }
-
-    // ---- Captions ----
-
-    /// <summary>A number as captions write it, with thousands separators (1,234).</summary>
-    public static string Count(long n) => n.ToString("N0", CultureInfo.InvariantCulture);
 }
 
 /// <summary>

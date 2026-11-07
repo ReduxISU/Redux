@@ -233,7 +233,7 @@ static class GraphEdgeFrames {
     // ---- Captions, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
     /// <summary>"{1,2,3}" for the nodes on one side.</summary>
-    public static string Side(IEnumerable<string> nodes) => GraphSubsetFrames.Braces(nodes.OrderBy(n => n, StringComparer.Ordinal));
+    public static string Side(IEnumerable<string> nodes) => Words.Braces(nodes.OrderBy(n => n, StringComparer.Ordinal));
 
     /// <summary>
     /// How many distinct edges join one side of the split to the other, and their total weight. Parallel edges count as one
@@ -271,7 +271,7 @@ static class GraphEdgeFrames {
         } else if (last is not { Event: StepEvent.Done }) {
             EdgeSet answer = parseAnswer(run.Answer);
             frames.Add(EdgeFrame(spec, answer, StepEvent.Done, [],
-                answer.Edges.Length == 0 ? "No answer was found." : $"The answer is {GraphSubsetFrames.Braces(answer.Edges)}.",
+                answer.Edges.Length == 0 ? "No answer was found." : $"The answer is {Words.Braces(answer.Edges)}.",
                 verifyAnswer(run.Answer)));
         }
         return new FramesResponse(nameof(VisualizationType.Graph), Payload(spec), frames);

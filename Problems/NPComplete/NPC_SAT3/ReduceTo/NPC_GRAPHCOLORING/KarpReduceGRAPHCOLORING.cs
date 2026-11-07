@@ -351,7 +351,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
             string[] sourceIds = CnfPieces.ClauseIds(i, sourceClauses[i].Count);
             gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), new List<string>(piece.Nodes)));
             gadgetSteps.Accept((sourceIds, piece, index),
-                $"Clause C{i + 1} {CnfPieces.ClauseText(sourceClauses[i])} becomes a 6-node OR gadget, {piece.Nodes[0]} to {piece.Nodes[5]}, wired to {GraphGroupFrames.And(PaddedClause(sourceClauses[i]).Distinct().ToList())}. Its output {piece.Nodes[5]} is joined to F and B, so it must take the true color, and that only works if one of those literals takes it too.");
+                $"Clause C{i + 1} {CnfPieces.ClauseText(sourceClauses[i])} becomes a 6-node OR gadget, {piece.Nodes[0]} to {piece.Nodes[5]}, wired to {Words.List(PaddedClause(sourceClauses[i]).Distinct().ToList())}. Its output {piece.Nodes[5]} is joined to F and B, so it must take the true color, and that only works if one of those literals takes it too.");
         }
 
         int bound = gadgets.Count;

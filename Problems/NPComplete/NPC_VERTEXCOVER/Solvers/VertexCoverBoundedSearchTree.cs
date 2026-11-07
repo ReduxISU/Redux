@@ -70,7 +70,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
             steps.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.", tree: () => tree.NoAnswer());
             return "{}";
         }
-        steps.Done(new NodeSet(result), true, $"{GraphSubsetFrames.Braces(result)} covers every edge, within K = {G.K}.",
+        steps.Done(new NodeSet(result), true, $"{Words.Braces(result)} covers every edge, within K = {G.K}.",
             tree: () => tree.AnswerPath(chosen));
         return "{" + string.Join(",", result) + "}";
     }

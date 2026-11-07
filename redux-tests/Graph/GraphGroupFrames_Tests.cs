@@ -231,10 +231,10 @@ public class GraphGroupFrames_Tests {
 
     [Fact]
     public void And_JoinsInWords() {
-        Assert.Equal("", GraphGroupFrames.And([]));
-        Assert.Equal("1", GraphGroupFrames.And(["1"]));
-        Assert.Equal("1 and 3", GraphGroupFrames.And(["1", "3"]));
-        Assert.Equal("1, 2 and 3", GraphGroupFrames.And(["1", "2", "3"]));
+        Assert.Equal("", Words.List([]));
+        Assert.Equal("1", Words.List(["1"]));
+        Assert.Equal("1 and 3", Words.List(["1", "3"]));
+        Assert.Equal("1, 2 and 3", Words.List(["1", "2", "3"]));
     }
 
     [Fact]

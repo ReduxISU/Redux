@@ -109,7 +109,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
         if (selectedSets.Any()) {
             // The answer's path in the tree: the sets in the order taken (the stack lists the last taken first).
             steps.Done(Picked(selectedSets), true,
-                $"{SetPieces.Braces(Picked(selectedSets).Sets)} covers every element with {Words.Count(selectedSets.Count, "set")}, within K = {setCover.K}.",
+                $"{Words.Braces(Picked(selectedSets).Sets)} covers every element with {Words.Count(selectedSets.Count, "set")}, within K = {setCover.K}.",
                 tree: () => tree.AnswerPath(selectedSets.Reverse().Select(row => SetPieces.SetId(int.Parse(row))).ToList()));
             return solutionToCertificate(selectedSets, setCover);
         }

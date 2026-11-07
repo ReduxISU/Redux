@@ -226,9 +226,7 @@ class LosslessDataCompressionSolver : ISolver<LOSSLESSDATACOMPRESSION, HuffmanFo
             Walk(n.Right);
         }
         Walk(node);
-        string which = chars.Count > 4 ? $"{node.Leaves} characters"
-            : chars.Count == 2 ? $"{chars[0]} and {chars[1]}"
-            : string.Join(", ", chars.Take(chars.Count - 1)) + " and " + chars[^1];
+        string which = chars.Count > 4 ? $"{node.Leaves} characters" : Words.List(chars);
         return $"the tree of weight {node.Frequency} ({which})";
     }
 

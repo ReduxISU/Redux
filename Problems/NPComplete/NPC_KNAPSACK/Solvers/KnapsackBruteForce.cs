@@ -72,15 +72,15 @@ class KnapsackBruteForce : ISolver<KNAPSACK, Placement> {
             int weight = rec.Enabled ? Members(possibleSolution).Sum(i => items[i][0].parseInt()) : 0;
             int value = rec.Enabled ? Members(possibleSolution).Sum(i => items[i][1].parseInt()) : 0;
             if (knapsack.defaultVerifier.verify(knapsack, strCertificate)) {
-                steps.Accept(possibleSolution, $"Try {PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight}, value {value}. It works.");
+                steps.Accept(possibleSolution, $"Try {Words.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight}, value {value}. It works.");
                 steps.Done(new Placement(possibleSolution.Select(b => b == 1 ? 0 : -1)), true,
-                    $"{PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))} fits in {knapsack.W} and is worth at least {knapsack.V}, found after {Words.Count(tried, "set")}.");
+                    $"{Words.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))} fits in {knapsack.W} and is worth at least {knapsack.V}, found after {Words.Count(tried, "set")}.");
                 return strCertificate;
             }
             if (weight > knapsack.W)
-                steps.Reject(possibleSolution, $"Try {PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight} is over {knapsack.W}.");
+                steps.Reject(possibleSolution, $"Try {Words.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight} is over {knapsack.W}.");
             else
-                steps.Reject(possibleSolution, $"Try {PackingFrames.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight}, value {value}, short of {knapsack.V}.");
+                steps.Reject(possibleSolution, $"Try {Words.Braces(Members(possibleSolution).Select(i => PackingFrames.Key(items[i])))}: weight {weight}, value {value}, short of {knapsack.V}.");
         }
 
         steps.Done(new Placement([]), false, $"Checked all {Words.Count(tried, "set")}. None is worth {knapsack.V} within weight {knapsack.W}.");

@@ -33,7 +33,7 @@ class DFATableVisualization : IVisualization<DFA, API_empty>, ITableVisualizatio
     TableSpec ITableVisualization<DFA, ActiveStates>.Describe(DFA problem) => AutomatonTraceTable.Spec();
     IReadOnlyList<TableDraft> ITableVisualization<DFA, ActiveStates>.Draw(DFA problem, IReadOnlyList<SolverStep<ActiveStates>> steps, bool incremental) =>
         AutomatonTraceTable.Drafts(steps, AutomatonFrames.InputSymbols(problem.inputString),
-            states => states.Count == 1 ? states[0] : AutomatonFrames.Braces(states), problem.acceptStates.Contains, AutomatonTraceTable.Garbage, oneRun: true);
+            states => states.Count == 1 ? states[0] : AutomatonFrames.StateSet(states), problem.acceptStates.Contains, AutomatonTraceTable.Garbage, oneRun: true);
     // Before Run (and when a run is stopped) the trace shows its start: the start state with nothing read.
     TableDraft ITableVisualization<DFA, ActiveStates>.Blank(DFA problem) =>
         AutomatonTraceTable.StartDraft(problem.startState, problem.acceptStates.Contains(problem.startState));

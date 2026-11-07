@@ -168,7 +168,7 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { set }, new List<string> { PackingFrames.ItemId(j) }));
             setSteps.Accept((j, gadget),
-                $"Set {set} {SetPieces.Braces(reductionFrom.S[j])} becomes the number {subsetSumS[j]}: {Digits(X, reductionFrom.S[j])} in base {d}, one digit per element of X{(digits == 0 ? "" : $" ({BuildCaptions.Names(Enumerable.Range(0, digits).Reverse().Select(i => X[i]).ToList())} from the left)")}, a 1 where {set} holds that element.");
+                $"Set {set} {Words.Braces(reductionFrom.S[j])} becomes the number {subsetSumS[j]}: {Digits(X, reductionFrom.S[j])} in base {d}, one digit per element of X{(digits == 0 ? "" : $" ({BuildCaptions.Names(Enumerable.Range(0, digits).Reverse().Select(i => X[i]).ToList())} from the left)")}, a 1 where {set} holds that element.");
         }
         // Then the bound: every element of X (one digit each) to Subset Sum's container, whose target T has a 1 in every digit.
         int bound = gadgets.Count;
@@ -233,12 +233,12 @@ class KarpExactCoverToSubsetSum : IReversibleReduction<EXACTCOVER, SUBSETSUM, Ch
             string set = SetPieces.SetId(j), number = reductionTo.S[j];
             if (chosen.Of(j) == 0) {
                 picked.Add(set);
-                steps.Accept(j, $"Number {number} is in the subset, so set {set} {SetPieces.Braces(reductionFrom.S[j])} is in the exact cover: {number} is {set} written in base {Math.Max(reductionFrom.S.Count + 1, 2)}.");
+                steps.Accept(j, $"Number {number} is in the subset, so set {set} {Words.Braces(reductionFrom.S[j])} is in the exact cover: {number} is {set} written in base {Math.Max(reductionFrom.S.Count + 1, 2)}.");
             } else {
-                steps.Reject(j, $"Number {number} is not in the subset, so set {set} {SetPieces.Braces(reductionFrom.S[j])} is left out of the exact cover.");
+                steps.Reject(j, $"Number {number} is not in the subset, so set {set} {Words.Braces(reductionFrom.S[j])} is left out of the exact cover.");
             }
         }
-        var cover = Enumerable.Range(0, keys.Count).Where(j => chosen.Of(j) == 0).Select(j => SetPieces.Braces(reductionFrom.S[j]));
+        var cover = Enumerable.Range(0, keys.Count).Where(j => chosen.Of(j) == 0).Select(j => Words.Braces(reductionFrom.S[j]));
         return ("{" + string.Join(",", cover) + "}", new ChosenSets(picked));
     }
 

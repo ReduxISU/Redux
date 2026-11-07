@@ -496,9 +496,6 @@ static class ScheduleFrames {
 
     // ---- Captions, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
-    /// <summary>A whole number as captions write it: 1,000.</summary>
-    public static string Num(int n) => n.ToString("N0", CultureInfo.InvariantCulture);
-
     /// <summary>Gallons as captions write them: 4,950, or 0.2 for a fraction.</summary>
     public static string Gallons(double v) => v.ToString("#,0.##", CultureInfo.InvariantCulture);
 
@@ -539,7 +536,7 @@ static class ScheduleFrames {
         var r = hours[hour];
         decimal before = hour == 0 ? TankLevels.Exact(spec.Level) : levels[hour - 1], after = levels[hour];
         var index = Enumerable.Range(0, spec.Pumps.Count).ToDictionary(PumpId, p => p, StringComparer.Ordinal);
-        string Names(IEnumerable<string> ids) => AndList(ids.Select(id => spec.Pumps[index[id]].Name).ToList());
+        string Names(IEnumerable<string> ids) => Words.List(ids.Select(id => spec.Pumps[index[id]].Name).ToList());
         string pumps = r.On.Count switch { 0 => "no pump is on", 1 => $"{Names(r.On)} is on", _ => $"{Names(r.On)} are on" };
         string verb = after > before ? "rises to" : after < before ? "drops to" : "stays at";
         string text = $"At hour {hour}{(spec.PeakHours.Contains(hour) ? " (peak)" : "")}, {pumps}. In {Gallons(r.Inflow)}, out {Gallons(spec.Demand[hour])} gal, so the tank {verb} {Gallons((double)after)} gal.";
@@ -560,19 +557,11 @@ static class ScheduleFrames {
 
     /// <summary>"64 reachable (tank level, pumps on) states", "1 reachable (tank level, pumps on) state".</summary>
     public static string ReachableStates(int states) =>
-        $"{Num(states)} reachable (tank level, pumps on) {(states == 1 ? "state" : "states")}";
+        $"{Words.Number(states)} reachable (tank level, pumps on) {(states == 1 ? "state" : "states")}";
 
     /// <summary>"levels 3,800 to 5,900 gal", or "level 4,000 gal" when the lowest and highest are the same.</summary>
     public static string LevelRange(double low, double high) =>
         low == high ? $"level {Gallons(low)} gal" : $"levels {Gallons(low)} to {Gallons(high)} gal";
-
-    /// <summary>"a", "a and b", "a, b and c".</summary>
-    public static string AndList(IReadOnlyList<string> items) =>
-        items.Count switch {
-            0 => "",
-            1 => items[0],
-            _ => string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1],
-        };
 }
 
 /// <summary>

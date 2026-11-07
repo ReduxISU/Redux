@@ -97,12 +97,12 @@ class SetCoverBruteForce : ISolver<SETCOVER, ChosenSets> {
                 string certificate = indexListToCertificate(combination, setCover.subsets);
                 tried++;
                 if (setCover.defaultVerifier.verify(setCover, certificate)) {
-                    steps.Accept(combination, $"Try {SetPieces.Braces(Picked(combination))}. It covers every element.");
+                    steps.Accept(combination, $"Try {Words.Braces(Picked(combination))}. It covers every element.");
                     steps.Done(new ChosenSets(Picked(combination)), true,
-                        $"{SetPieces.Braces(Picked(combination))} covers U with {Words.Count(size, "set")}, found after {Words.Count(tried, "try", "tries")}. Smaller combinations were tried first, so no cover uses fewer sets.");
+                        $"{Words.Braces(Picked(combination))} covers U with {Words.Count(size, "set")}, found after {Words.Count(tried, "try", "tries")}. Smaller combinations were tried first, so no cover uses fewer sets.");
                     return certificate;
                 }
-                steps.Reject(combination, $"Try {SetPieces.Braces(Picked(combination))}: {BipartiteFrames.WhyRejected(spec!, Picked(combination))}.");
+                steps.Reject(combination, $"Try {Words.Braces(Picked(combination))}: {BipartiteFrames.WhyRejected(spec!, Picked(combination))}.");
                 combination = nextComb(combination, setCover.subsets.Count);
 
             }

@@ -80,7 +80,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IInc
         string answer;
         // Check DJ promise
         if (!(oracle.All(v => v == 0) || oracle.All(v => v == 1) || oracle.Count(v => v == 0) * 2 == oracle.Count)) {
-            steps.Reject((null, null), $"f gives 1 for {oracle.Count(v => v == 1)} of its {QuantumCircuits.Count(oracle.Count)} inputs: not none, not all and not exactly half. It breaks the promise, so there is no answer to find.");
+            steps.Reject((null, null), $"f gives 1 for {oracle.Count(v => v == 1)} of its {Words.Number(oracle.Count)} inputs: not none, not all and not exactly half. It breaks the promise, so there is no answer to find.");
             answer = "Breaks DJ Promise";
         } else {
             queries.Add(new OracleQuery(0, first_value));
@@ -107,7 +107,7 @@ class DeutschJozsaClassicalSolver : ISolver<DEUTSCHJOZSA, QuantumProgress>, IInc
             if (!balanced && total_inputs == 1)
                 steps.Accept((null, answer), $"f has a single input, so it is constant.");
             else if (!balanced)
-                steps.Accept((null, answer), $"The first {queries_to_be_certain} of {QuantumCircuits.Count(total_inputs)} inputs all give {first_value}: more than half, so f cannot be balanced. It is constant. That took {queries_to_be_certain} oracle calls; the Deutsch-Jozsa algorithm needs 1.");
+                steps.Accept((null, answer), $"The first {queries_to_be_certain} of {Words.Number(total_inputs)} inputs all give {first_value}: more than half, so f cannot be balanced. It is constant. That took {queries_to_be_certain} oracle calls; the Deutsch-Jozsa algorithm needs 1.");
         }
 
         // The verdict is only for the steps: a plain solve never runs the verifier.

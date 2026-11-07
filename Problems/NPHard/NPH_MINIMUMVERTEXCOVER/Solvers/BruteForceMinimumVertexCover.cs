@@ -102,14 +102,14 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
                 tried++;
                 if (isCover(G, combination)) {
                     string[] cover = combination.Select(c => G.nodes[c]).ToArray();
-                    steps.Accept(combination, $"Try {Braces(cover)}. It covers every edge.");
+                    steps.Accept(combination, $"Try {Words.Braces(cover)}. It covers every edge.");
                     steps.Done(new NodeSet(cover), true,
-                        $"{Braces(cover)} covers every edge. Smaller sets were all tried first, so {k} is the smallest possible, found after {tried} tries.");
+                        $"{Words.Braces(cover)} covers every edge. Smaller sets were all tried first, so {k} is the smallest possible, found after {tried} tries.");
                     return indexListToCertificate(combination, G.nodes);
                 }
                 // isCover only says no, so the uncovered edge is looked up for a kept step.
                 steps.Reject(combination,
-                    $"Try {Braces(combination.Select(c => G.nodes[c]))}: {Why(SubsetRule.MinVertexCover, G.nodes, G.edges, combination.Select(c => G.nodes[c]))}.");
+                    $"Try {Words.Braces(combination.Select(c => G.nodes[c]))}: {Why(SubsetRule.MinVertexCover, G.nodes, G.edges, combination.Select(c => G.nodes[c]))}.");
                 combination = nextComb(combination, n);
             }
         }

@@ -87,7 +87,7 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
         if (active.Count == 1)
             steps.Update((active, 0, [problem.startState]), $"Start in {problem.startState}.");
         else
-            steps.Update((active, 0, [problem.startState]), $"Start in {problem.startState}, and follow ε to {List(active.Skip(1).ToList())}. The active states are {Braces(active)}.");
+            steps.Update((active, 0, [problem.startState]), $"Start in {problem.startState}, and follow ε to {Words.List(active.Skip(1).ToList())}. The active states are {StateSet(active)}.");
 
         for (int i = 0; i < input.Length; i++) {
             char symbol = input[i];
@@ -117,19 +117,19 @@ class NFASubsetSolver : ISolver<NFA, ActiveStates> {
             int symbolMoves = taken.Count;
             active = Closure(moved, pos);
             bool viaEpsilon = taken.Count > symbolMoves;
-            steps.Update((active, pos, []), $"Read '{symbol}'. The active states are now {Braces(active)}{(viaEpsilon ? ", including ε moves" : "")}.");
+            steps.Update((active, pos, []), $"Read '{symbol}'. The active states are now {StateSet(active)}{(viaEpsilon ? ", including ε moves" : "")}.");
         }
 
         // The end check takes no arrows.
         taken.Clear();
         var accepting = active.Where(problem.acceptStates.Contains).ToList();
         if (accepting.Count == 0) {
-            steps.Reject((active, input.Length, active), $"The input is used up with {Braces(active)} active, and none of them is an accept state.");
+            steps.Reject((active, input.Length, active), $"The input is used up with {StateSet(active)} active, and none of them is an accept state.");
             steps.Done(new ActiveStates(active, input.Length), false, $"Rejected: no run accepts the input.");
             return "No Solution Exists: No run accepts the input";
         }
 
-        steps.Accept((accepting, input.Length, accepting), $"The input is used up with {Braces(active)} active; {List(accepting)} {(accepting.Count == 1 ? "is an accept state" : "are accept states")}, so a run accepts.");
+        steps.Accept((accepting, input.Length, accepting), $"The input is used up with {StateSet(active)} active; {Words.List(accepting)} {(accepting.Count == 1 ? "is an accept state" : "are accept states")}, so a run accepts.");
         if (accepting.Count == 1)
             steps.Done(new ActiveStates(accepting, input.Length), true, $"Accepted: a run ends in an accept state.");
         else

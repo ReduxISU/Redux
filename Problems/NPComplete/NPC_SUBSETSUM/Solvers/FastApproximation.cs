@@ -131,7 +131,7 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
         // miss the target. Only report it if it is actually a solution.
         bool ok = subsetsum.defaultVerifier.verify(subsetsum, certificate);
         if (ok) {
-            steps.Done(Best(L, n), true, $"The best sum kept is exactly {target}: {PackingFrames.Braces(bestState.ChosenItems.Select(PackingFrames.Num))}.");
+            steps.Done(Best(L, n), true, $"The best sum kept is exactly {target}: {Words.Braces(bestState.ChosenItems.Select(PackingFrames.Num))}.");
             return certificate;
         }
         steps.Done(new Placement([]), false, $"The best sum kept is {(int)bestState.Sum}, not {target}, so the approximation answers no, even if an exact subset exists.");

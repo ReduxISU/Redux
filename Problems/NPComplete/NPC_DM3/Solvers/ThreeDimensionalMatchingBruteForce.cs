@@ -99,30 +99,30 @@ class ThreeDimensionalMatchingBruteForce : ISolver<DM3, ChosenTriples> {
             if (problem.defaultVerifier.verify(problem, certificate)) {
                 // With |Y| or |Z| bigger than |X|, a matching can leave some of their elements unused.
                 var unused = rec.Enabled ? TripartiteFrames.Unused(spec!, combination) : [];
-                string which = rec.Enabled ? TripartiteFrames.AndList(combination.Select(TripartiteFrames.TripleId).ToList()) : "";
-                string triples = rec.Enabled ? TripartiteFrames.AndList(combination.Select(i => TripartiteFrames.TripleLabel(spec!, i)).ToList()) : "";
+                string which = rec.Enabled ? Words.List(combination.Select(TripartiteFrames.TripleId).ToList()) : "";
+                string triples = rec.Enabled ? Words.List(combination.Select(i => TripartiteFrames.TripleLabel(spec!, i)).ToList()) : "";
                 if (unused.Count == 0) {
                     steps.Accept(combination, $"Try {which}: every element of X, Y and Z is used exactly once, so the verifier accepts it.", focus: () => []);
                     if (tried == 1)
                         steps.Done(TripartiteFrames.Chosen(combination), true, $"{triples} {(combination.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found on the first try.");
                     else
-                        steps.Done(TripartiteFrames.Chosen(combination), true, $"{triples} {(combination.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {TripartiteFrames.Count(tried)} tries.");
+                        steps.Done(TripartiteFrames.Chosen(combination), true, $"{triples} {(combination.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {Words.Number(tried)} tries.");
                 } else {
                     steps.Accept(combination, $"Try {which}: no element is used twice, so the verifier accepts it.", focus: () => []);
                     if (tried == 1)
                         steps.Done(TripartiteFrames.Chosen(combination), true, $"The verifier accepts {triples}, found on the first try, though {TripartiteFrames.Names(spec!, unused)} {(unused.Count == 1 ? "is" : "are")} never used.");
                     else
-                        steps.Done(TripartiteFrames.Chosen(combination), true, $"The verifier accepts {triples}, found after {TripartiteFrames.Count(tried)} tries, though {TripartiteFrames.Names(spec!, unused)} {(unused.Count == 1 ? "is" : "are")} never used.");
+                        steps.Done(TripartiteFrames.Chosen(combination), true, $"The verifier accepts {triples}, found after {Words.Number(tried)} tries, though {TripartiteFrames.Names(spec!, unused)} {(unused.Count == 1 ? "is" : "are")} never used.");
                 }
                 return certificate;
             }
             steps.Reject(combination,
-                $"Try {TripartiteFrames.AndList(combination.Select(TripartiteFrames.TripleId).ToList())}: {TripartiteFrames.WhyRejected(spec!, combination)}.");
+                $"Try {Words.List(combination.Select(TripartiteFrames.TripleId).ToList())}: {TripartiteFrames.WhyRejected(spec!, combination)}.");
         }
         if (tried == 1)
             steps.Done(new ChosenTriples([]), false, $"There is only one way to pick the triples, and the verifier rejects it, so there is no perfect matching.");
         else
-            steps.Done(new ChosenTriples([]), false, $"Checked all {TripartiteFrames.Count(tried)} ways to pick {n} of the {m} triples. The verifier rejects every one, so there is no perfect matching.");
+            steps.Done(new ChosenTriples([]), false, $"Checked all {Words.Number(tried)} ways to pick {n} of the {m} triples. The verifier rejects every one, so there is no perfect matching.");
         return "{}";
     }
 }

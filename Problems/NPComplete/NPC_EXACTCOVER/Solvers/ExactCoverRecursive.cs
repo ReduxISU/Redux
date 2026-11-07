@@ -134,7 +134,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver,
         if (timerHasExpired) return SolveRun.TimedOutAnswer; // solve_r unwinds at the time limit
         string certificate = subsetsToCertificate(result);
         if (result.Count > 0) {
-            steps.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {SetPieces.Braces(Picked(result, index).Sets)}.",
+            steps.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {Words.Braces(Picked(result, index).Sets)}.",
                 tree: () => tree.AnswerPath(result.Select(s => SetPieces.SetId(index[s])).ToList()));
         } else {
             // Nothing chosen is the answer only when there are no elements.
@@ -179,7 +179,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver,
             // A dead end. The elements still not covered are named only for a kept step.
             string[] Uncovered() => exactCover.X.Where(x => !choosenSubsets.Any(s => s.Contains(x))).ToArray();
             steps.Reject(new(choosenSubsets, choosenSubsets.Count, SearchNodeState.Pruned, choosenSubsets.Count > 0 ? index[choosenSubsets[^1]] : -1, DeadEnd: true),
-                $"Every set left overlaps the sets taken, and {SetPieces.List(Uncovered())} {(Uncovered().Length == 1 ? "is" : "are")} still not covered, so undo.",
+                $"Every set left overlaps the sets taken, and {Words.List(Uncovered())} {(Uncovered().Length == 1 ? "is" : "are")} still not covered, so undo.",
                 focus: () => Uncovered().Select(SetPieces.ElementId).ToArray());
         }
 

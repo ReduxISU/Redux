@@ -258,7 +258,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
 
         // Branch: the undominated vertex of highest degree must be dominated by itself or one of its neighbours.
         steps.Try((chosen, uPick, SearchNodeState.Explored),
-            $"{names[uPick]} isn't dominated yet. Some vertex in {GraphSubsetFrames.Braces(closed[uPick].Select(c => names[c]))} has to be taken.");
+            $"{names[uPick]} isn't dominated yet. Some vertex in {Words.Braces(closed[uPick].Select(c => names[c]))} has to be taken.");
         foreach (int w in closed[uPick]) {
             var dominated2 = (bool[])dominated.Clone();
             var chosen2 = new List<int>(chosen) { w };

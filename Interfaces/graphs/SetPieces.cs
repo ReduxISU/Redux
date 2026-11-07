@@ -44,13 +44,6 @@ static class SetPieces {
 
     // ---- Words, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
-    /// <summary>"{1,2,3}" for captions.</summary>
-    public static string Braces(IEnumerable<string> items) => "{" + string.Join(",", items) + "}";
-
     /// <summary>"S2 {2,4}": a set's name and its elements, as the instance lists them.</summary>
-    public static string SetText(IReadOnlyList<IReadOnlyList<string>> sets, int index) => $"{SetId(index)} {Braces(sets[index])}";
-
-    /// <summary>"4", "4 and 5", "3, 4 and 5".</summary>
-    public static string List(IReadOnlyList<string> names) =>
-        names.Count <= 1 ? string.Join("", names) : string.Join(", ", names.Take(names.Count - 1)) + " and " + names[^1];
+    public static string SetText(IReadOnlyList<IReadOnlyList<string>> sets, int index) => $"{SetId(index)} {Words.Braces(sets[index])}";
 }

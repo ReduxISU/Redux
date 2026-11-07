@@ -96,7 +96,7 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver, ISearchTree
 
             if (found != null) {
                 // The answer's path in the tree: the start vertex, then the vertices in the order added.
-                steps.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.", tree: () => tree.AnswerPath(partial));
+                steps.Done(new NodeSet(found), true, $"{Words.Braces(found)} is a clique of size {clique.K}.", tree: () => tree.AnswerPath(partial));
                 return "{" + string.Join(",", found) + "}";
             }
 

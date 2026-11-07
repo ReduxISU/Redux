@@ -166,11 +166,11 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
     public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
         // ... for each candidate set:
         if (clique.defaultVerifier.verify(clique, certificate)) {
-            rec.Accept(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}. Every pair is joined.", Candidate);
-            rec.Done(new NodeSet(Candidate()), true, $"{GraphSubsetFrames.Braces(Candidate())} is a clique, found after {tried} tries.");
+            rec.Accept(() => new NodeSet(Candidate()), () => $"Try {Words.Braces(Candidate())}. Every pair is joined.", Candidate);
+            rec.Done(new NodeSet(Candidate()), true, $"{Words.Braces(Candidate())} is a clique, found after {tried} tries.");
             return certificate;
         }
-        rec.Reject(() => new NodeSet(Candidate()), () => $"Try {GraphSubsetFrames.Braces(Candidate())}: …", Candidate);
+        rec.Reject(() => new NodeSet(Candidate()), () => $"Try {Words.Braces(Candidate())}: …", Candidate);
         // ...
         rec.Done(new NodeSet([]), false, $"Checked all {tried} candidate sets. None is a clique of size {clique.K}.");
         return "{}";

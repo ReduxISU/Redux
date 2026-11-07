@@ -44,7 +44,7 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
     private static API_TableJSON Table(LOSSLESSDATACOMPRESSION problem, HuffmanForest answer) {
         var spec = Spec(problem);
         var symbols = CodeTreeFrames.Symbols(spec);
-        string title = $"{CodeTreeFrames.Count(spec.Text.Length)} character{(spec.Text.Length == 1 ? "" : "s")}, {symbols.Count} different";
+        string title = $"{Words.Number(spec.Text.Length)} character{(spec.Text.Length == 1 ? "" : "s")}, {symbols.Count} different";
         var table = new API_TableJSON();
         table.columns.Add(new TableColumn { key = "symbol", label = "Character" });
         table.columns.Add(new TableColumn { key = "count", label = "Count" });
@@ -61,13 +61,13 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
                 color = solved ? "Solution" : null,
                 cells = new Dictionary<string, string> {
                     ["symbol"] = CodeTreeFrames.Label(symbol),
-                    ["count"] = CodeTreeFrames.Count(count),
+                    ["count"] = Words.Number(count),
                     ["code"] = code,
-                    ["bits"] = solved ? CodeTreeFrames.Count((long)count * code.Length) : "",
+                    ["bits"] = solved ? Words.Number((long)count * code.Length) : "",
                 },
             });
         }
-        table.title = solved ? $"{title}, encoded in {CodeTreeFrames.Count(total)} bit{(total == 1 ? "" : "s")}" : title;
+        table.title = solved ? $"{title}, encoded in {Words.Number(total)} bit{(total == 1 ? "" : "s")}" : title;
         return table;
     }
 

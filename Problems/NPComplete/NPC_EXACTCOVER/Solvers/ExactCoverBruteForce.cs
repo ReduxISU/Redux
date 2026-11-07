@@ -86,12 +86,12 @@ class ExactCoverBruteForce : ISolver<EXACTCOVER, ChosenSets> {
             certificate = BinaryToCertificate(binary, exactCover.S);
             tried++;
             if (exactCover.defaultVerifier.verify(exactCover, certificate)) {
-                steps.Accept(binary, $"Try {SetPieces.Braces(Picked(binary))}. It covers every element exactly once.");
+                steps.Accept(binary, $"Try {Words.Braces(Picked(binary))}. It covers every element exactly once.");
                 steps.Done(new ChosenSets(Picked(binary)), true,
-                    $"{SetPieces.Braces(Picked(binary))} covers every element exactly once, found after {Words.Count(tried, "try", "tries")}.");
+                    $"{Words.Braces(Picked(binary))} covers every element exactly once, found after {Words.Count(tried, "try", "tries")}.");
                 return certificate;
             }
-            steps.Reject(binary, $"Try {SetPieces.Braces(Picked(binary))}: {BipartiteFrames.WhyRejected(spec!, Picked(binary))}.");
+            steps.Reject(binary, $"Try {Words.Braces(Picked(binary))}: {BipartiteFrames.WhyRejected(spec!, Picked(binary))}.");
         }
         steps.Done(new ChosenSets([]), false, $"Checked all {tried} combinations of sets. None covers every element exactly once.");
         return "{}";

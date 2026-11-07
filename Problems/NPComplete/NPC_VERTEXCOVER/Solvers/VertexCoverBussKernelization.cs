@@ -106,7 +106,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
         }
 
         mandatory.AddRange(kernelCover);
-        steps.Done(new NodeSet(mandatory), true, $"{Braces(mandatory)} covers every edge, within K = {G.K}.");
+        steps.Done(new NodeSet(mandatory), true, $"{Words.Braces(mandatory)} covers every edge, within K = {G.K}.");
         return "{" + string.Join(",", mandatory) + "}";
     }
 
@@ -122,12 +122,12 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
             foreach (var combo in combinations(nodes, size)) {
                 if (timerHasExpired) return null;
                 if (coversAll(combo, edges)) {
-                    steps.Accept((mandatory, combo), $"Try {Braces(mandatory.Concat(combo))}. It covers every edge.");
+                    steps.Accept((mandatory, combo), $"Try {Words.Braces(mandatory.Concat(combo))}. It covers every edge.");
                     return combo;
                 }
                 // coversAll only says no, so the uncovered edge is looked up for a kept step.
                 steps.Reject((mandatory, combo),
-                    $"Try {Braces(mandatory.Concat(combo))}: {Why(SubsetRule.VertexCover, G.nodes, G.edges, mandatory.Concat(combo))}.");
+                    $"Try {Words.Braces(mandatory.Concat(combo))}: {Why(SubsetRule.VertexCover, G.nodes, G.edges, mandatory.Concat(combo))}.");
             }
         }
         return null;

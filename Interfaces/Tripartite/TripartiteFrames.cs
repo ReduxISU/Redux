@@ -238,13 +238,6 @@ static class TripartiteFrames {
 
     // ---- Captions ----
 
-    /// <summary>A number as captions write it, with thousands separators (1,234).</summary>
-    public static string Count(long n) => n.ToString("N0", CultureInfo.InvariantCulture);
-
-    /// <summary>"a", "a and b", "a, b and c" for captions.</summary>
-    public static string AndList(IReadOnlyList<string> items) =>
-        items.Count <= 2 ? string.Join(" and ", items) : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1];
-
     /// <summary><c>T2 (Paul, Austin, Jake)</c>: a triple's id and its three names.</summary>
     public static string TripleLabel(TripartiteSpec spec, int index) {
         var t = spec.Triples[index];
@@ -283,7 +276,7 @@ static class TripartiteFrames {
     /// <summary>"Paul, Chloe and Sam" by <see cref="ElementName"/>; past <paramref name="most"/>, "a, b, c, d and 3 more".</summary>
     public static string Names(TripartiteSpec spec, IEnumerable<string> ids, int most = 4) {
         var names = ids.Select(id => ElementName(spec, id)).ToList();
-        return names.Count <= most ? AndList(names) : string.Join(", ", names.Take(most)) + $" and {names.Count - most} more";
+        return names.Count <= most ? Words.List(names) : string.Join(", ", names.Take(most)) + $" and {names.Count - most} more";
     }
 
     /// <summary>

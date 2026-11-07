@@ -80,9 +80,9 @@ class GreedySetCover : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
         if (covered.Count < universal.Count) {
             // No set covers anything still uncovered, so what is left is in no set at all (named only for a kept step).
             string[] Missing() => setCover.universal.Where(e => !covered.Contains(e)).ToArray();
-            steps.Reject(chosenIndices, $"{SetPieces.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set, so no cover exists.",
+            steps.Reject(chosenIndices, $"{Words.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set, so no cover exists.",
                 focus: () => Missing().Select(SetPieces.ElementId).ToArray());
-            steps.Done(new ChosenSets([]), false, $"No cover exists: {SetPieces.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set.");
+            steps.Done(new ChosenSets([]), false, $"No cover exists: {Words.List(Missing())} {(Missing().Length == 1 ? "is" : "are")} in no set.");
             return "{}";
         }
         if (chosenIndices.Count > setCover.K) {

@@ -136,14 +136,14 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
 
         // In the tree, the include that took the set over K is cut off.
         if (chosen.Count > K) {
-            steps.Reject((chosen, -1, SearchNodeState.Pruned), $"{GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))} has more than K = {K} vertices. Stop here.");
+            steps.Reject((chosen, -1, SearchNodeState.Pruned), $"{Words.Braces(chosen.Select(c => problem.nodes[c]))} has more than K = {K} vertices. Stop here.");
             return false;
         }
 
         // In the tree, a finished set is the decision on the last vertex: the solution, or cut off.
         if (i == n) {
             if (Dominates(chosen, n, adj)) {
-                steps.Accept((chosen, -1, SearchNodeState.Solution), $"Try {GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))}. It dominates every vertex.",
+                steps.Accept((chosen, -1, SearchNodeState.Solution), $"Try {Words.Braces(chosen.Select(c => problem.nodes[c]))}. It dominates every vertex.",
                     focus: () => chosen.Select(c => problem.nodes[c]).ToArray());
                 solution = new List<int>(chosen);
                 return true;
@@ -151,7 +151,7 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
             // Dominates only says no, so what fails is looked up for a kept step. The set was built one decision at a time,
             // so the focus is what failed (the vertices left undominated), not the set.
             steps.Reject((chosen, -1, SearchNodeState.Pruned),
-                $"Try {GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))}: {GraphSubsetFrames.Why(SubsetRule.DominatingSet, problem.nodes, problem.edges, chosen.Select(c => problem.nodes[c]))}.",
+                $"Try {Words.Braces(chosen.Select(c => problem.nodes[c]))}: {GraphSubsetFrames.Why(SubsetRule.DominatingSet, problem.nodes, problem.edges, chosen.Select(c => problem.nodes[c]))}.",
                 focus: () => Undominated(chosen, n, adj).Select(v => problem.nodes[v]).ToArray());
             return false;
         }

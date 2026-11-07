@@ -82,7 +82,7 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
         else if (n <= ShortBoard)
             steps.Done(Queens(columns, n), true, $"All {n} queens placed in {n} steps, with no search: {answer}.");
         else
-            steps.Done(Queens(columns, n), true, $"All {BoardFrames.Count(n)} queens placed in {BoardFrames.Count(n)} steps, with no search.");
+            steps.Done(Queens(columns, n), true, $"All {Words.Number(n)} queens placed in {Words.Number(n)} steps, with no search.");
         return answer;
     }
 
@@ -91,7 +91,7 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
 
     private static string ListText(IEnumerable<int> numbers) {
         var list = numbers.ToList();
-        return list.Count <= ShortBoard ? string.Join(", ", list) : string.Join(", ", list.Take(ShortBoard)) + $", … ({BoardFrames.Count(list.Count)} in all)";
+        return list.Count <= ShortBoard ? string.Join(", ", list) : string.Join(", ", list.Take(ShortBoard)) + $", … ({Words.Number(list.Count)} in all)";
     }
 
     // The queens in rows 0 .. rows-1 (built only for a step that is kept).

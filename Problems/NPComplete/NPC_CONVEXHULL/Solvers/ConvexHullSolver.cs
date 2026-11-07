@@ -254,7 +254,7 @@ class ConvexHullSolver : ISolver<CONVEXHULL, HullBuild>, IIncrementalSolver {
         // A point's id in the picture ("P3"), and the ids of some points, as a list or as "P1, P2 and P3".
         public string Id((double x, double y) p) => (_ids ??= GeometryFrames.IdsByPoint(ConvexHullVisualization.Spec(_problem)))[p];
         public string[] Ids(IEnumerable<(double x, double y)> points) => points.Select(Id).ToArray();
-        public string Names(IEnumerable<(double x, double y)> points) => GeometryFrames.AndList(Ids(points));
+        public string Names(IEnumerable<(double x, double y)> points) => Words.List(Ids(points), most: 12);
 
         public HullBuild Partial() => new(
             _table.Where(h => !ReferenceEquals(h, _left) && !ReferenceEquals(h, _right)).Select(Ids),

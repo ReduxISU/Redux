@@ -48,7 +48,7 @@ class NFATableVisualization : IVisualization<NFA, API_empty>, ITableVisualizatio
     // Sets of states (subset simulation) are written in braces once any of them has more than one state.
     private static Func<IReadOnlyList<string>, string> Write(IReadOnlyList<SolverStep<ActiveStates>> steps) {
         bool sets = steps.Any(s => s.Partial.States.Length > 1);
-        return states => states.Count == 1 && !sets ? states[0] : AutomatonFrames.Braces(states);
+        return states => states.Count == 1 && !sets ? states[0] : AutomatonFrames.StateSet(states);
     }
 
     public NFATableVisualization() { }

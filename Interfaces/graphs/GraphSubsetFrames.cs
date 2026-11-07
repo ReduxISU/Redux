@@ -355,10 +355,7 @@ static class GraphSubsetFrames {
         return sorted;
     }
 
-    public static string Format(NodeSet set) => Braces(set.Nodes);
-
-    /// <summary>"{a,b,c}" for captions.</summary>
-    public static string Braces(IEnumerable<string> nodes) => "{" + string.Join(",", nodes) + "}";
+    public static string Format(NodeSet set) => Words.Braces(set.Nodes);
 
     /// <summary>
     /// A plain reason a candidate set fails <paramref name="rule"/> ("b and c aren't joined"), or "" if it

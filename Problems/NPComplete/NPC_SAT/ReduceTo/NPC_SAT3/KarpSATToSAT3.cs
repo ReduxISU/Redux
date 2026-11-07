@@ -387,7 +387,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             var pieces = rec.Enabled ? Pieces(clause, mine) : null!;
             if (mine.Count > 1)
                 clauseSteps.Accept((clause, original[clause], pieces),
-                    $"Clause C{clause + 1} {CnfPieces.ClauseText(original[clause])} has {original[clause].Count} literals, so it is split into a chain of {mine.Count} clauses joined by the new {(mine.Count == 2 ? "variable" : "variables")} {GraphGroupFrames.And(mine.Skip(1).Select(t => target[t][2]).ToList())}: {string.Join(", ", mine.Select(t => $"C{t + 1} {CnfPieces.ClauseText(target[t])}"))}. Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.");
+                    $"Clause C{clause + 1} {CnfPieces.ClauseText(original[clause])} has {original[clause].Count} literals, so it is split into a chain of {mine.Count} clauses joined by the new {(mine.Count == 2 ? "variable" : "variables")} {Words.List(mine.Skip(1).Select(t => target[t][2]).ToList())}: {string.Join(", ", mine.Select(t => $"C{t + 1} {CnfPieces.ClauseText(target[t])}"))}. Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.");
             else if (padded.ContainsKey(clause))
                 clauseSteps.Accept((clause, original[clause], pieces),
                     $"Clause C{clause + 1} {CnfPieces.ClauseText(original[clause])} has {Words.Count(original[clause].Count, "literal")}, so {original[clause][0]} is repeated to fill three: {CnfPieces.ClauseText(target[clause])}. A repeated literal does not change the clause.");

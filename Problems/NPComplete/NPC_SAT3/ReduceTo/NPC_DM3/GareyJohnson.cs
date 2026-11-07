@@ -221,7 +221,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { CnfPieces.LiteralId(clause, take.Position) },
                     new List<string> { TripartiteFrames.ZId(Z.IndexOf(take.Z)), TripartiteFrames.TripleId(take.Triple) }));
             clauseSteps.Accept((sourceIds, pieces, firstGadget, takes.Count),
-                $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, through {TripartiteFrames.AndList(takes.Select(t => t.Z).ToList())}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.");
+                $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, through {Words.List(takes.Select(t => t.Z).ToList())}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.");
         }
         // gaebage gadget
         for (int i = 0; i < SAT3Instance.literals.Count() - SAT3Instance.clauses.Count(); i++) {

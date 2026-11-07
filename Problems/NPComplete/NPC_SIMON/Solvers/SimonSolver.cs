@@ -75,7 +75,7 @@ class SimonSolver : ISolver<SIMON, QuantumProgress>, IIncrementalSolver {
             if (nbits == 0)
                 steps.Accept((null, answer), $"f has a single input, so there is nothing to pair: s is empty.");
             else
-                steps.Accept((null, answer), $"Every output appears once: f is one-to-one, so s = {answer}. That took {QuantumCircuits.Count(queries.Count)} oracle calls.");
+                steps.Accept((null, answer), $"Every output appears once: f is one-to-one, so s = {answer}. That took {Words.Number(queries.Count)} oracle calls.");
         } else {
             var candidates = new HashSet<int>();
             foreach (var (y, ys) in fmap) {
@@ -95,7 +95,7 @@ class SimonSolver : ISolver<SIMON, QuantumProgress>, IIncrementalSolver {
                 answer = "invalid func: no secret string";
             } else if (answer == null) {
                 answer = Convert.ToString(candidates.First(), 2).PadLeft(nbits, '0');
-                steps.Accept((null, answer), $"Every output comes from exactly two inputs, and each pair differs by {answer}: s = {answer}. That took {QuantumCircuits.Count(queries.Count)} oracle calls.");
+                steps.Accept((null, answer), $"Every output comes from exactly two inputs, and each pair differs by {answer}: s = {answer}. That took {Words.Number(queries.Count)} oracle calls.");
             }
         }
 

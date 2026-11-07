@@ -75,13 +75,13 @@ class HittingSetBruteForce : ISolver<HITTINGSET, NodeSet> {
             tried++;
             if (hittingSet.defaultVerifier.verify(hittingSet, strCertificate)) {
                 string[] found = Picked(possibleSolution, items).ToArray();
-                steps.Accept(possibleSolution, $"Try {SetPieces.Braces(found)}. It hits every set exactly once.");
-                steps.Done(new NodeSet(found), true, $"{SetPieces.Braces(found)} hits every set exactly once, found after {Words.Count(tried, "try", "tries")}.");
+                steps.Accept(possibleSolution, $"Try {Words.Braces(found)}. It hits every set exactly once.");
+                steps.Done(new NodeSet(found), true, $"{Words.Braces(found)} hits every set exactly once, found after {Words.Count(tried, "try", "tries")}.");
                 return strCertificate;
             }
             // The verifier only says no, so the step names what fails the subset: the sets it misses or hits twice.
             steps.Reject(possibleSolution,
-                $"Try {SetPieces.Braces(Picked(possibleSolution, items))}: {BipartiteFrames.WhyRejected(spec!, Picked(possibleSolution, items).Select(SetPieces.ElementId))}.");
+                $"Try {Words.Braces(Picked(possibleSolution, items))}: {BipartiteFrames.WhyRejected(spec!, Picked(possibleSolution, items).Select(SetPieces.ElementId))}.");
         }
 
         // No hitting set exists. "{}", as the other set solvers answer; the verifier rejects it whenever S is not empty.

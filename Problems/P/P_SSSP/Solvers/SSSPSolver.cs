@@ -119,7 +119,7 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
         if (lost.Count == 0)
             steps.Done(Distances.Of(dist, prev, visited), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree.");
         else
-            steps.Done(Distances.Of(dist, prev, visited), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree. {LayeredFrames.List(lost)} can't be reached.");
+            steps.Done(Distances.Of(dist, prev, visited), true, $"Every node that can be reached is settled; the shortest paths from {sourceNode} form a tree. {Words.List(lost)} can't be reached.");
         return NodeListCertificate(nodes, sourceNode, prev);
     }
 

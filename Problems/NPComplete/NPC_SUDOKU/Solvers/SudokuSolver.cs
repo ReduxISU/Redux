@@ -253,7 +253,7 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver, ISearchTre
             else if (candidates.Count == 1)
                 steps.Try(tried, $"{SquareName(row, col)} can only hold {k}. Try it.");
             else
-                steps.Try(tried, $"{SquareName(row, col)} can still hold {BoardFrames.OrList(candidates.Select(v => v.ToString()).ToList())}. Try {k}.");
+                steps.Try(tried, $"{SquareName(row, col)} can still hold {Words.OrList(candidates.Select(v => v.ToString()).ToList())}. Try {k}.");
 
             search.Depth++;
             if (SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions, search))
@@ -336,7 +336,7 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver, ISearchTre
                         steps.Done(new BoardCells([], []), false, $"This grid has no solution.",
                             tree: () => search.NoAnswer());
                     else
-                        steps.Done(new BoardCells([], []), false, $"Every choice ran into a dead end after {BoardFrames.Count(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}. This grid has no solution.",
+                        steps.Done(new BoardCells([], []), false, $"Every choice ran into a dead end after {Words.Number(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}. This grid has no solution.",
                             tree: () => search.NoAnswer());
                     return NoSolution;
                 }
@@ -347,7 +347,7 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver, ISearchTre
             steps.Done(Board(solution, []), true, $"Every square was already filled and no row, column or box repeats a digit, so there was nothing to try.",
                 tree: () => search.AnswerPath(problem, solution));
         else
-            steps.Done(Board(solution, []), true, $"Every square is filled and no row, column or box repeats a digit. Solved after {BoardFrames.Count(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}.",
+            steps.Done(Board(solution, []), true, $"Every square is filled and no row, column or box repeats a digit. Solved after {Words.Number(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}.",
                 tree: () => search.AnswerPath(problem, solution));
 
         var sb = new System.Text.StringBuilder();

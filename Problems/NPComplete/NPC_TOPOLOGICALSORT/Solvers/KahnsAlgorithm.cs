@@ -64,7 +64,7 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
 
         List<string> order = new List<string>();
         if (queue.Count > 0)
-            steps.Update((order, null), $"Ready to place (no incoming edges): {LayeredFrames.List(queue.ToList())}.");
+            steps.Update((order, null), $"Ready to place (no incoming edges): {Words.List(queue.ToList())}.");
         else
             steps.Update((order, null), $"No node is free of incoming edges, so the graph has a cycle.");
 
@@ -85,11 +85,11 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
                 }
             }
             if (freed.Count > 0 && queue.Count > 0)
-                steps.Accept((order, current), $"Place {current} at position {order.Count}. That frees {LayeredFrames.List(freed)}. Ready: {LayeredFrames.List(queue.ToList())}.");
+                steps.Accept((order, current), $"Place {current} at position {order.Count}. That frees {Words.List(freed)}. Ready: {Words.List(queue.ToList())}.");
             else if (freed.Count > 0)
-                steps.Accept((order, current), $"Place {current} at position {order.Count}. That frees {LayeredFrames.List(freed)}.");
+                steps.Accept((order, current), $"Place {current} at position {order.Count}. That frees {Words.List(freed)}.");
             else if (queue.Count > 0)
-                steps.Accept((order, current), $"Place {current} at position {order.Count}. Ready: {LayeredFrames.List(queue.ToList())}.");
+                steps.Accept((order, current), $"Place {current} at position {order.Count}. Ready: {Words.List(queue.ToList())}.");
             else
                 steps.Accept((order, current), $"Place {current} at position {order.Count}.");
         }
@@ -97,7 +97,7 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
         // If not all nodes processed, graph has a cycle
         if (order.Count != problem.nodes.Count) {
             var stuck = problem.nodes.Where(n => !order.Contains(n)).ToList();
-            steps.Reject((order, null), $"{LayeredFrames.List(stuck)} never {(stuck.Count > 1 ? "lose their" : "loses its")} last incoming edge, because of a cycle.",
+            steps.Reject((order, null), $"{Words.List(stuck)} never {(stuck.Count > 1 ? "lose their" : "loses its")} last incoming edge, because of a cycle.",
                 focus: () => stuck.Select(LayeredFrames.NodeId).ToArray());
             steps.Done(new Tour([]), false, $"The graph has a cycle, so no topological order exists.");
             return "()";

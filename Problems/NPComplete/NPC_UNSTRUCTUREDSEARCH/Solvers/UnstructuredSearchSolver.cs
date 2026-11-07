@@ -72,11 +72,11 @@ class UnstructuredSearchSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress> {
             var final = new QuantumProgress(queries: queries, result: answer);
             bool ok = QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer));
             if (answer == "no solution" && ok)
-                steps.Done(final, true, $"No item of the {QuantumCircuits.Count(problem.funcValues.Count)} is marked: no solution.");
+                steps.Done(final, true, $"No item of the {Words.Number(problem.funcValues.Count)} is marked: no solution.");
             else if (answer == "no solution")
                 steps.Done(final, false, $"The answer no solution is not correct.");
             else if (ok)
-                steps.Done(final, true, $"Item {answer} is marked, found after {QuantumCircuits.Count(queries.Count)} oracle {(queries.Count == 1 ? "call" : "calls")}.");
+                steps.Done(final, true, $"Item {answer} is marked, found after {Words.Number(queries.Count)} oracle {(queries.Count == 1 ? "call" : "calls")}.");
             else
                 steps.Done(final, false, $"The answer {answer} is not correct.");
         }

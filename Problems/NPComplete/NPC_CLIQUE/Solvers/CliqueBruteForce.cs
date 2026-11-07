@@ -84,13 +84,13 @@ class CliqueBruteForce : ISolver<CLIQUE, NodeSet> {
             tried++;
             if (clique.defaultVerifier.verify(clique, certificate)) {
                 string[] found = combination.Select(c => clique.nodes[c]).ToArray();
-                steps.Accept(combination, $"Try {Braces(found)}. Every pair is joined.");
-                steps.Done(new NodeSet(found), true, $"{Braces(found)} is a clique, found after {tried} tries.");
+                steps.Accept(combination, $"Try {Words.Braces(found)}. Every pair is joined.");
+                steps.Done(new NodeSet(found), true, $"{Words.Braces(found)} is a clique, found after {tried} tries.");
                 return certificate;
             }
             // The verifier only says no, so the pair that isn't joined is looked up for a kept step.
             steps.Reject(combination,
-                $"Try {Braces(combination.Select(c => clique.nodes[c]))}: {Why(SubsetRule.Clique, clique.nodes, clique.edges, combination.Select(c => clique.nodes[c]))}.");
+                $"Try {Words.Braces(combination.Select(c => clique.nodes[c]))}: {Why(SubsetRule.Clique, clique.nodes, clique.edges, combination.Select(c => clique.nodes[c]))}.");
             combination = nextComb(combination, clique.nodes.Count);
 
         }

@@ -735,13 +735,6 @@ static class LayeredFrames {
     /// <summary>A distance for a caption: the number, or ∞ for <see cref="int.MaxValue"/> (not reached).</summary>
     public static string Distance(int distance) => distance == int.MaxValue ? "∞" : distance.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
-    /// <summary>"{a,b,c}" for captions.</summary>
-    public static string Braces(IEnumerable<string> names) => "{" + string.Join(",", names) + "}";
-
-    /// <summary>"4", "4 and 5", "3, 4 and 5".</summary>
-    public static string List(IReadOnlyList<string> names) =>
-        names.Count <= 1 ? string.Join("", names) : string.Join(", ", names.Take(names.Count - 1)) + " and " + names[^1];
-
     /// <summary>
     /// A cycle finder for solver captions: given the edges (ids) and nodes (names) a candidate removes, one cycle that
     /// survives as "1 → 2 → 3 → 1", or "" when none does. Build it once per solve; it costs nothing until called.

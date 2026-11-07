@@ -1,4 +1,5 @@
 using System.Globalization;
+using API.Interfaces.Steps;
 
 namespace API.Interfaces.Quantum;
 
@@ -127,12 +128,6 @@ static class QuantumCircuits {
     /// <summary>A probability as captions write it: <c>100%</c>, <c>47.3%</c>, <c>0%</c>.</summary>
     public static string Percent(double p) => (p * 100).ToString("0.#", CultureInfo.InvariantCulture) + "%";
 
-    /// <summary>A count as captions write it, with thousands separators.</summary>
-    public static string Count(long n) => n.ToString("N0", CultureInfo.InvariantCulture);
-
-    /// <summary>A number too big for a long (a number to factor), written as <see cref="Count(long)"/> writes one.</summary>
-    public static string Count(System.Numerics.BigInteger n) => n.ToString("N0", CultureInfo.InvariantCulture);
-
     /// <summary>log2 of <paramref name="length"/> when it is a power of two (1, 2, 4, ...), else -1.</summary>
     public static int Log2(int length) =>
         length > 0 && (length & (length - 1)) == 0 ? System.Numerics.BitOperations.Log2((uint)length) : -1;
@@ -145,10 +140,6 @@ static class QuantumCircuits {
         QuantumCircuitSpec.None(problem, inputBits, note, number);
 
     private static string Plural(long n, string one, string many) => n == 1 ? one : many;
-
-    // "a", "a and b", "a, b and c".
-    private static string And(IReadOnlyList<string> names) =>
-        names.Count == 1 ? names[0] : $"{string.Join(", ", names.Take(names.Count - 1))} and {names[^1]}";
 
     // At most this many tied outcomes are named; more are counted (#907).
     private const int NamedTies = 4;
@@ -165,8 +156,8 @@ static class QuantumCircuits {
         string p = Percent(d.Probabilities[top[0]]);
         if (top.Count == 1) return $"{name(top[0])} with probability {p}";
         if (top.Count == d.Probabilities.Length) return $"every {what} is equally likely ({p} each)";
-        if (top.Count <= NamedTies) return $"{And(top.Select(name).ToList())} are equally likely ({p} each)";
-        return $"{Count(top.Count)} {what}s are equally likely ({p} each)";
+        if (top.Count <= NamedTies) return $"{Words.List(top.Select(name).ToList())} are equally likely ({p} each)";
+        return $"{Words.Number(top.Count)} {what}s are equally likely ({p} each)";
     }
 
     /// <summary>
@@ -178,8 +169,8 @@ static class QuantumCircuits {
         string p = Percent(d.Probabilities[top[0]]);
         if (top.Count == 1) return $"{name(top[0])} now has probability {p}";
         if (top.Count == d.Probabilities.Length) return $"every {what} now has probability {p}";
-        if (top.Count <= NamedTies) return $"{And(top.Select(name).ToList())} now have probability {p} each";
-        return $"{Count(top.Count)} {what}s now have probability {p} each";
+        if (top.Count <= NamedTies) return $"{Words.List(top.Select(name).ToList())} now have probability {p} each";
+        return $"{Words.Number(top.Count)} {what}s now have probability {p} each";
     }
 
     // ---- Deutsch, Deutsch-Jozsa, Bernstein-Vazirani: phase kickback ----
@@ -205,7 +196,7 @@ static class QuantumCircuits {
 
     private static string TableNote(int length) => length == 1
         ? "A one-entry table has no input bits, so there is nothing for a circuit to query."
-        : $"The table has {Count(length)} entries; a circuit needs a power of two (2, 4, 8, ...).";
+        : $"The table has {Words.Number(length)} entries; a circuit needs a power of two (2, 4, 8, ...).";
 
     // |x>|y> -> |x>|y xor f(x)>: data on qubits [0, n), output on [n, n + m).
     private static Action<QuantumState> OracleXor(int m, IReadOnlyList<long> f) => st => st.Permute(i => {
@@ -224,7 +215,7 @@ static class QuantumCircuits {
         var wires = data.Select(k => new QuantumWire($"x{k}", "query")).Append(new QuantumWire("y", "helper")).ToList();
         bool deutsch = problem == "deutsch";
         string queryQubits = deutsch ? "x0" : "the query qubits";
-        string inputs = deutsch ? "both inputs, 0 and 1," : $"all {Count(N)} inputs";
+        string inputs = deutsch ? "both inputs, 0 and 1," : $"all {Words.Number(N)} inputs";
         var spec = default(QuantumCircuitSpec);
         string Outcome(long value) => spec!.Outcome(value);
         var columns = new List<QuantumColumn> {
@@ -232,7 +223,7 @@ static class QuantumCircuits {
             new(all.Select(H).ToList(), st => { foreach (int k in all) st.H(k); },
                 _ => $"Apply H to every qubit: {queryQubits} now {(deutsch ? "holds" : "hold")} {inputs} at once, each with amplitude 1/√{N}, and y becomes |−⟩."),
             new([new QuantumGate("box", all, Label: "U_f", Oracle: true)], OracleXor(1, f.Select(v => (long)v).ToArray()),
-                _ => $"One call to the oracle U_f. Because y is |−⟩, every input x with f(x) = 1 ({ones} of {Count(N)}) gets its sign flipped: phase kickback."),
+                _ => $"One call to the oracle U_f. Because y is |−⟩, every input x with f(x) = 1 ({ones} of {Words.Number(N)}) gets its sign flipped: phase kickback."),
             new(data.Select(H).ToList(), st => { foreach (int k in data) st.H(k); }, d => {
                 string start = $"Apply H to {queryQubits} again. The signs interfere";
                 if (d == null) return start + ".";
@@ -265,14 +256,14 @@ static class QuantumCircuits {
         var wires = data.Select(k => new QuantumWire($"x{k}", "query")).Concat(outs.Select((q, k) => new QuantumWire($"f{k}", "output"))).ToList();
         var columns = new List<QuantumColumn> {
             new(data.Select(H).ToList(), st => { foreach (int k in data) st.H(k); },
-                _ => $"Apply H to the query qubits: they now hold all {Count(N)} inputs at once, each with amplitude 1/√{N}."),
+                _ => $"Apply H to the query qubits: they now hold all {Words.Number(N)} inputs at once, each with amplitude 1/√{N}."),
             new([new QuantumGate("box", [.. data, .. outs], Label: "U_f", Oracle: true)], OracleXor(m, table.Select(v => (long)v).ToArray()),
                 _ => "One call to the oracle writes f(x) into the output qubits. Inputs with the same output are now tied together."),
             new(outs.Select(Meter).ToList(), null,
                 _ => "Measuring the output (optional) leaves the query qubits holding one pair {x, x ⊕ s}."),
             new(data.Select(H).ToList(), st => { foreach (int k in data) st.H(k); }, d => d == null
                 ? "Apply H to the query qubits again. Only outcomes y with y · s = 0 survive."
-                : $"Apply H to the query qubits again. Only outcomes y with y · s = 0 survive: {d.Probabilities.Count(p => p > QuantumDistribution.Epsilon)} of {Count(N)}."),
+                : $"Apply H to the query qubits again. Only outcomes y with y · s = 0 survive: {d.Probabilities.Count(p => p > QuantumDistribution.Epsilon)} of {Words.Number(N)}."),
             new(data.Select(Meter).ToList(), null,
                 _ => "Measure the query qubits: whatever comes up, y · s = 0 (mod 2). Each run gives one such equation for s."),
         };
@@ -311,7 +302,7 @@ static class QuantumCircuits {
         double MarkedChance(QuantumDistribution d) => marked.Sum(i => d.Probabilities[i]);
         var columns = new List<QuantumColumn> {
             new(data.Select(H).ToList(), st => { foreach (int k in data) st.H(k); },
-                _ => $"Apply H to every qubit: all {Count(N)} items are equally likely, {Percent(1.0 / N)} each."),
+                _ => $"Apply H to every qubit: all {Words.Number(N)} items are equally likely, {Percent(1.0 / N)} each."),
         };
         var stages = new List<QuantumStage> { new("spread", 0, 0) };
         var markedSet = marked.ToHashSet();
@@ -348,10 +339,10 @@ static class QuantumCircuits {
         long odd = number;
         while (odd % 2 == 0) odd /= 2;
         if (odd == 1 || IsPrime(odd) || PrimePowerBase(odd) != null)
-            return None("primeFactorization", 0, $"No quantum circuit is needed for {Count(number)}: the classical checks factor it completely.", number);
+            return None("primeFactorization", 0, $"No quantum circuit is needed for {Words.Number(number)}: the classical checks factor it completely.", number);
         int nb = 64 - System.Numerics.BitOperations.LeadingZeroCount((ulong)odd), t = 2 * nb, Q = t + nb;
         if (Q > QuantumCircuitSpec.MaxDrawnQubits)
-            return None("primeFactorization", 0, $"Shor's algorithm finds a period for {Count(odd)} on {Q} qubits, too many to draw here.", number);
+            return None("primeFactorization", 0, $"Shor's algorithm finds a period for {Words.Number(odd)} on {Q} qubits, too many to draw here.", number);
         // The smallest base a with an even order r and a^(r/2) not -1 (mod odd): a real run picks a at random.
         long a = 0, r = 0;
         for (long c = 2; c < odd; c++) {
@@ -368,7 +359,7 @@ static class QuantumCircuits {
         var wires = count.Select(k => new QuantumWire($"c{k}", "count")).Concat(work.Select((q, k) => new QuantumWire($"w{k}", "work"))).ToList();
         var columns = new List<QuantumColumn> {
             new([X(work[^1])], null, _ => "Set the work register to 1."),
-            new(count.Select(H).ToList(), null, _ => $"Apply H to the {t} counting qubits: every exponent from 0 to {Count((1L << t) - 1)} at once."),
+            new(count.Select(H).ToList(), null, _ => $"Apply H to the {t} counting qubits: every exponent from 0 to {Words.Number((1L << t) - 1)} at once."),
         };
         for (int j = 0; j < t; j++) {
             int ctrl = t - 1 - j;
@@ -385,7 +376,7 @@ static class QuantumCircuits {
             new("prepare", 0, 1), new($"a^x mod {odd}", 2, 1 + t), new("find period", 2 + t, 2 + t), new("read", 3 + t, 3 + t),
         };
         return new QuantumCircuitSpec("primeFactorization", wires, columns, stages, count, "decimal", 0,
-            $"Shor's period finding for {Count(odd)} with a = {a}, whose period is {r}. A real run picks a at random.", number);
+            $"Shor's period finding for {Words.Number(odd)} with a = {a}, whose period is {r}. A real run picks a at random.", number);
     }
 
     private static bool IsPrime(long x) {

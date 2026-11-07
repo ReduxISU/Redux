@@ -95,7 +95,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
 
         if (selectedSets.Any()) {
             // The answer's path in the tree: the sets in the order taken (the stack lists the last taken first).
-            steps.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {SetPieces.Braces(Picked(selectedSets).Sets)}.",
+            steps.Done(Picked(selectedSets), true, $"Every element is covered by exactly one chosen set: {Words.Braces(Picked(selectedSets).Sets)}.",
                 tree: () => tree.AnswerPath(selectedSets.Reverse().Select(SetPieces.SetId).ToList()));
             return solutionToCertificate(selectedSets, exactCover);
         }

@@ -80,13 +80,13 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
             tried++;
             if (independentSet.defaultVerifier.verify(independentSet, certificate)) {
                 string[] found = combination.Select(c => independentSet.nodes[c]).ToArray();
-                steps.Accept(combination, $"Try {Braces(found)}. No two are joined.");
-                steps.Done(new NodeSet(found), true, $"{Braces(found)} is an independent set of size {independentSet.K}, found after {tried} tries.");
+                steps.Accept(combination, $"Try {Words.Braces(found)}. No two are joined.");
+                steps.Done(new NodeSet(found), true, $"{Words.Braces(found)} is an independent set of size {independentSet.K}, found after {tried} tries.");
                 return certificate;
             }
             // The verifier only says no, so the joined pair is looked up for a kept step.
             steps.Reject(combination,
-                $"Try {Braces(combination.Select(c => independentSet.nodes[c]))}: {Why(SubsetRule.IndependentSet, independentSet.nodes, independentSet.edges, combination.Select(c => independentSet.nodes[c]))}.");
+                $"Try {Words.Braces(combination.Select(c => independentSet.nodes[c]))}: {Why(SubsetRule.IndependentSet, independentSet.nodes, independentSet.edges, combination.Select(c => independentSet.nodes[c]))}.");
             combination = nextComb(combination, independentSet.nodes.Count);
 
         }

@@ -65,13 +65,13 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver, IS
             if (n == 0)
                 steps.Done(queens, true, $"An empty board needs no queens, so the answer is {{}}.");
             else if (n == 1)
-                steps.Done(queens, true, $"The one queen is placed: {answer}. Found after {BoardFrames.Count(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
+                steps.Done(queens, true, $"The one queen is placed: {answer}. Found after {Words.Number(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
                     tree: () => search.AnswerPath(board, n));
             else if (n <= 16)
-                steps.Done(queens, true, $"All {n} queens are placed and none attacks another: {answer}. Found after {BoardFrames.Count(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
+                steps.Done(queens, true, $"All {n} queens are placed and none attacks another: {answer}. Found after {Words.Number(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
                     tree: () => search.AnswerPath(board, n));
             else
-                steps.Done(queens, true, $"All {n} queens are placed and none attacks another. Found after {BoardFrames.Count(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
+                steps.Done(queens, true, $"All {n} queens are placed and none attacks another. Found after {Words.Number(search.Placements)} {(search.Placements == 1 ? "placement" : "placements")}.",
                     tree: () => search.AnswerPath(board, n));
             return answer;
         }
@@ -145,9 +145,9 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver, IS
                 else if (skipped.Count == 1)
                     steps.Try(placed, $"In row {row}, column {first} is attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
                 else if (resumed)
-                    steps.Try(placed, $"Back in row {row}, columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
+                    steps.Try(placed, $"Back in row {row}, columns {Words.List(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})), so move the queen on to column {col}.");
                 else
-                    steps.Try(placed, $"In row {row}, columns {BoardFrames.AndList(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
+                    steps.Try(placed, $"In row {row}, columns {Words.List(skipped.Select(x => x.Col.ToString()).ToList())} are attacked ({first} {(board[from] == first ? "along its column" : "diagonally")} by the queen at ({from},{board[from]})). Place the queen at column {col}.");
             }
             skipped.Clear();
             resumed = true;

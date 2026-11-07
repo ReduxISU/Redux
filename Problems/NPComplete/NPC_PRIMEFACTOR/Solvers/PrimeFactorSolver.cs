@@ -62,12 +62,12 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
             }
 
             if (numberToFactor % i != 0)
-                steps.Reject((i, numberToFactor), $"{QuantumCircuits.Count(i)} does not divide {QuantumCircuits.Count(numberToFactor)}.");
+                steps.Reject((i, numberToFactor), $"{Words.Number(i)} does not divide {Words.Number(numberToFactor)}.");
             while (numberToFactor % i == 0) {
                 var before = numberToFactor;
                 factors.Add(i);
                 numberToFactor /= i;
-                steps.Accept((i, numberToFactor), $"{QuantumCircuits.Count(before)} ÷ {QuantumCircuits.Count(i)} = {QuantumCircuits.Count(numberToFactor)}, so {QuantumCircuits.Count(i)} is a prime factor.");
+                steps.Accept((i, numberToFactor), $"{Words.Number(before)} ÷ {Words.Number(i)} = {Words.Number(numberToFactor)}, so {Words.Number(i)} is a prime factor.");
             }
             i++;
         }
@@ -75,9 +75,9 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
         if (numberToFactor > 1) {
             factors.Add(numberToFactor);
             if (factors.Count == 1)
-                steps.Accept((null, BigInteger.One), $"No number from 2 to √{QuantumCircuits.Count(numberToFactor)} divides {QuantumCircuits.Count(numberToFactor)}, so {QuantumCircuits.Count(numberToFactor)} is prime.");
+                steps.Accept((null, BigInteger.One), $"No number from 2 to √{Words.Number(numberToFactor)} divides {Words.Number(numberToFactor)}, so {Words.Number(numberToFactor)} is prime.");
             else
-                steps.Accept((null, BigInteger.One), $"No number from 2 to √{QuantumCircuits.Count(numberToFactor)} divides {QuantumCircuits.Count(numberToFactor)}, so {QuantumCircuits.Count(numberToFactor)} is prime: the last factor.");
+                steps.Accept((null, BigInteger.One), $"No number from 2 to √{Words.Number(numberToFactor)} divides {Words.Number(numberToFactor)}, so {Words.Number(numberToFactor)} is prime: the last factor.");
         }
 
         string answer = Certificate(factors);
@@ -87,13 +87,13 @@ class PrimeFactorSolver : ISolver<PRIMEFACTOR, QuantumProgress>, IIncrementalSol
             var final = new QuantumProgress(result: answer) { Remaining = (numberToFactor > 1 ? BigInteger.One : numberToFactor).ToString() };
             bool ok = QuantumSteps.Verdict(() => problem.defaultVerifier.verify(problem, answer));
             if (ok && factors.Count == 0)
-                steps.Done(final, true, $"{QuantumCircuits.Count(original)} is the empty product: it has no prime factors.");
+                steps.Done(final, true, $"{Words.Number(original)} is the empty product: it has no prime factors.");
             else if (ok && factors.Count == 1)
-                steps.Done(final, true, $"{QuantumCircuits.Count(original)} is prime.");
+                steps.Done(final, true, $"{Words.Number(original)} is prime.");
             else if (ok)
-                steps.Done(final, true, $"{QuantumCircuits.Count(original)} = {string.Join(" × ", factors.Select(f => QuantumCircuits.Count(f)))}.");
+                steps.Done(final, true, $"{Words.Number(original)} = {string.Join(" × ", factors.Select(f => Words.Number(f)))}.");
             else if (factors.Count == 0)
-                steps.Done(final, false, $"No answer: {QuantumCircuits.Count(original)} has no prime factorization.");
+                steps.Done(final, false, $"No answer: {Words.Number(original)} has no prime factorization.");
             else
                 steps.Done(final, false, $"The answer {answer} is not correct.");
         }

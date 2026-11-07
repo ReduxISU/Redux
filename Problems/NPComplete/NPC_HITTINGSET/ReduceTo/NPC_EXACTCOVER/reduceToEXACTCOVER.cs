@@ -172,7 +172,7 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { SetPieces.SetId(i) }, new List<string> { SetPieces.ElementId(element) }));
             subsetSteps.Accept((i, gadget),
-                $"Subset {SetPieces.SetId(i)} {SetPieces.Braces(sourceSets[i].ToList().Select(x => x.ToString()))} becomes the element {element}: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.");
+                $"Subset {SetPieces.SetId(i)} {Words.Braces(sourceSets[i].ToList().Select(x => x.ToString()))} becomes the element {element}: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.");
         }
         // The sets an earlier item already made.
         var built = new HashSet<int>();
@@ -190,13 +190,13 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
 
             if (again)
                 itemSteps.Accept((element, holders, set, again, gadget),
-                    $"Item {item} is in the same subsets as {owner}, so its set is {setId} {SetPieces.Braces(holders.Select(i => (i + 1).ToString()))} too: Exact Cover reads equal sets as one.");
+                    $"Item {item} is in the same subsets as {owner}, so its set is {setId} {Words.Braces(holders.Select(i => (i + 1).ToString()))} too: Exact Cover reads equal sets as one.");
             else if (holders.Count == 0)
                 itemSteps.Accept((element, holders, set, again, gadget),
                     $"Item {item} is in no subset, so it becomes the empty set {setId}, which covers nothing.");
             else
                 itemSteps.Accept((element, holders, set, again, gadget),
-                    $"Item {item} is in {(holders.Count == 1 ? "subset" : "subsets")} {BuildCaptions.Names(holders.Select(i => SetPieces.SetId(i)).ToList())}, so it becomes the set {setId} {SetPieces.Braces(holders.Select(i => (i + 1).ToString()))} of their elements: taking {item} into the hitting set covers each of them once.");
+                    $"Item {item} is in {(holders.Count == 1 ? "subset" : "subsets")} {BuildCaptions.Names(holders.Select(i => SetPieces.SetId(i)).ToList())}, so it becomes the set {setId} {Words.Braces(holders.Select(i => (i + 1).ToString()))} of their elements: taking {item} into the hitting set covers each of them once.");
         }
 
         // The closing step, on either recorder (both record to rec).
@@ -263,7 +263,7 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
             string item = _itemOfSet[p], setId = SetPieces.SetId(p);
             if (!hitting.Contains(item)) hitting.Add(item);
             steps.Accept(setId,
-                $"Set {setId} {SetPieces.Braces(target[p])} is in the exact cover. It is item {item}'s set, the subsets that hold {item}, so {item} is in the hitting set.");
+                $"Set {setId} {Words.Braces(target[p])} is in the exact cover. It is item {item}'s set, the subsets that hold {item}, so {item} is in the hitting set.");
         }
         return (ReductionBack.FormatNodeSet(hitting), new NodeSet(hitting));
     }

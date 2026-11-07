@@ -65,7 +65,7 @@ static class QuantumSteps {
         if (counts.Count == 0) return "";
         long total = counts.Sum(p => p.Value);
         long hits = counts.Where(p => p.Key == outcome).Sum(p => p.Value);
-        return $" in {QuantumCircuits.Count(hits)} of {QuantumCircuits.Count(total)} {(total == 1 ? "run" : "runs")}";
+        return $" in {Words.Number(hits)} of {Words.Number(total)} {(total == 1 ? "run" : "runs")}";
     }
 
     /// <summary>The outcome that came up most often in a server's counts, read as <paramref name="bits"/> bits; null when

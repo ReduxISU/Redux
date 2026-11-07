@@ -224,7 +224,7 @@ Do not use Try or Update in a build. The Reduction View and `ConstructionSteps.C
            $"Edge {{{a},{b}}} becomes {Words.Count(count, "clause")}, {BuildCaptions.Names(...)}: {a} and {b} never take the same color.");
    ```
 
-   Write a caption as a sentence that says what happened, not as a label followed by details ("K = 3, ..."). Counts use `Words.Count` ("1 edge", "3 edges"); a list of names uses `BuildCaptions.Names`.
+   Write a caption as a sentence that says what happened, not as a label followed by details ("K = 3, ..."). Counts use `Words.Count` ("1 edge", "3 edges"); a list of names uses `BuildCaptions.Names`. Other plain wording is in `Words` ([Words.cs](../../Interfaces/Steps/Words.cs)) too: `Words.Number` ("1,234"), `Words.List` ("3, 4 and 5"), `Words.OrList` and `Words.Braces` ("{1,2,3}").
 
 6. **Comment it.** Put a header comment above the class that says what the reduction builds and which steps it records, and a step list above `Build`: each keyword and what it means for this reduction, and the gadgets in the order they are made.
 

@@ -56,11 +56,11 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             // With |X| = |Y| = |Z| the matching uses every element of all three; otherwise only X has to be covered.
             if (search.EqualSizes)
                 steps.Done(TripartiteFrames.Chosen(chosen), true,
-                    $"{TripartiteFrames.AndList(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
+                    $"{Words.List(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
                     tree: () => search.AnswerPath(search.Chosen().Select(TripartiteFrames.TripleId).ToList()));
             else
                 steps.Done(TripartiteFrames.Chosen(chosen), true,
-                    $"{TripartiteFrames.AndList(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
+                    $"{Words.List(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
                     tree: () => search.AnswerPath(search.Chosen().Select(TripartiteFrames.TripleId).ToList()));
             return Certificate(problem, chosen);
         }

@@ -311,8 +311,8 @@ static class BipartiteFrames {
         var doubled = spec.Rule == BipartiteRule.ExactlyOnce ? m.Constraints.Where(c => count[c] > 1).Select(c => m.Names[c]).ToList() : [];
         string verb = spec.Pick == BipartitePick.Sets ? "covered" : "hit";
         var why = new List<string>();
-        if (missing.Count > 0) why.Add($"{SetPieces.List(missing)} {(missing.Count == 1 ? "isn't" : "aren't")} {verb}");
-        if (doubled.Count > 0) why.Add($"{SetPieces.List(doubled)} {(doubled.Count == 1 ? "is" : "are")} {verb} more than once");
+        if (missing.Count > 0) why.Add($"{Words.List(missing)} {(missing.Count == 1 ? "isn't" : "aren't")} {verb}");
+        if (doubled.Count > 0) why.Add($"{Words.List(doubled)} {(doubled.Count == 1 ? "is" : "are")} {verb} more than once");
         return string.Join("; ", why);
     }
 
@@ -335,7 +335,7 @@ static class BipartiteFrames {
         if (picks is null) return "The solver's answer could not be read, so there is nothing to draw.";
         if (picks.Length > 0) {
             var names = new Model(spec).Names;
-            return $"The answer is {SetPieces.Braces(picks.Select(p => names.GetValueOrDefault(p, p)))}.";
+            return $"The answer is {Words.Braces(picks.Select(p => names.GetValueOrDefault(p, p)))}.";
         }
         return ok ? "The answer is {}: nothing needs to be picked." : "No answer was found.";
     }

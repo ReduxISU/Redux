@@ -248,19 +248,6 @@ static class BoardFrames {
         }
         return new FramesResponse(nameof(VisualizationType.Board), Payload(spec), frames);
     }
-
-    // ---- Captions ----
-
-    /// <summary>A number as captions write it, with thousands separators (1,234).</summary>
-    public static string Count(int n) => n.ToString("N0", CultureInfo.InvariantCulture);
-
-    /// <summary>"a", "a or b", "a, b or c" for captions.</summary>
-    public static string OrList(IReadOnlyList<string> items) =>
-        items.Count <= 2 ? string.Join(" or ", items) : string.Join(", ", items.Take(items.Count - 1)) + " or " + items[^1];
-
-    /// <summary>"a", "a and b", "a, b and c" for captions.</summary>
-    public static string AndList(IReadOnlyList<string> items) =>
-        items.Count <= 2 ? string.Join(" and ", items) : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1];
 }
 
 /// <summary>

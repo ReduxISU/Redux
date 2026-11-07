@@ -120,8 +120,8 @@ class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
                 else if (late.Count == 1)
                     steps.Accept((permutation, late), $"Try {permToCertificate(permutation)}: job {late[0]} finishes late, penalty {penalty}, within K = {jobseq.K}. It works.", focus: () => []);
                 else
-                    steps.Accept((permutation, late), $"Try {permToCertificate(permutation)}: jobs {ScheduleFrames.AndList(late.Select(j => j.ToString()).ToList())} finish late, penalty {penalty}, within K = {jobseq.K}. It works.", focus: () => []);
-                steps.Done(ScheduleFrames.Order(permutation), true, $"{permToCertificate(permutation)} is the first order that keeps the late penalty within K = {jobseq.K}, found after {ScheduleFrames.Num(tried)} {(tried == 1 ? "order" : "orders")}.");
+                    steps.Accept((permutation, late), $"Try {permToCertificate(permutation)}: jobs {Words.List(late.Select(j => j.ToString()).ToList())} finish late, penalty {penalty}, within K = {jobseq.K}. It works.", focus: () => []);
+                steps.Done(ScheduleFrames.Order(permutation), true, $"{permToCertificate(permutation)} is the first order that keeps the late penalty within K = {jobseq.K}, found after {Words.Number(tried)} {(tried == 1 ? "order" : "orders")}.");
                 return permToCertificate(permutation);
             }
             if (late.Count == 0)
@@ -129,12 +129,12 @@ class JobSeqBruteForce : ISolver<JOBSEQ, JobOrder> {
             else if (late.Count == 1)
                 steps.Reject((permutation, late), $"Try {permToCertificate(permutation)}: job {late[0]} finishes late, penalty {penalty} > K = {jobseq.K}.");
             else
-                steps.Reject((permutation, late), $"Try {permToCertificate(permutation)}: jobs {ScheduleFrames.AndList(late.Select(j => j.ToString()).ToList())} finish late, penalty {penalty} > K = {jobseq.K}.");
+                steps.Reject((permutation, late), $"Try {permToCertificate(permutation)}: jobs {Words.List(late.Select(j => j.ToString()).ToList())} finish late, penalty {penalty} > K = {jobseq.K}.");
         }
         if (tried == 1)
             steps.Done(new JobOrder([]), false, $"There is only one order, and its late penalty is more than K = {jobseq.K}.");
         else
-            steps.Done(new JobOrder([]), false, $"Checked all {ScheduleFrames.Num(tried)} {(tried == 1 ? "order" : "orders")}. None keeps the late penalty within K = {jobseq.K}.");
+            steps.Done(new JobOrder([]), false, $"Checked all {Words.Number(tried)} {(tried == 1 ? "order" : "orders")}. None keeps the late penalty within K = {jobseq.K}.");
         // No order keeps the penalty within K: "{}" is "no answer".
         return "{}";
     }

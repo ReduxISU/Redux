@@ -353,9 +353,6 @@ static class PackingFrames {
 
     // ---- Captions, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
-    /// <summary>"{a,b,c}" for captions.</summary>
-    public static string Braces(IEnumerable<string> parts) => "{" + string.Join(",", parts) + "}";
-
     /// <summary>"a + b + c = s" for captions; "0" for nothing.</summary>
     public static string SumText(IReadOnlyList<int> numbers) =>
         numbers.Count == 0 ? "0" : numbers.Count == 1 ? Num(numbers[0])

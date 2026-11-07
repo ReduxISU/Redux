@@ -104,7 +104,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
         components = components.OrderBy(c => c.First()).ToList();
 
         string answer = "{" + string.Join(",", components.Select(c => "{" + string.Join(",", c) + "}")) + "}";
-        steps.Done(new Components(of, seen, finished), true, $"{Words.Count(components.Count, "strongly connected component")}: {string.Join(", ", components.Select(c => LayeredFrames.Braces(c)))}.");
+        steps.Done(new Components(of, seen, finished), true, $"{Words.Count(components.Count, "strongly connected component")}: {string.Join(", ", components.Select(c => Words.Braces(c)))}.");
         return answer;
     }
 

@@ -76,11 +76,11 @@ class MinSTCutSolver : ISolver<MINSTCUT, NetworkFlow>, IIncrementalSolver {
             if (push.Back.Count == 0 && push.Full.Count == 0)
                 steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. Flow is now {value}.");
             else if (push.Back.Count == 0)
-                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. {Words.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
             else if (push.Full.Count == 0)
-                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. It runs backward over {Words.List(push.Back)}, taking back flow sent there earlier. Flow is now {value}.");
             else
-                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. It runs backward over {FlowFrames.List(push.Back)}, taking back flow sent there earlier. {FlowFrames.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
+                steps.Accept((push, value), $"Push {bottleneck} along {push.Along}. It runs backward over {Words.List(push.Back)}, taking back flow sent there earlier. {Words.List(push.Full)} {(push.Full.Count == 1 ? "is" : "are")} now full. Flow is now {value}.");
         }
 
         HashSet<string> sSide = BfsReachable(residual, s);
@@ -91,9 +91,9 @@ class MinSTCutSolver : ISolver<MINSTCUT, NetworkFlow>, IIncrementalSolver {
             if (paths == 0)
                 steps.Done(answer, true, $"There is no path from {s} to {t} with room, so the maximum flow and the minimum cut are both 0.");
             else if (cut == 1)
-                steps.Done(answer, true, $"No augmenting path is left. The nodes still reachable from {s} form S = {FlowFrames.Braces(problem.nodes.Where(sSide.Contains))}. The only edge from S to T is full, and its capacity, {value}, equals the maximum flow.");
+                steps.Done(answer, true, $"No augmenting path is left. The nodes still reachable from {s} form S = {Words.Braces(problem.nodes.Where(sSide.Contains))}. The only edge from S to T is full, and its capacity, {value}, equals the maximum flow.");
             else
-                steps.Done(answer, true, $"No augmenting path is left. The nodes still reachable from {s} form S = {FlowFrames.Braces(problem.nodes.Where(sSide.Contains))}. The {cut} edges from S to T are full and add up to {value}, equal to the maximum flow.");
+                steps.Done(answer, true, $"No augmenting path is left. The nodes still reachable from {s} form S = {Words.Braces(problem.nodes.Where(sSide.Contains))}. The {cut} edges from S to T are full and add up to {value}, equal to the maximum flow.");
         }
         return "{" + string.Join(",", sSide) + "}";
     }

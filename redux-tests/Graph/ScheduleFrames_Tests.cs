@@ -303,8 +303,8 @@ public class ScheduleFrames_Tests {
     [Fact]
     public void CaptionHelpers_WriteNumbersPlainly() {
         Assert.Equal(["1,000", "4,950", "0.2", "$32.12", "$0.50", "-$1.00", "", "a", "a and b", "a, b and c"],
-            [ScheduleFrames.Num(1000), ScheduleFrames.Gallons(4950), ScheduleFrames.Gallons(0.2), ScheduleFrames.Money(32.12), ScheduleFrames.Money(0.5),
-             ScheduleFrames.Money(-1), ScheduleFrames.AndList([]), ScheduleFrames.AndList(["a"]), ScheduleFrames.AndList(["a", "b"]), ScheduleFrames.AndList(["a", "b", "c"])]);
+            [Words.Number(1000), ScheduleFrames.Gallons(4950), ScheduleFrames.Gallons(0.2), ScheduleFrames.Money(32.12), ScheduleFrames.Money(0.5),
+             ScheduleFrames.Money(-1), Words.List([]), Words.List(["a"]), Words.List(["a", "b"]), Words.List(["a", "b", "c"])]);
     }
 
     // ---- Shapes ----

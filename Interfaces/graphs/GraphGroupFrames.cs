@@ -155,16 +155,9 @@ static class GraphGroupFrames {
     public static string Classes(IReadOnlyDictionary<string, int> of, int? count = null) {
         int n = count ?? (of.Count == 0 ? 0 : of.Values.Max() + 1);
         var classes = Enumerable.Range(0, n).Select(g =>
-            GraphSubsetFrames.Braces(of.Where(p => p.Value == g).Select(p => p.Key).OrderBy(k => k, StringComparer.Ordinal)));
+            Words.Braces(of.Where(p => p.Value == g).Select(p => p.Key).OrderBy(k => k, StringComparer.Ordinal)));
         return string.Join(",", classes);
     }
-
-    /// <summary>"1", "1 and 3", "1, 2 and 3".</summary>
-    public static string And(IReadOnlyList<string> items) => items.Count switch {
-        0 => "",
-        1 => items[0],
-        _ => string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1],
-    };
 
     /// <summary>
     /// A node's colored neighbours and the colors they use, for the why of a coloring step: "neighbour a uses color 0",
@@ -176,7 +169,7 @@ static class GraphGroupFrames {
         string who = neighbours.Count == 1 ? "neighbour" : "neighbours";
         string verb = neighbours.Count == 1 ? "uses" : "use";
         string what = colors.Count == 1 ? "color" : "colors";
-        return $"{who} {And(neighbours)} {(already ? "already " : "")}{verb} {what} {And(colors.Select(c => c.ToString()).ToList())}";
+        return $"{who} {Words.List(neighbours)} {(already ? "already " : "")}{verb} {what} {Words.List(colors.Select(c => c.ToString()).ToList())}";
     }
 
     /// <summary>
@@ -194,7 +187,7 @@ static class GraphGroupFrames {
             // A node in no clique is the first thing wrong with a cover candidate, so name every such node.
             var left = nodes.Where(n => !of.ContainsKey(n)).Distinct(StringComparer.Ordinal).ToList();
             if (left.Count > 0)
-                return new(left.Count == 1 ? $"node {left[0]} is in no clique" : $"nodes {And(left)} are in no clique", left.ToArray());
+                return new(left.Count == 1 ? $"node {left[0]} is in no clique" : $"nodes {Words.List(left)} are in no clique", left.ToArray());
             var joined = new HashSet<string>(edges.Select(e => GraphSubsetFrames.EdgeId(e.Key, e.Value)), StringComparer.Ordinal);
             foreach (var members in of.GroupBy(p => p.Value).OrderBy(g => g.Key).Select(g => g.Select(p => p.Key).OrderBy(k => k, StringComparer.Ordinal).ToList()))
                 for (int i = 0; i < members.Count; i++)

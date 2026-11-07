@@ -512,12 +512,11 @@ static class AutomatonFrames {
 
     // ---- Captions, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
 
-    /// <summary>"{1, 2}" for captions.</summary>
-    public static string Braces(IEnumerable<string> states) => "{" + string.Join(", ", states) + "}";
-
-    /// <summary>"4", "4 and 5", "3, 4 and 5".</summary>
-    public static string List(IReadOnlyList<string> names) =>
-        names.Count <= 1 ? string.Join("", names) : string.Join(", ", names.Take(names.Count - 1)) + " and " + names[^1];
+    /// <summary>
+    /// "{1, 2}": a set of automaton states, as the automaton tables and captions write one, with a space after each comma
+    /// (<see cref="Words.Braces"/> writes "{1,2}", with none).
+    /// </summary>
+    public static string StateSet(IEnumerable<string> states) => "{" + string.Join(", ", states) + "}";
 }
 
 /// <summary>

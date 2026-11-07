@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json.Serialization;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
@@ -203,16 +202,6 @@ static class GeometryFrames {
         }
         return new FramesResponse(nameof(VisualizationType.Geometry), Payload(spec), frames);
     }
-
-    // ---- Captions ----
-
-    /// <summary>A number as captions write it, with thousands separators (1,234).</summary>
-    public static string Count(int n) => n.ToString("N0", CultureInfo.InvariantCulture);
-
-    /// <summary>"a", "a and b", "a, b and c" for captions; past <paramref name="most"/> items, "a, b, c and 12 more".</summary>
-    public static string AndList(IReadOnlyList<string> items, int most = 12) =>
-        items.Count > most ? string.Join(", ", items.Take(most)) + $" and {items.Count - most} more"
-        : items.Count <= 2 ? string.Join(" and ", items) : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1];
 }
 
 /// <summary>

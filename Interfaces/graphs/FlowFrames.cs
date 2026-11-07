@@ -369,15 +369,6 @@ static class FlowFrames {
         }
         return new FramesResponse(nameof(VisualizationType.FlowNetwork), Payload(m), frames);
     }
-
-    // ---- Captions, for solvers to call inside a recorder lambda so they cost nothing when recording is off ----
-
-    /// <summary>"{a,b,c}" for captions.</summary>
-    public static string Braces(IEnumerable<string> names) => "{" + string.Join(",", names) + "}";
-
-    /// <summary>"x", "x and y", "x, y and z".</summary>
-    public static string List(IReadOnlyList<string> items) =>
-        items.Count <= 1 ? string.Join("", items) : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1];
 }
 
 /// <summary>

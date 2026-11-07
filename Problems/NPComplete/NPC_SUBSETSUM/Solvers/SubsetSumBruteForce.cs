@@ -80,12 +80,12 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
             // The verifier only says yes or no, so what the subset adds up to is worked out inside the step line, for a kept
             // step alone.
             if (subsetSum.defaultVerifier.verify(subsetSum, certificate)) {
-                steps.Accept(picked, $"Try {PackingFrames.Braces(Members(picked).Select(i => subsetSum.S[i]))}: {PackingFrames.SumText(Members(picked).Select(i => int.Parse(subsetSum.S[i])).ToList())}. That's T.");
+                steps.Accept(picked, $"Try {Words.Braces(Members(picked).Select(i => subsetSum.S[i]))}: {PackingFrames.SumText(Members(picked).Select(i => int.Parse(subsetSum.S[i])).ToList())}. That's T.");
                 steps.Done(new Placement(picked.Select(p => p ? 0 : -1)), true,
-                    $"{PackingFrames.Braces(Members(picked).Select(i => subsetSum.S[i]))} adds up to exactly {subsetSum.T}, found after {Words.Count(tried, "subset")}.");
+                    $"{Words.Braces(Members(picked).Select(i => subsetSum.S[i]))} adds up to exactly {subsetSum.T}, found after {Words.Count(tried, "subset")}.");
                 return certificate;
             }
-            steps.Reject(picked, $"Try {PackingFrames.Braces(Members(picked).Select(i => subsetSum.S[i]))}: {PackingFrames.SumText(Members(picked).Select(i => int.Parse(subsetSum.S[i])).ToList())}, not {subsetSum.T}.");
+            steps.Reject(picked, $"Try {Words.Braces(Members(picked).Select(i => subsetSum.S[i]))}: {PackingFrames.SumText(Members(picked).Select(i => int.Parse(subsetSum.S[i])).ToList())}, not {subsetSum.T}.");
         }
         // "{}" is the answer only when T = 0 (the empty set adds up to 0); otherwise it means none was found. The verifier says
         // which; a plain solve skips asking.

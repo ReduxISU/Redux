@@ -93,16 +93,16 @@ class PartitionBruteForce : ISolver<PARTITION, Placement> {
             int b = rec.Enabled ? Side(binary, 0).Sum(i => int.Parse(partition.S[i])) : 0;
             if (partition.defaultVerifier.verify(partition, certificate)) {
                 if (a == b)
-                    steps.Accept(binary, $"Try S1 = {PackingFrames.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}. Equal.");
+                    steps.Accept(binary, $"Try S1 = {Words.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}. Equal.");
                 else
-                    steps.Accept(binary, $"Try S1 = {PackingFrames.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}, off by {Math.Abs(a - b)}.");
+                    steps.Accept(binary, $"Try S1 = {Words.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}, off by {Math.Abs(a - b)}.");
                 steps.Done(new Placement(binary.Select(bit => bit == 1 ? 0 : 1)), true, $"Both sides add up to {a}, found after {Words.Count(tried, "split")}.");
                 return certificate;
             }
             if (a == b)
-                steps.Reject(binary, $"Try S1 = {PackingFrames.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}. Equal.");
+                steps.Reject(binary, $"Try S1 = {Words.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}. Equal.");
             else
-                steps.Reject(binary, $"Try S1 = {PackingFrames.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}, off by {Math.Abs(a - b)}.");
+                steps.Reject(binary, $"Try S1 = {Words.Braces(Side(binary, 1).Select(i => partition.S[i]))}: {a} against {b}, off by {Math.Abs(a - b)}.");
             counter++;
         }
         int total = partition.S.Sum(int.Parse);

@@ -105,7 +105,7 @@ class UnstructuredGroverSolver : ISolver<UNSTRUCTUREDSEARCH, QuantumProgress>, I
                 string? chance = new QuantumSimulation(spec).After(spec.Columns.Count) is { } end
                     ? QuantumCircuits.Percent(marked.Sum(i => end.Probabilities[i])) : null;
                 if (chance == "0%")
-                    steps.Done(final, false, $"Item {answer} is not marked. With {marked.Count} of {QuantumCircuits.Count(items)} items marked, the marked items end at 0% after {Words.Count(rounds, "round")} of Grover's algorithm, so every run misses.");
+                    steps.Done(final, false, $"Item {answer} is not marked. With {marked.Count} of {Words.Number(items)} items marked, the marked items end at 0% after {Words.Count(rounds, "round")} of Grover's algorithm, so every run misses.");
                 else if (chance == "100%")
                     steps.Done(final, false, $"Item {answer} is not marked: the measurement missed. The circuit drawn here finds a marked item every time, so the server's run went differently.");
                 else if (chance != null)
