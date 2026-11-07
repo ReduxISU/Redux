@@ -8,6 +8,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_VertexCover;
 
+// Sipser's Clique to Vertex Cover: the same nodes, an edge for every pair of nodes the clique graph does not join (its
+// complement), and K' = N - K. It records the construction steps (the nodes copied, one per node for the complement edges
+// its turn adds, then K'; see Build) and the backward map's steps (one per node of the graph; see MapBack).
 class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, NodeSet>, IRecordedReduction<CLIQUE, VERTEXCOVER> {
 
 
@@ -84,8 +87,33 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     /// </remarks>
     public VERTEXCOVER reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): the nodes copied, one step per node for the complement
-    // edges it gets, then K' = N - K. The edge steps group the edges the code below settled on by their first node.
+    // How the construction steps show the nodes copied: every node of the clique graph, the same nodes added to the new
+    // graph, and their element gadgets (the first elementGadgets gadgets, one per node). The state is the graph's nodes.
+    private static RunSteps<List<string>, BuildDelta> NewCopySteps(StepRecorder<BuildDelta> rec, int elementGadgets) => new(rec,
+        // What the Reduction View shows: the nodes in both graphs, and the gadgets that copy them.
+        partial: nodes => new BuildDelta { SourceFocus = nodes.ToArray(), Nodes = nodes.ToArray(), Gadgets = Enumerable.Range(0, elementGadgets).ToArray() },
+        focus: nodes => nodes.ToArray());
+
+    // How the construction steps show a node's turn: the node in the clique graph, the complement edges its turn adds, and
+    // its edge rule. The state is (Node, Later, Rule): the node, the nodes it gets an edge to, and its edge rule's index (-1
+    // when its turn adds no edge).
+    private static RunSteps<(string Node, string[] Later, int Rule), BuildDelta> NewNodeSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the node, the edges added, and the edge rule that adds them.
+        partial: s => new BuildDelta {
+            SourceFocus = [s.Node],
+            Edges = BuildEdge.Sorted(s.Later.Select(v => new BuildEdge(s.Node, v))),
+            Gadgets = s.Rule >= 0 ? [s.Rule] : [],
+        },
+        focus: s => [s.Node, .. s.Later]);
+
+    // Builds the vertex cover graph, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept for the nodes: every node of the clique graph is copied, with the same name;
+    //   - one step per node, in the graph's order: an Accept when its turn adds edges (to the later nodes it has no edge
+    //     to), or a Reject when it adds none (it is the last node, or it already has an edge to every later node);
+    //   - the Done: K' = N - K.
+    // A construction has no verdicts, so Accept means "these pieces go into the target" and Reject "this node's turn adds
+    // nothing to it". The steps come from the very decisions below, so what is recorded is what is built.
+    // Gadgets: an element per node, an edge rule per node whose turn adds edges, then the bound (K').
     private VERTEXCOVER Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -127,17 +155,36 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
         foreach (UtilCollection node in CLIQUEInstance.graph.Nodes) {
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { node.ToString() }, new List<string>() { node.ToString() }));
         }
-        int elementGadgets = gadgets.Count;
+        var copySteps = NewCopySteps(rec, gadgets.Count);
+        var allNodes = CLIQUEInstance.nodes;
+        if (allNodes.Count > 0)
+            copySteps.Accept(allNodes, $"Copy every node of the clique graph ({BuildCaptions.Names(allNodes)}) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing.");
+        else
+            copySteps.Accept(allNodes, $"The clique graph has no nodes, so the new graph has none either.");
+
         // An edge rule per node that gets complement edges: the pairs the clique graph is missing, filed under their first
-        // node as the steps below add them. Then the bound, K' = N - K (#694).
+        // node. Each node's turn is then one step.
+        var nodeSteps = NewNodeSteps(rec);
         var edgeRuleOf = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (string u in CLIQUEInstance.nodes.Distinct()) {
-            var missing = edges.Where(e => e.Key == u).Select(e => new BuildEdge(u, e.Value).Id).ToList();
-            if (missing.Count == 0) continue;
-            edgeRuleOf[u] = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { u }, missing,
-                note: $"{u} is joined to the nodes it has no edge to in the clique graph."));
+        for (int n = 0; n < allNodes.Count; n++) {
+            string u = allNodes[n];
+            string[] later = edges.Where(e => e.Key == u).Select(e => e.Value).ToArray();
+            if (later.Length == 0) {
+                if (n == allNodes.Count - 1)
+                    nodeSteps.Reject((u, later, -1), $"Node {u} is the last node: the steps above already gave it its edges in the complement.");
+                else
+                    nodeSteps.Reject((u, later, -1), $"Node {u} is already joined to every later node in the clique graph, so it gets no new edges.");
+                continue;
+            }
+            if (!edgeRuleOf.TryGetValue(u, out int rule)) {
+                edgeRuleOf[u] = rule = gadgets.Count;
+                gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { u }, later.Select(v => new BuildEdge(u, v).Id).ToList(),
+                    note: $"{u} is joined to the nodes it has no edge to in the clique graph."));
+            }
+            nodeSteps.Accept((u, later, rule),
+                $"Node {u} has no edge to {BuildCaptions.Names(later)} in the clique graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement.");
         }
+        // Then the bound, K' = N - K. The new graph has no piece of its own for it.
         int boundGadget = gadgets.Count;
         int coverSize = CLIQUEInstance.nodes.Count - CLIQUEInstance.K;
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(),
@@ -159,33 +206,9 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
         reducedVERTEXCOVER = new VERTEXCOVER(G);
         reductionTo = reducedVERTEXCOVER;
 
-        if (rec.Enabled) {
-            string[] all = CLIQUEInstance.nodes.ToArray();
-            int[] gadgetIdx = Enumerable.Range(0, elementGadgets).ToArray();
-            rec.Accept(
-                () => new BuildDelta { SourceFocus = all, Nodes = all, Gadgets = gadgetIdx },
-                () => all.Length > 0
-                    ? $"Copy every node of the clique graph ({BuildCaptions.Names(all)}) into the new graph, with the same names. Its edges will be the pairs the clique graph is missing."
-                    : "The clique graph has no nodes, so the new graph has none either.",
-                all);
-            for (int n = 0; n < all.Length; n++) {
-                string u = all[n];
-                bool lastNode = n == all.Length - 1;
-                string[] later = edges.Where(e => e.Key == u).Select(e => e.Value).ToArray();
-                BuildEdge[] added = BuildEdge.Sorted(later.Select(v => new BuildEdge(u, v)));
-                int[] rule = edgeRuleOf.TryGetValue(u, out int r) && later.Length > 0 ? [r] : [];
-                Func<BuildDelta> delta = () => new BuildDelta { SourceFocus = new[] { u }, Edges = added, Gadgets = rule };
-                Func<string> caption = () => later.Length > 0
-                    ? $"Node {u} has no edge to {BuildCaptions.Names(later)} in the clique graph, so it gets {(later.Length > 1 ? "those edges" : "that edge")} in the complement."
-                    : lastNode
-                        ? $"Node {u} is the last node: the steps above already gave it its edges in the complement."
-                        : $"Node {u} is already joined to every later node in the clique graph, so it gets no new edges.";
-                string[] focus = new[] { u }.Concat(later).ToArray();
-                if (later.Length > 0) rec.Accept(delta, caption, focus); else rec.Reject(delta, caption, focus);
-            }
-            rec.Done(new BuildDelta { Bound = vertexKInt, Gadgets = [boundGadget] }, true,
-                $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
-        }
+        // The closing step, on either recorder (both record to rec).
+        nodeSteps.Done(new BuildDelta { Bound = vertexKInt, Gadgets = [boundGadget] }, true,
+            $"K' = N - K = {CLIQUEInstance.nodes.Count} - {CLIQUEInstance.K} = {vertexKInt}. The clique graph has a clique of size {CLIQUEInstance.K} exactly when the complement has a vertex cover of size {vertexKInt}.");
         return reducedVERTEXCOVER;
 
     }
@@ -225,22 +248,31 @@ class sipserReductionVertexCover : IReversibleReduction<CLIQUE, VERTEXCOVER, Nod
     // "{}" on either side keeps the default (the verifiers, which read it as the empty set): the empty cover is
     // real when B's graph has no edges (K = N in A, so B's budget is 0), the empty clique only when A's K = 0.
 
+    // How the map-back steps show a node read: the clique so far, and the node.
+    private static RunSteps<string, NodeSet> NewMapSteps(StepRecorder<NodeSet> rec, List<string> clique) => new(rec,
+        // What every picture shows: the clique so far, and the node the step is about.
+        partial: _ => new NodeSet(clique),
+        focus: node => [node]);
+
     // Backward map: the clique is the nodes the cover leaves out (an independent set in the complement
     // graph is a clique in the original). A cover smaller than N-K leaves out more than K nodes; any K
     // of them are still a clique, so the first K (in the graph's node order) are kept.
+    // Its steps, one per node of the graph in its order: a Reject for a node in the cover, an Accept for a node outside it
+    // (it goes in the clique), and a Reject for a node outside it once the clique has K nodes. The caller adds the Done.
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         var cover = new HashSet<string>(ReductionBack.ParseNodeSet(problemToSolution, reductionTo.nodes));
         int k = reductionFrom.K;
 
         var clique = new List<string>();
+        var steps = NewMapSteps(rec, clique);
         foreach (string node in reductionFrom.nodes) {
             if (cover.Contains(node)) {
-                rec.Reject(() => new NodeSet(clique), () => $"Node {node} is in the vertex cover, so it is left out of the clique.", node);
+                steps.Reject(node, $"Node {node} is in the vertex cover, so it is left out of the clique.");
             } else if (clique.Count < k) {
                 clique.Add(node);
-                rec.Accept(() => new NodeSet(clique), () => $"Node {node} is not in the vertex cover, so it is in the clique.", node);
+                steps.Accept(node, $"Node {node} is not in the vertex cover, so it is in the clique.");
             } else {
-                rec.Reject(() => new NodeSet(clique), () => $"Node {node} is not in the cover, but the clique already has {k} nodes, so it is left out.", node);
+                steps.Reject(node, $"Node {node} is not in the cover, but the clique already has {k} nodes, so it is left out.");
             }
         }
         return (ReductionBack.FormatNodeSet(clique), new NodeSet(clique));
