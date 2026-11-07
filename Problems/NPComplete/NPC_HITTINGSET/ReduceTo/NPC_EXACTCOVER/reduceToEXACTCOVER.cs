@@ -10,6 +10,9 @@ using Microsoft.Net.Http.Headers;
 
 namespace API.Problems.NPComplete.NPC_HITTINGSET.ReduceTo.NPC_EXACTCOVER;
 
+// Exact Hitting Set to Exact Cover, by transposing which items belong to which subsets: every subset becomes an element to
+// cover, and every item becomes the set of the subsets that hold it. It records the construction steps (one per subset,
+// one per item, then the Done; see Build) and the backward map's steps (one per set of the exact cover; see MapBack).
 class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>, IRecordedReduction<HITTINGSET, EXACTCOVER> {
 
     // --- Fields ---
@@ -76,7 +79,7 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
     public reduceToEXACTCOVER() : this(new HITTINGSET()) { }
 
     /// <summary>
-    /// The gadgets (#695), in the Bipartite Graph's ids on both sides: per subset, an element (Hitting Set's set S{i} to Exact
+    /// The gadgets, in the Bipartite Graph's ids on both sides: per subset, an element (Hitting Set's set S{i} to Exact
     /// Cover's element i); per item, an element (Hitting Set's element to the Exact Cover set of the subsets that hold it).
     /// </summary>
     public List<Gadget> gadgets { get; } = new();
@@ -92,7 +95,42 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
 
     public EXACTCOVER reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per subset (its element), then one per item (its set of subsets).
+    // How the construction steps show a subset: the subset in Hitting Set, the element it becomes in Exact Cover, and the
+    // gadget that makes it. The state is (Subset, Gadget): the subset's index and its gadget's index.
+    private static RunSteps<(int Subset, int Gadget), BuildDelta> NewSubsetSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the subset, its element, and the gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = [BipartiteFrames.SetId(s.Subset)],
+            Nodes = [BipartiteFrames.ElementId((s.Subset + 1).ToString())],
+            Gadgets = [s.Gadget],
+        },
+        focus: s => [BipartiteFrames.ElementId((s.Subset + 1).ToString())]);
+
+    // How the construction steps show an item: the item and its memberships in Hitting Set; the set it becomes, with the
+    // set's memberships, added to Exact Cover (nothing added when an earlier item made the same set); and its gadget. The
+    // state is (Item, Holders, Set, Again, Gadget): the item's element id in the picture, the indices of the subsets that
+    // hold it, its set's index among the sets Exact Cover reads, whether an earlier item already made that set, and the
+    // gadget's index.
+    private static RunSteps<(string Item, List<int> Holders, int Set, bool Again, int Gadget), BuildDelta> NewItemSteps(
+            StepRecorder<BuildDelta> rec, List<List<string>> targetSets) => new(rec,
+        // What the Reduction View shows: the item and its memberships, the set added, and the gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = s.Holders.Select(i => BipartiteFrames.EdgeId(s.Item, BipartiteFrames.SetId(i))).Prepend(s.Item).ToArray(),
+            Nodes = s.Again ? [] : [BipartiteFrames.SetId(s.Set)],
+            Edges = s.Again ? [] : BuildEdge.Sorted(targetSets[s.Set].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s.Set))),
+            Gadgets = [s.Gadget],
+        },
+        // The set and every element in it.
+        focus: s => targetSets[s.Set].Select(BipartiteFrames.ElementId).Append(BipartiteFrames.SetId(s.Set)).Distinct(StringComparer.Ordinal).ToArray());
+
+    // Builds the Exact Cover instance, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per subset, in Hitting Set's order: the subset becomes an element to cover;
+    //   - an Accept per item, in U's order: the item becomes the set of the subsets that hold it (or names an earlier item's
+    //     set again, when the two are in the same subsets: Exact Cover reads equal sets as one);
+    //   - the Done: what Exact Cover asks for.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: an element per subset (the subset to its element), then an element per item (the item to its set).
     private EXACTCOVER Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -122,20 +160,21 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
 
         // Subset i (0-based, the order Hitting Set's picture names them S{i+1}) is the element i + 1; item x is the set of the
         // subsets that hold x. Exact Cover reads equal sets as one (two items in the same subsets), so an item's set is its
-        // place among the sets Exact Cover reads.
+        // place among the sets Exact Cover reads. Each subset, then each item, is one step.
         var sourceSets = _reductionFrom.subSets.ToList();
         var items = _reductionFrom.universalSet.ToList().Select(x => x.ToString()).ToList();
         var targetSets = reductionTo.S;
+        var subsetSteps = NewSubsetSteps(rec);
+        var itemSteps = NewItemSteps(rec, targetSets);
         _itemOfSet.AddRange(Enumerable.Repeat("", targetSets.Count));
         for (int i = 0; i < sourceSets.Count; i++) {
-            string subset = BipartiteFrames.SetId(i), element = (i + 1).ToString();
+            string element = (i + 1).ToString();
             int gadget = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { subset }, new List<string> { BipartiteFrames.ElementId(element) }));
-            var members = sourceSets[i].ToList().Select(x => x.ToString()).ToList();
-            rec.Accept(() => new BuildDelta { SourceFocus = [subset], Nodes = [BipartiteFrames.ElementId(element)], Gadgets = [gadget] },
-                () => $"Subset {subset} {BipartiteFrames.Braces(members)} becomes the element {element}: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.",
-                BipartiteFrames.ElementId(element));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { BipartiteFrames.SetId(i) }, new List<string> { BipartiteFrames.ElementId(element) }));
+            subsetSteps.Accept((i, gadget),
+                $"Subset {BipartiteFrames.SetId(i)} {BipartiteFrames.Braces(sourceSets[i].ToList().Select(x => x.ToString()))} becomes the element {element}: Exact Cover covers it exactly once, as a hitting set hits the subset exactly once.");
         }
+        // The sets an earlier item already made.
         var built = new HashSet<int>();
         foreach (string item in items) {
             var holders = Enumerable.Range(0, sourceSets.Count).Where(i => sourceSets[i].Contains(new UtilCollection(item))).ToList();
@@ -145,30 +184,34 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { element }, new List<string> { setId }));
             bool again = !built.Add(set);
+            // The first item to make this set owns it; a later item in the same subsets names the same set.
             string owner = _itemOfSet[set];
             if (owner == "") _itemOfSet[set] = item;
-            string[] sourceFocus = holders.Select(i => BipartiteFrames.EdgeId(element, BipartiteFrames.SetId(i))).Prepend(element).ToArray();
-            BuildEdge[] memberships = again ? [] : targetSets[set].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, set)).ToArray();
-            string[] focus = targetSets[set].Select(BipartiteFrames.ElementId).Append(setId).Distinct(StringComparer.Ordinal).ToArray();
-            string text = BipartiteFrames.Braces(holders.Select(i => (i + 1).ToString()).ToList());
-            rec.Accept(() => new BuildDelta { SourceFocus = sourceFocus, Nodes = again ? [] : [setId], Edges = BuildEdge.Sorted(memberships), Gadgets = [gadget] },
-                () => again
-                    ? $"Item {item} is in the same subsets as {owner}, so its set is {setId} {text} too: Exact Cover reads equal sets as one."
-                    : holders.Count == 0
-                        ? $"Item {item} is in no subset, so it becomes the empty set {setId}, which covers nothing."
-                        : $"Item {item} is in {(holders.Count == 1 ? "subset" : "subsets")} {BuildCaptions.Names(holders.Select(i => BipartiteFrames.SetId(i)).ToList())}, so it becomes the set {setId} {text} of their elements: taking {item} into the hitting set covers each of them once.",
-                focus);
+
+            if (again)
+                itemSteps.Accept((element, holders, set, again, gadget),
+                    $"Item {item} is in the same subsets as {owner}, so its set is {setId} {BipartiteFrames.Braces(holders.Select(i => (i + 1).ToString()))} too: Exact Cover reads equal sets as one.");
+            else if (holders.Count == 0)
+                itemSteps.Accept((element, holders, set, again, gadget),
+                    $"Item {item} is in no subset, so it becomes the empty set {setId}, which covers nothing.");
+            else
+                itemSteps.Accept((element, holders, set, again, gadget),
+                    $"Item {item} is in {(holders.Count == 1 ? "subset" : "subsets")} {BuildCaptions.Names(holders.Select(i => BipartiteFrames.SetId(i)).ToList())}, so it becomes the set {setId} {BipartiteFrames.Braces(holders.Select(i => (i + 1).ToString()))} of their elements: taking {item} into the hitting set covers each of them once.");
         }
-        if (rec.Enabled)
-            rec.Done(new BuildDelta(), true, sourceSets.Count == 0
-                ? "Hitting Set has no subsets to hit, so Exact Cover has no elements to cover: choosing nothing does it."
-                : $"Exact Cover asks for sets that cover each of the {Words.Count(sourceSets.Count, "element")} exactly once: items that hit each subset exactly once.");
+
+        // The closing step, on either recorder (both record to rec).
+        if (sourceSets.Count == 0)
+            itemSteps.Done(new BuildDelta(), true,
+                $"Hitting Set has no subsets to hit, so Exact Cover has no elements to cover: choosing nothing does it.");
+        else
+            itemSteps.Done(new BuildDelta(), true,
+                $"Exact Cover asks for sets that cover each of the {Words.Count(sourceSets.Count, "element")} exactly once: items that hit each subset exactly once.");
 
         return reductionTo;
     }
 
     /// <summary>
-    /// Maps a Hitting Set answer to an Exact Cover answer (#828): each chosen item becomes its set, the numbers of the
+    /// Maps a Hitting Set answer to an Exact Cover answer: each chosen item becomes its set, the numbers of the
     /// subsets that hold it. An exact hitting set meets every subset once, so those sets hold every subset's number once.
     /// An item U does not have is a 400.
     /// </summary>
@@ -197,24 +240,30 @@ class reduceToEXACTCOVER : IReversibleReduction<HITTINGSET, EXACTCOVER, NodeSet>
     // "{}" on either side keeps the default (the verifiers): with no subsets the empty cover and the empty hitting set are both
     // answers.
 
-    /// <summary>
-    /// Backward map (#695): each set of the exact cover is the set of some item, the subsets that hold it, so that item hits
-    /// those subsets. The sets are named in the answer by their elements (two items in the same subsets have one set, and
-    /// either hits them: the first is taken).
-    /// </summary>
+    // How the map-back steps show a set read: the hitting set so far, and the set.
+    private static RunSteps<string, NodeSet> NewMapSteps(StepRecorder<NodeSet> rec, List<string> hitting) => new(rec,
+        // What every picture shows: the hitting set so far, and the set the step is about.
+        partial: _ => new NodeSet(hitting),
+        focus: setId => [setId]);
+
+    // Backward map: each set of the exact cover is the set of some item, the subsets that hold it, so that item hits those
+    // subsets. The sets are named in the answer by their elements (two items in the same subsets have one set, and either
+    // hits them: the first is taken).
+    // Its steps: an Accept per set of the exact cover, in the answer's order: its item is in the hitting set. The caller
+    // adds the Done.
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         var target = reductionTo.S;
         var used = new bool[target.Count];
         var hitting = new List<string>();
+        var steps = NewMapSteps(rec, hitting);
         foreach (var listed in ReadSets(problemToSolution)) {
             int p = Enumerable.Range(0, target.Count).FirstOrDefault(k => !used[k] && target[k].ToHashSet(StringComparer.Ordinal).SetEquals(listed), -1);
             if (p < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Exact Cover instance");
             used[p] = true;
             string item = _itemOfSet[p], setId = BipartiteFrames.SetId(p);
             if (!hitting.Contains(item)) hitting.Add(item);
-            rec.Accept(() => new NodeSet(hitting),
-                () => $"Set {setId} {BipartiteFrames.Braces(target[p])} is in the exact cover. It is item {item}'s set, the subsets that hold {item}, so {item} is in the hitting set.",
-                setId);
+            steps.Accept(setId,
+                $"Set {setId} {BipartiteFrames.Braces(target[p])} is in the exact cover. It is item {item}'s set, the subsets that hold {item}, so {item} is in the hitting set.");
         }
         return (ReductionBack.FormatNodeSet(hitting), new NodeSet(hitting));
     }
