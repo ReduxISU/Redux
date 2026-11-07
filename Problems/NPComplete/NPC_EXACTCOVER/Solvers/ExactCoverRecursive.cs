@@ -4,13 +4,16 @@ using API.Interfaces.Steps;
 
 namespace API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 
-// The steps Exact Cover Recursive records:
-//   - an Accept per set it takes, one that shares no element with the sets already taken;
-//   - a Reject when every set left overlaps the sets taken, naming the elements still not covered;
-//   - a Backtrack per set it takes back;
-//   - the Done, with the exact cover or why there is none.
-// It records no search tree.
-class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver {
+// The steps Exact Cover Recursive records, for the Bipartite Graph picture and the Search Tree picture alike:
+//   - an Accept per set it takes, one that shares no element with the sets already taken (in the tree, a node "S2" under
+//     the set taken before it, the solution when the sets taken cover every element);
+//   - a Reject when every set left overlaps the sets taken, naming the elements still not covered (in the tree, the set
+//     taken last is pruned, its note the elements left);
+//   - a Backtrack per set it takes back (that node fails, or stays pruned when it was a dead end);
+//   - the Done, with the exact cover or why there is none; it names the answer's path in the tree, root first, or marks the
+//     root failed.
+// In the tree, a node is a set taken, and its children are the sets it tries next.
+class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Exact Cover Recursive";
@@ -91,12 +94,27 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
         return false;
     }
 
-    // How the steps show the search, given by the sets taken so far, in the order taken. index gives each set of S its
-    // position (by reference, so two sets with the same elements keep their own ids).
-    private static RunSteps<List<List<string>>, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec, Dictionary<List<string>, int> index) => new(rec,
+    // A step of the search: the sets taken so far, in the order taken, and the search-tree node it is about, the set at
+    // position Set of S (-1: the root) at Depth (0 for the root, d for the d-th set taken on the branch), left in state
+    // Tree. DeadEnd marks the Reject of a branch no set left can go on from.
+    private readonly record struct Move(List<List<string>> Taken, int Depth, SearchNodeState Tree, int Set, bool DeadEnd = false);
+
+    // How the steps show a move. index gives each set of S its position (by reference, so two sets with the same elements
+    // keep their own ids). The search keeps its own tree (a "start" root, a dead end as a pruned node, a set failed when it
+    // is taken back), so it gives RunSteps the tree node of each step rather than using SearchSteps.
+    private static RunSteps<Move, ChosenSets> NewSteps(StepRecorder<ChosenSets> rec, EXACTCOVER exactCover, Dictionary<List<string>, int> index,
+        DepthFirstTree tree) => new(rec,
         // What every picture shows: the sets taken, and the set taken last.
-        partial: chosen => Picked(chosen, index),
-        focus: chosen => chosen.Count > 0 ? [BipartiteFrames.SetId(index[chosen[^1]])] : []);
+        partial: m => Picked(m.Taken, index),
+        focus: m => m.Taken.Count > 0 ? [BipartiteFrames.SetId(index[m.Taken[^1]])] : [],
+        // The Search Tree picture's node only: the set taken ("S2"); it is the solution once no element is left uncovered
+        // (the sets taken never share one), and a dead end's note is the elements left.
+        tree: m => {
+            int uncovered = exactCover.X.Count(x => !m.Taken.Any(s => s.Contains(x)));
+            return tree.Step(m.Depth, m.Set >= 0 ? BipartiteFrames.SetId(m.Set) : "",
+                m.Tree == SearchNodeState.Explored && uncovered == 0 ? SearchNodeState.Solution : m.Tree,
+                m.DeadEnd ? $"{Words.Count(uncovered, "element")} uncovered" : null);
+        });
 
     public string solve(EXACTCOVER exactCover) => Solve(exactCover, StepRecorder<ChosenSets>.Off);
 
@@ -109,19 +127,23 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
         // Sets are tracked by reference, so two sets with the same elements keep their own ids (S1, S2, ...).
         var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
-        var steps = NewSteps(rec, index);
-        List<List<string>> result = solve_r(exactCover, uSet, subsets, choosenSubsets, steps, index);
+        // A set is taken at most once on a branch, so a branch is never deeper than the number of sets.
+        var tree = new DepthFirstTree(exactCover.S.Count);
+        var steps = NewSteps(rec, exactCover, index, tree);
+        List<List<string>> result = solve_r(exactCover, uSet, subsets, choosenSubsets, tree, steps, index);
         if (timerHasExpired) return SolveRun.TimedOutAnswer; // solve_r unwinds at the time limit
         string certificate = subsetsToCertificate(result);
         if (result.Count > 0) {
-            steps.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(result, index).Sets)}.");
+            steps.Done(Picked(result, index), true, $"Every element is covered by exactly one chosen set: {BipartiteFrames.Braces(Picked(result, index).Sets)}.",
+                tree: () => tree.AnswerPath(result.Select(s => BipartiteFrames.SetId(index[s])).ToList()));
         } else {
             // Nothing chosen is the answer only when there are no elements.
             bool ok = exactCover.defaultVerifier.verify(exactCover, certificate);
             if (ok)
-                steps.Done(new ChosenSets([]), true, $"There are no elements, so the empty collection {{}} is an exact cover.");
+                steps.Done(new ChosenSets([]), true, $"There are no elements, so the empty collection {{}} is an exact cover.",
+                    tree: () => tree.AnswerPath([]));
             else
-                steps.Done(new ChosenSets([]), false, $"Every branch was undone. No exact cover exists.");
+                steps.Done(new ChosenSets([]), false, $"Every branch was undone. No exact cover exists.", tree: () => tree.NoAnswer());
         }
         return certificate;
     }
@@ -133,11 +155,12 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
     public List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets) {
         var index = new Dictionary<List<string>, int>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < exactCover.S.Count; i++) index[exactCover.S[i]] = i;
-        return solve_r(exactCover, uSet, subsetList, choosenSubsets, NewSteps(StepRecorder<ChosenSets>.Off, index), index);
+        var tree = new DepthFirstTree(exactCover.S.Count);
+        return solve_r(exactCover, uSet, subsetList, choosenSubsets, tree, NewSteps(StepRecorder<ChosenSets>.Off, exactCover, index, tree), index);
     }
 
     private List<List<string>> solve_r(EXACTCOVER exactCover, List<string> uSet, List<List<string>> subsetList, List<List<string>> choosenSubsets,
-        RunSteps<List<List<string>>, ChosenSets> steps, Dictionary<List<string>, int> index) {
+        DepthFirstTree tree, RunSteps<Move, ChosenSets> steps, Dictionary<List<string>, int> index) {
         // Unwind at the time limit; Solve then returns the timed-out answer.
         if (timerHasExpired)
             return new List<List<string>>();
@@ -155,7 +178,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
         if (possibleSubsets.Count == 0) {
             // A dead end. The elements still not covered are named only for a kept step.
             string[] Uncovered() => exactCover.X.Where(x => !choosenSubsets.Any(s => s.Contains(x))).ToArray();
-            steps.Reject(choosenSubsets,
+            steps.Reject(new(choosenSubsets, choosenSubsets.Count, SearchNodeState.Pruned, choosenSubsets.Count > 0 ? index[choosenSubsets[^1]] : -1, DeadEnd: true),
                 $"Every set left overlaps the sets taken, and {BipartiteFrames.List(Uncovered())} {(Uncovered().Length == 1 ? "is" : "are")} still not covered, so undo.",
                 focus: () => Uncovered().Select(BipartiteFrames.ElementId).ToArray());
         }
@@ -166,13 +189,16 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver 
             possibleSubsets.Remove(set);
             choosenSubsets.Add(set);
             int i = index[set];
-            steps.Accept(choosenSubsets, $"Take {BipartiteFrames.SetText(exactCover.S, i)}: it shares no element with the sets taken.");
-            List<List<string>> result = solve_r(exactCover, uSet, possibleSubsets, choosenSubsets, steps, index);
+            tree.Branch(choosenSubsets.Count);
+            steps.Accept(new(choosenSubsets, choosenSubsets.Count, SearchNodeState.Explored, i), $"Take {BipartiteFrames.SetText(exactCover.S, i)}: it shares no element with the sets taken.");
+            List<List<string>> result = solve_r(exactCover, uSet, possibleSubsets, choosenSubsets, tree, steps, index);
             if (result.Count > 0)
                 return result;
             choosenSubsets.Remove(set);
             possibleSubsets.Add(set);
-            steps.Backtrack(choosenSubsets, $"Undo {BipartiteFrames.SetId(i)}: no exact cover follows from it.", focus: () => [BipartiteFrames.SetId(i)]);
+            // In the tree, the set fails, unless it was a dead end (the tree keeps it pruned, with its note).
+            steps.Backtrack(new(choosenSubsets, choosenSubsets.Count + 1, SearchNodeState.Failed, i),
+                $"Undo {BipartiteFrames.SetId(i)}: no exact cover follows from it.", focus: () => [BipartiteFrames.SetId(i)]);
         }
         return new List<List<string>>();
 
