@@ -67,6 +67,9 @@ sealed class Assignment : IEquatable<Assignment> {
             && Values.All(p => other.Values.TryGetValue(p.Key, out var v) && v == p.Value);
     public override bool Equals(object? obj) => Equals(obj as Assignment);
     public override int GetHashCode() => ShapeUtil.HashOf(Values.Select(p => $"{p.Key}={p.Value}"));
+
+    /// <summary>"True" or "False": a true/false value as this shape, and a SAT certificate, write it.</summary>
+    public static string Word(bool value) => value ? "True" : "False";
 }
 
 /// <summary>The sets (by index or id) chosen so far, as in set cover.</summary>

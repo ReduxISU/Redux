@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Graphs;
 using API.Interfaces.Steps;
-using API.Problems.NPComplete.NPC_SAT3.ReduceTo;
 
 namespace API.Problems.NPComplete.NPC_SAT.ReduceTo.NPC_SAT3;
 
@@ -282,7 +282,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
         foreach (var (origin, made) in _chain) targetOf[origin].Add(made);
         var helperOf = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var (origin, made) in _chain) helperOf[target[made][2]] = origin;
-        var sourceVariables = CnfPieces.Variables(original);
+        var sourceVariables = CnfFormula.VariablesOf(original);
 
         // Variable gadgets go after the legacy ones, so the legacy list keeps its order.
         var variableGadget = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -291,12 +291,12 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             variableGadget[variable] = gadgets.Count;
             // Redux_GUI draws literals, not variables: its legacy ids are the variable's occurrences on each side.
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { id }, new List<string> { id },
-                legacyFromIds: CnfPieces.LegacyIds([id], original), legacyToIds: CnfPieces.LegacyIds([id], target)));
+                legacyFromIds: GroupedGraphFrames.LegacyIds([id], original), legacyToIds: GroupedGraphFrames.LegacyIds([id], target)));
         }
         foreach (var (helper, origin) in helperOf) {
             variableGadget[helper] = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.ClauseId(origin) }, new List<string> { GroupedGraphFrames.VariableId(helper) },
-                legacyToIds: CnfPieces.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
+                legacyToIds: GroupedGraphFrames.LegacyIds([GroupedGraphFrames.VariableId(helper)], target),
                 note: $"{helper} is new: it links the clauses that clause C{origin + 1} is split into."));
         }
         if (!rec.Enabled) return;
@@ -315,7 +315,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                 nodes.Add(GroupedGraphFrames.ClauseId(t));
                 for (int j = 0; j < target[t].Count; j++) nodes.Add(GroupedGraphFrames.LiteralId(t, j));
             }
-            var newVariables = mine.SelectMany(t => target[t]).Select(CnfPieces.VariableOf).Distinct(StringComparer.Ordinal)
+            var newVariables = mine.SelectMany(t => target[t]).Select(CnfFormula.VariableOf).Distinct(StringComparer.Ordinal)
                 .Where(builtVariables.Add).ToList();
             nodes.AddRange(newVariables.Select(GroupedGraphFrames.VariableId));
             var before = builtClauses.ToList();
@@ -328,7 +328,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                             if ((u, k).CompareTo((t, j)) >= 0 && mine.Contains(u)) continue;
                             var (first, second) = (u, k).CompareTo((t, j)) < 0 ? ((u, k), (t, j)) : ((t, j), (u, k));
                             string a = target[first.Item1][first.Item2], b = target[second.Item1][second.Item2];
-                            bool edge = first.Item1 == second.Item1 || (CnfPieces.VariableOf(a) == CnfPieces.VariableOf(b) && a.StartsWith('!') != b.StartsWith('!'));
+                            bool edge = first.Item1 == second.Item1 || (CnfFormula.VariableOf(a) == CnfFormula.VariableOf(b) && a.StartsWith('!') != b.StartsWith('!'));
                             if (!edge) continue;
                             string idA = GroupedGraphFrames.LiteralId(first.Item1, first.Item2), idB = GroupedGraphFrames.LiteralId(second.Item1, second.Item2);
                             edges.Add(new BuildEdge(GroupedGraphFrames.EdgeId(idA, idB), idA, idB));
@@ -339,21 +339,21 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                 .Select(p => p.index)
                 .Concat(newVariables.Where(variableGadget.ContainsKey).Select(v => variableGadget[v]))
                 .Distinct().Order().ToArray();
-            string[] sourceIds = CnfPieces.ClauseIds(clause, original[clause].Count);
+            string[] sourceIds = GroupedGraphFrames.ClauseIds(clause, original[clause].Count);
             string[] focus = nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
             var helpers = _chain.Where(c => c.Origin == clause).Select(c => target[c.Made][2]).ToList();
             rec.Accept(
                 () => new BuildDelta { SourceFocus = sourceIds, Nodes = nodes.ToArray(), Edges = BuildEdge.Sorted(edges), Gadgets = used },
                 () => {
-                    string text = CnfPieces.ClauseText(original[clause]);
+                    string text = GroupedGraphFrames.ClauseText(original[clause]);
                     int n = original[clause].Count;
                     if (mine.Count > 1)
                         return $"Clause C{clause + 1} {text} has {n} literals, so it is split into a chain of {mine.Count} clauses joined by the new "
                             + $"{(helpers.Count == 1 ? "variable" : "variables")} {GraphGroupFrames.And(helpers)}: "
-                            + string.Join(", ", mine.Select(t => $"C{t + 1} {CnfPieces.ClauseText(target[t])}"))
+                            + string.Join(", ", mine.Select(t => $"C{t + 1} {GroupedGraphFrames.ClauseText(target[t])}"))
                             + ". Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.";
                     if (padded.ContainsKey(clause))
-                        return $"Clause C{clause + 1} {text} has {Words.Count(n, "literal")}, so {original[clause][0]} is repeated to fill three: {CnfPieces.ClauseText(target[clause])}. A repeated literal does not change the clause.";
+                        return $"Clause C{clause + 1} {text} has {Words.Count(n, "literal")}, so {original[clause][0]} is repeated to fill three: {GroupedGraphFrames.ClauseText(target[clause])}. A repeated literal does not change the clause.";
                     return $"Clause C{clause + 1} {text} has three literals, so it stays as it is.";
                 },
                 focus);
@@ -375,25 +375,25 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
     public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
         var given = ReadAssignment(problemToSolution);
         var values = new Dictionary<string, bool>();
-        var order = CnfPieces.Variables(reductionFrom.clauses);
+        var order = CnfFormula.VariablesOf(reductionFrom.clauses);
         foreach (string variable in order) {
             string id = GroupedGraphFrames.VariableId(variable);
             if (given.TryGetValue(variable, out bool value)) {
                 values[variable] = value;
-                rec.Accept(() => CnfPieces.Snapshot(values),
-                    () => $"{variable} = {CnfPieces.Word(value)} in the 3SAT answer, and it is the same variable in the SAT formula: {variable} = {CnfPieces.Word(value)}.", id);
+                rec.Accept(() => GroupedGraphFrames.ToAssignment(values),
+                    () => $"{variable} = {Assignment.Word(value)} in the 3SAT answer, and it is the same variable in the SAT formula: {variable} = {Assignment.Word(value)}.", id);
             } else {
                 values[variable] = false;
-                rec.Reject(() => CnfPieces.Snapshot(values), () => $"The 3SAT answer does not give {variable}, so it is set to False.", id);
+                rec.Reject(() => GroupedGraphFrames.ToAssignment(values), () => $"The 3SAT answer does not give {variable}, so it is set to False.", id);
             }
         }
-        return (CnfPieces.Certificate(order, values), CnfPieces.Snapshot(values));
+        return (SAT.Certificate(order, values), GroupedGraphFrames.ToAssignment(values));
     }
 
     // A 3SAT assignment, (x1:True,x2:False) (':' or '=', T and F accepted). Every name must be a variable of the 3SAT formula;
     // malformed text throws FormatException, which the endpoint reports as a 400.
     private Dictionary<string, bool> ReadAssignment(string certificate) {
-        var known = new HashSet<string>(reductionTo.clauses.SelectMany(c => c).Select(CnfPieces.VariableOf), StringComparer.Ordinal);
+        var known = new HashSet<string>(reductionTo.clauses.SelectMany(c => c).Select(CnfFormula.VariableOf), StringComparer.Ordinal);
         var values = new Dictionary<string, bool>(StringComparer.Ordinal);
         string text = certificate.Trim();
         if (text.StartsWith('(') && text.EndsWith(')')) text = text[1..^1];

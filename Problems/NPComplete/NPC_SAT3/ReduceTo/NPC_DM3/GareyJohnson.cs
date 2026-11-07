@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Steps;
@@ -147,7 +148,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             var (elements, triples) = Added();
             string variableId = GroupedGraphFrames.VariableId(literal);
             int index = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(SAT3Instance.clauses, literal)).ToList(),
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, literal)).ToList(),
                 elements.Concat(triples).ToList()));
             if (rec.Enabled) {
                 string variable = literal;
@@ -181,7 +182,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             var (elements, triples) = Added();
             int clause = i, firstGadget = gadgets.Count;
             List<string> literals = SAT3Instance.clauses[clause];
-            string[] sourceIds = CnfPieces.ClauseIds(clause, literals.Count);
+            string[] sourceIds = GroupedGraphFrames.ClauseIds(clause, literals.Count);
             // The clause's own elements (x_clause, y_clause) come first, then its triples.
             gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), elements.Concat(triples).ToList()));
             foreach (var take in takes)
@@ -192,7 +193,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
                 var markers = takes.Select(t => t.Z).ToList();
                 rec.Accept(
                     () => new BuildDelta { SourceFocus = sourceIds, Nodes = elements.Concat(triples).ToArray(), Gadgets = gadgetIdx },
-                    () => $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, "
+                    () => $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, "
                         + $"through {TripartiteFrames.AndList(markers)}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.",
                     elements.Concat(triples).ToArray());
             }
@@ -242,7 +243,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             + "some triples cover every element exactly once exactly when the formula can be satisfied.");
 
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
-        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, SAT3Instance.clauses);
+        foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, SAT3Instance.clauses);
         return reduced3DM;
     }
 
@@ -374,13 +375,13 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
     public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
         List<int> chosen = ReadMatching(problemToSolution);
         var values = new Dictionary<string, bool>();
-        var order = CnfPieces.Variables(reductionFrom.clauses);
+        var order = CnfFormula.VariablesOf(reductionFrom.clauses);
         foreach (string variable in order) {
             string spoke = "x_" + variable + "_0";
             int t = chosen.FirstOrDefault(k => reductionTo.M[k][0] == spoke, -1);
             if (t < 0) {
                 values[variable] = false;
-                rec.Reject(() => CnfPieces.Snapshot(values),
+                rec.Reject(() => GroupedGraphFrames.ToAssignment(values),
                     () => $"No triple of the matching covers {spoke}, so {variable}'s wheel says nothing: {variable} = False.",
                     TripartiteFrames.XId(reductionTo.X.IndexOf(spoke)));
                 continue;
@@ -388,12 +389,12 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             var triple = reductionTo.M[t];
             bool value = triple[2] == "z_!" + variable + "_0";
             values[variable] = value;
-            rec.Accept(() => CnfPieces.Snapshot(values),
+            rec.Accept(() => GroupedGraphFrames.ToAssignment(values),
                 () => $"{TripartiteFrames.TripleId(t)} ({string.Join(", ", triple)}) is in the matching: {variable}'s wheel takes its z_{(value ? "!" : "")}{variable} markers "
-                    + $"and leaves the z_{(value ? "" : "!")}{variable} ones for the clauses, so {variable} = {CnfPieces.Word(value)}.",
+                    + $"and leaves the z_{(value ? "" : "!")}{variable} ones for the clauses, so {variable} = {Assignment.Word(value)}.",
                 TripartiteFrames.TripleId(t));
         }
-        return (CnfPieces.Certificate(order, values), CnfPieces.Snapshot(values));
+        return (SAT.Certificate(order, values), GroupedGraphFrames.ToAssignment(values));
     }
 
     // A matching as 3-Dimensional Matching writes it, {{x,y,z},{x,y,z}} (or {x,y,z}{x,y,z}): each listed triple is the first

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using API.Interfaces.Logic;
 using API.Interfaces.Steps;
 
 namespace API.Interfaces.Graphs;
@@ -143,6 +144,69 @@ static class GroupedGraphFrames {
 
     /// <summary>The id of an edge between two literals: <c>"a~b"</c>, written in the order given (callers give the earlier first).</summary>
     public static string EdgeId(string a, string b) => $"{a}~{b}";
+
+    // ---- The pieces a reduction names in its gadgets and build steps ----
+    // For a formula written the way Redux's CNF problems keep it (clauses as ["!x1", "x2"]).
+
+    /// <summary>A clause and its literals: <c>c{i}</c>, <c>c{i}-0</c>, ...</summary>
+    public static string[] ClauseIds(int clause, int literals) =>
+        new[] { ClauseId(clause) }.Concat(Enumerable.Range(0, literals).Select(j => LiteralId(clause, j))).ToArray();
+
+    /// <summary>The ids of every occurrence of <paramref name="variable"/>, plain or negated, in formula order.</summary>
+    public static List<string> OccurrenceIds(IReadOnlyList<List<string>> clauses, string variable) {
+        var ids = new List<string>();
+        for (int i = 0; i < clauses.Count; i++)
+            for (int j = 0; j < clauses[i].Count; j++)
+                if (CnfFormula.VariableOf(clauses[i][j]) == variable) ids.Add(LiteralId(i, j));
+        return ids;
+    }
+
+    /// <summary>
+    /// What the picture of <paramref name="clauses"/> gains with clause <paramref name="clause"/>, when the clauses are built
+    /// in order: the clause, its literals and the variables no earlier clause mentions (added to
+    /// <paramref name="builtVariables"/>) as nodes; the edges between two of its literals, and between one of its literals and
+    /// the opposite literal of an earlier clause (the picture's two edge rules, <see cref="Payload"/>), earlier occurrence
+    /// first. Replaying every clause gives the whole picture.
+    /// </summary>
+    public static (List<string> Nodes, List<BuildEdge> Edges) ClausePieces(IReadOnlyList<List<string>> clauses, int clause, HashSet<string> builtVariables) {
+        var nodes = new List<string> { ClauseId(clause) };
+        var mine = clauses[clause];
+        for (int j = 0; j < mine.Count; j++) nodes.Add(LiteralId(clause, j));
+        foreach (string variable in mine.Select(CnfFormula.VariableOf).Distinct(StringComparer.Ordinal))
+            if (builtVariables.Add(variable)) nodes.Add(VariableId(variable));
+        var edges = new List<BuildEdge>();
+        for (int u = 0; u < clause; u++)
+            for (int k = 0; k < clauses[u].Count; k++)
+                for (int j = 0; j < mine.Count; j++)
+                    if (CnfFormula.VariableOf(clauses[u][k]) == CnfFormula.VariableOf(mine[j]) && clauses[u][k].StartsWith('!') != mine[j].StartsWith('!'))
+                        edges.Add(PieceEdge(LiteralId(u, k), LiteralId(clause, j)));
+        for (int j = 0; j < mine.Count; j++)
+            for (int k = j + 1; k < mine.Count; k++)
+                edges.Add(PieceEdge(LiteralId(clause, j), LiteralId(clause, k)));
+        return (nodes, edges);
+    }
+
+    private static BuildEdge PieceEdge(string a, string b) => new(EdgeId(a, b), a, b);
+
+    /// <summary>
+    /// The ids Redux_GUI reads for the same pieces (a gadget's legacy <c>reductionFromIds</c>/<c>reductionToIds</c>), which it
+    /// matches against the list-format SAT picture (<see cref="API.Interfaces.JSON_Objects.API_SAT"/>). That picture gives
+    /// clauses and literals the same ids (<c>c{i}</c>, <c>c{i}-{j}</c>), so those are kept; a variable <c>v:{name}</c>, which it
+    /// does not draw, is every occurrence of it. Other ids are kept as they are. Each id once, in order.
+    /// </summary>
+    public static List<string> LegacyIds(IEnumerable<string> stableIds, IReadOnlyList<List<string>> clauses) {
+        var result = new List<string>();
+        foreach (string id in stableIds) {
+            if (id.StartsWith("v:", StringComparison.Ordinal)) {
+                for (int i = 0; i < clauses.Count; i++)
+                    for (int j = 0; j < clauses[i].Count; j++)
+                        if (VariableId(CnfFormula.VariableOf(clauses[i][j])) == id) result.Add(LiteralId(i, j));
+            } else {
+                result.Add(id);
+            }
+        }
+        return result.Distinct(StringComparer.Ordinal).ToList();
+    }
 
     // ---- The payload ----
 

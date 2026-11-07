@@ -1,11 +1,12 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_CLIQUE;
+using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_SAT3;
-using API.Problems.NPComplete.NPC_SAT3.ReduceTo;
 using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CLIQUE;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.ReduceTo.NPC_SAT3;
@@ -145,15 +146,15 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
         var elementsOf = new List<int[]>();
         for (int i = 0; i < _clauseNodes.Count; i++) {
             var mine = _clauseNodes[i];
-            var targetIds = CnfPieces.ClauseIds(i, target[i].Count).ToList();
+            var targetIds = GroupedGraphFrames.ClauseIds(i, target[i].Count).ToList();
             groupOf.Add(gadgets.Count);
             gadgets.Add(new Gadget(GadgetKind.Group, mine.Select(m => m.Node).ToList(), targetIds,
-                legacyToIds: CnfPieces.LegacyIds(targetIds, target)));
+                legacyToIds: GroupedGraphFrames.LegacyIds(targetIds, target)));
             var elements = new List<int>();
             foreach (var (node, _, literalId) in mine) {
                 elements.Add(gadgets.Count);
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { literalId },
-                    legacyToIds: CnfPieces.LegacyIds([literalId], target)));
+                    legacyToIds: GroupedGraphFrames.LegacyIds([literalId], target)));
             }
             elementsOf.Add(elements.ToArray());
         }
@@ -163,7 +164,7 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
             var suffixes = clauseMap.Keys.ToList();
             for (int i = 0; i < _clauseNodes.Count; i++) {
                 int clause = i;
-                var (pieceNodes, pieceEdges) = CnfPieces.ClausePieces(target, clause, builtVariables);
+                var (pieceNodes, pieceEdges) = GroupedGraphFrames.ClausePieces(target, clause, builtVariables);
                 string[] sourceIds = _clauseNodes[clause].Select(m => m.Node).ToArray();
                 int[] used = new[] { groupOf[clause] }.Concat(elementsOf[clause]).ToArray();
                 string[] focus = pieceNodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray();
@@ -172,7 +173,7 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
                 rec.Accept(
                     () => new BuildDelta { SourceFocus = sourceIds, Nodes = pieceNodes.ToArray(), Edges = BuildEdge.Sorted(pieceEdges), Gadgets = used },
                     () => $"{(one ? "Node" : "Nodes")} {BuildCaptions.Names(sourceIds)} of the clique graph {(one ? "ends" : "all end")} in {suffix}, "
-                        + $"so {(one ? "it becomes" : "they become")} clause C{clause + 1} {CnfPieces.ClauseText(target[clause])}: each node is the literal written before its {suffix}.",
+                        + $"so {(one ? "it becomes" : "they become")} clause C{clause + 1} {GroupedGraphFrames.ClauseText(target[clause])}: each node is the literal written before its {suffix}.",
                     focus);
             }
             int k = _reductionFrom.K;
@@ -195,20 +196,20 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
     /// rest are left out (any K nodes of a clique are still one). The Done step reports what Clique's verifier says.
     /// </summary>
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
-        var values = CnfPieces.ReadAssignment(problemToSolution, CnfPieces.Variables(reductionTo.clauses), "3SAT");
+        var values = SAT.ReadAssignment(problemToSolution, CnfFormula.VariablesOf(reductionTo.clauses), "3SAT");
         int k = reductionFrom.K;
         var clique = new List<string>();
         for (int i = 0; i < _clauseNodes.Count; i++) {
             int clause = i;
-            var chosen = _clauseNodes[clause].FirstOrDefault(m => values.TryGetValue(CnfPieces.VariableOf(m.Literal), out bool v) && v == !m.Literal.StartsWith('!'));
+            var chosen = _clauseNodes[clause].FirstOrDefault(m => values.TryGetValue(CnfFormula.VariableOf(m.Literal), out bool v) && v == !m.Literal.StartsWith('!'));
             if (chosen.Node == null) {
                 rec.Reject(() => new NodeSet(clique),
-                    () => $"No literal of clause C{clause + 1} {CnfPieces.ClauseText(reductionTo.clauses[clause])} is true, so none of its nodes joins the clique.",
+                    () => $"No literal of clause C{clause + 1} {GroupedGraphFrames.ClauseText(reductionTo.clauses[clause])} is true, so none of its nodes joins the clique.",
                     GroupedGraphFrames.ClauseId(clause));
                 continue;
             }
-            string variable = CnfPieces.VariableOf(chosen.Literal);
-            string why = $"{variable} = {CnfPieces.Word(values[variable])}, so {chosen.Literal} is true";
+            string variable = CnfFormula.VariableOf(chosen.Literal);
+            string why = $"{variable} = {Assignment.Word(values[variable])}, so {chosen.Literal} is true";
             if (clique.Count < k) {
                 clique.Add(chosen.Node);
                 rec.Accept(() => new NodeSet(clique), () => $"{why} in clause C{clause + 1}: its node {chosen.Node} is in the clique.", chosen.LiteralId);

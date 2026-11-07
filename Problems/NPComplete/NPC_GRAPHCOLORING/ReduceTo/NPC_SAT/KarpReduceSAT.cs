@@ -1,8 +1,8 @@
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Steps;
-using API.Problems.NPComplete.NPC_SAT3.ReduceTo;
 using API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo;
 using API.Problems.NPComplete.NPC_SAT;
 
@@ -239,12 +239,12 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
     private readonly Dictionary<string, int> _nodeClause = new(StringComparer.Ordinal);
 
     // The gadgets, and the construction steps when recording: one per node, then one per edge, each adding the clauses it
-    // wrote (with their literals, the variables they first mention and the Grouped Graph's edges, CnfPieces.ClausePieces).
+    // wrote (with their literals, the variables they first mention and the Grouped Graph's edges, GroupedGraphFrames.ClausePieces).
     private void RecordPieces(List<List<string>> clauses, List<(string Node, int First, int Count)> nodeClauses,
         List<(string A, string B, int First, int Count)> edgeClauses, StepRecorder<BuildDelta> rec) {
         int k = _reductionFrom.K;
         List<string> ClauseIds(int first, int count) =>
-            Enumerable.Range(first, count).SelectMany(c => CnfPieces.ClauseIds(c, clauses[c].Count)).ToList();
+            Enumerable.Range(first, count).SelectMany(c => GroupedGraphFrames.ClauseIds(c, clauses[c].Count)).ToList();
         Dictionary<string, int> index = NodeIndexes();
         string Variable(string node, int color) => VariableName(index[node], color);
 
@@ -254,12 +254,12 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             _nodeClause.TryAdd(node, first);
             var ids = ClauseIds(first, count);
             var used = new List<int> { gadgets.Count };
-            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, ids, legacyToIds: CnfPieces.LegacyIds(ids, clauses)));
+            gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, ids, legacyToIds: GroupedGraphFrames.LegacyIds(ids, clauses)));
             for (int color = 0; color < k; color++) {
                 string id = GroupedGraphFrames.VariableId(Variable(node, color));
                 used.Add(gadgets.Count);
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { node }, new List<string> { id },
-                    legacyToIds: CnfPieces.LegacyIds([id], clauses), note: $"{Variable(node, color)} is true when {node} takes color {color}."));
+                    legacyToIds: GroupedGraphFrames.LegacyIds([id], clauses), note: $"{Variable(node, color)} is true when {node} takes color {color}."));
             }
             nodeGadgets.Add((node, first, count, used.ToArray()));
         }
@@ -270,7 +270,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
                 var ids = ClauseIds(first, count);
                 used = [gadgets.Count];
                 gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, ids,
-                    legacyToIds: CnfPieces.LegacyIds(ids, clauses)));
+                    legacyToIds: GroupedGraphFrames.LegacyIds(ids, clauses)));
             }
             edgeGadgets.Add((a, b, first, count, used));
         }
@@ -281,13 +281,13 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             var nodes = new List<string>();
             var edges = new List<BuildEdge>();
             for (int c = first; c < first + count; c++) {
-                var (n, e) = CnfPieces.ClausePieces(clauses, c, builtVariables);
+                var (n, e) = GroupedGraphFrames.ClausePieces(clauses, c, builtVariables);
                 nodes.AddRange(n);
                 edges.AddRange(e);
             }
             return (nodes.ToArray(), BuildEdge.Sorted(edges));
         }
-        string Texts(int first, int count) => BuildCaptions.Names(Enumerable.Range(first, count).Select(c => CnfPieces.ClauseText(clauses[c])).ToList(), 4);
+        string Texts(int first, int count) => BuildCaptions.Names(Enumerable.Range(first, count).Select(c => GroupedGraphFrames.ClauseText(clauses[c])).ToList(), 4);
 
         foreach (var (node, first, count, used) in nodeGadgets) {
             var (nodes, edges) = Pieces(first, count);
@@ -296,7 +296,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
             rec.Accept(
                 () => new BuildDelta { SourceFocus = [node], Nodes = nodes, Edges = edges, Gadgets = used },
                 () => $"Node {node} becomes the {(k == 1 ? "variable" : "variables")} {variables}, one per color, and {Words.Count(count, "clause")}: "
-                    + $"{CnfPieces.ClauseText(clauses[first])} says {node} takes a color"
+                    + $"{GroupedGraphFrames.ClauseText(clauses[first])} says {node} takes a color"
                     + (count > 1 ? $", and {Texts(first + 1, count - 1)} {(count == 2 ? "says" : "say")} it takes only one." : "."),
                 focus);
         }
@@ -329,7 +329,7 @@ class KarpReduceSAT : IReversibleReduction<GRAPHCOLORING, SAT, Groups>, IRecorde
     /// </summary>
     public (string Answer, Groups Partial) MapBack(string problemToSolution, StepRecorder<Groups> rec) {
         var clauses = reductionTo.clauses;
-        var values = CnfPieces.ReadAssignment(problemToSolution, CnfPieces.Variables(clauses), "SAT");
+        var values = SAT.ReadAssignment(problemToSolution, CnfFormula.VariablesOf(clauses), "SAT");
         int k = _reductionFrom.K;
         var color = new Dictionary<string, int>(StringComparer.Ordinal);
         Dictionary<string, int> index = NodeIndexes();

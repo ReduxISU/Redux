@@ -1,9 +1,11 @@
 using System.Text.Json.Serialization;
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01;
+using API.Problems.NPComplete.NPC_SAT;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Solvers;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
 
@@ -124,7 +126,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
         for (int j = 0; j < n; j++) {
             int column = j, index = gadgets.Count;
             string variableId = GroupedGraphFrames.VariableId(variables[j]);
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
                 new List<string> { Column(column), Cell(0, column) }));
             rec.Accept(
                 () => new BuildDelta { SourceFocus = [variableId], Nodes = [Column(column)], Gadgets = [index] },
@@ -156,10 +158,10 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
 
             int clause = i, tableRow = i + 1, firstGadget = gadgets.Count;
             List<string> literals = SAT3Instance.clauses[clause];
-            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(CnfPieces.ClauseIds(clause, literals.Count)), new List<string> { Row(tableRow) }));
+            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(GroupedGraphFrames.ClauseIds(clause, literals.Count)), new List<string> { Row(tableRow) }));
             for (int j = 0; j < literals.Count; j++)
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.LiteralId(clause, j) },
-                    new List<string> { Cell(tableRow, variables.IndexOf(CnfPieces.VariableOf(literals[j]))) }));
+                    new List<string> { Cell(tableRow, variables.IndexOf(CnfFormula.VariableOf(literals[j]))) }));
             gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { Cell(tableRow, n + 1) },
                 note: $"Bound {dVector[clause]}: the number of negated literals minus 1."));
             if (rec.Enabled) {
@@ -168,8 +170,8 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
                 int bound = dVector[clause];
                 bool cancels = literals.Any(l => !l.StartsWith('!') && literals.Contains("!" + l));
                 rec.Accept(
-                    () => new BuildDelta { SourceFocus = CnfPieces.ClauseIds(clause, literals.Count), Nodes = [Row(tableRow)], Gadgets = gadgetIdx },
-                    () => $"Clause C{clause + 1} {CnfPieces.ClauseText(literals)} becomes row {tableRow}: {Inequality(coefficients, bound)}. "
+                    () => new BuildDelta { SourceFocus = GroupedGraphFrames.ClauseIds(clause, literals.Count), Nodes = [Row(tableRow)], Gadgets = gadgetIdx },
+                    () => $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(coefficients, bound)}. "
                         + "Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true."
                         + (cancels ? " A variable written both ways cancels out, so this row always holds." : ""),
                     Row(tableRow));
@@ -193,7 +195,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
         rec.Done(new BuildDelta(), true,
             $"The 0-1 program has {Words.Count(Cmatrix.Count, "constraint")} and {Words.Count(n, "variable")}: some 0-1 assignment meets them all exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
-        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, SAT3Instance.clauses);
+        foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, SAT3Instance.clauses);
         return reduced01INT;
     }
 
@@ -282,10 +284,10 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
             values[variable] = value == 1;
             string of = name == variable ? "" : $" (the 0-1 variable for {variable})";
             if (value is 0 or 1)
-                rec.Accept(() => CnfPieces.Snapshot(values), () => $"{name} = {value}{of}, so {variable} = {CnfPieces.Word(value == 1)}.", Cell(0, j));
+                rec.Accept(() => GroupedGraphFrames.ToAssignment(values), () => $"{name} = {value}{of}, so {variable} = {Assignment.Word(value == 1)}.", Cell(0, j));
             else
-                rec.Reject(() => CnfPieces.Snapshot(values), () => $"{name} = {value}{of} is not 0 or 1, so it says nothing about {variable}: {variable} = False.", Cell(0, j));
+                rec.Reject(() => GroupedGraphFrames.ToAssignment(values), () => $"{name} = {value}{of} is not 0 or 1, so it says nothing about {variable}: {variable} = False.", Cell(0, j));
         }
-        return (CnfPieces.Certificate(variables, values), CnfPieces.Snapshot(values));
+        return (SAT.Certificate(variables, values), GroupedGraphFrames.ToAssignment(values));
     }
 }

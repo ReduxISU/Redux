@@ -1,5 +1,6 @@
 using API.Interfaces;
 using API.Interfaces.Logic;
+using API.Interfaces.Steps;
 using API.Problems.NPComplete.NPC_SAT.Solvers;
 using API.Problems.NPComplete.NPC_SAT.Verifiers;
 
@@ -116,6 +117,40 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, SatDefaultVisualization> 
 
     public List<string> getLiterals(string phiInput) {
         return parseInstance(phiInput).LiteralStrings();
+    }
+
+    #endregion
+
+    #region Certificates
+    // SAT and 3SAT write an answer the same way, so the reductions into and out of either read and write it with these.
+
+    /// <summary>An assignment as certificate text, "(x1:True,x2:False)", in the given order.</summary>
+    public static string Certificate(IEnumerable<string> order, IReadOnlyDictionary<string, bool> values) =>
+        "(" + string.Join(",", order.Select(v => $"{v}:{Assignment.Word(values[v])}")) + ")";
+
+    /// <summary>
+    /// An assignment as a SAT or 3SAT solver writes it, <c>(x1:True,x2:False)</c> (':' or '=', T and F accepted). Every name
+    /// must be one of <paramref name="variables"/>; malformed text throws <see cref="FormatException"/>, which the endpoint
+    /// reports as a 400. <paramref name="formula"/> names the problem ("SAT" or "3SAT") in that message.
+    /// </summary>
+    public static Dictionary<string, bool> ReadAssignment(string certificate, IEnumerable<string> variables, string formula) {
+        var known = new HashSet<string>(variables, StringComparer.Ordinal);
+        var values = new Dictionary<string, bool>(StringComparer.Ordinal);
+        string text = certificate.Trim();
+        if (text.StartsWith('(') && text.EndsWith(')')) text = text[1..^1];
+        foreach (string raw in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+            string[] parts = raw.Split(':', '=');
+            bool? value = parts.Length != 2 ? null : parts[1].Trim().ToLowerInvariant() switch {
+                "true" or "t" => true,
+                "false" or "f" => false,
+                _ => null,
+            };
+            if (value is not bool v) throw new FormatException($"'{raw}' is not a variable:True or variable:False pair");
+            string name = parts[0].Trim();
+            if (!known.Contains(name)) throw new FormatException($"'{name}' is not a variable of the {formula} formula");
+            values[name] = v;
+        }
+        return values;
     }
 
     #endregion

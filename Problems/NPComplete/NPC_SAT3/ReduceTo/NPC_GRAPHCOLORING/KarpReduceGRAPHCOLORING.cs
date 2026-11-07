@@ -1,4 +1,5 @@
 using API.Interfaces;
+using API.Interfaces.Logic;
 using API.Interfaces.Graphs;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.Steps;
@@ -132,7 +133,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         Dictionary<string, string> coloring = new Dictionary<string, string>();
 
         var paletteEdges = new Piece();
-        var variableNames = CnfPieces.Variables(SAT3Instance.clauses);
+        var variableNames = CnfFormula.VariablesOf(SAT3Instance.clauses);
         var byVariable = variableNames.ToDictionary(v => v, _ => new Piece(), StringComparer.Ordinal);
         var byClause = SAT3Instance.clauses.Select(_ => new Piece()).ToList();
         // Adds the edge as reduce() always has, and files it under the gadget that adds it when it is new.
@@ -156,7 +157,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         for (int i = 0; i < variables.Count; i++) {
             nodes.Add(variables[i]);
             coloring.Add(variables[i], "-1");
-            byVariable[CnfPieces.VariableOf(variables[i])].Nodes.Add(variables[i]);
+            byVariable[CnfFormula.VariableOf(variables[i])].Nodes.Add(variables[i]);
         }
 
         // Create clause nodes
@@ -202,7 +203,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         // Connect variable edges to palette color blue
         // Can only be colored True or false can't be base
         for (int i = 0; i < variables.Count; i++) {
-            Link(variables[i], palette[2], edges, instanceEdges, byVariable[CnfPieces.VariableOf(variables[i])]);
+            Link(variables[i], palette[2], edges, instanceEdges, byVariable[CnfFormula.VariableOf(variables[i])]);
 
         }
 
@@ -211,7 +212,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         for (int i = 0; i < variables.Count; i++) {
             for (int j = 0; j < variables.Count; j++) {
                 if (variables[i].Replace("!", "") == variables[j].Replace("!", "") && variables[i] != variables[j]) {
-                    Link(variables[i], variables[j], edges, instanceEdges, byVariable[CnfPieces.VariableOf(variables[i])]);
+                    Link(variables[i], variables[j], edges, instanceEdges, byVariable[CnfFormula.VariableOf(variables[i])]);
                 }
             }
         }
@@ -315,7 +316,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
             int index = gadgets.Count;
             string variableId = GroupedGraphFrames.VariableId(variable);
             gadgets.Add(new Gadget(GadgetKind.Element,
-                new List<string> { variableId }.Concat(CnfPieces.OccurrenceIds(sourceClauses, variable)).ToList(), new List<string>(piece.Nodes)));
+                new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(sourceClauses, variable)).ToList(), new List<string>(piece.Nodes)));
             if (rec.Enabled) {
                 string[] literalNodes = piece.Nodes.ToArray();
                 rec.Accept(
@@ -330,14 +331,14 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         for (int i = 0; i < clauses.Count; i++) {
             int clause = i, index = gadgets.Count;
             Piece piece = byClause[i];
-            string[] sourceIds = CnfPieces.ClauseIds(clause, sourceClauses[clause].Count);
+            string[] sourceIds = GroupedGraphFrames.ClauseIds(clause, sourceClauses[clause].Count);
             gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), new List<string>(piece.Nodes)));
             if (rec.Enabled) {
                 string[] gadgetNodes = piece.Nodes.ToArray();
                 List<string> wired = PaddedClause(sourceClauses[clause]).Distinct().ToList();
                 rec.Accept(
                     () => new BuildDelta { SourceFocus = sourceIds, Nodes = gadgetNodes, Edges = BuildEdge.Sorted(piece.Edges), Gadgets = [index] },
-                    () => $"Clause C{clause + 1} {CnfPieces.ClauseText(sourceClauses[clause])} becomes a 6-node OR gadget, {gadgetNodes[0]} to {gadgetNodes[5]}, wired to {GraphGroupFrames.And(wired)}. "
+                    () => $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(sourceClauses[clause])} becomes a 6-node OR gadget, {gadgetNodes[0]} to {gadgetNodes[5]}, wired to {GraphGroupFrames.And(wired)}. "
                         + $"Its output {gadgetNodes[5]} is joined to F and B, so it must take the true color, and that only works if one of those literals takes it too.",
                     gadgetNodes);
             }
@@ -348,7 +349,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         rec.Done(new BuildDelta { Bound = 3, Gadgets = [bound] }, true,
             "K = 3 colors: the graph can be colored with 3 colors exactly when the formula can be satisfied.");
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
-        foreach (Gadget g in gadgets) g.reductionFromIds = CnfPieces.LegacyIds(g.sourceIds, sourceClauses);
+        foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, sourceClauses);
 
         return reducedGRAPHCOLORING;
     }
@@ -496,7 +497,7 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
         int? falseColor = coloring.Of.TryGetValue("F", out int f) ? f : null;
 
         var values = new Dictionary<string, bool>();
-        var order = CnfPieces.Variables(reductionFrom.clauses);
+        var order = CnfFormula.VariablesOf(reductionFrom.clauses);
         var literalNodes = new HashSet<string>(reductionTo.nodes, StringComparer.Ordinal);
         foreach (string variable in order) {
             bool positive = literalNodes.Contains(variable);
@@ -506,16 +507,16 @@ class KarpReduceGRAPHCOLORING : IReversibleReduction<SAT3, GRAPHCOLORING, Assign
             if (says == null) {
                 values[variable] = false;
                 string why = color == null ? $"{node} has no color" : $"{node} has neither T's nor F's color";
-                rec.Reject(() => CnfPieces.Snapshot(values), () => $"{why}, so it says nothing about {variable}: {variable} = False.", node);
+                rec.Reject(() => GroupedGraphFrames.ToAssignment(values), () => $"{why}, so it says nothing about {variable}: {variable} = False.", node);
                 continue;
             }
             bool nodeTrue = says == "T's";
             values[variable] = positive ? nodeTrue : !nodeTrue;
-            rec.Accept(() => CnfPieces.Snapshot(values),
-                () => $"{node} has {says} color, so {node} is {(nodeTrue ? "true" : "false")}: {variable} = {CnfPieces.Word(values[variable])}.",
+            rec.Accept(() => GroupedGraphFrames.ToAssignment(values),
+                () => $"{node} has {says} color, so {node} is {(nodeTrue ? "true" : "false")}: {variable} = {Assignment.Word(values[variable])}.",
                 node);
         }
-        return (CnfPieces.Certificate(order, values), CnfPieces.Snapshot(values));
+        return (SAT.Certificate(order, values), GroupedGraphFrames.ToAssignment(values));
     }
 
     // A coloring as Graph Coloring writes it, {{F,x1},{T,!x1},{B}}: the n-th class is color n. Every node it names must be a

@@ -51,6 +51,16 @@ internal sealed class CnfFormula {
     public List<string> LiteralStrings() =>
         Clauses.SelectMany(c => c.Literals).Select(l => l.ToString()).ToList();
 
+    /// <summary>The variable a literal string mentions: <c>!x1</c> and <c>x1</c> both mention <c>x1</c>.</summary>
+    public static string VariableOf(string literal) => literal.StartsWith('!') ? literal[1..] : literal;
+
+    /// <summary>
+    /// The variables of clauses written as literal strings, in the order the formula first mentions them. For clauses a
+    /// reduction builds or holds as strings (see <see cref="ClauseStrings"/>), which <see cref="Variables"/> may not match.
+    /// </summary>
+    public static List<string> VariablesOf(IEnumerable<IEnumerable<string>> clauses) =>
+        clauses.SelectMany(c => c).Select(VariableOf).Distinct(StringComparer.Ordinal).ToList();
+
     /// <summary>Canonical text form; parses back to the same formula.</summary>
     public override string ToString() => string.Join(" & ", Clauses);
 }
