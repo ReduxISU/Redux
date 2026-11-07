@@ -217,7 +217,30 @@ The viewer's adapters (`viewer/adapters/*.js`) show, per picture type, how the r
   - `VisualizationCanvas.js` and `ZoomPanSurface.js`.
 - **Update the docs agents read** when a type lands: `ai_documentation/VISUALIZATION_TYPE_CONTRACTS.md` (§3.1 graph, §3.3 SAT, §4.5 gadgets, which the Frontend currently leaves out) and `ai_documentation/VISUALIZATION_TAXONOMY_WISHLIST.md`.
 - **Fix the SAT connectives:** `BooleanSatisfiabilityRenderer.js` joins literals with ∧ and clauses with ∨ (its constants `CONJUNCTION` / `DISJUNCTION`), citing a note ("T40") about what Redux_GUI draws. That note misread the GUI. `StandardSATSvgReact.js` draws ∨ inside a clause and ∧ between clauses, which is correct for Redux's CNF instances (`(x1 | !x2 | x3) & …`). The Frontend's picture is reversed and should be swapped.
-- **Gadgets:** Redux_Frontend currently drops gadget data. The Reduction view needs it.
+- **Gadgets:** Redux_Frontend reads the gadgets from `/reduce` and the Reduction View, and links pieces with them (§4.5).
+
+### 4.5 How hovering highlights pieces (Redux_Frontend)
+
+Pointing at a piece (hovering it, focusing it with the keyboard, or tapping it) highlights pieces in two different ways. Only the second reaches across pictures, and only in a reduction. Neither needs anything from the backend beyond ids and gadgets.
+
+**1. The trace inside one picture.**
+
+Every renderer keeps its own pointer state: `hover` (mouse or focus) and `pinned` (a tap, kept until tapped again). The hover wins while there is one. An example is `components/pictures/GraphRenderer.js`. The renderer draws what the pointed-at piece touches in the trace color and greys out the rest by color (`filter: grayscale(1)`, never by opacity). For a graph, that means the node's edges.
+
+This works the same in the base instance's picture and in a solver run's picture, because the same renderer draws both. The state is local to that one renderer, so nothing is shared between panes and nothing is sent to the backend.
+
+**2. The links between two pictures, made by gadgets.**
+
+- **Where the links come from.** A reduction's build makes a list of gadgets (`Interfaces/JSON_Objects/Gadget.cs`). Each gadget names the source pieces (`sourceIds`) and the target pieces (`targetIds`) it ties together, using the ids each side's own picture gives its pieces: an element, a group, an edge rule or the bound.
+- **How a piece is found.** Every renderer tags its pieces with a `data-*-id` attribute (`data-node-id`, `data-edge-id`, `data-clause-id`, …; the full list is `PIECE_ID_ATTRIBUTES` in `lib/reductionView.js`). The Reduction View (`components/pictures/ReductionView.js`) listens for pointer events on both panes and reads the id of the piece under the pointer (`pieceIdOf`). It keeps `{which side, id}` as its own hover and pin.
+- **What is linked.** `linkedPieces(gadgets, which, id)` in `lib/reductionView.js` finds every gadget that names that id. It then collects every source and target id those gadgets name.
+- **How it is drawn.** The view passes the linked ids to each pane's renderer as `highlightIds`. The renderer draws a gadget mark (`components/pictures/gadgetRings.js`): a ring around a node or box, or a band under an edge, in the gadget gold `viz.gadget`. The view also fades every unlinked piece by setting data attributes on the renderers' own elements. A `MutationObserver` puts those attributes back whenever a renderer redraws. No renderer knows the Reduction View exists.
+- **In words.** A line under the pictures says what is linked: the pointed piece, the gadget kind, and the gadget's `note` or the pieces on the other side. This way the link is never told by color alone, and a screen reader hears it.
+- **Plain or Color.** Plain marks only the linked pieces, and only while something is pointed at. Color gives every gadget its own color on both sides all the time (`gadgetColors`, from `lib/gadgets.js` `gadgetColorMap`). Pointing still fades what is not linked.
+- **The Gadgets rows.** Hovering or focusing a row in the Result panel's Gadgets section sets `gadgetHighlight` in `components/workbench/Workbench.js`. That gadget's ids reach the pictures as `highlightIds` too, and the Reduction View draws the gadget as if one of its pieces were pointed at. Before a Reduction View arrives, `highlightIdsOn` maps the ids onto the default picture's payload.
+- **When links can't show.** A picture that draws none of a side's gadget ids (a Search Tree, for example) says that links can't be shown.
+
+**What a contributor needs to do.** For a new picture to take part, its renderer must tag each piece with one of the `data-*-id` attributes, and draw `highlightIds` with `gadgetRings.js`. For a new reduction, its gadgets must use the same ids that the two pictures give their pieces. If the ids don't match, nothing links.
 
 ---
 
