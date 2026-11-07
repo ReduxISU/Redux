@@ -52,7 +52,7 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
             int used = coloring.Values.Max() + 1;
             steps.Done(new Groups(coloring), true,
                 $"Every node is colored with {Words.Count(used, "color")}, within K = {problem.K}, and no edge joins two nodes of one color. Found after {search.Placed:N0} {(search.Placed == 1 ? "color" : "colors")} given.",
-                tree: () => search.AnswerPath());
+                tree: () => search.AnswerPath(search.PathLabels()));
             return Certificate(nodes, coloring);
         }
         if (timerHasExpired)
@@ -71,13 +71,12 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
             .Where(cls => cls.Count > 0)
             .Select(cls => "{" + string.Join(",", cls) + "}")) + "}";
 
-    // The depth-first search and its bookkeeping. The search tree's nodes are plain ints here (id, parent, color), and the
-    // SearchNode records are built only for a step that is kept, so solving without steps allocates nothing for the tree.
-    private sealed class Search {
-        // A move of the search, as a step is about it: node Node in color Color, its search-tree node Id under Parent, and
-        // the state the step leaves that tree node in. Clash is the colored neighbour that rules the color out (the node
-        // itself, for an edge to itself), or -1.
-        public readonly record struct Move(int Node, int Color, int Id, int Parent, SearchNodeState Tree, int Clash = -1);
+    // The depth-first search and its bookkeeping. It is the search tree too, one depth for each node colored.
+    private sealed class Search : DepthFirstTree {
+        // A move of the search, as a step is about it: node Node in color Color, the depth of its search-tree node (d for the
+        // d-th node colored on the branch), and the state the step leaves that tree node in. Clash is the colored neighbour
+        // that rules the color out (the node itself, for an edge to itself), or -1.
+        public readonly record struct Move(int Node, int Color, int Depth, SearchNodeState Tree, int Clash = -1);
 
         // How the steps show a move. It records its own search tree (with a "start" root and its own node states), so it
         // gives RunSteps the tree node of each step rather than using SearchSteps.
@@ -87,7 +86,7 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
             partial: m => m.Tree == SearchNodeState.Failed ? new Groups(Coloring()) : With(m.Node, m.Color),
             focus: m => m.Clash < 0 ? [_nodes[m.Node]] : [_nodes[m.Node], GraphSubsetFrames.EdgeId(_nodes[m.Node], _nodes[m.Clash])],
             // The Search Tree picture's node only: "b=1", with the clashing neighbour's color as the note of a pruned one.
-            tree: m => WithRoot(Node(m.Id, m.Parent, m.Node, m.Color, m.Tree, m.Clash < 0 ? null : $"{_nodes[m.Clash]} has {m.Color}")));
+            tree: m => Step(m.Depth, $"{_nodes[m.Node]}={m.Color}", m.Tree, m.Clash < 0 ? null : $"{_nodes[m.Clash]} has {m.Color}"));
 
         private readonly List<string> _nodes;
         private readonly Func<bool> _expired;   // the solver's timer
@@ -102,14 +101,11 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
         public readonly int SelfLoop = -1;      // a node with an edge to itself, or -1
         public readonly RunSteps<Move, Groups> Steps;
 
-        // The decisions on the current path, root first: the node colored, its color and its tree node id.
-        private readonly List<(int Node, int Color, int Id)> _path = new();
-        private int _nextId = 1;
-        private bool _rootSent;
+        // The decisions on the current path, root first: the node colored and its color.
+        private readonly List<(int Node, int Color)> _path = new();
 
-        public static readonly SearchNode Root = new(0, null, "start", SearchNodeState.Explored);
-
-        public Search(GRAPHCOLORING problem, List<string> nodes, StepRecorder<Groups> rec, Func<bool> expired) {
+        // A branch colors each node at most once.
+        public Search(GRAPHCOLORING problem, List<string> nodes, StepRecorder<Groups> rec, Func<bool> expired) : base(nodes.Count) {
             _nodes = nodes;
             _expired = expired;
             _rec = rec;
@@ -182,27 +178,8 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
             return best;
         }
 
-        private SearchNode Node(int id, int parent, int u, int c, SearchNodeState state, string? bound = null) =>
-            new(id, parent, $"{_nodes[u]}={c}", state) { Bound = bound };
-
-        // The root patch, sent with the first step only.
-        private SearchNode[] WithRoot(SearchNode node) {
-            if (_rootSent) return [node];
-            _rootSent = true;
-            return [Root, node];
-        }
-
-        // The answer's path in the search tree, root first, the last decision the solution.
-        public SearchNode[] AnswerPath() {
-            var path = new List<SearchNode> { Root };
-            int parent = 0;
-            for (int i = 0; i < _path.Count; i++) {
-                var (u, c, id) = _path[i];
-                path.Add(Node(id, parent, u, c, i == _path.Count - 1 ? SearchNodeState.Solution : SearchNodeState.Explored));
-                parent = id;
-            }
-            return path.ToArray();
-        }
+        // The labels of the answer's path in the search tree, root first ("a=0", "b=1"): the decisions on the current path.
+        public List<string> PathLabels() => _path.Select(p => $"{_nodes[p.Node]}={p.Color}").ToList();
 
         // Colors the rest of the graph, depth first; false when no coloring of the rest exists under the current path.
         // It takes next the uncolored node with the fewest colors left, tries each color up to one past the highest used
@@ -212,13 +189,13 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
             if (TimerExpired()) return false;
             int limit = Math.Min(_k - 1, HighestUsed() + 1);
             int u = Next(limit);
-            int parentId = _path.Count == 0 ? 0 : _path[^1].Id;
+            int depth = _path.Count + 1;
             string node = _nodes[u];
             for (int c = 0; c <= limit; c++) {
-                int id = _nextId++;
+                Branch(depth);
                 int clash = _selfLoop[u] ? u : ClashOf(u, c);
                 if (clash >= 0) {
-                    var pruned = new Move(u, c, id, parentId, SearchNodeState.Pruned, clash);
+                    var pruned = new Move(u, c, depth, SearchNodeState.Pruned, clash);
                     if (clash == u)
                         Steps.Reject(pruned, $"Node {node} has an edge to itself, so color {c} clashes with {node} itself.");
                     else
@@ -229,9 +206,9 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
                 _usedCount[c]++;
                 _colored++;
                 Placed++;
-                _path.Add((u, c, id));
+                _path.Add((u, c));
                 bool last = _colored == _nodes.Count;
-                var move = new Move(u, c, id, parentId, last ? SearchNodeState.Solution : SearchNodeState.Explored);
+                var move = new Move(u, c, depth, last ? SearchNodeState.Solution : SearchNodeState.Explored);
                 // Whether a neighbour of u has a color, for the step's why (worked out only while recording).
                 bool neighbourColored = _rec.Enabled && _neighbours[u].Any(v => _color[v] >= 0);
                 if (c > 0 && !neighbourColored)
@@ -244,7 +221,7 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
                 _usedCount[c]--;
                 _colored--;
                 if (TimerExpired()) return false;
-                Steps.Backtrack(new Move(u, c, id, parentId, SearchNodeState.Failed),
+                Steps.Backtrack(new Move(u, c, depth, SearchNodeState.Failed),
                     $"The nodes after {node} can't all be colored with {node} in color {c}, so take that color back.");
             }
             return false;

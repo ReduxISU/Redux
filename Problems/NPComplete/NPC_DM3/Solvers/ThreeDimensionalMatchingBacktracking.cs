@@ -57,11 +57,11 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             if (search.EqualSizes)
                 steps.Done(TripartiteFrames.Chosen(chosen), true,
                     $"{TripartiteFrames.AndList(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
-                    tree: () => search.AnswerPath());
+                    tree: () => search.AnswerPath(search.Chosen().Select(TripartiteFrames.TripleId).ToList()));
             else
                 steps.Done(TripartiteFrames.Chosen(chosen), true,
                     $"{TripartiteFrames.AndList(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
-                    tree: () => search.AnswerPath());
+                    tree: () => search.AnswerPath(search.Chosen().Select(TripartiteFrames.TripleId).ToList()));
             return Certificate(problem, chosen);
         }
         if (timerHasExpired)
@@ -75,12 +75,13 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
     private static string Certificate(DM3 problem, List<int> chosen) =>
         "{" + string.Join(",", chosen.Select(i => "{" + string.Join(",", problem.M[i]) + "}")) + "}";
 
-    // The depth-first search and its bookkeeping. Elements are numbered X first, then Y, then Z. The search tree's nodes are
-    // plain ints here (id, triple), and the SearchNode records are built only for a step that is kept.
-    private sealed class Search {
-        // A move of the search, as a step is about it: triple Triple, its search-tree node Id under Parent, and the state
-        // the step leaves that tree node in. Reused is the element the triple would use a second time (a pruned move), or -1.
-        public readonly record struct Move(int Triple, int Id, int Parent, SearchNodeState Tree, int Reused = -1);
+    // The depth-first search and its bookkeeping. Elements are numbered X first, then Y, then Z. It is the search tree too,
+    // one depth for each triple chosen.
+    private sealed class Search : DepthFirstTree {
+        // A move of the search, as a step is about it: triple Triple, the depth of its search-tree node (d for the d-th triple
+        // chosen on the branch), and the state the step leaves that tree node in. Reused is the element the triple would use
+        // a second time (a pruned move), or -1.
+        public readonly record struct Move(int Triple, int Depth, SearchNodeState Tree, int Reused = -1);
 
         // How the steps show a move. It records its own search tree (with a "start" root and its own node states), so it
         // gives RunSteps the tree node of each step rather than using SearchSteps.
@@ -91,8 +92,8 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             focus: m => m.Reused < 0 ? [TripartiteFrames.TripleId(m.Triple)] : [TripartiteFrames.TripleId(m.Triple), Id(m.Reused)],
             // The Search Tree picture's node only: "T5", with the element it reuses and the triple using it as a pruned
             // node's note.
-            tree: m => WithRoot(Node(m.Id, m.Parent, m.Triple, m.Tree,
-                m.Reused < 0 ? null : $"{Name(m.Reused)} used by {TripartiteFrames.TripleId(_usedBy[m.Reused])}")));
+            tree: m => Step(m.Depth, TripartiteFrames.TripleId(m.Triple), m.Tree,
+                m.Reused < 0 ? null : $"{Name(m.Reused)} used by {TripartiteFrames.TripleId(_usedBy[m.Reused])}"));
 
         private readonly DM3 _problem;
         private readonly Func<bool> _expired;
@@ -101,17 +102,14 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
         private readonly int[][] _triplesOf;    // each element's triples, in M's order
         private readonly int[] _usedBy;         // the chosen triple that uses each element, or -1
         private readonly bool[] _branch;        // the elements a matching must cover
-        private readonly List<(int Triple, int Id)> _path = new();
-        private int _nextId = 1;
-        private bool _rootSent;
+        private readonly List<int> _path = new();   // the triples chosen on the current branch
         public int Placed;
         public readonly TripartiteSpec Spec;
         public readonly bool EqualSizes;
         public readonly RunSteps<Move, ChosenTriples> Steps;
 
-        public static readonly SearchNode Root = new(0, null, "start", SearchNodeState.Explored);
-
-        public Search(DM3 problem, StepRecorder<ChosenTriples> rec, Func<bool> expired) {
+        // A branch chooses at most |X| triples.
+        public Search(DM3 problem, StepRecorder<ChosenTriples> rec, Func<bool> expired) : base(problem.X.Count) {
             _problem = problem;
             _expired = expired;
             Steps = NewSteps(rec);
@@ -142,7 +140,7 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             return null;
         }
 
-        public IEnumerable<int> Chosen() => _path.Select(p => p.Triple);
+        public IEnumerable<int> Chosen() => _path;
 
         private ChosenTriples With(int t) => TripartiteFrames.Chosen(Chosen().Append(t));
 
@@ -169,25 +167,6 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             return best;
         }
 
-        private SearchNode Node(int id, int parent, int t, SearchNodeState state, string? bound = null) =>
-            new(id, parent, TripartiteFrames.TripleId(t), state) { Bound = bound };
-
-        private SearchNode[] WithRoot(SearchNode node) {
-            if (_rootSent) return [node];
-            _rootSent = true;
-            return [Root, node];
-        }
-
-        public SearchNode[] AnswerPath() {
-            var path = new List<SearchNode> { Root };
-            int parent = 0;
-            for (int i = 0; i < _path.Count; i++) {
-                path.Add(Node(_path[i].Id, parent, _path[i].Triple, i == _path.Count - 1 ? SearchNodeState.Solution : SearchNodeState.Explored));
-                parent = _path[i].Id;
-            }
-            return path.ToArray();
-        }
-
         // True when the chosen triples are a matching the verifier accepts (only asked once |X| triples are chosen).
         private bool Verifies() {
             string certificate = Certificate(_problem, Chosen().Order().ToList());
@@ -200,23 +179,23 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             if (_expired()) return false;
             int e = Next();
             if (e < 0) return false;
-            int parentId = _path.Count == 0 ? 0 : _path[^1].Id;
+            int depth = _path.Count + 1;
             string element = Name(e);
             int left = _triplesOf[e].Count(t => Reused(t) < 0);
             foreach (int t in _triplesOf[e]) {
-                int id = _nextId++;
+                Branch(depth);
                 int reused = Reused(t);
                 // A triple that would use an element a chosen triple already uses is never chosen.
                 if (reused >= 0) {
-                    Steps.Reject(new Move(t, id, parentId, SearchNodeState.Pruned, reused),
+                    Steps.Reject(new Move(t, depth, SearchNodeState.Pruned, reused),
                         $"{TripartiteFrames.TripleLabel(Spec, t)} would use {Name(reused)} twice: {TripartiteFrames.TripleId(_usedBy[reused])} already uses it.");
                     continue;
                 }
                 foreach (int x in _elementsOf[t]) _usedBy[x] = t;
-                _path.Add((t, id));
+                _path.Add(t);
                 Placed++;
                 bool complete = _path.Count == _n && Verifies();
-                var chose = new Move(t, id, parentId, complete ? SearchNodeState.Solution : SearchNodeState.Explored);
+                var chose = new Move(t, depth, complete ? SearchNodeState.Solution : SearchNodeState.Explored);
                 if (left == 1)
                     Steps.Accept(chose, $"{element} has one triple left that uses no element twice. Choose {TripartiteFrames.TripleLabel(Spec, t)}.");
                 else
@@ -226,7 +205,7 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
                 _path.RemoveAt(_path.Count - 1);
                 foreach (int x in _elementsOf[t]) _usedBy[x] = -1;
                 if (_expired()) return false;
-                var back = new Move(t, id, parentId, SearchNodeState.Failed);
+                var back = new Move(t, depth, SearchNodeState.Failed);
                 if (_path.Count + 1 == _n)
                     Steps.Backtrack(back, $"The verifier rejects these triples with {TripartiteFrames.TripleLabel(Spec, t)}, so take it back.");
                 else
