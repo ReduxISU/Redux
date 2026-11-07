@@ -798,6 +798,7 @@ public partial class ProblemProvider : ControllerBase {
     /// <param name="seed" example = "12345">Optional. The seed of a randomized solver in the solve phase (WalkSAT): the same seed on the same instance gives the same view. Without it a seed is chosen; the view reports the seed used as "seed" (randomized solvers only). Other solvers ignore it (#932)</param>
     /// <returns>{ type: "Reduction", kind, reduction, reductionName, solver, seed (randomized solvers only), source: { problem, instance, visualization, picture }, target: { ..., visualization, picture, buildOrder }, gadgets, frames }</returns>
     [HttpPost("reductionView")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     public IActionResult reductionView(string reduction, [FromBody] string instance, string? solver = null,
         string? sourceVisualization = null, string? targetVisualization = null, int? seed = null) {

@@ -174,6 +174,13 @@ public class ComputeJobs_Endpoint_Tests : IClassFixture<OneComputeJobAppFactory>
             new StringContent(JsonSerializer.Serialize(new { problemInstance = "{1,1}", certificate = "{1}" }), Encoding.UTF8, "application/json"),
             TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.TooManyRequests, verify.StatusCode);
+        // So are the endpoints that draw a solver's run: one run for every picture, and a reduction's view.
+        var run = await _client.PostAsync("/ProblemProvider/visualizeRun?solver=PartitionBruteForce",
+            new StringContent(JsonSerializer.Serialize("{1,1}"), Encoding.UTF8, "application/json"), TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.TooManyRequests, run.StatusCode);
+        var view = await _client.PostAsync("/ProblemProvider/reductionView?reduction=SipserReduceToCliqueStandard",
+            new StringContent(JsonSerializer.Serialize("(x1 | !x2 | x3)"), Encoding.UTF8, "application/json"), TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.TooManyRequests, view.StatusCode);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await blocking).StatusCode); // stopped at the time limit
     }

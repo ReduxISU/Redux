@@ -102,6 +102,7 @@ public partial class ProblemProvider {
     /// <param name="seed" example = "12345">Optional. The seed of a randomized solver (WalkSAT): the same seed on the same instance gives the same run. Without it a seed is chosen; the response reports the seed used as "seed" (randomized solvers only). Other solvers ignore it (#932)</param>
     /// <returns>{ solver, solverName, answer, ok, timedOut, seed (randomized solvers only), pictures: [{ visualization, type, payload, frames }], unavailable: [{ visualization, reason, detail }] }</returns>
     [HttpPost("visualizeRun")]
+    [ComputeJob]
     [ProducesResponseType(typeof(object), 200)]
     [ProducesResponseType(400)]
     public IActionResult visualizeRun(string? solver, [FromBody] string instance, string? visualizations = null, int? seed = null) {
