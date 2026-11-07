@@ -8,7 +8,7 @@ namespace API.Problems.NPComplete.NPC_TSP.Solvers;
 // a Try for each path it expands, an Accept for each branch it queues, a Reject for a branch with no edge or a bound no better
 // than the best tour so far, a Reject for a queued path the best tour has caught up with, and for a complete tour an Accept
 // if it beats the best so far or a Reject if not. SearchSteps builds the Search Tree picture's nodes from those steps.
-class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver {
+class TSPBranchAndBound : ISolver<TSP, Tour>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Traveling Salesperson Branch and Bound";

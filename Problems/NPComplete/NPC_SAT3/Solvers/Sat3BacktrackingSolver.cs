@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_SAT3.Solvers;
 // The search records a step for each value it tries (a Try, then an Accept when the branch is queued or satisfies every
 // clause, or a Reject when a clause is left with no true literal), a Backtrack when it takes a queued branch that is not one
 // it just made, and a Done with the answer. SearchSteps builds the Search Tree picture's nodes from those steps.
-class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver {
+class Sat3BacktrackingSolver : ISolver<SAT3, Assignment>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "3SAT Backtracking";

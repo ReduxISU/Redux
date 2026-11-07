@@ -12,7 +12,7 @@ namespace API.Problems.P.P_NQUEENS.Solvers;
 //     move (that node fails; the root "start" when row 0 runs out);
 //   - the Done, which names the answer's path in the tree again, root first.
 // Incremental: it places one queen per row and takes queens back, so every step's partial is the queens placed so far.
-class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
+class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "N-Queens Backtracking";

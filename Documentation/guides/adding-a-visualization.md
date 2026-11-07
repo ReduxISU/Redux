@@ -834,7 +834,7 @@ States (precedence `Rejected > ElementHighlight > Solution > Covered > Backgroun
 
 **Folding.** Past 12 leaves, two or more cut-off leaves under one node share one `n{id}.cut` node. While there are still more than 12 leaves, the finished subtree with the most leaves folds into one `n{id}.more` node. A subtree that holds the node in focus, a queued node or the answer's path is never folded.
 
-A run stopped by the time limit ends with the tree so far in a `Done` frame, `ok: false`, with no focus and no answer path; its answer string is never read. A solver that records no tree (a brute force, picked with `&solver=`) gets frames with empty `nodes`.
+A run stopped by the time limit ends with the tree so far in a `Done` frame, `ok: false`, with no focus and no answer path; its answer string is never read. The picture draws only a solver that declares `ISearchTreeSolver` (its steps carry the tree): any other solver of the problem (a brute force or a greedy, picked with `&solver=`) would leave it an empty tree, so `visualize` answers `solver_mismatch` for it and `visualizeRun` lists the picture as unavailable (`solver_mismatch`).
 
 Solvers that record a search tree:
 
@@ -852,7 +852,7 @@ Not covered, because nothing in Redux branches for it: Knapsack (`KnapsackBruteF
 
 To add a search tree to another solver:
 
-1. Give every node an id from a counter (the root is 0) and keep, for each state you may come back to, its `SearchNode`. Build the patches only inside the recorder's lambdas, and keep the steps otherwise exactly as they were.
+1. Give every node an id from a counter (the root is 0) and keep, for each state you may come back to, its `SearchNode`. Build the patches only inside the recorder's lambdas, and keep the steps otherwise exactly as they were. A depth-first search can let `DepthFirstTree` keep the ids (see adding-a-solver, step 3). Declare `ISearchTreeSolver` on the solver, so the picture draws it.
 2. Add a visualization class next to the problem's own picture that implements `ISearchTreeVisualization<TProblem, TPartial>` (`TPartial` is the solver's step shape), declares `Type? IVisualization.StepShape => typeof(TPartial)`, and passes `visualize` and `SolvedVisualization` to the problem's picture.
 3. Snapshot the solver's steps before touching it (`Endpoints/Snapshots/searchtree_*_steps.tsv`: a hash of each step's JSON) and test that the steps without `tree` still hash the same, the tree links themselves (`SearchTree*_Tests`), and the endpoint output with `SearchTreeJson` (`SearchTree*_Endpoint_Tests`).
 

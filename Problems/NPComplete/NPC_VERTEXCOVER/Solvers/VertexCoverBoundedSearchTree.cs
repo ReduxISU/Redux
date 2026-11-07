@@ -14,7 +14,7 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 //     out under it);
 //   - the Done, which names the answer's path in the tree, root first, or marks the root failed when there is none.
 // In the tree, a node is an end taken into the cover, and its children are the two ends of the next uncovered edge.
-class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
+class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Vertex Cover Bounded Search Tree";

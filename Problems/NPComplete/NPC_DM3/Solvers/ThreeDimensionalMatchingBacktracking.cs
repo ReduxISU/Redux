@@ -13,7 +13,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Solvers;
 //   - a Backtrack when nothing below a triple worked, taking it back again (that node fails);
 //   - the Done, which names the answer's path in the tree.
 // Incremental: it chooses one triple at a time and takes triples back, so every step's partial is the triples chosen so far.
-class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncrementalSolver {
+class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "3-Dimensional Matching Backtracking";

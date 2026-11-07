@@ -18,7 +18,7 @@ namespace API.Problems.NPComplete.NPC_SUDOKU.Solvers;
 // be filled is marked failed in the tree with the next step kept (or the Done), together with any digits that failed
 // below it.
 // Incremental: it fills one square at a time and takes digits back out, so every step's partial is the board so far.
-class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
+class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Sudoku Backtracking";

@@ -247,6 +247,8 @@ The idea is simple. You already know the algorithm, so you add one line wherever
 
    For a depth-first search, `DepthFirstTree` ([DepthFirstTree.cs](../../Interfaces/Steps/DepthFirstTree.cs)) keeps that tree for you, as one node id per depth of the branch the search is on: `Branch(depth)` when the search makes a choice, `Step(depth, label, state, note)` in the `tree:` converter, and `AnswerPath(labels)` or `NoAnswer()` in the `Done`. [VertexCoverBoundedSearchTree.cs](../../Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBoundedSearchTree.cs) and [SudokuSolver.cs](../../Problems/NPComplete/NPC_SUDOKU/Solvers/SudokuSolver.cs) use it.
 
+   A solver whose steps carry a search tree, whichever way it builds it, declares `ISearchTreeSolver` (`class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver, ISearchTreeSolver`). The Search Tree picture draws only those solvers; for any other solver of the problem it would show an empty tree, so it refuses it.
+
    ```csharp
    // The Search Tree picture's node only: the end taken ("a"), with the edges left uncovered as the note of a branch
    // that ran out of budget.

@@ -12,7 +12,7 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 //   - a Backtrack when every color below has failed, taking the color back again (that node fails);
 //   - the Done, which names the answer's path in the tree.
 // Incremental: it colors one node at a time and takes colors back, so every step's partial is the coloring so far.
-class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSolver {
+class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Graph Coloring Backtracking";

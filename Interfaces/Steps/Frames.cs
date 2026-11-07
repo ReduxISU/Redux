@@ -97,9 +97,10 @@ interface IFramesVisualization : IVisualization {
 
     /// <summary>
     /// Whether this picture can draw a run of <paramref name="solverType"/> (a solver of its problem). True by default. A picture
-    /// of a search (the Search Tree) returns false for a randomized solver (<see cref="IRandomizedSolver"/>): its tries are not a
-    /// tree of choices, so <c>visualize</c> and <c>reductionView</c> answer <c>solver_mismatch</c> and <c>visualizeRun</c> lists
-    /// the picture as <c>solver_mismatch</c> (#932). A method, not a property, so it never appears in /info.
+    /// of a search (the Search Tree) returns false for a solver whose steps carry no search tree (one that is not an
+    /// <see cref="ISearchTreeSolver"/>, a randomized one included, #932): it would draw an empty tree, so <c>visualize</c> and
+    /// <c>reductionView</c> answer <c>solver_mismatch</c> and <c>visualizeRun</c> lists the picture as <c>solver_mismatch</c>. A
+    /// method, not a property, so it never appears in /info.
     /// </summary>
     bool DrawsSolver(Type solverType) => true;
 

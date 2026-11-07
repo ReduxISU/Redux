@@ -292,6 +292,14 @@ interface IRandomizedSolver : ISolver {
     int? Seed { get; set; }
 }
 
+/// <summary>
+/// Declares that a solver's steps carry the nodes of its search tree (<see cref="SolverStep{TPartial}.Tree"/>), so the Search
+/// Tree picture can draw its run. The Search Tree picture draws only these solvers: for any other solver of its problem it
+/// would have nothing but an empty tree, so it answers <c>solver_mismatch</c> (see <see cref="IFramesVisualization.DrawsSolver"/>).
+/// A marker only, with nothing in /info.
+/// </summary>
+interface ISearchTreeSolver : ISolver { }
+
 /// <summary>Helpers for <see cref="IRandomizedSolver"/>.</summary>
 static class RandomizedSolvers {
     /// <summary>A new seed, for a run that was given none: a non-negative int.</summary>
