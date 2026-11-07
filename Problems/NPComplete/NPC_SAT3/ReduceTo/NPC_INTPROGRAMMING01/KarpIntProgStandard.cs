@@ -166,8 +166,9 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
             string variableId = GroupedGraphFrames.VariableId(variables[j]);
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, variables[j])).ToList(),
                 new List<string> { Column(j), Cell(0, j) }));
-            // The 0-1 program names its variables x1, x2, ...: a variable already named so keeps its name.
-            string x = IntegerProgrammingBruteForce.Variable(j);
+            // The 0-1 program names its variables x1, x2, ...: a variable already named so keeps its name. Only the caption
+            // reads the name, so it is made only while recording.
+            string? x = rec.Enabled ? IntegerProgrammingBruteForce.Variable(j) : null;
             if (x == variables[j])
                 variableSteps.Accept((j, variableId, index), $"Variable {x} becomes the 0-1 variable {x}: 1 means {x} is True, 0 means False.");
             else
@@ -179,13 +180,19 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
         var clauseSteps = NewClauseSteps(rec);
         for (int i = 0; i < SAT3Instance.clauses.Count; i++) {
             List<int> row = new List<int>();
+            // Whether a variable is written both ways in the clause: it cancels out of the row.
+            bool cancels = false;
             dVector.Add(-1);
             for (int j = 0; j < variables.Count; j++) {
                 if (SAT3Instance.clauses[i].Contains(variables[j]) && !SAT3Instance.clauses[i].Contains("!" + variables[j])) {
                     row.Add(-1);
                 } else if (!SAT3Instance.clauses[i].Contains(variables[j]) && SAT3Instance.clauses[i].Contains("!" + variables[j])) {
                     row.Add(1);
-                } else { row.Add(0); }
+                } else {
+                    // Written both ways, or not at all.
+                    row.Add(0);
+                    if (SAT3Instance.clauses[i].Contains(variables[j])) cancels = true;
+                }
                 //constructs dVector
                 if (SAT3Instance.clauses[i].Contains("!" + variables[j])) {
                     dVector[i] += 1;
@@ -201,8 +208,7 @@ class KarpIntProgStandard : IReversibleReduction<SAT3, INTPROGRAMMING01, Assignm
                     new List<string> { Cell(tableRow, variables.IndexOf(CnfFormula.VariableOf(literals[j]))) }));
             gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { GroupedGraphFrames.ClauseId(clause) }, new List<string> { Cell(tableRow, n + 1) },
                 note: $"Bound {dVector[clause]}: the number of negated literals minus 1."));
-            // A variable written both ways in the clause cancels out of its row.
-            if (literals.Any(l => !l.StartsWith('!') && literals.Contains("!" + l)))
+            if (cancels)
                 clauseSteps.Accept((clause, literals, tableRow, firstGadget),
                     $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes row {tableRow}: {Inequality(row, dVector[clause])}. Each plain literal counts −1 and each negated one +1, and the bound is the number of negated literals minus 1, so the row holds exactly when one of its literals is true. A variable written both ways cancels out, so this row always holds.");
             else

@@ -283,11 +283,11 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
 
     // How the construction steps show a clause of the SAT formula: the clause and its literals in SAT; the 3SAT clauses it
     // becomes, their literals, the variables no earlier step mentions and the formula picture's edges, added to 3SAT; and its
-    // gadgets. The state is (Clause, Pieces): the clause's index, and those pieces.
-    private static RunSteps<(int Clause, ClausePieces Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec, List<List<string>> original) => new(rec,
+    // gadgets. The state is (Clause, Literals, Pieces): the clause's index and literals, and those pieces.
+    private static RunSteps<(int Clause, List<string> Literals, ClausePieces Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
         // What the Reduction View shows: the clause, the pieces added, and the gadgets that made them.
         partial: s => new BuildDelta {
-            SourceFocus = GroupedGraphFrames.ClauseIds(s.Clause, original[s.Clause].Count),
+            SourceFocus = GroupedGraphFrames.ClauseIds(s.Clause, s.Literals.Count),
             Nodes = s.Pieces.Nodes.ToArray(),
             Edges = BuildEdge.Sorted(s.Pieces.Edges),
             Gadgets = s.Pieces.Gadgets,
@@ -328,14 +328,17 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
                 legacyFromIds: GroupedGraphFrames.LegacyIds([id], original), legacyToIds: GroupedGraphFrames.LegacyIds([id], target)));
         }
 
-        // The 3SAT clauses and the variables an earlier step already added to the picture.
-        var builtClauses = new List<int>();
-        var builtVariables = new HashSet<string>(StringComparer.Ordinal);
+        // The 3SAT clauses and the variables an earlier step already added to the picture; made by the first step recorded,
+        // since only the picture reads them.
+        List<int>? builtClauses = null;
+        HashSet<string>? builtVariables = null;
         // What the clause's 3SAT clauses add to the picture. Finding their edges compares each of their literals with every
         // earlier one, and only the picture needs them, so it is called only when the steps are recorded. The picture's rule
         // for edges (GroupedGraphFrames.Payload): two occurrences in one clause are a clause edge; a variable and its negation
         // in two clauses are a complement edge. The earlier occurrence is written first.
         ClausePieces Pieces(int clause, List<int> mine) {
+            builtClauses ??= new();
+            builtVariables ??= new(StringComparer.Ordinal);
             var nodes = new List<string>();
             var edges = new List<BuildEdge>();
             foreach (int t in mine) {
@@ -370,7 +373,7 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
 
         // Then each clause of the SAT formula, in order: an element per new variable its split brings (from the clause to the
         // variable), and one step.
-        var clauseSteps = NewClauseSteps(rec, original);
+        var clauseSteps = NewClauseSteps(rec);
         for (int clause = 0; clause < original.Count; clause++) {
             var mine = targetOf[clause];
             for (int m = 1; m < mine.Count; m++) {
@@ -383,13 +386,13 @@ class KarpSATToSAT3 : IReversibleReduction<SAT, SAT3, Assignment>, IRecordedRedu
             // None when the steps are not recorded: no step then reads them.
             var pieces = rec.Enabled ? Pieces(clause, mine) : null!;
             if (mine.Count > 1)
-                clauseSteps.Accept((clause, pieces),
+                clauseSteps.Accept((clause, original[clause], pieces),
                     $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has {original[clause].Count} literals, so it is split into a chain of {mine.Count} clauses joined by the new {(mine.Count == 2 ? "variable" : "variables")} {GraphGroupFrames.And(mine.Skip(1).Select(t => target[t][2]).ToList())}: {string.Join(", ", mine.Select(t => $"C{t + 1} {GroupedGraphFrames.ClauseText(target[t])}"))}. Each new variable carries \"a literal further along is true\" from one clause of the chain to the next.");
             else if (padded.ContainsKey(clause))
-                clauseSteps.Accept((clause, pieces),
+                clauseSteps.Accept((clause, original[clause], pieces),
                     $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has {Words.Count(original[clause].Count, "literal")}, so {original[clause][0]} is repeated to fill three: {GroupedGraphFrames.ClauseText(target[clause])}. A repeated literal does not change the clause.");
             else
-                clauseSteps.Accept((clause, pieces),
+                clauseSteps.Accept((clause, original[clause], pieces),
                     $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(original[clause])} has three literals, so it stays as it is.");
         }
 

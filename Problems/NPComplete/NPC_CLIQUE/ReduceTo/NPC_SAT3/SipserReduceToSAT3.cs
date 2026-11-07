@@ -109,15 +109,15 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
 
     // How the construction steps show a clause: its nodes in the clique graph; the clause, its literals, the variables no
     // earlier clause mentions and the formula picture's edges it brings, added to 3SAT; and its gadgets. The state is
-    // (Clause, FirstGadget, Pieces): the clause's index, the index of its first gadget (its group, then one element per node),
-    // and those pieces.
-    private RunSteps<(int Clause, int FirstGadget, (List<string> Nodes, List<BuildEdge> Edges) Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
+    // (Mine, FirstGadget, Pieces): the clause's clique nodes, the index of its first gadget (its group, then one element per
+    // node), and those pieces.
+    private static RunSteps<(List<(string Node, string Literal, string LiteralId)> Mine, int FirstGadget, (List<string> Nodes, List<BuildEdge> Edges) Pieces), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
         // What the Reduction View shows: the clause's nodes, the pieces added, and the gadgets that made them.
         partial: s => new BuildDelta {
-            SourceFocus = _clauseNodes[s.Clause].Select(m => m.Node).ToArray(),
+            SourceFocus = s.Mine.Select(m => m.Node).ToArray(),
             Nodes = s.Pieces.Nodes.ToArray(),
             Edges = BuildEdge.Sorted(s.Pieces.Edges),
-            Gadgets = Enumerable.Range(s.FirstGadget, 1 + _clauseNodes[s.Clause].Count).ToArray(),
+            Gadgets = Enumerable.Range(s.FirstGadget, 1 + s.Mine.Count).ToArray(),
         },
         // The clause and its literals; the variables are not looked at.
         focus: s => s.Pieces.Nodes.Where(n => !n.StartsWith("v:", StringComparison.Ordinal)).ToArray());
@@ -146,31 +146,28 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
         string formula = string.Join(" & ", clauses);
         var sat3 = new API.Problems.NPComplete.NPC_SAT3.SAT3(formula);
 
-        // Each node is the literal it is written as, at its place in the clause (a literal repeated in a clause is its
-        // later occurrences, in order).
         var target = sat3.clauses;
         _clauseNodes = new();
-        int c = 0;
-        foreach (var lits in clauseMap.Values) {
+        var clauseSteps = NewClauseSteps(rec);
+        // The variables an earlier clause's step already added to the formula picture; made by the first step recorded, since
+        // only the picture reads it.
+        HashSet<string>? builtVariables = null;
+        // Then each clause, in suffix order: its nodes, its gadgets and its step.
+        int i = 0;
+        foreach (var (suffix, lits) in clauseMap) {
+            // Each node is the literal it is written as, at its place in the clause (a literal repeated in a clause is its
+            // later occurrences, in order).
             var seen = new Dictionary<string, int>(StringComparer.Ordinal);
-            var nodes = new List<(string, string, string)>();
+            var mine = new List<(string Node, string Literal, string LiteralId)>();
             foreach (var (node, literal) in lits) {
                 int nth = seen.TryGetValue(literal, out int n) ? n : 0;
                 seen[literal] = nth + 1;
-                var places = Enumerable.Range(0, target[c].Count).Where(j => target[c][j] == literal).ToList();
+                var places = Enumerable.Range(0, target[i].Count).Where(j => target[i][j] == literal).ToList();
                 int place = places.Count == 0 ? 0 : places[Math.Min(nth, places.Count - 1)];
-                nodes.Add((node, literal, GroupedGraphFrames.LiteralId(c, place)));
+                mine.Add((node, literal, GroupedGraphFrames.LiteralId(i, place)));
             }
-            _clauseNodes.Add(nodes);
-            c++;
-        }
+            _clauseNodes.Add(mine);
 
-        var clauseSteps = NewClauseSteps(rec);
-        var suffixes = clauseMap.Keys.ToList();
-        // The variables an earlier clause's step already added to the formula picture.
-        var builtVariables = new HashSet<string>(StringComparer.Ordinal);
-        for (int i = 0; i < _clauseNodes.Count; i++) {
-            var mine = _clauseNodes[i];
             var targetIds = GroupedGraphFrames.ClauseIds(i, target[i].Count).ToList();
             int firstGadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Group, mine.Select(m => m.Node).ToList(), targetIds,
@@ -181,13 +178,14 @@ class SipserReduceToSAT3 : IReversibleReduction<CLIQUE, API.Problems.NPComplete.
 
             // What the clause adds to the formula picture, worked out only when the steps are recorded: finding its edges
             // compares each of its literals with every earlier one, and only the picture needs them.
-            var pieces = rec.Enabled ? GroupedGraphFrames.ClausePieces(target, i, builtVariables) : default;
+            var pieces = rec.Enabled ? GroupedGraphFrames.ClausePieces(target, i, builtVariables ??= new(StringComparer.Ordinal)) : default;
             if (mine.Count == 1)
-                clauseSteps.Accept((i, firstGadget, pieces),
-                    $"Node {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph ends in _{suffixes[i]}, so it becomes clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffixes[i]}.");
+                clauseSteps.Accept((mine, firstGadget, pieces),
+                    $"Node {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph ends in _{suffix}, so it becomes clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffix}.");
             else
-                clauseSteps.Accept((i, firstGadget, pieces),
-                    $"Nodes {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph all end in _{suffixes[i]}, so they become clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffixes[i]}.");
+                clauseSteps.Accept((mine, firstGadget, pieces),
+                    $"Nodes {BuildCaptions.Names(mine.Select(m => m.Node).ToList())} of the clique graph all end in _{suffix}, so they become clause C{i + 1} {GroupedGraphFrames.ClauseText(target[i])}: each node is the literal written before its _{suffix}.");
+            i++;
         }
 
         // The closing step.
