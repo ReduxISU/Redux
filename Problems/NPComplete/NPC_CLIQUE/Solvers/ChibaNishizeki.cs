@@ -7,14 +7,18 @@ using System.Diagnostics;
 
 namespace API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 
-// The steps Chiba-Nishizeki records:
-//   - a Try for each start vertex, in descending degree order;
-//   - an Accept for each vertex added to the growing clique, saying how many vertices are joined to every member so far;
-//   - a Reject for a vertex the count rules out (too few vertices would be left to join it);
-//   - a Backtrack when it backs a vertex out, and when it drops a start vertex that no clique grows from;
-//   - the Done, with the clique or none.
-
-class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
+// The steps Chiba-Nishizeki records, for the Graph picture and the Search Tree picture alike:
+//   - a Try for each start vertex, in descending degree order (in the tree, a node "3" under the root, the solution when K
+//     is 1);
+//   - an Accept for each vertex added to the growing clique, saying how many vertices are joined to every member so far
+//     (in the tree, a node under the vertex added before it, the solution when it makes the clique K big);
+//   - a Reject for a vertex the count rules out (too few vertices would be left to join it): in the tree, a pruned node
+//     named after it, noted with the vertices left and needed ("1 left, 2 needed");
+//   - a Backtrack when it backs a vertex out, and when it drops a start vertex that no clique grows from (that node
+//     fails);
+//   - the Done, with the clique or none; it names the answer's path in the tree, root first, or marks the root failed.
+// In the tree, a node is a vertex started from or added, and its children are the vertices tried after it.
+class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Chiba-Nishizeki k-Clique Listing Algorithm";
@@ -40,16 +44,28 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
 
     }
 
-    // How the steps show the search: the clique grown so far, and the vertex the step is about.
-    private static RunSteps<(List<string> Clique, string Vertex), NodeSet> NewSteps(StepRecorder<NodeSet> rec) => new(rec,
+    // A step of the search: the clique grown so far, the vertex the step is about, and its search-tree node, at Depth (1
+    // for the start vertex, d for the d-th vertex of the clique), left in state Tree; for a vertex the count rules out,
+    // Left is how many vertices would be left to join it and Needed how many must.
+    private readonly record struct Move(List<string> Clique, string Vertex, int Depth, SearchNodeState Tree, int Left = 0, int Needed = 0);
+
+    // How the steps show a move. The search keeps its own tree (a "start" root, a vertex the count rules out as a pruned
+    // node, a vertex failed when it is backed out or dropped), so it gives RunSteps the tree node of each step rather than
+    // using SearchSteps.
+    private static RunSteps<Move, NodeSet> NewSteps(StepRecorder<NodeSet> rec, DepthFirstTree tree) => new(rec,
         // What every picture shows: the clique so far, and the vertex started from, added, skipped or backed out.
-        partial: s => new NodeSet(s.Clique),
-        focus: s => [s.Vertex]);
+        partial: m => new NodeSet(m.Clique),
+        focus: m => [m.Vertex],
+        // The Search Tree picture's node only: the vertex, noted with the vertices left and needed when the count rules it
+        // out.
+        tree: m => tree.Step(m.Depth, m.Vertex, m.Tree, m.Tree == SearchNodeState.Pruned ? $"{m.Left} left, {m.Needed} needed" : null));
 
     public string solve(CLIQUE clique) => Solve(clique, StepRecorder<NodeSet>.Off);
 
     public string Solve(CLIQUE clique, StepRecorder<NodeSet> rec) {
-        var steps = NewSteps(rec);
+        // A branch holds each vertex at most once.
+        var tree = new DepthFirstTree(clique.nodes.Count);
+        var steps = NewSteps(rec, tree);
 
         Dictionary<string, HashSet<string>> adj = BuildAdjacency(clique.nodes, clique.edges);
 
@@ -67,27 +83,30 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
             );
 
             List<string> partial = new List<string> { v };
-            steps.Try((partial, v), $"Start from {v}: look for a clique of size {clique.K} among its {laterNeighbors.Count} later neighbors.");
+            tree.Branch(1);
+            steps.Try(new(partial, v, 1, clique.K == 1 ? SearchNodeState.Solution : SearchNodeState.Explored),
+                $"Start from {v}: look for a clique of size {clique.K} among its {laterNeighbors.Count} later neighbors.");
             if (clique.K == 1) {
-                steps.Done(new NodeSet([v]), true, $"{{{v}}} is a clique of size 1.");
+                steps.Done(new NodeSet([v]), true, $"{{{v}}} is a clique of size 1.", tree: () => tree.AnswerPath(partial));
                 return "{" + v + "}";
             }
 
-            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj, steps);
+            HashSet<string>? found = FindClique(laterNeighbors, partial, clique.K - 1, adj, tree, steps);
             if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             if (found != null) {
-                steps.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.");
+                // The answer's path in the tree: the start vertex, then the vertices in the order added.
+                steps.Done(new NodeSet(found), true, $"{GraphSubsetFrames.Braces(found)} is a clique of size {clique.K}.", tree: () => tree.AnswerPath(partial));
                 return "{" + string.Join(",", found) + "}";
             }
 
             // Remove v from further consideration to avoid rediscovering cliques already ruled out.
             removed.Add(v);
             // Nothing is kept: the next start vertex begins a new clique.
-            steps.Backtrack((partial, v), $"No clique of size {clique.K} contains {v}. Remove it and move on.", partial: () => new NodeSet([]));
+            steps.Backtrack(new(partial, v, 1, SearchNodeState.Failed), $"No clique of size {clique.K} contains {v}. Remove it and move on.", partial: () => new NodeSet([]));
         }
 
-        steps.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.");
+        steps.Done(new NodeSet([]), false, $"No clique of size {clique.K} exists.", tree: () => tree.NoAnswer());
         return "{}";
     }
 
@@ -106,7 +125,7 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
     // extending 'partial' with the result if found.
     private HashSet<string>? FindClique(
         HashSet<string> candidates, List<string> partial, int remaining,
-        Dictionary<string, HashSet<string>> adj, RunSteps<(List<string> Clique, string Vertex), NodeSet> steps) {
+        Dictionary<string, HashSet<string>> adj, DepthFirstTree tree, RunSteps<Move, NodeSet> steps) {
 
         if (remaining == 0) {
             return new HashSet<string>(partial);
@@ -122,27 +141,33 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
             // Prune: not enough remaining candidates to complete the clique.
             // (Here remaining - 1 is at least 1, and when it is 1 no vertex is left, so "only ..." always goes with "are".)
             if (nextCandidates.Count < remaining - 1) {
+                // In the tree, the vertex is a dead end under the vertex added last.
+                tree.Branch(partial.Count + 1);
+                var skipped = new Move(partial, u, partial.Count + 1, SearchNodeState.Pruned, nextCandidates.Count, remaining - 1);
                 if (nextCandidates.Count == 0)
-                    steps.Reject((partial, u),
+                    steps.Reject(skipped,
                         $"Skip {u}: no vertex would be left to join it, but {remaining - 1} {(remaining - 1 == 1 ? "is" : "are")} needed.");
                 else
-                    steps.Reject((partial, u),
+                    steps.Reject(skipped,
                         $"Skip {u}: only {Words.Count(nextCandidates.Count, "vertex", "vertices")} would be left to join it, but {remaining - 1} are needed.");
                 continue;
             }
 
             partial.Add(u);
+            tree.Branch(partial.Count);
+            // In the tree, the vertex that makes the clique K big is the solution.
+            var added = new Move(partial, u, partial.Count, remaining == 1 ? SearchNodeState.Solution : SearchNodeState.Explored);
             if (nextCandidates.Count == 0)
-                steps.Accept((partial, u), $"Add {u} to the clique. No vertex is joined to every member so far.");
+                steps.Accept(added, $"Add {u} to the clique. No vertex is joined to every member so far.");
             else
-                steps.Accept((partial, u),
+                steps.Accept(added,
                     $"Add {u} to the clique. {Words.Count(nextCandidates.Count, "vertex", "vertices")} {(nextCandidates.Count == 1 ? "is" : "are")} joined to every member so far.");
-            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, steps);
+            HashSet<string>? result = FindClique(nextCandidates, partial, remaining - 1, adj, tree, steps);
             if (result != null) {
                 return result;
             }
             partial.RemoveAt(partial.Count - 1);
-            steps.Backtrack((partial, u), $"Back out {u}: the clique cannot be completed from here.");
+            steps.Backtrack(new(partial, u, partial.Count + 1, SearchNodeState.Failed), $"Back out {u}: the clique cannot be completed from here.");
         }
 
         return null;
