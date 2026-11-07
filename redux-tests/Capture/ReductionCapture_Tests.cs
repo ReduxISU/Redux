@@ -217,6 +217,24 @@ public class ReductionCapture_Tests : IClassFixture<AppFactory> {
             var numbers = ((API.Problems.NPComplete.NPC_PARTITION.PARTITION)red.reductionTo).S;
             return "{(" + numbers[^1] + "),(" + numbers[^2] + ")}";
         },
+        // Every variable False: a clause with only plain literals has no true literal, so none of its nodes joins the clique.
+        ["SipserReduceToSAT3"] = red => "(" + string.Join(",", API.Interfaces.Logic.CnfFormula.VariablesOf(((API.Problems.NPComplete.NPC_SAT3.SAT3)red.reductionTo).clauses).Select(v => v + ":False")) + ")",
+        // 2 for the first 0-1 variable, which is neither 0 nor 1, so it says nothing; 1 for the rest.
+        ["KarpIntProgStandard"] = red => "(" + string.Join(" ", Enumerable.Range(0, ((API.Problems.NPComplete.NPC_INTPROGRAMMING01.INTPROGRAMMING01)red.reductionTo).C[0].Count).Select(j => j == 0 ? "2" : "1")) + ")",
+        // Only the first triple of M: every wheel whose first spoke it does not cover says nothing.
+        ["GareyJohnson"] = red => "{{" + string.Join(",", ((API.Problems.NPComplete.NPC_DM3.DM3)red.reductionTo).M[0]) + "}}",
+        // The first variable's literal node with T's color, the second's with B's (neither T's nor F's) and every other
+        // literal node with none: one value read, then the two ways a node says nothing.
+        ["KarpReduceGRAPHCOLORING"] = red => {
+            var nodes = ((API.Problems.NPComplete.NPC_GRAPHCOLORING.GRAPHCOLORING)red.reductionTo).nodes;
+            var order = API.Interfaces.Logic.CnfFormula.VariablesOf(((API.Problems.NPComplete.NPC_SAT3.SAT3)red.reductionFrom).clauses);
+            string Node(string v) => nodes.Contains(v) ? v : "!" + v;
+            return "{{T," + Node(order[0]) + "},{F},{B" + (order.Count > 1 ? "," + Node(order[1]) : "") + "}}";
+        },
+        // Only the 3SAT formula's first variable: every other variable of the SAT formula is not given.
+        ["KarpSATToSAT3"] = red => "(" + API.Interfaces.Logic.CnfFormula.VariablesOf(((API.Problems.NPComplete.NPC_SAT3.SAT3)red.reductionTo).clauses)[0] + ":True)",
+        // Only the first variable True: the node it is about takes that color, and every other node gets no color.
+        ["KarpReduceSAT"] = red => "(" + string.Join(",", API.Interfaces.Logic.CnfFormula.VariablesOf(((API.Problems.NPComplete.NPC_SAT.SAT)red.reductionTo).clauses).Select((v, i) => v + (i == 0 ? ":True" : ":False"))) + ")",
     };
 
     private async Task<string> Post(string path, string instance) {
