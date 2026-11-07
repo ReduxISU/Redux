@@ -149,28 +149,123 @@ Be honest about what your method does. The worked example's `mapSolutions` is a 
 
 ### Step 5 (optional). Record construction steps
 
-A reduction can also tell the story of how it built the target, one step per gadget, in both problems' words ("Clause C2 (x1 | !x2 | x3) becomes nodes x1_1, !x2_1, x3_1"). The Reduction View plays these as its Build phase. Every reduction does it since #695; copy one of them (`SipserReduceToCliqueStandard` is the fullest for a graph target, `KarpIntProgStandard` the shortest for a table, `KarpVertexCoverToSetCover` for a set target, `LawlerKarp` for a directed one and `FengReduction` the shortest for a packing target).
+A reduction can also tell the story of how it built the target, one step per piece, in both problems' words ("Clause C2 (x1 | !x2 | x3) becomes nodes x1_1, !x2_1, x3_1"). The Reduction View plays these as its Build phase. Every reduction does it; copy one of them. [SipserReduceToCliqueStandard.cs](../../Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs) is the fullest for a graph target, [KarpIntProgStandard.cs](../../Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_INTPROGRAMMING01/KarpIntProgStandard.cs) the shortest for a table, [KarpVertexCoverToSetCover.cs](../../Problems/NPComplete/NPC_VERTEXCOVER/ReduceTo/NPC_SETCOVER/KarpVertexCoverToSetCover.cs) for a set target, [LawlerKarp.cs](../../Problems/NPComplete/NPC_VERTEXCOVER/ReduceTo/NPC_ARCSET/LawlerKarp.cs) for a directed one, [FengReduction.cs](../../Problems/NPComplete/NPC_SUBSETSUM/ReduceTo/NPC_KNAPSACK/FengReduction.cs) the shortest for a packing target, and [KarpReduceSAT.cs](../../Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_SAT/KarpReduceSAT.cs) for a formula target.
+
+The idea is the same as a solver's steps (see [adding-a-solver.md](adding-a-solver.md), Step 5): you already know the construction, so you add one line wherever it builds a piece. That line says the keyword and why, and the Reduction View gets its pictures for free.
+
+#### The wiring
 
 1. Implement `IRecordedReduction<FROM, TO>` next to your other interfaces.
-2. Move the body of `reduce()` into a private `Build(StepRecorder<BuildDelta> rec)` and make `reduce()` call `Build(StepRecorder<BuildDelta>.Off)`. `Build` starts with `gadgets.Clear()`, so calling `reduce()` again does not add a second copy of each gadget. Do the same for the constructor: a private one takes the recorder, the public ones pass `Off`. Implement `Rebuild(rec)` by constructing a fresh copy with the recorder and returning `new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps)`. Also add a public constructor `(string instance, StepRecorder<BuildDelta> rec)` that passes the recorder on: `/buildSteps` and `/reductionView` build your reduction with it, so one build gives both the reduction and its steps (a test checks every recorded reduction has it). The steps must come from the real build code. Do not write a second, parallel version of the construction to narrate it.
-3. Inside `Build`, call `rec.Accept(...)` for each piece you build and `rec.Reject(...)` for a piece the rule leaves out. End with `rec.Done(new BuildDelta { Bound = K }, true, caption)`. Every step is recorded; when there are more than 150 before Done, `BuildRun` keeps the first 150 and folds the rest into one step whose caption says they were combined, so replaying the steps always gives the whole target. Pass lambdas for the delta and the caption. Anything you must prepare in order to record (a list of ids, a bucket per pair) goes behind `if (rec.Enabled)`, so that recording off costs nothing.
-4. A step's delta (`BuildDelta`) holds only what that step **added**: the target `Nodes` and `Edges` (each a `new BuildEdge(u, v)`, which carries its two ends and the id the Graph picture gives that edge), the `Skipped` pairs (also `BuildEdge`s), the indices of the `Gadgets` it builds, and the `SourceFocus` ids it came from. Its `Focus` holds the target ids being looked at. Replaying the deltas in order must give exactly the target. Source ids use the gadget convention (graph nodes by name; formulas `c{i}`, `c{i}-{j}`, `v:{name}`).
-   "Nodes" and "edges" are the target picture's pieces, whatever it calls them, and every piece of its payload is added by exactly one step:
+2. Move the body of `reduce()` into a private `Build(StepRecorder<BuildDelta> rec)` and make `reduce()` call `Build(StepRecorder<BuildDelta>.Off)`. `Build` starts with `gadgets.Clear()`, so calling `reduce()` again does not add a second copy of each gadget. Do the same for the constructor: a private one takes the recorder, the public ones pass `Off`. Implement `Rebuild(rec)` by constructing a fresh copy with the recorder and returning `new ConstructionRun(copy.reductionTo, copy.gadgets, rec.Steps)`. Also add a public constructor `(string instance, StepRecorder<BuildDelta> rec)` that passes the recorder on: `/buildSteps` and `/reductionView` build your reduction with it, so one build gives both the reduction and its steps (a test checks every recorded reduction has it).
 
-   | Target picture | `Nodes` | `Edges` |
-   | --- | --- | --- |
-   | Graph | nodes | edges (`new BuildEdge(u, v)`) |
-   | Grouped Graph (SAT, 3SAT) | clauses `c{i}`, literals `c{i}-{j}`, variables `v:{name}` | complement and clause edges, with the picture's own id: `new BuildEdge(GroupedGraphFrames.EdgeId(a, b), a, b)` |
-   | Tripartite Matching (3DM) | elements `x{i}`, `y{i}`, `z{i}` and triples `T{i}` | none |
-   | Table (0-1 ILP) | rows `r{i}` and columns `c{j}` (their cells come with them) | none |
-   | Layered Graph (Feedback Arc Set, Feedback Node Set) | nodes, by `LayeredFrames.NodeId(name)` | arcs, `LayeredFrames.BuildArc(from, to)` (id `from>to`) |
-   | Bipartite Graph (Set Cover, Exact Cover) | elements `BipartiteFrames.ElementId(name)` and sets `S{i}` | memberships, `BipartiteFrames.BuildMembership(element, setIndex)` |
-   | Packing (Subset Sum, Knapsack, Partition) | items `PackingFrames.ItemId(i)` and containers `PackingFrames.ContainerId(c)` (Subset Sum's target, the knapsack, Partition's two sides) | none |
+#### The keywords in a build
 
-   A clause-by-clause CNF target can take each clause's pieces from `CnfPieces.ClausePieces`. Set Cover and Exact Cover read equal sets as one set, and the Bipartite Graph draws the sets as read, so name a set by its place among the sets the problem parses from your instance text (`new SETCOVER(instance).subsets`), not by its place in the text. Partition, Subset Sum and Knapsack are different: they keep every copy of a repeated number or item (#628), so a target whose numbers repeat is the one you built, and a picture names each copy by its place (`I1`, `I2`, ...). Read answers to them with `RepeatedElements.Parse` (or `PartitionVerifier.ReadSides` for Partition's two sides), not with a SPADE set, which keeps one copy. A target bound (K, T, W) goes in the step's `Bound`, which is an int: work numbers out in `long` and refuse an instance whose numbers do not fit with a `ReductionInputException` that says why (a 400), never a wrapped or rounded number (#829, #830).
+A construction judges nothing, so its keywords mean something narrower than a solver's:
 
-5. Every gadget in `gadgets` must be named by exactly one step (a step names its gadgets in `Gadgets`; the target ids a gadget lists must be in that step's focus or among the edges it adds), and each step needs a caption that says what happened in plain words. Keep steps to one per gadget or per pair or node, not per edge, so default instances stay under the cap.
-6. Test it the way `redux-tests/Reductions/BuildSteps_Tests.cs` does: the target built with recording equals the normal target, replaying the steps reproduces it, every gadget is named, and the ids are real. Add your reduction to the `/reduce` and `/gadgets` snapshot first, before touching the code.
+| Keyword | In a build it means | Typical step |
+| --- | --- | --- |
+| **Accept** | these pieces go into the target | a clause becomes its nodes, a node becomes its sets |
+| **Reject** | this piece adds nothing: the rule leaves it out | a pair of clauses whose literals all contradict, an edge already written the other way round |
+| **Done** | the closing step, with the bound when the target has one | K = the number of clauses |
+
+Do not use Try or Update in a build. The Reduction View and `ConstructionSteps.Combine` read an Accept as "added", and Update records a Try.
+
+#### What to change
+
+1. Say **once**, above `Build`, how a step shows each kind of piece. This is a **set-once block**: a `NewXSteps` method per kind of piece (`NewClauseSteps`, `NewNodeSteps`, `NewEdgeSteps`), each a `RunSteps<TState, BuildDelta>` with a `partial:` converter that turns the step's state into the `BuildDelta` it adds and a `focus:` converter for the target ids it looks at. Keep them in the reduction itself. Each has a comment that says what its state is, and a group comment that says what the Reduction View shows. From [SipserReduceToCliqueStandard.cs](../../Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs):
+
+   ```csharp
+   // How the construction steps show a clause: the clause and its literals in 3SAT, its nodes, and the gadgets that make them.
+   // The state is (Clause, FirstGadget): the clause's index, and the index of its first gadget (one element per literal,
+   // then its group).
+   private RunSteps<(int Clause, int FirstGadget), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec, List<string[]> clauseNodes,
+                                                                              int sameClauseRules) => new(rec,
+       // What the Reduction View shows: the clause and its literals, the nodes added, and the gadgets that made them (its
+       // elements and group, and the edge rule that leaves its nodes unjoined).
+       partial: s => new BuildDelta {
+           SourceFocus = Enumerable.Range(0, reductionFrom.clauses[s.Clause].Count).Select(j => "c" + s.Clause + "-" + j).Prepend("c" + s.Clause).ToArray(),
+           Nodes = clauseNodes[s.Clause],
+           Gadgets = Enumerable.Range(s.FirstGadget, reductionFrom.clauses[s.Clause].Count + 1).Append(sameClauseRules + s.Clause).ToArray(),
+       },
+       focus: s => clauseNodes[s.Clause]);
+   ```
+
+2. In the build, write **one line per piece, right where the piece is made**: the keyword, the state, then the why, written in full as `$"..."`:
+
+   ```csharp
+   gadgets.Add(new Gadget(GadgetKind.Group, new List<string>() { "c" + i }, nodesInClause));
+   clauseNodes.Add(nodesInClause.Distinct().ToArray());
+
+   clauseSteps.Accept((i, firstGadget),
+       $"Clause C{i + 1} ({string.Join(" | ", reductionFrom.clauses[i])}) becomes nodes {BuildCaptions.Names(clauseNodes[i])}, with no edges between them.");
+   ```
+
+   End with the Done on any of the reduction's `RunSteps` (they all record to `rec`): `clauseSteps.Done(new BuildDelta { Bound = K, Gadgets = [boundGadget] }, true, $"K = {K}, ...")`.
+
+3. **No second pass.** Do not build the target first and then walk over it again to narrate it. The steps must come from the real build code, so what is recorded is what is built. A fact a step needs that changes as the build goes (the variables an earlier step already added, the sets no earlier step named) is worked out in the loop, as the build goes, and passed in the state. Never work it out inside a converter: a converter runs later, when the build has moved on. [KarpGraphColorToExactCover.cs](../../Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_EXACTCOVER/KarpGraphColorToExactCover.cs) works out each node's new elements and sets for its gadget and records the node's step right there; [KarpSATToSAT3.cs](../../Problems/NPComplete/NPC_SAT/ReduceTo/NPC_SAT3/KarpSATToSAT3.cs) records each clause's step where the last of its gadgets is made.
+
+4. **Recording off costs nothing.** With `Off`, a step line formats no text and calls no converter. So most reductions have no `if (rec.Enabled)` at all. Use one only for a fact that only the picture needs and that costs real work to find, such as the edges a clause adds to a formula picture, which compares its literals with every earlier one. Then work it out only while recording and pass it in the state:
+
+   ```csharp
+   // What the clause adds to the formula picture, worked out only when the steps are recorded: finding its edges
+   // compares each of its literals with every earlier one, and only the picture needs them.
+   var pieces = rec.Enabled ? GroupedGraphFrames.ClausePieces(target, i, builtVariables) : default;
+   ```
+
+   The other use is a deferral like [KarpGraphColorToExactCover.cs](../../Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_EXACTCOVER/KarpGraphColorToExactCover.cs)'s: its gadgets are costly, so `reduce()` alone leaves them until they are asked for, and only a build that records works them out (with their steps) at once. Say why in a comment.
+
+5. **The why.** One sentence, written inline at the step line, with the facts the build already has (the reduction's own helpers stay; don't add private helpers that re-derive what the build knew). When the sentence changes by case, write one step line per case; one short `?:` that picks a word is fine. From [KarpReduceSAT.cs](../../Problems/NPComplete/NPC_GRAPHCOLORING/ReduceTo/NPC_SAT/KarpReduceSAT.cs):
+
+   ```csharp
+   if (count == 0)
+       edgeSteps.Reject((a, b, used, pieces), $"Edge {{{a},{b}}} was already written the other way round, so it adds no clause.");
+   else
+       edgeSteps.Accept((a, b, used, pieces),
+           $"Edge {{{a},{b}}} becomes {Words.Count(count, "clause")}, {BuildCaptions.Names(...)}: {a} and {b} never take the same color.");
+   ```
+
+   Write a caption as a sentence that says what happened, not as a label followed by details ("K = 3, ..."). Counts use `Words.Count` ("1 edge", "3 edges"); a list of names uses `BuildCaptions.Names`.
+
+6. **Comment it.** Put a header comment above the class that says what the reduction builds and which steps it records, and a step list above `Build`: each keyword and what it means for this reduction, and the gadgets in the order they are made.
+
+#### The delta
+
+A step's delta (`BuildDelta`) holds only what that step **added**: the target `Nodes` and `Edges` (each a `new BuildEdge(u, v)`, which carries its two ends and the id the Graph picture gives that edge), the `Skipped` pairs (also `BuildEdge`s), the indices of the `Gadgets` it builds, and the `SourceFocus` ids it came from. Its `Focus` holds the target ids being looked at. Replaying the deltas in order must give exactly the target. Source ids use the gadget convention (graph nodes by name; formulas `c{i}`, `c{i}-{j}`, `v:{name}`). Every step is recorded; when there are more than 150 before Done, `BuildRun` keeps the first 150 and folds the rest into one step whose caption says they were combined, so replaying the steps always gives the whole target.
+
+"Nodes" and "edges" are the target picture's pieces, whatever it calls them, and every piece of its payload is added by exactly one step:
+
+| Target picture | `Nodes` | `Edges` |
+| --- | --- | --- |
+| Graph | nodes | edges (`new BuildEdge(u, v)`) |
+| Grouped Graph (SAT, 3SAT) | clauses `c{i}`, literals `c{i}-{j}`, variables `v:{name}` | complement and clause edges, with the picture's own id: `new BuildEdge(GroupedGraphFrames.EdgeId(a, b), a, b)` |
+| Tripartite Matching (3DM) | elements `x{i}`, `y{i}`, `z{i}` and triples `T{i}` | none |
+| Table (0-1 ILP) | rows `r{i}` and columns `c{j}` (their cells come with them) | none |
+| Layered Graph (Feedback Arc Set, Feedback Node Set) | nodes, by `LayeredFrames.NodeId(name)` | arcs, `LayeredFrames.BuildArc(from, to)` (id `from>to`) |
+| Bipartite Graph (Set Cover, Exact Cover) | elements `BipartiteFrames.ElementId(name)` and sets `S{i}` | memberships, `BipartiteFrames.BuildMembership(element, setIndex)` |
+| Packing (Subset Sum, Knapsack, Partition) | items `PackingFrames.ItemId(i)` and containers `PackingFrames.ContainerId(c)` (Subset Sum's target, the knapsack, Partition's two sides) | none |
+
+A clause-by-clause CNF target can take each clause's pieces from `GroupedGraphFrames.ClausePieces`, and name a clause and its literals with `GroupedGraphFrames.ClauseIds`. Set Cover and Exact Cover read equal sets as one set, and the Bipartite Graph draws the sets as read, so name a set by its place among the sets the problem parses from your instance text (`new SETCOVER(instance).subsets`), not by its place in the text. Partition, Subset Sum and Knapsack are different: they keep every copy of a repeated number or item, so a target whose numbers repeat is the one you built, and a picture names each copy by its place (`I1`, `I2`, ...). Read answers to them with `RepeatedElements.Parse` (or `PartitionVerifier.ReadSides` for Partition's two sides), not with a SPADE set, which keeps one copy. A target bound (K, T, W) goes in the step's `Bound`, which is an int: work numbers out in `long` and refuse an instance whose numbers do not fit with a `ReductionInputException` that says why (a 400), never a wrapped or rounded number.
+
+#### The backward map's steps
+
+A reversible reduction's `MapBack` records its steps the same way. Say once, in a `NewMapSteps` block, how a step shows A's answer so far and the piece it is about; then write one line per piece of B's answer it reads: an **Accept** for a piece it puts into A's answer, a **Reject** for one it leaves out (a node past K, a value that says nothing). The caller adds the Done, with what A's verifier says. From [SipserReduceToCliqueStandard.cs](../../Problems/NPComplete/NPC_SAT3/ReduceTo/NPC_CLIQUE/SipserReduceToCliqueStandard.cs):
+
+```csharp
+// How the map-back steps show a node read: A's assignment so far, and the id the step is about.
+private static RunSteps<(Dictionary<string, string> Values, string Id), Assignment> NewMapSteps(StepRecorder<Assignment> rec) => new(rec,
+    // What every picture shows: the assignment so far, and the piece the step is about.
+    partial: s => new Assignment(s.Values),
+    focus: s => [s.Id]);
+...
+steps.Accept((values, node), $"Node {node} is in the clique, so {variable} = {word}.");
+```
+
+Put the map's step list in the comment above `MapBack`.
+
+#### Checks
+
+1. Every gadget in `gadgets` must be named by exactly one step (a step names its gadgets in `Gadgets`; the target ids a gadget lists must be in that step's focus or among the edges it adds), and each step needs a caption that says what happened in plain words. Keep steps to one per gadget or per pair or node, not per edge, so default instances stay under the cap.
+2. Test it the way `redux-tests/Reductions/BuildSteps_Tests.cs` does: the target built with recording equals the normal target, replaying the steps reproduces it, every gadget is named, and the ids are real. Add your reduction to the `/reduce` and `/gadgets` snapshot first, before touching the code.
 
 The endpoint is `POST /ProblemProvider/buildSteps?reduction=...` with the source instance as the body. A reduction without steps answers 400 `{"error":"no_build_steps"}`.
 
