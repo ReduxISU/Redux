@@ -16,8 +16,13 @@ namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.Solvers;
 //     Reject naming the first hop that is not an edge;
 //   - the Done, with the cycle or none.
 // Despite its name it is a backtracking search: it builds the path one edge at a time and backs out of dead ends, so
-// it is an IIncrementalSolver (its steps hold the path so far). It records no search tree, so it uses RunSteps.
-class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncrementalSolver {
+// it is an IIncrementalSolver (its steps hold the path so far).
+// The same steps draw the Search Tree picture. In the tree, a node is a node the path walks to ("3"), under the node
+// before it, and its children are the nodes tried next; the root's children are the nodes the tour starts at. A Try's or
+// an Accept's node is explored; a node with no edge to it from the one before is pruned ("no edge 2→3"); a node given up
+// in a Backtrack fails. The whole tour's step is about its last node: the solution when the verifier agrees, else pruned
+// with the first hop that is not an edge. The Done names the answer's path, root first, or marks the root failed.
+class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncrementalSolver, ISearchTreeSolver {
 
     // --- Fields ---
     public string solverName { get; } = "Directed Hamiltonian Brute Force";
@@ -55,13 +60,23 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
         return graph.edges.Any(e => e.Key == fromNode && e.Value == toNode);
     }
 
-    // How the steps show the search: the path so far (the first Length nodes of the order), and the node the step is
-    // about, with the edge it came by when From (the node before it) is given. The two steps about a whole tour show the
-    // closed tour and say their own focus.
-    private static RunSteps<(int Length, string Node, string? From), Tour> NewSteps(List<string> order, StepRecorder<Tour> rec) => new(rec,
+    // A step of the search: the path so far (the first Length nodes of the order), the node the step is about, with the
+    // edge it came by when From (the node before it) is given, and its search-tree node: the node at Depth of the order
+    // (order[Depth - 1]; Depth n for a whole tour), left in state Tree.
+    private readonly record struct Move(int Length, string Node, string? From, int Depth, SearchNodeState Tree);
+
+    // How the steps show a move. The two steps about a whole tour show the closed tour and say their own focus. The search
+    // keeps its own tree (a "start" root, a node with no edge to it as a pruned node, a node failed when it is given up), so
+    // it gives RunSteps the tree node of each step rather than using SearchSteps.
+    private RunSteps<Move, Tour> NewSteps(DIRECTEDHAMILTONIAN directedhamiltonian, List<string> order, StepRecorder<Tour> rec, DepthFirstTree tree) => new(rec,
         // What every picture shows: the path so far, and the node (and edge) the step is about.
-        partial: s => new Tour(order.Take(s.Length)),
-        focus: s => s.From == null ? [s.Node] : [s.Node, GraphTourFrames.EdgeId(true, s.From, s.Node)]);
+        partial: m => new Tour(order.Take(m.Length)),
+        focus: m => m.From == null ? [m.Node] : [m.Node, GraphTourFrames.EdgeId(true, m.From, m.Node)],
+        // The Search Tree picture's node only: the node walked to, noted with the hop that is not an edge when it is pruned
+        // (for a whole tour, the first such hop).
+        tree: m => tree.Step(m.Depth, order[m.Depth - 1], m.Tree, m.Tree != SearchNodeState.Pruned ? null
+            : m.Depth < order.Count ? $"no edge {order[m.Depth - 2]}→{order[m.Depth - 1]}"
+            : FirstMissingHop(directedhamiltonian, order) is { } hop ? $"no edge {hop.From}→{hop.To}" : null));
 
     public string solve(DIRECTEDHAMILTONIAN directedhamiltonian) => Solve(directedhamiltonian, StepRecorder<Tour>.Off);
 
@@ -69,38 +84,45 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
     // and the problem's own node list is left alone.
     public string Solve(DIRECTEDHAMILTONIAN directedhamiltonian, StepRecorder<Tour> rec) {
         var order = new List<string>(directedhamiltonian.nodes);
-        var steps = NewSteps(order, rec);
+        // A branch places each node once.
+        var tree = new DepthFirstTree(order.Count);
+        var steps = NewSteps(directedhamiltonian, order, rec, tree);
         int tried = 0;
-        string? answer = Search(directedhamiltonian, order, 0, steps, ref tried);
+        string? answer = Search(directedhamiltonian, order, 0, tree, steps, ref tried);
         if (answer != null) {
-            steps.Done(GraphTourFrames.ParseTour(answer), true, $"Found the Hamiltonian cycle {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)} after checking {tried} complete {(tried == 1 ? "tour" : "tours")}.");
+            // The answer's path in the tree: the nodes in the order the tour visits them (Search leaves the order so).
+            steps.Done(GraphTourFrames.ParseTour(answer), true, $"Found the Hamiltonian cycle {GraphTourFrames.Arrows(GraphTourFrames.ParseTour(answer).Order)} after checking {tried} complete {(tried == 1 ? "tour" : "tours")}.",
+                tree: () => tree.AnswerPath(order));
             return answer;
         }
         if (timerHasExpired) return SolveRun.TimedOutAnswer; // Search unwinds at the time limit
         if (order.Count == 0)
             steps.Done(new Tour([]), false, $"The graph has no nodes, so there is no cycle.");
         else
-            steps.Done(new Tour([]), false, $"No Hamiltonian cycle: every way of walking the edges was tried, and none visits every node once and returns to its start.");
+            steps.Done(new Tour([]), false, $"No Hamiltonian cycle: every way of walking the edges was tried, and none visits every node once and returns to its start.",
+                tree: () => tree.NoAnswer());
         return "{}";
     }
 
     // Places order[start], trying each node not yet on the path in turn (by swapping it into place), and goes on only
     // along an edge from the node before it. When one node is left, the whole tour, closing edge included, goes to the
     // verifier. Returns the tour's certificate, or null when no tour follows from the path so far.
-    private string? Search(DIRECTEDHAMILTONIAN directedhamiltonian, List<string> order, int start, RunSteps<(int Length, string Node, string? From), Tour> steps, ref int tried) {
+    private string? Search(DIRECTEDHAMILTONIAN directedhamiltonian, List<string> order, int start, DepthFirstTree tree, RunSteps<Move, Tour> steps, ref int tried) {
         // Unwind at the time limit (pruned branches can run long); Solve then returns the timed-out answer.
         if (timerHasExpired) return null;
         if (start == order.Count - 1) {
             tried++;
             string certificate = CombinationToCertificate(order);
+            // In the tree, the whole tour is its last node: the solution, or pruned at the hop that is not an edge.
+            tree.Branch(order.Count);
             if (directedhamiltonian.defaultVerifier.verify(directedhamiltonian, certificate)) {
-                steps.Accept((order.Count, order[0], null),
+                steps.Accept(new(order.Count, order[0], null, order.Count, SearchNodeState.Solution),
                     $"Close the tour {order[^1]} → {order[0]}: every node is visited once, so {GraphTourFrames.Arrows(order.Append(order[0]))} is a Hamiltonian cycle.",
                     focus: () => [order[^1], order[0]], partial: () => GraphTourFrames.ParseTour(certificate));
                 return certificate;
             }
             // The verifier only says no, so the hop that is not an edge is looked up for the step alone.
-            steps.Reject((order.Count, order[0], null),
+            steps.Reject(new(order.Count, order[0], null, order.Count, SearchNodeState.Pruned),
                 $"Try the tour {GraphTourFrames.Arrows(order.Append(order[0]))}: there is no edge from {FirstMissingHop(directedhamiltonian, order)?.From} to {FirstMissingHop(directedhamiltonian, order)?.To}.",
                 focus: () => FirstMissingHop(directedhamiltonian, order) is { } hop ? [hop.From, hop.To] : [], partial: () => GraphTourFrames.ParseTour(certificate));
             return null;
@@ -109,22 +131,24 @@ class DirectedHamiltonianBruteForce : ISolver<DIRECTEDHAMILTONIAN, Tour>, IIncre
             (order[start], order[i]) = (order[i], order[start]);
             string node = order[start];
 
+            tree.Branch(start + 1);
             if (start == 0) {
-                steps.Try((1, node, null), $"Start the tour at {node}.");
-                string? found = Search(directedhamiltonian, order, start + 1, steps, ref tried);
+                steps.Try(new(1, node, null, 1, SearchNodeState.Explored), $"Start the tour at {node}.");
+                string? found = Search(directedhamiltonian, order, start + 1, tree, steps, ref tried);
                 if (found != null) return found;
-                steps.Backtrack((0, node, null), $"Every tour that starts at {node} fails.");
+                steps.Backtrack(new(0, node, null, 1, SearchNodeState.Failed), $"Every tour that starts at {node} fails.");
             }
             // Early pruning: check the edge between the last node in the partial path and the current node.
             else if (HasEdge(directedhamiltonian, order[start - 1], node)) {
                 string previous = order[start - 1];
-                steps.Accept((start + 1, node, previous), $"Go {previous} → {node}: the path is {GraphTourFrames.Arrows(order.Take(start + 1))}.");
-                string? found = Search(directedhamiltonian, order, start + 1, steps, ref tried);
+                steps.Accept(new(start + 1, node, previous, start + 1, SearchNodeState.Explored), $"Go {previous} → {node}: the path is {GraphTourFrames.Arrows(order.Take(start + 1))}.");
+                string? found = Search(directedhamiltonian, order, start + 1, tree, steps, ref tried);
                 if (found != null) return found;
-                steps.Backtrack((start, previous, null), $"Every way on from {node} fails: back up to {previous}.");
+                steps.Backtrack(new(start, previous, null, start + 1, SearchNodeState.Failed), $"Every way on from {node} fails: back up to {previous}.");
             } else {
                 string previous = order[start - 1];
-                steps.Reject((start + 1, node, null), $"There is no edge from {previous} to {node}, so {node} can't come after {previous}.");
+                // In the tree, the node is a dead end under the node before it.
+                steps.Reject(new(start + 1, node, null, start + 1, SearchNodeState.Pruned), $"There is no edge from {previous} to {node}, so {node} can't come after {previous}.");
             }
 
             (order[start], order[i]) = (order[i], order[start]);
