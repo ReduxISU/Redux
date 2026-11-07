@@ -11,6 +11,11 @@ using API.Problems.NPComplete.NPC_DM3.Solvers;
 
 namespace API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_DM3;
 
+// Garey and Johnson's 3SAT to 3-Dimensional Matching: each variable becomes a wheel whose triples take either every z_v
+// marker or every z_!v marker (its value), each clause an x, y pair with one triple per literal through a marker that is
+// free only when the literal is true, and garbage-collection pairs soak up the markers no clause takes. It records the
+// construction steps (one per variable, one per clause, one for the garbage collection, then the Done; see Build) and the
+// backward map's steps (one per variable read; see MapBack).
 class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduction<SAT3, DM3> {
 
     // --- Fields ---
@@ -77,7 +82,7 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
     public GareyJohnson() : this(new SAT3()) { }
 
     /// <summary>
-    /// The gadgets (#693), in the Tripartite Matching picture's ids (the i-th element of X, Y and Z is x{i}, y{i}, z{i}; the
+    /// The gadgets, in the Tripartite Matching picture's ids (the i-th element of X, Y and Z is x{i}, y{i}, z{i}; the
     /// i-th triple of M is T{i}): one wheel per variable (a group: its elements and triples, built from the variable and every
     /// occurrence of it), one OR gadget per clause (its x and y elements and one triple per literal), one element per literal
     /// occurrence (the z element it takes and its triple), and the garbage collection (a palette: the pairs that soak up the
@@ -97,9 +102,39 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
 
     public DM3 reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per variable (its wheel), one per clause (its OR gadget), one for the
-    // garbage collection, then Done. Each records the positions reduce() gives its pieces as it adds them, so what is recorded
-    // is what is built.
+    // How the construction steps show a wheel: the variable in 3SAT, the wheel's elements and triples added to the matching,
+    // and its gadget. The state is (VariableId, Pieces, Gadget): the variable's id in the formula picture, the ids of the
+    // elements and triples added (elements first), and its gadget's index.
+    private static RunSteps<(string VariableId, List<string> Pieces, int Gadget), BuildDelta> NewWheelSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the variable, the pieces added, and the gadget.
+        partial: s => new BuildDelta { SourceFocus = [s.VariableId], Nodes = s.Pieces.ToArray(), Gadgets = [s.Gadget] },
+        focus: s => s.Pieces.ToArray());
+
+    // How the construction steps show a clause: the clause and its literals in 3SAT, its elements and triples added to the
+    // matching, and its gadgets. The state is (SourceIds, Pieces, FirstGadget, Takes): the clause's and its literals' ids, the
+    // ids of the elements and triples added (elements first), the index of its first gadget (its OR gadget, then one element
+    // per literal that takes a marker), and how many literals take one.
+    private static RunSteps<(string[] SourceIds, List<string> Pieces, int FirstGadget, int Takes), BuildDelta> NewClauseSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the clause, the pieces added, and the gadgets that made them.
+        partial: s => new BuildDelta { SourceFocus = s.SourceIds, Nodes = s.Pieces.ToArray(), Gadgets = Enumerable.Range(s.FirstGadget, 1 + s.Takes).ToArray() },
+        focus: s => s.Pieces.ToArray());
+
+    // How the construction steps show the garbage collection: its elements and triples added to the matching, and its gadget.
+    // The state is (Pieces, Gadget): the ids of the elements and triples added (elements first), and its gadget's index.
+    private static RunSteps<(List<string> Pieces, int Gadget), BuildDelta> NewGarbageSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the pieces added, and the gadget.
+        partial: s => new BuildDelta { Nodes = s.Pieces.ToArray(), Gadgets = [s.Gadget] },
+        focus: s => s.Pieces.ToArray());
+
+    // Builds the matching instance, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per variable: its wheel, one spoke per occurrence;
+    //   - an Accept per clause: its x, y pair and one triple per literal through a marker;
+    //   - an Accept for the garbage collection, when there is any: the pairs that soak up the markers no clause takes;
+    //   - the Done: a perfect matching exists exactly when the formula can be satisfied.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". Each step names the pieces added
+    // since the one before, at the positions reduce() gives them, so what is recorded is what is built.
+    // Gadgets: a group per variable (its wheel), then per clause an OR gadget and an element per literal that takes a marker,
+    // then the garbage collection's palette.
     private DM3 Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -123,6 +158,10 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             return (elements, triples);
         }
 
+        var wheelSteps = NewWheelSteps(rec);
+        var clauseSteps = NewClauseSteps(rec);
+        var garbageSteps = NewGarbageSteps(rec);
+
         List<string> variables = new List<string>();
 
         //Creates a list of variable from the list of literals- may need updated if SAT3 is changed to
@@ -142,25 +181,17 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
                 M.Add(new List<string> { X[X.Count - 1], Y[Y.Count - 1], Z[Z.Count - 1] });
                 Z.Add("z_" + "!" + literal + "_" + i.ToString());
                 // The next spoke's y (Garey and Johnson's a[j+1]): a shift of 1 makes the wheel one cycle, so every spoke
-                // takes the same value. A shift of 2 split a wheel of an even size into two halves that could disagree (#819).
+                // takes the same value. A shift of 2 split a wheel of an even size into two halves that could disagree.
                 M.Add(new List<string> { X[X.Count - 1], "y_" + literal + "_" + ((i + 1) % count).ToString(), Z[Z.Count - 1] });
             }
             var (elements, triples) = Added();
+            var pieces = elements.Concat(triples).ToList();
             string variableId = GroupedGraphFrames.VariableId(literal);
             int index = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { variableId }.Concat(GroupedGraphFrames.OccurrenceIds(SAT3Instance.clauses, literal)).ToList(),
-                elements.Concat(triples).ToList()));
-            if (rec.Enabled) {
-                string variable = literal;
-                int spokes = count;
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = [variableId], Nodes = elements.Concat(triples).ToArray(), Gadgets = [index] },
-                    () => $"Variable {variable} occurs {Words.Count(spokes, "time")}, so it becomes a wheel of {Words.Count(spokes, "spoke")}: "
-                        + $"x_{variable}_i and y_{variable}_i, the markers z_{variable}_i and z_!{variable}_i, and {Words.Count(2 * spokes, "triple")}. "
-                        + $"Covering the x's and y's takes either every z_{variable} marker or every z_!{variable} marker, so the wheel picks one value for {variable}: "
-                        + $"it leaves the z_{variable} markers free for clauses with {variable} when {variable} is True, the z_!{variable} markers when it is False.",
-                    elements.Concat(triples).ToArray());
-            }
+                pieces));
+            wheelSteps.Accept((variableId, pieces, index),
+                $"Variable {literal} occurs {Words.Count(count, "time")}, so it becomes a wheel of {Words.Count(count, "spoke")}: x_{literal}_i and y_{literal}_i, the markers z_{literal}_i and z_!{literal}_i, and {Words.Count(2 * count, "triple")}. Covering the x's and y's takes either every z_{literal} marker or every z_!{literal} marker, so the wheel picks one value for {literal}: it leaves the z_{literal} markers free for clauses with {literal} when {literal} is True, the z_!{literal} markers when it is False.");
         }
         // clause gadget
         List<string> unusedLiterals = new List<string>(Z);
@@ -184,19 +215,13 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
             List<string> literals = SAT3Instance.clauses[clause];
             string[] sourceIds = GroupedGraphFrames.ClauseIds(clause, literals.Count);
             // The clause's own elements (x_clause, y_clause) come first, then its triples.
-            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), elements.Concat(triples).ToList()));
+            var pieces = elements.Concat(triples).ToList();
+            gadgets.Add(new Gadget(GadgetKind.OrGadget, new List<string>(sourceIds), pieces));
             foreach (var take in takes)
                 gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { GroupedGraphFrames.LiteralId(clause, take.Position) },
                     new List<string> { TripartiteFrames.ZId(Z.IndexOf(take.Z)), TripartiteFrames.TripleId(take.Triple) }));
-            if (rec.Enabled) {
-                int[] gadgetIdx = Enumerable.Range(firstGadget, gadgets.Count - firstGadget).ToArray();
-                var markers = takes.Select(t => t.Z).ToList();
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = sourceIds, Nodes = elements.Concat(triples).ToArray(), Gadgets = gadgetIdx },
-                    () => $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, "
-                        + $"through {TripartiteFrames.AndList(markers)}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.",
-                    elements.Concat(triples).ToArray());
-            }
+            clauseSteps.Accept((sourceIds, pieces, firstGadget, takes.Count),
+                $"Clause C{clause + 1} {GroupedGraphFrames.ClauseText(literals)} becomes x_clause_{clause} and y_clause{clause} with one triple per literal, through {TripartiteFrames.AndList(takes.Select(t => t.Z).ToList())}. Covering x_clause_{clause} takes one of those markers, and a marker is only free when its literal is true.");
         }
         // gaebage gadget
         for (int i = 0; i < SAT3Instance.literals.Count() - SAT3Instance.clauses.Count(); i++) {
@@ -209,20 +234,15 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
         int pairs = SAT3Instance.literals.Count() - SAT3Instance.clauses.Count();
         if (pairs > 0) {
             var (elements, triples) = Added();
+            var pieces = elements.Concat(triples).ToList();
             int index = gadgets.Count;
-            gadgets.Add(new Gadget(GadgetKind.Palette, new List<string>(), elements.Concat(triples).ToList(),
+            gadgets.Add(new Gadget(GadgetKind.Palette, new List<string>(), pieces,
                 note: "Garbage collection: one x, y pair for each occurrence beyond the number of clauses, each with a triple to every z, to cover the markers no clause takes."));
-            if (rec.Enabled) {
-                int occurrences = SAT3Instance.literals.Count, zs = Z.Count;
-                rec.Accept(
-                    () => new BuildDelta { Nodes = elements.Concat(triples).ToArray(), Gadgets = [index] },
-                    () => $"Garbage collection: {Words.Count(pairs, "pair")} x_garb_i and y_garb_i, each with a triple to every one of the {zs} z elements. "
-                        + $"The wheels take half of the z's and the clauses one each, so {occurrences} − {SAT3Instance.clauses.Count} = {pairs} are left for these pairs to soak up.",
-                    elements.Concat(triples).ToArray());
-            }
+            garbageSteps.Accept((pieces, index),
+                $"Garbage collection: {Words.Count(pairs, "pair")} x_garb_i and y_garb_i, each with a triple to every one of the {Z.Count} z elements. The wheels take half of the z's and the clauses one each, so {SAT3Instance.literals.Count} − {SAT3Instance.clauses.Count} = {pairs} are left for these pairs to soak up.");
         }
 
-        // A DM3 instance starts with its three sets, {X}{Y}{Z}, and then lists M's triples (#807).
+        // A DM3 instance starts with its three sets, {X}{Y}{Z}, and then lists M's triples.
         instance = "{" + string.Join(",", X) + "}{" + string.Join(",", Y) + "}{" + string.Join(",", Z) + "}";
         foreach (var i in M) {
             instance += "{";
@@ -238,9 +258,9 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
         reduced3DM.M = M;
         reduced3DM.instance = instance;
 
-        rec.Done(new BuildDelta(), true,
-            $"{Words.Count(X.Count, "element")} in each of X, Y and Z and {Words.Count(M.Count, "triple")}: "
-            + "some triples cover every element exactly once exactly when the formula can be satisfied.");
+        // The closing step, on any of the recorders (they all record to rec).
+        wheelSteps.Done(new BuildDelta(), true,
+            $"{Words.Count(X.Count, "element")} in each of X, Y and Z and {Words.Count(M.Count, "triple")}: some triples cover every element exactly once exactly when the formula can be satisfied.");
 
         // Redux_GUI reads the legacy ids: the formula's pieces in its own words ("0", "0-1"), the target's as they are.
         foreach (Gadget g in gadgets) g.reductionFromIds = GroupedGraphFrames.LegacyIds(g.sourceIds, SAT3Instance.clauses);
@@ -249,14 +269,14 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
 
     /// <summary>
     /// Whether <paramref name="z"/> is one of <paramref name="literal"/>'s own Z elements, <c>z_&lt;literal&gt;_&lt;k&gt;</c>. A
-    /// substring test also matched every variable whose name starts with the literal (x1 took z_x10_0, a took z_a_1_0, #820).
+    /// substring test also matched every variable whose name starts with the literal (x1 took z_x10_0, a took z_a_1_0).
     /// </summary>
     private static bool IsElementOf(string z, string literal) {
         string prefix = "z_" + literal + "_";
         return z.StartsWith(prefix, StringComparison.Ordinal) && z.Length > prefix.Length && z[prefix.Length..].All(char.IsAsciiDigit);
     }
 
-    // The Reduction View runs the backtracking solver on the target by default (#814): the default formula's matching picks 18 of 135 triples, past what the brute force (3-Dimensional Matching's default solver) finishes within the view's
+    // The Reduction View runs the backtracking solver on the target by default: the default formula's matching picks 18 of 135 triples, past what the brute force (3-Dimensional Matching's default solver) finishes within the view's
     // 10 s limit, and the backtracking solves it in milliseconds. /solve and the target's own default solver are unchanged.
     public ISolver? ReductionViewSolver() => new ThreeDimensionalMatchingBacktracking();
 
@@ -364,35 +384,44 @@ class GareyJohnson : IReversibleReduction<SAT3, DM3, Assignment>, IRecordedReduc
     // "{}" as B's answer is no matching (X is never empty here), so it keeps the default: no answer. A's answer is an
     // assignment, never "{}".
 
-    /// <summary>
-    /// Backward map (#693): a perfect matching to an assignment. A wheel takes every z_v marker or every z_!v marker (#819),
-    /// so each variable is read off its first spoke, x_v_0: the triple that covers it is (x_v_0, y_v_0, z_v_0), which takes the
-    /// z_v markers and leaves the z_!v ones for the clauses (v = False), or (x_v_0, y_v_1, z_!v_0), which leaves the z_v
-    /// markers (v = True). Variables are read in the order the formula first mentions them. A spoke no triple of the answer
-    /// covers says nothing: the variable is set to False and the step is a Reject; the Done step then reports what 3SAT's
-    /// verifier says.
-    /// </summary>
+    // How the map-back steps show a variable read: the assignment so far, and the id the step is about (the triple that covers
+    // the wheel's first spoke, or the spoke when none does).
+    private static RunSteps<string, Assignment> NewMapSteps(StepRecorder<Assignment> rec, Dictionary<string, bool> values) => new(rec,
+        // What every picture shows: the assignment so far, and the piece the step is about.
+        partial: _ => GroupedGraphFrames.ToAssignment(values),
+        focus: id => [id]);
+
+    // Backward map: a perfect matching to an assignment. A wheel takes every z_v marker or every z_!v marker, so each variable
+    // is read off its first spoke, x_v_0: the triple that covers it is (x_v_0, y_v_0, z_v_0), which takes the z_v markers and
+    // leaves the z_!v ones for the clauses (v = False), or (x_v_0, y_v_1, z_!v_0), which leaves the z_v markers (v = True).
+    // Variables are read in the order the formula first mentions them. 3SAT's verifier decides whether the assignment
+    // satisfies the formula.
+    // Its steps: an Accept per variable whose first spoke a triple of the matching covers (the variable takes the value it
+    // says), and a Reject per variable whose first spoke none covers (it says nothing, and the variable is set to False). The
+    // caller adds the Done.
     public (string Answer, Assignment Partial) MapBack(string problemToSolution, StepRecorder<Assignment> rec) {
         List<int> chosen = ReadMatching(problemToSolution);
         var values = new Dictionary<string, bool>();
+        var steps = NewMapSteps(rec, values);
         var order = CnfFormula.VariablesOf(reductionFrom.clauses);
         foreach (string variable in order) {
             string spoke = "x_" + variable + "_0";
             int t = chosen.FirstOrDefault(k => reductionTo.M[k][0] == spoke, -1);
             if (t < 0) {
                 values[variable] = false;
-                rec.Reject(() => GroupedGraphFrames.ToAssignment(values),
-                    () => $"No triple of the matching covers {spoke}, so {variable}'s wheel says nothing: {variable} = False.",
-                    TripartiteFrames.XId(reductionTo.X.IndexOf(spoke)));
+                steps.Reject(TripartiteFrames.XId(reductionTo.X.IndexOf(spoke)),
+                    $"No triple of the matching covers {spoke}, so {variable}'s wheel says nothing: {variable} = False.");
                 continue;
             }
             var triple = reductionTo.M[t];
             bool value = triple[2] == "z_!" + variable + "_0";
             values[variable] = value;
-            rec.Accept(() => GroupedGraphFrames.ToAssignment(values),
-                () => $"{TripartiteFrames.TripleId(t)} ({string.Join(", ", triple)}) is in the matching: {variable}'s wheel takes its z_{(value ? "!" : "")}{variable} markers "
-                    + $"and leaves the z_{(value ? "" : "!")}{variable} ones for the clauses, so {variable} = {Assignment.Word(value)}.",
-                TripartiteFrames.TripleId(t));
+            if (value)
+                steps.Accept(TripartiteFrames.TripleId(t),
+                    $"{TripartiteFrames.TripleId(t)} ({string.Join(", ", triple)}) is in the matching: {variable}'s wheel takes its z_!{variable} markers and leaves the z_{variable} ones for the clauses, so {variable} = True.");
+            else
+                steps.Accept(TripartiteFrames.TripleId(t),
+                    $"{TripartiteFrames.TripleId(t)} ({string.Join(", ", triple)}) is in the matching: {variable}'s wheel takes its z_{variable} markers and leaves the z_!{variable} ones for the clauses, so {variable} = False.");
         }
         return (SAT.Certificate(order, values), GroupedGraphFrames.ToAssignment(values));
     }
