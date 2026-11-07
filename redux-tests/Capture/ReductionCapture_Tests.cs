@@ -199,6 +199,17 @@ public class ReductionCapture_Tests : IClassFixture<AppFactory> {
     private static readonly Dictionary<string, Func<IReduction, string>> WrongAnswers = new() {
         // Every node of the clique graph: two nodes of one clause, and contradicting literals, so later nodes are ignored.
         ["SipserReduceToCliqueStandard"] = red => "{" + string.Join(",", ((API.Problems.NPComplete.NPC_CLIQUE.CLIQUE)red.reductionTo).nodes) + "}",
+        // Every node of the complement graph: a clique larger than K, so the nodes past K are left out.
+        ["reduceToCLIQUE"] = red => "{" + string.Join(",", ((API.Problems.NPComplete.NPC_CLIQUE.CLIQUE)red.reductionTo).nodes) + "}",
+        // A cover of one node, smaller than N - K: more than K nodes are outside it, so the ones past K are left out.
+        ["sipserReductionVertexCover"] = red => "{" + string.Join(",", ((API.Problems.NPComplete.NPC_VERTEXCOVER.VERTEXCOVER)red.reductionTo).nodes.Take(1)) + "}",
+        // Every arc: each node's own arc and each edge's arcs, so an edge's arc names a node already in the cover.
+        ["LawlerKarp"] = red => {
+            var cover = (API.Problems.NPComplete.NPC_VERTEXCOVER.VERTEXCOVER)red.reductionFrom;
+            return "{" + string.Join(",", cover.nodes.Select(n => $"({n}0,{n}1)").Concat(cover.edges.Select(e => $"({e.Key}1,{e.Value}0)"))) + "}";
+        },
+        // One clique of one node: every other node is in no clique, so it gets no color.
+        ["GraphColoringToCliqueCover"] = red => "{{" + string.Join(",", ((API.Problems.NPComplete.NPC_CLIQUECOVER.CLIQUECOVER)red.reductionTo).nodes.Take(1)) + "}}",
     };
 
     private async Task<string> Post(string path, string instance) {
