@@ -12,6 +12,9 @@ using System.Collections;
 
 namespace API.Problems.NPComplete.NPC_VERTEXCOVER.ReduceTo.NPC_ARCSET;
 
+// Lawler and Karp's Vertex Cover to Feedback Arc Set: each node u becomes two nodes u0 and u1 joined by the arc u0 -> u1,
+// each edge {u,v} the arcs u1 -> v0 and v1 -> u0, and K stays the same. It records the construction steps (one per node,
+// one per edge, then K; see Build) and the backward map's steps (one per arc of the answer; see MapBack).
 class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecordedReduction<VERTEXCOVER, ARCSET> {
 
 
@@ -94,15 +97,44 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
     /// </returns>
     public ARCSET reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per node (its two nodes and the arc between them), one per edge (its
-    // two arcs), then K. Gadgets (#694): an element per node and per edge, and the bound.
+    // How the construction steps show a node: the node in the graph, its two nodes u0 and u1 and the arc u0 -> u1, and the
+    // gadget that makes them. The state is (Name, Gadget): the node, and its gadget's index.
+    private static RunSteps<(string Name, int Gadget), BuildDelta> NewNodeSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the node, the two nodes and the arc added, and their gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = [s.Name],
+            Nodes = [LayeredFrames.NodeId(s.Name + "0"), LayeredFrames.NodeId(s.Name + "1")],
+            Edges = [LayeredFrames.BuildArc(s.Name + "0", s.Name + "1")],
+            Gadgets = [s.Gadget],
+        },
+        focus: s => [LayeredFrames.NodeId(s.Name + "0"), LayeredFrames.NodeId(s.Name + "1")]);
+
+    // How the construction steps show an edge: the edge and its ends in the graph (a loop, just its node), its arcs, and the
+    // gadget that makes them. The state is (U, V, Gadget, Arcs): the edge's ends, its gadget's index, and its arcs u1 -> v0
+    // and v1 -> u0 (one arc for a loop).
+    private static RunSteps<(string U, string V, int Gadget, BuildEdge[] Arcs), BuildDelta> NewEdgeSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the edge, the arcs added, and their gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = s.U == s.V ? [s.U] : [GraphSubsetFrames.EdgeId(s.U, s.V), s.U, s.V],
+            Edges = BuildEdge.Sorted(s.Arcs),
+            Gadgets = [s.Gadget],
+        },
+        focus: s => s.Arcs.SelectMany(a => new[] { a.A, a.B }).Distinct(StringComparer.Ordinal).ToArray());
+
+    // Builds the directed graph, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per node: it becomes two nodes and the arc between them;
+    //   - an Accept per edge: it becomes two arcs that close a cycle through both ends' arcs (a loop, one arc);
+    //   - the Done: K stays the same.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: an element per node and per edge, then the bound (K unchanged).
     private ARCSET Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
         _arcOrigin.Clear();
         VERTEXCOVER vertexcover = new VERTEXCOVER(_reductionFrom.instance);
         List<Node> newNodes = new List<Node>();
-        var nodeNames = new List<string>();
+        var nodeSteps = NewNodeSteps(rec);
         foreach (UtilCollection n in vertexcover.graph.Nodes) {
             string name = n.ToString();
             Node newNode1 = new Node(name);
@@ -111,11 +143,13 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
             newNode2.name = name + "1";
             newNodes.Add(newNode1);
             newNodes.Add(newNode2);
-            nodeNames.Add(name);
             _arcOrigin[LayeredFrames.ArcId(name + "0", name + "1")] = (name, null);
+            int index = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string>() { name.ToString() },
                 new List<string>() { LayeredFrames.NodeId(name + "0"), LayeredFrames.NodeId(name + "1"), LayeredFrames.ArcId(name + "0", name + "1") },
                 legacyToIds: new List<string>() { name + "0", name + "1" }));
+            nodeSteps.Accept((name, index),
+                $"Node {name} becomes two nodes, {name}0 and {name}1, joined by the arc {name}0 → {name}1. Removing that arc is how the arc set picks {name}.");
         }
 
         //Turn undirected edges into paired directed edges.
@@ -167,8 +201,9 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
         string toStr = "(({" + nodeListStr + "}" + ",{" + edgeListStr + "}" + ")," + vertexcover.K + ")";
         ARCSET arcset = new ARCSET(toStr);
 
-        // An element per edge (listed once, either way round): the edge to its two arcs, u1 -> v0 and v1 -> u0.
-        var edgeGadget = new List<(string U, string V, int Gadget, BuildEdge[] Arcs)>();
+        // An element per edge (listed once, either way round): the edge to its two arcs, u1 -> v0 and v1 -> u0. Each edge is
+        // then one step.
+        var edgeSteps = NewEdgeSteps(rec);
         var seenEdges = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (u, v) in edgePairs) {
             string sourceId = u == v ? u : GraphSubsetFrames.EdgeId(u, v);
@@ -176,37 +211,23 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
             var arcs = new[] { LayeredFrames.BuildArc(u + "1", v + "0"), LayeredFrames.BuildArc(v + "1", u + "0") }.DistinctBy(a => a.Id).ToArray();
             _arcOrigin.TryAdd(arcs[0].Id, (u, v));
             if (arcs.Length > 1) _arcOrigin.TryAdd(arcs[1].Id, (v, u));
-            edgeGadget.Add((u, v, gadgets.Count, arcs));
+            int index = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { sourceId }, arcs.Select(a => a.Id).ToList()));
+            if (u == v)
+                edgeSteps.Accept((u, v, index, arcs),
+                    $"Edge {{{u},{u}}} is a loop: it becomes the arc {u}1 → {u}0, closing the cycle {u}0 → {u}1 → {u}0, which only removing {u}0 → {u}1 breaks, as only {u} covers the loop.");
+            else
+                edgeSteps.Accept((u, v, index, arcs),
+                    $"Edge {{{u},{v}}} becomes the arcs {u}1 → {v}0 and {v}1 → {u}0, closing the cycle {u}0 → {u}1 → {v}0 → {v}1 → {u}0. Removing {u}0 → {u}1 or {v}0 → {v}1 breaks it, as {u} or {v} covers the edge.");
         }
+        // Then the bound: K stays the same. The directed graph has no piece of its own for it.
         int bound = gadgets.Count;
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string>(), new List<string>(), note: $"K stays {vertexcover.K}"));
 
-        if (rec.Enabled) {
-            for (int i = 0; i < nodeNames.Count; i++) {
-                string name = nodeNames[i];
-                int index = i;
-                string[] nodes = [LayeredFrames.NodeId(name + "0"), LayeredFrames.NodeId(name + "1")];
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = [name], Nodes = nodes, Edges = [LayeredFrames.BuildArc(name + "0", name + "1")], Gadgets = [index] },
-                    () => $"Node {name} becomes two nodes, {name}0 and {name}1, joined by the arc {name}0 → {name}1. Removing that arc is how the arc set picks {name}.",
-                    nodes);
-            }
-            foreach (var (u, v, index, arcs) in edgeGadget) {
-                string[] focus = arcs.SelectMany(a => new[] { a.A, a.B }).Distinct(StringComparer.Ordinal).ToArray();
-                string[] sourceFocus = u == v ? [u] : [GraphSubsetFrames.EdgeId(u, v), u, v];
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = sourceFocus, Edges = BuildEdge.Sorted(arcs), Gadgets = [index] },
-                    () => u == v
-                        ? $"Edge {{{u},{u}}} is a loop: it becomes the arc {u}1 → {u}0, closing the cycle {u}0 → {u}1 → {u}0, which only removing {u}0 → {u}1 breaks, as only {u} covers the loop."
-                        : $"Edge {{{u},{v}}} becomes the arcs {u}1 → {v}0 and {v}1 → {u}0, closing the cycle {u}0 → {u}1 → {v}0 → {v}1 → {u}0. "
-                            + $"Removing {u}0 → {u}1 or {v}0 → {v}1 breaks it, as {u} or {v} covers the edge.",
-                    focus);
-            }
-            int k = vertexcover.K;
-            rec.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
-                $"K stays {k}: removing at most {Words.Count(k, "arc")} can leave no cycle exactly when at most {Words.Count(k, "node")} can cover every edge.");
-        }
+        // The closing step, on either recorder (both record to rec).
+        int k = vertexcover.K;
+        edgeSteps.Done(new BuildDelta { Bound = k, Gadgets = [bound] }, true,
+            $"K stays {k}: removing at most {Words.Count(k, "arc")} can leave no cycle exactly when at most {Words.Count(k, "node")} can cover every edge.");
         return arcset;
     }
 
@@ -231,24 +252,31 @@ class LawlerKarp : IReversibleReduction<VERTEXCOVER, ARCSET, NodeSet>, IRecorded
     // "{}" on either side keeps the default (the verifiers): removing no arc is a real answer when the graph has no edge, and
     // so is the empty cover.
 
+    // How the map-back steps show an arc read: the cover so far, and the arc's picture id.
+    private static RunSteps<string, NodeSet> NewMapSteps(StepRecorder<NodeSet> rec, List<string> cover) => new(rec,
+        // What every picture shows: the cover so far, and the arc the step is about.
+        partial: _ => new NodeSet(cover),
+        focus: id => [id]);
+
     /// <summary>
-    /// Backward map (#694): a feedback arc set to a vertex cover. A node's own arc u0 -> u1 stands for u. An edge's arc
+    /// Backward map: a feedback arc set to a vertex cover. A node's own arc u0 -> u1 stands for u. An edge's arc
     /// u1 -> v0 stands for the edge {u,v}; removing u0 -> u1 instead breaks every cycle through it as well, so its tail's node
     /// u goes in the cover. Each node once, in the order the arcs name them, so the cover is never larger than the arc set.
+    /// Its steps: an Accept per arc of the answer, saying which node it puts in the cover (and when that node is already in
+    /// it). The caller adds the Done.
     /// </summary>
     public (string Answer, NodeSet Partial) MapBack(string problemToSolution, StepRecorder<NodeSet> rec) {
         var cover = new List<string>();
+        var steps = NewMapSteps(rec, cover);
         foreach (var (from, to) in ReadArcs(problemToSolution)) {
             string id = LayeredFrames.ArcId(from, to);
             var (tail, head) = _arcOrigin[id];
             bool known = cover.Contains(tail);
             if (!known) cover.Add(tail);
-            string already = known ? $" {tail} is already in the cover." : "";
-            rec.Accept(() => new NodeSet(cover),
-                () => head == null
-                    ? $"Arc {from} → {to} is removed. It is node {tail}'s own arc, so {tail} is in the vertex cover.{already}"
-                    : $"Arc {from} → {to} is removed. It stands for edge {{{tail},{head}}}, and removing {tail}0 → {tail}1 instead breaks every cycle through it too, so {tail} covers the edge.{already}",
-                id);
+            if (head == null)
+                steps.Accept(id, $"Arc {from} → {to} is removed. It is node {tail}'s own arc, so {tail} is in the vertex cover.{(known ? $" {tail} is already in the cover." : "")}");
+            else
+                steps.Accept(id, $"Arc {from} → {to} is removed. It stands for edge {{{tail},{head}}}, and removing {tail}0 → {tail}1 instead breaks every cycle through it too, so {tail} covers the edge.{(known ? $" {tail} is already in the cover." : "")}");
         }
         return (ReductionBack.FormatNodeSet(cover), new NodeSet(cover));
     }
