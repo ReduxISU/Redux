@@ -46,21 +46,21 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
 
     // How the steps show a move. The search keeps its own tree (a "start" root, a node failed when it is backed out), so it
     // gives RunSteps the tree node of each step rather than using SearchSteps.
-    private static RunSteps<Move, NodeSet> NewSteps(StepRecorder<NodeSet> rec, Tree tree) => new(rec,
+    private static RunSteps<Move, NodeSet> NewSteps(StepRecorder<NodeSet> rec, DepthFirstTree tree) => new(rec,
         // What every picture shows: the cover so far, and the node the step is about.
         partial: m => new NodeSet(m.Chosen),
         focus: m => m.Node == null ? [] : [m.Node],
         // The Search Tree picture's node only: the end taken ("a"), with the edges left uncovered as the note of a branch
         // that ran out of budget.
-        tree: m => tree.WithRoot(tree.Node(m.Depth, m.Node ?? (m.Depth == 0 ? "" : m.Chosen[m.Depth - 1]), m.Tree,
-            m.Uncovered > 0 ? $"{Words.Count(m.Uncovered, "edge")} uncovered" : null)));
+        tree: m => tree.Step(m.Depth, m.Node ?? (m.Depth == 0 ? "" : m.Chosen[m.Depth - 1]), m.Tree,
+            m.Uncovered > 0 ? $"{Words.Count(m.Uncovered, "edge")} uncovered" : null));
 
     public string solve(VERTEXCOVER G) => Solve(G, StepRecorder<NodeSet>.Off);
 
     public string Solve(VERTEXCOVER G, StepRecorder<NodeSet> rec) {
         var edges = new List<KeyValuePair<string, string>>(G.edges);
         // Each end taken covers at least one more edge, so a branch is never deeper than K or the number of edges.
-        var tree = new Tree(Math.Max(0, Math.Min(G.K, edges.Count)));
+        var tree = new DepthFirstTree(Math.Max(0, Math.Min(G.K, edges.Count)));
         var steps = NewSteps(rec, tree);
         var chosen = new List<string>();
         var result = search(edges, G.K, chosen, tree, steps);
@@ -74,37 +74,10 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
         return "{" + string.Join(",", result) + "}";
     }
 
-    // The search tree's bookkeeping: the node id of the end taken at each depth of the current branch (the root's, 0, at
-    // depth 0) and the next id. Plain ints, so solving without steps makes nothing for the tree but this one array; the
-    // nodes themselves are built only for a step that is kept.
-    private sealed class Tree(int depth) {
-        public readonly int[] Ids = new int[depth + 1];
-        public int Next = 1;
-        private bool _rootSent;
-
-        public static readonly SearchNode Root = new(0, null, "start", SearchNodeState.Explored);
-
-        // The node at depth d of the current branch (the root for d = 0), labelled with the end taken there.
-        public SearchNode Node(int d, string label, SearchNodeState state, string? note = null) =>
-            (d == 0 ? Root with { State = state } : new SearchNode(Ids[d], Ids[d - 1], label, state)) with { Bound = note };
-
-        // The root patch, sent with the first step only (unless that step is about the root itself).
-        public SearchNode[] WithRoot(SearchNode node) {
-            if (_rootSent) return [node];
-            _rootSent = true;
-            return node.NodeId == 0 ? [node] : [Root, node];
-        }
-
-        // The answer's path, root first, the last end taken the solution (the root itself when no edge needed covering).
-        public SearchNode[] AnswerPath(List<string> chosen) => chosen.Count == 0
-            ? [Root with { State = SearchNodeState.Solution }]
-            : [Root, .. Enumerable.Range(1, chosen.Count).Select(d => Node(d, chosen[d - 1], d == chosen.Count ? SearchNodeState.Solution : SearchNodeState.Explored))];
-    }
-
     // Every cover has one end of every edge, so for the first uncovered edge (u,v): take u and search on with one less
     // budget; if that fails, take v instead. 'chosen' is the cover built along the current branch (a stack); the
     // returned list is built on the way back out.
-    private List<string>? search(List<KeyValuePair<string, string>> edges, int k, List<string> chosen, Tree tree,
+    private List<string>? search(List<KeyValuePair<string, string>> edges, int k, List<string> chosen, DepthFirstTree tree,
         RunSteps<Move, NodeSet> steps) {
         // At the time limit, unwind as a failed branch; Solve() reports the stop.
         if (timerHasExpired) {
@@ -122,7 +95,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
 
         var withoutU = edges.Where(x => x.Key != e.Key && x.Value != e.Key).ToList();
         chosen.Add(e.Key);
-        tree.Ids[chosen.Count] = tree.Next++;
+        tree.Branch(chosen.Count);
         steps.Accept(new(chosen, e.Key, chosen.Count, withoutU.Count == 0 ? SearchNodeState.Solution : SearchNodeState.Explored),
             $"Edge {{{e.Key},{e.Value}}} isn't covered. Take {e.Key} ({k - 1} more allowed).");
         var resultU = search(withoutU, k - 1, chosen, tree, steps);
@@ -138,7 +111,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
 
         var withoutV = edges.Where(x => x.Key != e.Value && x.Value != e.Value).ToList();
         chosen.Add(e.Value);
-        tree.Ids[chosen.Count] = tree.Next++;
+        tree.Branch(chosen.Count);
         steps.Accept(new(chosen, e.Value, chosen.Count, withoutV.Count == 0 ? SearchNodeState.Solution : SearchNodeState.Explored),
             $"Take {e.Value} instead, the other end of {{{e.Key},{e.Value}}} ({k - 1} more allowed).");
         var resultV = search(withoutV, k - 1, chosen, tree, steps);

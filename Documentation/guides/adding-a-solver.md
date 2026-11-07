@@ -245,11 +245,18 @@ The idea is simple. You already know the algorithm, so you add one line wherever
 
    **A search that keeps its own tree.** `SearchSteps` builds the search tree for you, from its `Root`, `Expand`, `Try`, `Accept` and `Reject` calls, with the node states those give. A few searches already keep a tree of their own, with node states `SearchSteps` does not give: a "start" root, squares or colors skipped as pruned nodes with a note, a choice marked failed when it is taken back. [GraphColoringBacktracking.cs](../../Problems/NPComplete/NPC_GRAPHCOLORING/Solvers/GraphColoringBacktracking.cs), [ThreeDimensionalMatchingBacktracking.cs](../../Problems/NPComplete/NPC_DM3/Solvers/ThreeDimensionalMatchingBacktracking.cs) and [NQueensBacktracking.cs](../../Problems/P/P_NQUEENS/Solvers/NQueensBacktracking.cs) do. They use `RunSteps` with its `tree:` option: a converter in `NewSteps` that turns a step's state into the search-tree nodes the step adds, and `Done(..., tree: () => ...)`, which names the answer's path, root first, so the tree ends on it.
 
+   For a depth-first search, `DepthFirstTree` ([DepthFirstTree.cs](../../Interfaces/Steps/DepthFirstTree.cs)) keeps that tree for you, as one node id per depth of the branch the search is on: `Branch(depth)` when the search makes a choice, `Step(depth, label, state, note)` in the `tree:` converter, and `AnswerPath(labels)` or `NoAnswer()` in the `Done`. [VertexCoverBoundedSearchTree.cs](../../Problems/NPComplete/NPC_VERTEXCOVER/Solvers/VertexCoverBoundedSearchTree.cs) and [SudokuSolver.cs](../../Problems/NPComplete/NPC_SUDOKU/Solvers/SudokuSolver.cs) use it.
+
    ```csharp
-   // The Search Tree picture's node only: "b=1", with the clashing neighbour's color as the note of a pruned one.
-   tree: m => WithRoot(Node(m.Id, m.Parent, m.Node, m.Color, m.Tree, m.Clash < 0 ? null : $"{_nodes[m.Clash]} has {m.Color}")));
+   // The Search Tree picture's node only: the end taken ("a"), with the edges left uncovered as the note of a branch
+   // that ran out of budget.
+   tree: m => tree.Step(m.Depth, m.Node ?? (m.Depth == 0 ? "" : m.Chosen[m.Depth - 1]), m.Tree,
+       m.Uncovered > 0 ? $"{Words.Count(m.Uncovered, "edge")} uncovered" : null));
    ...
-   steps.Done(new Groups(coloring), true, $"Every node is colored ...", tree: () => search.AnswerPath());
+   tree.Branch(chosen.Count);
+   steps.Accept(new(chosen, e.Key, chosen.Count, ...), $"Edge {{{e.Key},{e.Value}}} isn't covered. Take {e.Key} ...");
+   ...
+   steps.Done(new NodeSet(result), true, $"... covers every edge ...", tree: () => tree.AnswerPath(chosen));
    ```
 
    Use `tree:` only when your search already keeps such a tree. A new search that branches should use `SearchSteps`, and a backtracking search that records no tree stays on plain `RunSteps`.

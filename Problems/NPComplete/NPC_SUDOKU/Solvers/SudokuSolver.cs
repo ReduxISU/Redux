@@ -76,66 +76,26 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
         focus: m => [BoardFrames.CellId(m.Row, m.Col)],
         // The Search Tree picture's nodes only: a digit put in a square ("R1C3=4"), a square with no digit left ("R1C4",
         // noted), or the root when the clues clash, after the digits that failed since the last step kept.
-        tree: m => search.Patches(m.Digit > 0 ? $"{SquareName(m.Row, m.Col)}={m.Digit}" : SquareName(m.Row, m.Col), m.Depth, m.Tree,
+        tree: m => search.Step(m.Depth, m.Digit > 0 ? $"{SquareName(m.Row, m.Col)}={m.Digit}" : SquareName(m.Row, m.Col), m.Tree,
             m.Digit > 0 ? null : m.Depth > 0 ? "no digit left" : "clues clash"));
 
     // What the search carries besides the grid: its steps, how many digits it has tried, how many squares it has filled on
-    // the way to the current one (0: there is no earlier choice to undo), and the search tree's bookkeeping: the node id at
-    // each depth of the current branch (the root's, 0, at depth 0) and the next id. Plain ints, so solving without steps
-    // makes nothing for the tree but this one array; the nodes themselves are built only for a step that is kept. A digit
-    // that fails is held back (only when its own step was kept) and sent with the next step kept, or the Done.
-    private sealed class Search(int squares) {
+    // the way to the current one (0: there is no earlier choice to undo), and how many it has to fill. It is the search tree
+    // too, one depth for each square filled.
+    private sealed class Search(int squares) : DepthFirstTree(squares) {
         public RunSteps<Move, BoardCells> Steps = null!;
         public int Tries;
         public int Depth;
-        // How many squares the search has to fill.
         public readonly int Squares = squares;
-        public readonly int[] Ids = new int[squares + 1];
-        public int Next = 1;
-        private bool _rootSent;
-        // The newest node a kept step has sent (ids only grow, so every node up to it was sent).
-        private int _sent;
-        // Made at the first failed digit sent, so a solve without steps never makes it.
-        private List<SearchNode>? _failed;
 
-        public static readonly SearchNode Root = new(0, null, "start", SearchNodeState.Explored);
-
-        // The node at depth d of the current branch (the root for d = 0).
-        private SearchNode Node(string label, int d, SearchNodeState state, string? note) =>
-            d == 0 ? Root with { State = state, Bound = note } : new(Ids[d], Ids[d - 1], label, state) { Bound = note };
-
-        // A kept step's nodes: the root with the first one, then the digits failed since the last one, then its own node.
-        public SearchNode[] Patches(string label, int d, SearchNodeState state, string? note) {
-            var node = Node(label, d, state, note);
-            SearchNode[] patches = [.. _rootSent || d == 0 ? [] : new[] { Root }, .. _failed ?? [], node];
-            _rootSent = true;
-            _sent = node.NodeId;
-            _failed?.Clear();
-            return patches;
-        }
-
-        // The digit at depth d failed: the squares after it could not all be filled. Held back for the next step kept, if
-        // its own step was kept (never when solving without steps, which sends nothing).
-        public void Failed(int row, int col, int digit, int d) {
-            if (Ids[d] <= _sent) (_failed ??= new()).Add(Node($"{SquareName(row, col)}={digit}", d, SearchNodeState.Failed, null));
-        }
-
-        // The Done's nodes when there is no solution: the digits failed since the last step kept, and the root, failed.
-        public SearchNode[] NoSolution() => [.. _failed ?? [], Root with { State = SearchNodeState.Failed }];
-
-        // The Done's nodes for the answer: the digits failed since the last step kept, then the answer's path, root first,
-        // through each square the clues left empty (in reading order) with its digit, the last the solution (the root
-        // itself when there was no square to fill).
+        // The Done's nodes for the answer: the answer's path, root first, through each square the clues left empty (in
+        // reading order) with its digit.
         public SearchNode[] AnswerPath(int[][] clues, int[][] solution) {
-            var path = new List<SearchNode>(_failed ?? []) { Squares == 0 ? Root with { State = SearchNodeState.Solution } : Root };
-            int d = 0;
+            var labels = new List<string>();
             for (int r = 0; r < clues.Length; r++)
                 for (int c = 0; c < clues[r].Length; c++)
-                    if (clues[r][c] == 0) {
-                        d++;
-                        path.Add(Node($"{SquareName(r, c)}={solution[r][c]}", d, d == Squares ? SearchNodeState.Solution : SearchNodeState.Explored, null));
-                    }
-            return [.. path];
+                    if (clues[r][c] == 0) labels.Add($"{SquareName(r, c)}={solution[r][c]}");
+            return AnswerPath(labels);
         }
     }
 
@@ -271,7 +231,7 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
         // tried in the square before it, one level deeper.
         int depth = search.Depth + 1;
         if (candidates.Count == 0) {
-            search.Ids[depth] = search.Next++;
+            search.Branch(depth);
             var dead = new Move(row, col, 0, depth, SearchNodeState.Pruned);
             if (search.Depth > 0)
                 steps.Reject(dead, $"{SquareName(row, col)} has no digit left: every digit from 1 to {gridSize} is already in its row, column or box. Undo the last choice.");
@@ -284,7 +244,7 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
             SetValue(grid, rows, cols, blocks, k, row, col);
             //    var changelog = HiddenSingles(grid, rows, cols, blocks, row, col + 1);        // Hidden singles optimization is unfinished, requires more overhead
             search.Tries++;
-            search.Ids[depth] = search.Next++;
+            search.Branch(depth);
             // The digit in the last empty square completes the grid, since every candidate fits.
             var tried = new Move(row, col, k, depth, depth == search.Squares ? SearchNodeState.Solution : SearchNodeState.Explored);
             // The candidates are listed in the order this loop tries them (the sets' own order).
@@ -299,7 +259,8 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
             if (SolveHelper(grid, rows, cols, blocks, row, col + 1, getAllSolutions, solutions, search))
                 return true;
             search.Depth--;
-            search.Failed(row, col, k, depth);
+            // The search never records taking the digit back, so the tree marks it failed with the next step kept.
+            if (search.Sent(depth)) search.Failed(depth, $"{SquareName(row, col)}={k}");
 
             // Undo edits if solution is not valid
             ClearValue(grid, rows, cols, blocks, row, col);
@@ -373,10 +334,10 @@ class SudokuSolver : ISolver<SUDOKU, BoardCells>, IIncrementalSolver {
                 if (solution[r][c] == 0) {
                     if (search.Tries == 0)
                         steps.Done(new BoardCells([], []), false, $"This grid has no solution.",
-                            tree: () => search.NoSolution());
+                            tree: () => search.NoAnswer());
                     else
                         steps.Done(new BoardCells([], []), false, $"Every choice ran into a dead end after {BoardFrames.Count(search.Tries)} {(search.Tries == 1 ? "try" : "tries")}. This grid has no solution.",
-                            tree: () => search.NoSolution());
+                            tree: () => search.NoAnswer());
                     return NoSolution;
                 }
             }
