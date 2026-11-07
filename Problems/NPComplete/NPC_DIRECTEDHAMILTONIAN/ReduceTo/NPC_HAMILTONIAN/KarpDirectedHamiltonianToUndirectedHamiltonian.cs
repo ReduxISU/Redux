@@ -8,6 +8,9 @@ using API.Problems.NPComplete.NPC_HAMILTONIAN;
 
 namespace API.Problems.NPComplete.NPC_DIRECTEDHAMILTONIAN.ReduceTo.NPC_HAMILTONIAN;
 
+// Karp's Directed Hamiltonian Cycle to Hamiltonian Cycle: each node v becomes a path v1 - v2 - v3, and each arc u -> v the
+// edge {u3, v1}. It records the construction steps (one per node, one per arc, then the closing step; see Build) and the
+// backward map's steps (one per edge of the cycle between two paths; see MapBack).
 class KarpDirectedHamiltonianToUndirectedHamiltonian : IReversibleReduction<DIRECTEDHAMILTONIAN, HAMILTONIAN, Tour>, IRecordedReduction<DIRECTEDHAMILTONIAN, HAMILTONIAN> {
 
     // --- Fields ---
@@ -75,8 +78,37 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReversibleReduction<DIRE
 
     public HAMILTONIAN reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per node (its path v1 - v2 - v3), one per arc (u, v) (the edge
-    // {u3, v1}), then Done. Gadgets (#694): an element per node and per arc.
+    // How the construction steps show a node: the node in the directed graph, its path v1 - v2 - v3, and the gadget that
+    // makes it. The state is (V, Gadget, Path): the node, its gadget's index, and the path's two edges.
+    private static RunSteps<(string V, int Gadget, BuildEdge[] Path), BuildDelta> NewNodeSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the node, the path's nodes and edges added, and their gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = [s.V],
+            Nodes = [s.V + "1", s.V + "2", s.V + "3"],
+            Edges = BuildEdge.Sorted(s.Path),
+            Gadgets = [s.Gadget],
+        },
+        focus: s => [s.V + "1", s.V + "2", s.V + "3"]);
+
+    // How the construction steps show an arc: the arc and its ends in the directed graph (a loop, just its node), the edge
+    // that stands for it, and its gadget. The state is (U, V, Gadget, Edge): the arc's tail and head, its gadget's index,
+    // and the edge {u3, v1}.
+    private static RunSteps<(string U, string V, int Gadget, BuildEdge Edge), BuildDelta> NewArcSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the arc, the edge added, and its gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = s.U == s.V ? [s.U] : [GraphTourFrames.EdgeId(true, s.U, s.V), s.U, s.V],
+            Edges = [s.Edge],
+            Gadgets = [s.Gadget],
+        },
+        focus: s => [s.U + "3", s.V + "1"]);
+
+    // Builds the undirected graph, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per node: it becomes the path v1 - v2 - v3;
+    //   - an Accept per arc u -> v: it becomes the edge {u3, v1};
+    //   - the Done: why the two graphs have a Hamiltonian cycle together.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: an element per node and per arc.
     private HAMILTONIAN Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -127,45 +159,35 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReversibleReduction<DIRE
 
         UH = new HAMILTONIAN(G);
 
-        // Gadgets: a node's path, and an arc's connecting edge (an arc listed twice is one edge, as in both pictures).
-        var nodeGadgets = new List<(string V, int Gadget, BuildEdge[] Path)>();
+        // Gadgets: a node's path, and an arc's connecting edge (an arc listed twice is one edge, as in both pictures). Each
+        // node, and each arc, is then one step.
+        var nodeSteps = NewNodeSteps(rec);
         foreach (string v in DH.nodes.Distinct()) {
             for (int part = 1; part <= 3; part++) _partOf[v + part] = (v, part);
             BuildEdge[] path = [new BuildEdge(v + "1", v + "2"), new BuildEdge(v + "2", v + "3")];
-            nodeGadgets.Add((v, gadgets.Count, path));
+            int index = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { v },
                 new List<string> { v + "1", v + "2", v + "3" }.Concat(path.Select(p => p.Id)).ToList()));
+            nodeSteps.Accept((v, index, path),
+                $"Node {v} becomes the path {v}1 - {v}2 - {v}3. {v}2 has no other edge, so a tour that reaches {v}1 goes on through {v}2 to {v}3: {v}1 is where arcs into {v} arrive and {v}3 where arcs out of {v} leave.");
         }
-        var arcGadgets = new List<(string U, string V, int Gadget, BuildEdge Edge)>();
+        var arcSteps = NewArcSteps(rec);
         var seenArcs = new HashSet<string>(StringComparer.Ordinal);
         foreach (var e in DH.edges) {
             string arc = GraphTourFrames.EdgeId(true, e.Key, e.Value);
             if (!seenArcs.Add(arc)) continue;
-            var edge = new BuildEdge(e.Key + "3", e.Value + "1");
-            arcGadgets.Add((e.Key, e.Value, gadgets.Count, edge));
+            string u = e.Key, v = e.Value;
+            var edge = new BuildEdge(u + "3", v + "1");
+            int index = gadgets.Count;
             // A loop is not drawn as an arc, so it stands for its node.
-            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { e.Key == e.Value ? e.Key : arc }, new List<string> { edge.Id }));
+            gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { u == v ? u : arc }, new List<string> { edge.Id }));
+            arcSteps.Accept((u, v, index, edge),
+                $"Arc {u} → {v} becomes the edge {{{u}3,{v}1}}: it leaves {u} by its out-end {u}3 and enters {v} by its in-end {v}1.");
         }
 
-        if (rec.Enabled) {
-            foreach (var (v, index, path) in nodeGadgets) {
-                string[] nodes = [v + "1", v + "2", v + "3"];
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = [v], Nodes = nodes, Edges = BuildEdge.Sorted(path), Gadgets = [index] },
-                    () => $"Node {v} becomes the path {v}1 - {v}2 - {v}3. {v}2 has no other edge, so a tour that reaches {v}1 goes on through {v}2 to {v}3: "
-                        + $"{v}1 is where arcs into {v} arrive and {v}3 where arcs out of {v} leave.",
-                    nodes);
-            }
-            foreach (var (u, v, index, edge) in arcGadgets) {
-                string[] sourceFocus = u == v ? [u] : [GraphTourFrames.EdgeId(true, u, v), u, v];
-                rec.Accept(
-                    () => new BuildDelta { SourceFocus = sourceFocus, Edges = [edge], Gadgets = [index] },
-                    () => $"Arc {u} → {v} becomes the edge {{{u}3,{v}1}}: it leaves {u} by its out-end {u}3 and enters {v} by its in-end {v}1.",
-                    [u + "3", v + "1"]);
-            }
-            rec.Done(new BuildDelta(), true,
-                "The undirected graph has a Hamiltonian cycle exactly when the directed graph does: every node's path is walked from its in-end to its out-end, so the edges between paths are walked along their arcs.");
-        }
+        // The closing step, on either recorder (both record to rec). Its delta adds nothing: the graph has no bound.
+        arcSteps.Done(new BuildDelta(), true,
+            $"The undirected graph has a Hamiltonian cycle exactly when the directed graph does: every node's path is walked from its in-end to its out-end, so the edges between paths are walked along their arcs.");
 
         reductionTo = UH;
         return UH;
@@ -173,7 +195,7 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReversibleReduction<DIRE
 
     // A directed Hamiltonian cycle v, w, ... becomes the undirected one that walks each node's path v1, v2, v3 and leaves v3
     // for the next node's w1 along the edge that stands for the arc (v, w). The directed certificate repeats its first node
-    // at the end; the undirected one does not (#823).
+    // at the end; the undirected one does not.
     public string mapSolutions(string problemFromSolution) {
         List<string> tour = GraphParser.parseNodeListWithStringFunctions(problemFromSolution);
         if (tour.Count > 1 && tour[0] == tour[^1]) tour.RemoveAt(tour.Count - 1);
@@ -187,11 +209,19 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReversibleReduction<DIRE
 
     // "{}" on either side keeps the default (the verifiers): only a graph with no nodes has the empty tour.
 
+    // How the map-back steps show an edge of the cycle read: the tour so far, and the edge.
+    private static RunSteps<string, Tour> NewMapSteps(StepRecorder<Tour> rec, List<string> tour) => new(rec,
+        // What every picture shows: the tour so far, and the edge the step is about.
+        partial: _ => new Tour(tour),
+        focus: edge => [edge]);
+
     /// <summary>
-    /// Backward map (#694): an undirected Hamiltonian cycle walks every node's path v1 - v2 - v3 from end to end, so read in
+    /// Backward map: an undirected Hamiltonian cycle walks every node's path v1 - v2 - v3 from end to end, so read in
     /// the direction that goes v1, v2, v3, each edge from a path's out-end u3 to another's in-end w1 is the arc u → w. The
     /// tour starts at the node whose path the cycle (turned that way) starts with, and follows those edges back to it. A
     /// cycle that is not of that shape still maps, edge by edge; the Done step reports what the directed verifier says.
+    /// Its steps: an Accept per edge of the cycle from one path's out-end to another's in-end (the tour goes along its arc).
+    /// The caller adds the Done.
     /// </summary>
     public (string Answer, Tour Partial) MapBack(string problemToSolution, StepRecorder<Tour> rec) {
         List<string> cycle = GraphParser.parseNodeListWithStringFunctions(problemToSolution);
@@ -210,17 +240,14 @@ class KarpDirectedHamiltonianToUndirectedHamiltonian : IReversibleReduction<DIRE
         if (start > 0) cycle = cycle.Skip(start).Concat(cycle.Take(start)).ToList();
 
         var tour = new List<string> { _partOf[cycle[0]].Node };
+        var steps = NewMapSteps(rec, tour);
         for (int i = 0; i < cycle.Count; i++) {
             string a = cycle[i], b = cycle[(i + 1) % cycle.Count];
             if (_partOf[a].Part != 3 || _partOf[b].Part != 1) continue;
             string u = _partOf[a].Node, w = _partOf[b].Node;
             tour.Add(w);
-            string edge = GraphSubsetFrames.EdgeId(a, b);
-            bool closes = i == cycle.Count - 1;
-            rec.Accept(() => new Tour(tour),
-                () => $"Edge {{{a},{b}}} is on the cycle. It leaves {u} by its out-end {a} and enters {w} by its in-end {b}, so the tour goes {u} → {w}"
-                    + (closes ? ", back to where it started." : "."),
-                edge);
+            steps.Accept(GraphSubsetFrames.EdgeId(a, b),
+                $"Edge {{{a},{b}}} is on the cycle. It leaves {u} by its out-end {a} and enters {w} by its in-end {b}, so the tour goes {u} → {w}{(i == cycle.Count - 1 ? ", back to where it started." : ".")}");
         }
         return ("{" + string.Join(",", tour) + "}", new Tour(tour));
     }
