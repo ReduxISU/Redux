@@ -10,7 +10,7 @@ namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.Solvers;
 //     "a=1" whose note says which neighbour has the color);
 //   - an Accept for each color it takes (an explored node in the tree, the solution when it is the last node);
 //   - a Backtrack when every color below has failed, taking the color back again (that node fails);
-//   - the Done, which names the answer's path in the tree.
+//   - the Done, which names the answer's path in the tree, or marks the root failed when the search found none.
 // Incremental: it colors one node at a time and takes colors back, so every step's partial is the coloring so far.
 class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSolver, ISearchTreeSolver {
 
@@ -58,9 +58,11 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
         if (timerHasExpired)
             steps.Done(new Groups([]), false, $"The solver's timer ran out before it found a coloring.");
         else if (search.SelfLoop >= 0)
-            steps.Done(new Groups([]), false, $"Node {nodes[search.SelfLoop]} has an edge to itself, so it clashes with itself whatever its color: no coloring exists.");
+            steps.Done(new Groups([]), false, $"Node {nodes[search.SelfLoop]} has an edge to itself, so it clashes with itself whatever its color: no coloring exists.",
+                tree: () => search.NoAnswer());
         else
-            steps.Done(new Groups([]), false, $"Every way of coloring the nodes runs into a clash. No coloring with {Words.Count(problem.K, "color")} exists.");
+            steps.Done(new Groups([]), false, $"Every way of coloring the nodes runs into a clash. No coloring with {Words.Count(problem.K, "color")} exists.",
+                tree: () => search.NoAnswer());
         return "{}";
     }
 

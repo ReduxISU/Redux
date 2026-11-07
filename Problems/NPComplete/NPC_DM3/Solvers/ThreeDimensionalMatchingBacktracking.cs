@@ -11,7 +11,7 @@ namespace API.Problems.NPComplete.NPC_DM3.Solvers;
 //     a pruned node "T5" whose note says which triple already uses the element);
 //   - an Accept for each triple it chooses (an explored node in the tree, the solution when it completes the matching);
 //   - a Backtrack when nothing below a triple worked, taking it back again (that node fails);
-//   - the Done, which names the answer's path in the tree.
+//   - the Done, which names the answer's path in the tree, or marks the root failed when the search found none.
 // Incremental: it chooses one triple at a time and takes triples back, so every step's partial is the triples chosen so far.
 class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncrementalSolver, ISearchTreeSolver {
 
@@ -67,7 +67,8 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
         if (timerHasExpired)
             steps.Done(new ChosenTriples([]), false, $"The solver's timer ran out before it found a matching.");
         else
-            steps.Done(new ChosenTriples([]), false, $"Every way of choosing the triples uses an element twice or leaves one out, so there is no perfect matching.");
+            steps.Done(new ChosenTriples([]), false, $"Every way of choosing the triples uses an element twice or leaves one out, so there is no perfect matching.",
+                tree: () => search.NoAnswer());
         return "{}";
     }
 

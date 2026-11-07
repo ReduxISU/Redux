@@ -91,6 +91,9 @@ public class GraphColoringBacktracking_Tests {
         var done = rec.Steps[^1];
         if (!Verifies(g, answer)) {
             Assert.False(done.Ok);
+            // A search that ran and found nothing marks the root failed; one that never started names no node.
+            if (rec.Steps.Count > 1) Assert.Equal((0, SearchNodeState.Failed), (Assert.Single(done.Tree!).NodeId, done.Tree![0].State));
+            else Assert.Null(done.Tree);
             return;
         }
         Assert.True(done.Ok);
