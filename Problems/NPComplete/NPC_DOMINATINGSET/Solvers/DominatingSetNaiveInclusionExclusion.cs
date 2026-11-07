@@ -13,7 +13,14 @@ namespace API.Problems.NPComplete.NPC_DOMINATINGSET.Solvers;
 //   - a Reject when the set has grown past K;
 //   - the Done, with the dominating set or none.
 // The set is built one decision at a time, so the solver is an IIncrementalSolver.
-class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, IIncrementalSolver {
+// The same steps draw the Search Tree picture. In the tree, a node is the decision on one vertex, "3 in" (included) or
+// "3 out" (left out), under the decision on the vertex before it, so its children are the two decisions on the next
+// vertex. An Accept's or a Try's node is explored, or the solution for a finished set that dominates every vertex; an
+// include that takes the set over K is cut off (pruned, "over K = 2") and stays so when it is backed out; a finished set
+// that leaves vertices undominated cuts its last decision off ("2 vertices not dominated"); any other include backed out
+// fails, and so does a leave-out whose every finished set fails. The Done names the answer's path, root first, or marks
+// the root failed.
+class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, IIncrementalSolver, ISearchTreeSolver {
     // --- Fields ---
     public string solverName { get; } = "Naive Inclusion-Exclusion Backtracking Dominating Set Solver";
     public string solverDefinition { get; } =
@@ -38,18 +45,44 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
     // --- Methods Including Constructors ---
     public DominatingSetNaiveInclusionExclusion() { }
 
-    // How the steps show the search: the vertex indices included so far, and the vertex the step decides on (-1: none).
-    private static RunSteps<(List<int> Chosen, int Vertex), NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> names) => new(rec,
+    // How the steps show the search: the vertex indices included so far, the vertex the step decides on (-1: none), and the
+    // state the step leaves its search-tree node in. The search keeps its own tree (a "start" root, a decision cut off as a
+    // pruned node, a decision failed when it is backed out), so it gives RunSteps the tree node of each step rather than
+    // using SearchSteps.
+    private static RunSteps<(List<int> Chosen, int Vertex, SearchNodeState Tree), NodeSet> NewSteps(StepRecorder<NodeSet> rec, List<string> names,
+        int K, List<int>[] adj, DepthFirstTree tree) => new(rec,
         // What every picture shows: the set so far, and the vertex included, backed out or left out.
         partial: s => new NodeSet(s.Chosen.Select(c => names[c])),
-        focus: s => s.Vertex < 0 ? [] : [names[s.Vertex]]);
+        focus: s => s.Vertex < 0 ? [] : [names[s.Vertex]],
+        // The Search Tree picture's node only.
+        tree: s => TreeNode(s.Chosen, s.Vertex, s.Tree, names, K, adj, tree));
+
+    // The search-tree node of a step. The decision on vertex v is the node at depth v + 1 (the root is at depth 0). A step
+    // about no one vertex is about the decision just made: the include that took the set over K (the root, when K is below
+    // 0), or for a finished set, the decision on the last vertex.
+    private static SearchNode[] TreeNode(List<int> chosen, int v, SearchNodeState state, List<string> names, int K, List<int>[] adj, DepthFirstTree tree) {
+        int n = names.Count;
+        int depth = v >= 0 ? v + 1 : chosen.Count > K ? (chosen.Count == 0 ? 0 : chosen[^1] + 1) : n;
+        // A Backtrack's node is the include it backs out; any other node is included when the set holds its vertex.
+        string label = depth == 0 ? "" : Decision(names, depth - 1, state == SearchNodeState.Failed || chosen.Contains(depth - 1));
+        string? note = state != SearchNodeState.Pruned ? null
+            : chosen.Count > K ? $"over K = {K}"
+            : $"{Words.Count(Undominated(chosen, n, adj).Count(), "vertex", "vertices")} not dominated";
+        return tree.Step(depth, label, state, note);
+    }
+
+    // A node's label: "3 in" or "3 out". Vertex names are often numbers, so "+3" and "−3" would read as numbers.
+    private static string Decision(List<string> names, int v, bool included) => $"{names[v]} {(included ? "in" : "out")}";
 
     public string solve(DOMINATINGSET problem) => Solve(problem, StepRecorder<NodeSet>.Off);
 
     public string Solve(DOMINATINGSET problem, StepRecorder<NodeSet> rec) {
-        var steps = NewSteps(rec, problem.nodes);
         int n = problem.nodes.Count;
         int K = problem.K;
+        var adj = new List<int>[n];
+        // A branch decides each vertex once.
+        var tree = new DepthFirstTree(n);
+        var steps = NewSteps(rec, problem.nodes, K, adj, tree);
 
         if (n == 0) {
             const string emptyCert = "{}";
@@ -62,7 +95,6 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
         for (int i = 0; i < n; i++)
             indexOf[problem.nodes[i]] = i;
 
-        var adj = new List<int>[n];
         for (int i = 0; i < n; i++)
             adj[i] = new List<int>();
 
@@ -76,45 +108,49 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
         var chosen = new List<int>();
         List<int> solution = new List<int>();
 
-        bool found = Branch(0, n, K, adj, chosen, ref solution, problem, steps);
+        bool found = Branch(0, n, K, adj, chosen, ref solution, problem, tree, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         if (!found) {
-            steps.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.");
+            steps.Done(new NodeSet([]), false, $"No dominating set of size {K} or less exists.", tree: () => tree.NoAnswer());
             return "{}";
         }
 
         string cert = "{" + string.Join(",", solution.Select(i => problem.nodes[i])) + "}";
         bool verified = problem.defaultVerifier.verify(problem, cert);
+        // The answer's path in the tree: the decision on every vertex, in order.
         if (verified)
-            steps.Done(new NodeSet(solution.Select(i => problem.nodes[i])), true, $"{cert} dominates every vertex, with {solution.Count} of at most {K} allowed.");
+            steps.Done(new NodeSet(solution.Select(i => problem.nodes[i])), true, $"{cert} dominates every vertex, with {solution.Count} of at most {K} allowed.",
+                tree: () => tree.AnswerPath(Enumerable.Range(0, n).Select(v => Decision(problem.nodes, v, solution.Contains(v))).ToList()));
         else
-            steps.Done(new NodeSet([]), false, $"The set found did not verify.");
+            steps.Done(new NodeSet([]), false, $"The set found did not verify.", tree: () => tree.NoAnswer());
         return verified ? cert : "{}";
     }
 
     // Naive include/exclude recursion over vertex indices [i, n).
     private bool Branch(int i, int n, int K, List<int>[] adj, List<int> chosen, ref List<int> solution,
-        DOMINATINGSET problem, RunSteps<(List<int> Chosen, int Vertex), NodeSet> steps) {
+        DOMINATINGSET problem, DepthFirstTree tree, RunSteps<(List<int> Chosen, int Vertex, SearchNodeState Tree), NodeSet> steps) {
         // Unwind at the time limit; Solve() then returns the timed-out answer.
         if (timerHasExpired)
             return false;
 
+        // In the tree, the include that took the set over K is cut off.
         if (chosen.Count > K) {
-            steps.Reject((chosen, -1), $"{GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))} has more than K = {K} vertices. Stop here.");
+            steps.Reject((chosen, -1, SearchNodeState.Pruned), $"{GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))} has more than K = {K} vertices. Stop here.");
             return false;
         }
 
+        // In the tree, a finished set is the decision on the last vertex: the solution, or cut off.
         if (i == n) {
             if (Dominates(chosen, n, adj)) {
-                steps.Accept((chosen, -1), $"Try {GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))}. It dominates every vertex.",
+                steps.Accept((chosen, -1, SearchNodeState.Solution), $"Try {GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))}. It dominates every vertex.",
                     focus: () => chosen.Select(c => problem.nodes[c]).ToArray());
                 solution = new List<int>(chosen);
                 return true;
             }
             // Dominates only says no, so what fails is looked up for a kept step. The set was built one decision at a time,
             // so the focus is what failed (the vertices left undominated), not the set.
-            steps.Reject((chosen, -1),
+            steps.Reject((chosen, -1, SearchNodeState.Pruned),
                 $"Try {GraphSubsetFrames.Braces(chosen.Select(c => problem.nodes[c]))}: {GraphSubsetFrames.Why(SubsetRule.DominatingSet, problem.nodes, problem.edges, chosen.Select(c => problem.nodes[c]))}.",
                 focus: () => Undominated(chosen, n, adj).Select(v => problem.nodes[v]).ToArray());
             return false;
@@ -123,16 +159,21 @@ class DominatingSetNaiveInclusionExclusion : ISolver<DOMINATINGSET, NodeSet>, II
         string vertex = problem.nodes[i];
         chosen.Add(i);
         // Include vertex i, and decide the rest; if that fails, back it out and decide the rest without it.
-        steps.Accept((chosen, i), $"Include {vertex}.");
-        if (Branch(i + 1, n, K, adj, chosen, ref solution, problem, steps))
+        tree.Branch(i + 1);
+        steps.Accept((chosen, i, SearchNodeState.Explored), $"Include {vertex}.");
+        if (Branch(i + 1, n, K, adj, chosen, ref solution, problem, tree, steps))
             return true;
         chosen.RemoveAt(chosen.Count - 1);
-        steps.Backtrack((chosen, i), $"Back out {vertex}.");
+        steps.Backtrack((chosen, i, SearchNodeState.Failed), $"Back out {vertex}.");
 
-        steps.Try((chosen, i), $"Leave {vertex} out.");
-        if (Branch(i + 1, n, K, adj, chosen, ref solution, problem, steps))
+        tree.Branch(i + 1);
+        steps.Try((chosen, i, SearchNodeState.Explored), $"Leave {vertex} out.");
+        if (Branch(i + 1, n, K, adj, chosen, ref solution, problem, tree, steps))
             return true;
-
+        // In the tree, the leave-out led nowhere, so the next step kept marks it failed (at the last vertex, the finished
+        // set's check already cut it off).
+        if (i + 1 < n && tree.Sent(i + 1))
+            tree.Failed(i + 1, Decision(problem.nodes, i, false));
         return false;
     }
 
