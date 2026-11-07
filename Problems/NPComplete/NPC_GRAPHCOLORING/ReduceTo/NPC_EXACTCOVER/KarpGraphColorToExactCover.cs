@@ -10,6 +10,11 @@ using API.Problems.NPComplete.NPC_EXACTCOVER;
 
 namespace API.Problems.NPComplete.NPC_GRAPHCOLORING.ReduceTo.NPC_EXACTCOVER;
 
+// Karp's Graph Coloring to Exact Cover: every node, every edge, and every slot (a node at one of its edges, for one color)
+// is an element; a node has one set per color (the node and its slots for that color), and an edge one set per pair of
+// different colors of its ends (the edge and its ends' slots for every other color). It records the construction steps
+// (one per node, one per edge, then the Done; see BuildPieces) and the backward map's steps (one per node color set read,
+// then one per node left without a color; see MapBack).
 class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVER, Groups>, IRecordedReduction<GRAPHCOLORING, EXACTCOVER> {
 
     // --- Fields ---
@@ -83,7 +88,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
 
     // Elements: a node u is "u", an edge {u,v} is "u_v" and the slot of u at edge {u,v} for color j is "u_u_v_j". A name
     // that holds "_" (or the escape character) is written with a \ before every \ and "_", so a node, an edge and a slot
-    // never share an element; other names are written as they are (#824).
+    // never share an element; other names are written as they are.
     private static string EdgeElement(string u, string v) => ElementName(u) + "_" + ElementName(v);
 
     private static string SlotElement(string node, string u, string v, int color) => ElementName(node) + "_" + EdgeElement(u, v) + "_" + color;
@@ -92,7 +97,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         name.IndexOfAny(['\\', '_']) < 0 ? name : name.Replace(@"\", @"\\").Replace("_", @"\_");
 
     /// <summary>
-    /// The gadgets (#694): per node a group (the node to its element, its color slots and its K color sets) and per edge a
+    /// The gadgets: per node a group (the node to its element, its color slots and its K color sets) and per edge a
     /// group (the edge to its element and its K * (K - 1) sets, one per pair of different colors of its ends). They are worked
     /// out the first time they are asked for (the Reduction View, /reduce's JSON, the backward map), not by every reduce():
     /// finding each set among the sets Exact Cover reads means parsing the target, which made reduce() some 25 times slower.
@@ -115,7 +120,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         var (subsets, instance) = (_pendingSubsets, _pendingInstance!);
         _pendingSubsets = null;
         _pendingInstance = null;
-        RecordPieces(subsets, instance, StepRecorder<BuildDelta>.Off);
+        BuildPieces(subsets, instance, StepRecorder<BuildDelta>.Off);
     }
 
     public ConstructionRun Rebuild(StepRecorder<BuildDelta> rec) {
@@ -125,8 +130,8 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
 
     public EXACTCOVER reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per node (its element, its slots and its color sets), one per edge
-    // (its element and its sets), then Done.
+    // Builds the Exact Cover instance. Its construction steps are recorded where the gadgets are worked out (see BuildPieces):
+    // one per node, one per edge, then the Done.
     private EXACTCOVER Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         _gadgets.Clear();
@@ -207,9 +212,10 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         reducedExactCover.X = universalSet;
         reducedExactCover.instance = instance;
 
-        // The gadgets wait until they are asked for, unless the construction steps are being recorded now.
+        // The gadgets, and the steps recorded with them, are worked out now when the steps are being recorded; otherwise they
+        // wait until they are asked for (see gadgets), so reduce() alone does not pay for them.
         if (rec.Enabled) {
-            RecordPieces(subsets, instance, rec);
+            BuildPieces(subsets, instance, rec);
         } else {
             _pendingSubsets = subsets;
             _pendingInstance = instance;
@@ -223,11 +229,47 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
     // the JSON.
     private readonly List<int> _listedAs = new();
 
-    // The gadgets, and the construction steps when recording: one step per node, then one per edge. reduce() lists K sets per
-    // node (color 1 first), then K * (K - 1) sets per edge, one per ordered pair of different colors, so a set's place in that
-    // list says what it is. Exact Cover reads equal sets as one (the K color sets of a node with no edges), so the picture's
-    // set ids are places among the sets it reads.
-    private void RecordPieces(List<List<string>> subsets, string instance, StepRecorder<BuildDelta> rec) {
+    // How the construction steps show a node: the node in the graph; its element, its slots and its color sets, with the
+    // sets' memberships, added to Exact Cover; and its gadget. The state is (Node, Gadget, Pieces, Sets): the node, its
+    // gadget's index, the pieces its turn adds (the elements no earlier step added, then its sets), and those sets' indices
+    // among the sets Exact Cover reads.
+    private static RunSteps<(string Node, int Gadget, string[] Pieces, List<int> Sets), BuildDelta> NewNodeSteps(StepRecorder<BuildDelta> rec,
+                                                                                                                List<List<string>> parsed) => new(rec,
+        // What the Reduction View shows: the node, the pieces and memberships added, and the gadget.
+        partial: s => new BuildDelta { SourceFocus = [s.Node], Nodes = s.Pieces, Edges = BuildEdge.Sorted(Memberships(parsed, s.Sets)), Gadgets = [s.Gadget] },
+        focus: s => s.Pieces);
+
+    // How the construction steps show an edge: the edge and its two ends in the graph; its element and its sets, with the
+    // sets' memberships, added to Exact Cover; and its gadget. The state is (A, B, Gadget, Pieces, Sets): the edge's two ends,
+    // its gadget's index, the pieces its turn adds (its element when no earlier step added it, then its sets), and those
+    // sets' indices among the sets Exact Cover reads.
+    private static RunSteps<(string A, string B, int Gadget, string[] Pieces, List<int> Sets), BuildDelta> NewEdgeSteps(StepRecorder<BuildDelta> rec,
+                                                                                                                        List<List<string>> parsed) => new(rec,
+        // What the Reduction View shows: the edge, the pieces and memberships added, and the gadget.
+        partial: s => new BuildDelta {
+            SourceFocus = s.A == s.B ? [s.A] : [GraphSubsetFrames.EdgeId(s.A, s.B), s.A, s.B],
+            Nodes = s.Pieces,
+            Edges = BuildEdge.Sorted(Memberships(parsed, s.Sets)),
+            Gadgets = [s.Gadget],
+        },
+        focus: s => s.Pieces);
+
+    // The memberships of the given read sets: one per element of each set, each element once.
+    private static IEnumerable<BuildEdge> Memberships(List<List<string>> parsed, List<int> sets) =>
+        sets.SelectMany(s => parsed[s].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s)));
+
+    // Works out the gadgets, recording the construction steps as it goes when rec records (see IRecordedReduction). reduce()
+    // lists K sets per node (color 1 first), then K * (K - 1) sets per edge, one per ordered pair of different colors, so a
+    // set's place in that list says what it is. Exact Cover reads equal sets as one (the K color sets of a node with no
+    // edges), so the picture's set ids are places among the sets it reads. Its steps:
+    //   - an Accept per node: its element, its slots (one per edge at the node and color) and its K color sets;
+    //   - an Accept per edge: its element and its K * (K - 1) sets, one per pair of different colors of its ends;
+    //   - the Done: an exact cover is a K-coloring.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". Each step adds the pieces no
+    // earlier step added; which ones those are is worked out here, for the gadgets, so the steps name exactly what the
+    // gadgets name.
+    // Gadgets: a group per node (the node to the pieces its step adds), then a group per edge (likewise).
+    private void BuildPieces(List<List<string>> subsets, string instance, StepRecorder<BuildDelta> rec) {
         var nodes = reductionFrom.nodes;
         var edges = reductionFrom.edges;
         int k = reductionFrom.K;
@@ -239,56 +281,44 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
         int[] read = subsets.Select(set => firstRead.TryGetValue(SetKey(set), out int p) ? p : -1).ToArray();
         _listedAs.Clear();
         _listedAs.AddRange(parsed.Select((_, p) => Array.IndexOf(read, p)));
+        // The elements and the read sets an earlier step already added.
         var built = new HashSet<string>(StringComparer.Ordinal);
         var builtSets = new HashSet<int>();
-        // The sets a step adds (each read set once) and their memberships.
-        (List<int> Sets, BuildEdge[] Edges) Sets(IEnumerable<int> listed) {
-            var sets = listed.Select(i => read[i]).Distinct().Where(builtSets.Add).ToList();
-            return (sets, sets.SelectMany(s => parsed[s].Distinct(StringComparer.Ordinal).Select(e => BipartiteFrames.BuildMembership(e, s))).ToArray());
-        }
+        // The read sets of the listed sets that no earlier step added, each once.
+        List<int> NewSets(IEnumerable<int> listed) => listed.Select(i => read[i]).Distinct().Where(builtSets.Add).ToList();
+        // The elements no earlier step added, as the picture's ids.
         List<string> Fresh(IEnumerable<string> elements) =>
             elements.Where(built.Add).Select(BipartiteFrames.ElementId).ToList();
 
-        var nodeSteps = new List<(string Node, int Gadget, string[] Pieces, BuildEdge[] Edges, int Slots)>();
+        // One group per node, and one step.
+        var nodeSteps = NewNodeSteps(rec, parsed);
         for (int u = 0; u < nodes.Count; u++) {
             string node = nodes[u];
             var slots = edges.Where(e => e.Key == node || e.Value == node)
                 .SelectMany(e => Enumerable.Range(1, k).Select(j => SlotElement(node, e.Key, e.Value, j))).ToList();
-            var (sets, memberships) = Sets(Enumerable.Range(u * k, k));
+            var sets = NewSets(Enumerable.Range(u * k, k));
             var pieces = Fresh(new[] { ElementName(node) }.Concat(slots)).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
-            nodeSteps.Add((node, _gadgets.Count, pieces, memberships, slots.Distinct().Count()));
+            int gadget = _gadgets.Count;
             _gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { node }, pieces.ToList()));
+            nodeSteps.Accept((node, gadget, pieces, sets),
+                $"Node {node} becomes the element {ElementName(node)}, {Words.Count(slots.Distinct().Count(), "slot")} (one per edge at {node} and color) and {Words.Count(k, "set")}, one per color: the set for color j holds {ElementName(node)} and {node}'s slots for color j. Exactly one of them covers {ElementName(node)}, so {node} gets one color.");
         }
-        var edgeSteps = new List<(string A, string B, int Gadget, string[] Pieces, BuildEdge[] Edges)>();
+        // Then one group per edge, and one step.
+        var edgeSteps = NewEdgeSteps(rec, parsed);
         int first = nodes.Count * k;
         for (int e = 0; e < edges.Count; e++) {
             var (a, b) = (edges[e].Key, edges[e].Value);
-            var (sets, memberships) = Sets(Enumerable.Range(first + e * k * (k - 1), k * (k - 1)));
+            var sets = NewSets(Enumerable.Range(first + e * k * (k - 1), k * (k - 1)));
             var pieces = Fresh([EdgeElement(a, b)]).Concat(sets.Select(BipartiteFrames.SetId)).ToArray();
-            edgeSteps.Add((a, b, _gadgets.Count, pieces, memberships));
+            int gadget = _gadgets.Count;
             _gadgets.Add(new Gadget(GadgetKind.Group, new List<string> { a == b ? a : GraphSubsetFrames.EdgeId(a, b) }, pieces.ToList()));
+            edgeSteps.Accept((a, b, gadget, pieces, sets),
+                $"Edge {{{a},{b}}} becomes the element {EdgeElement(a, b)} and {Words.Count(k * (k - 1), "set")}, one per pair of different colors (f, g): each holds {EdgeElement(a, b)}, {a}'s slots for this edge except color f and {b}'s except color g. One fits exactly when {a} and {b} have different colors.");
         }
-        if (!rec.Enabled) return;
 
-        foreach (var (node, index, pieces, memberships, slots) in nodeSteps) {
-            string[] focus = pieces.ToArray();
-            rec.Accept(
-                () => new BuildDelta { SourceFocus = [node], Nodes = pieces, Edges = BuildEdge.Sorted(memberships), Gadgets = [index] },
-                () => $"Node {node} becomes the element {ElementName(node)}, {Words.Count(slots, "slot")} (one per edge at {node} and color) and {Words.Count(k, "set")}, "
-                    + $"one per color: the set for color j holds {ElementName(node)} and {node}'s slots for color j. Exactly one of them covers {ElementName(node)}, so {node} gets one color.",
-                focus);
-        }
-        foreach (var (a, b, index, pieces, memberships) in edgeSteps) {
-            string[] sourceFocus = a == b ? [a] : [GraphSubsetFrames.EdgeId(a, b), a, b];
-            rec.Accept(
-                () => new BuildDelta { SourceFocus = sourceFocus, Nodes = pieces, Edges = BuildEdge.Sorted(memberships), Gadgets = [index] },
-                () => $"Edge {{{a},{b}}} becomes the element {EdgeElement(a, b)} and {Words.Count(k * (k - 1), "set")}, one per pair of different colors (f, g): "
-                    + $"each holds {EdgeElement(a, b)}, {a}'s slots for this edge except color f and {b}'s except color g. One fits exactly when {a} and {b} have different colors.",
-                pieces);
-        }
-        rec.Done(new BuildDelta(), true,
-            $"An exact cover takes one color set per node and one set per edge, which fits only when the edge's two ends have different colors: "
-            + $"the sets have an exact cover exactly when the graph can be colored with {Words.Count(k, "color")}.");
+        // The closing step, on either recorder (both record to rec).
+        edgeSteps.Done(new BuildDelta(), true,
+            $"An exact cover takes one color set per node and one set per edge, which fits only when the edge's two ends have different colors: the sets have an exact cover exactly when the graph can be colored with {Words.Count(k, "color")}.");
     }
 
     // A set's elements, sorted and each once: two sets have the same key exactly when they are equal as sets.
@@ -300,17 +330,26 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
     // "{}" on either side keeps the default (the verifiers): only a graph with no nodes has the empty exact cover and the
     // empty coloring.
 
-    /// <summary>
-    /// Backward map (#694): each chosen set is named in the answer by its elements, and found among the sets Exact Cover
-    /// reads. A node's set for color j gives the node color j (a node with no edges has one set for every color, read as the
-    /// first). The edge sets only confirm that the colors of an edge's ends differ, so they give nothing. A node with no color
-    /// set chosen gets no color (a Reject), and Graph Coloring's verifier decides.
-    /// </summary>
+    // How the map-back steps show a set read: the coloring so far, and the id the step is about (the set read, or, for a
+    // node no set colors, its element).
+    private static RunSteps<string, Groups> NewMapSteps(StepRecorder<Groups> rec, Dictionary<string, int> color) => new(rec,
+        // What every picture shows: the coloring so far, and the piece the step is about.
+        partial: _ => new Groups(color),
+        focus: id => [id]);
+
+    // Backward map: each chosen set is named in the answer by its elements, and found among the sets Exact Cover reads. A
+    // node's set for color j gives the node color j (a node with no edges has one set for every color, read as the first).
+    // The edge sets only confirm that the colors of an edge's ends differ, so they give nothing. Graph Coloring's verifier
+    // decides whether the coloring is a real one.
+    // Its steps: an Accept per node color set of the exact cover (its node takes that color), a Reject per node color set of
+    // a node that already has a color (it keeps that), then a Reject per node with no color set chosen (it gets no color).
+    // The caller adds the Done.
     public (string Answer, Groups Partial) MapBack(string problemToSolution, StepRecorder<Groups> rec) {
         EnsurePieces();
         var target = new EXACTCOVER(reductionTo.instance).S;
         int k = reductionFrom.K;
         var color = new Dictionary<string, int>(StringComparer.Ordinal);
+        var steps = NewMapSteps(rec, color);
         foreach (var listed in ReadSets(problemToSolution)) {
             int p = target.FindIndex(set => set.ToHashSet(StringComparer.Ordinal).SetEquals(listed));
             if (p < 0) throw new FormatException($"'{{{string.Join(",", listed)}}}' is not a set of the Exact Cover instance");
@@ -319,14 +358,14 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
             string node = reductionFrom.nodes[i / k], setId = BipartiteFrames.SetId(p);
             int c = i % k;
             if (color.TryGetValue(node, out int had)) {
-                rec.Reject(() => new Groups(color), () => $"Set {setId} gives {node} color {c + 1}, but {node} already has color {had + 1}, so it keeps that.", setId);
+                steps.Reject(setId, $"Set {setId} gives {node} color {c + 1}, but {node} already has color {had + 1}, so it keeps that.");
                 continue;
             }
             color[node] = c;
-            rec.Accept(() => new Groups(color), () => $"Set {setId} {{{string.Join(",", target[p])}}} is in the exact cover. It is {node}'s set for color {c + 1}, so {node} takes color {c + 1}.", setId);
+            steps.Accept(setId, $"Set {setId} {{{string.Join(",", target[p])}}} is in the exact cover. It is {node}'s set for color {c + 1}, so {node} takes color {c + 1}.");
         }
         foreach (string node in reductionFrom.nodes.Where(n => !color.ContainsKey(n)))
-            rec.Reject(() => new Groups(color), () => $"No set of the exact cover is one of {node}'s color sets, so {node} gets no color.", BipartiteFrames.ElementId(ElementName(node)));
+            steps.Reject(BipartiteFrames.ElementId(ElementName(node)), $"No set of the exact cover is one of {node}'s color sets, so {node} gets no color.");
         string answer = "{" + string.Join(",", Enumerable.Range(0, k)
             .Select(c => reductionFrom.nodes.Where(n => color.TryGetValue(n, out int x) && x == c).ToList())
             .Where(cls => cls.Count > 0)
@@ -351,7 +390,7 @@ class KarpGraphColorToExactCover : IReversibleReduction<GRAPHCOLORING, EXACTCOVE
     // for the pair (color of u, color of v): it covers the edge and the slots of u and v for every other color. Every slot is
     // then covered once (by its node's set for its own color, by the edge's set for the rest), so the picked sets are an
     // exact cover. The sets are read from the target by position: reduce() lists K sets per node, color 1 first, then
-    // K * (K - 1) sets per edge, one per ordered pair of different colors (#823).
+    // K * (K - 1) sets per edge, one per ordered pair of different colors.
     public string mapSolutions(string reductionFromSolution) {
         Dictionary<string, int> color = ColoringAnswer.Read(this, reductionFrom, reductionFromSolution);
         int k = reductionFrom.K;
