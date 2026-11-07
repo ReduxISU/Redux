@@ -10,8 +10,9 @@ namespace API.Problems.NPComplete.NPC_VERTEXCOVER.Solvers;
 //   - an Accept for each end it takes into the cover (in the tree, a node named after the end, under the end taken
 //     before it; the solution when it covers the last edge);
 //   - a Reject when the budget runs out with edges still uncovered (that node is pruned, its note the edges left);
-//   - a Backtrack when it backs an end out again (that node fails, or stays pruned when the budget ran out under it);
-//   - the Done, which names the answer's path in the tree, root first.
+//   - a Backtrack when it backs an end out again (that node fails, or stays pruned, with its note, when the budget ran
+//     out under it);
+//   - the Done, which names the answer's path in the tree, root first, or marks the root failed when there is none.
 // In the tree, a node is an end taken into the cover, and its children are the two ends of the next uncovered edge.
 class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
 
@@ -66,7 +67,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
         var result = search(edges, G.K, chosen, tree, steps);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (result == null) {
-            steps.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.");
+            steps.Done(new NodeSet([]), false, $"No vertex cover of size {G.K} or less exists.", tree: () => tree.NoAnswer());
             return "{}";
         }
         steps.Done(new NodeSet(result), true, $"{GraphSubsetFrames.Braces(result)} covers every edge, within K = {G.K}.",
@@ -104,9 +105,8 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
             return resultU;
         }
         chosen.RemoveAt(chosen.Count - 1);
-        // In the tree, a branch the budget cut off (k was 1, so the search under it ran out at once) stays pruned; one
-        // whose own branches all failed fails.
-        steps.Backtrack(new(chosen, e.Key, chosen.Count + 1, k == 1 ? SearchNodeState.Pruned : SearchNodeState.Failed),
+        // In the tree, the end backed out fails, unless the budget cut it off (the tree keeps it pruned, with its note).
+        steps.Backtrack(new(chosen, e.Key, chosen.Count + 1, SearchNodeState.Failed),
             $"Back out {e.Key}: no cover within budget follows from taking it.");
 
         var withoutV = edges.Where(x => x.Key != e.Value && x.Value != e.Value).ToList();
@@ -120,7 +120,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
             return resultV;
         }
         chosen.RemoveAt(chosen.Count - 1);
-        steps.Backtrack(new(chosen, e.Value, chosen.Count + 1, k == 1 ? SearchNodeState.Pruned : SearchNodeState.Failed),
+        steps.Backtrack(new(chosen, e.Value, chosen.Count + 1, SearchNodeState.Failed),
             $"Back out {e.Value}: neither end of {{{e.Key},{e.Value}}} works here.");
 
         return null;

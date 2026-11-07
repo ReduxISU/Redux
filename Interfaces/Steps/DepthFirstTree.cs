@@ -42,6 +42,9 @@ class DepthFirstTree {
     // The choices that failed since the last step kept (see Failed), made at the first one, so a solve without steps never
     // makes it.
     private List<SearchNode>? _failed;
+    // Each node a kept step cut off (pruned), by id, with the note it was cut with. Made at the first one, so a solve
+    // without steps never makes it.
+    private Dictionary<int, string?>? _cut;
 
     /// <param name="deepest">The deepest node the search can reach (the root is at depth 0).</param>
     public DepthFirstTree(int deepest) {
@@ -55,6 +58,10 @@ class DepthFirstTree {
     /// The patches a kept step sends, for the node at <paramref name="depth"/> on the current branch (the root, for 0): the root
     /// with the first step kept, then the choices failed since the last step kept, then the node itself, with its label, its
     /// state after the step and a short note (or none).
+    /// <para>
+    /// A node cut off (pruned) stays cut off: when a later step sends it failed or pruned again (say, when the search backs
+    /// out of it), it is sent pruned, with the note it was cut with unless the step gives another.
+    /// </para>
     /// </summary>
     public SearchNode[] Step(int depth, string label, SearchNodeState state, string? note = null) {
         var node = Node(depth, label, state, note);
@@ -89,10 +96,21 @@ class DepthFirstTree {
         return [.. path];
     }
 
-    /// <summary>The Done's patches when there is no answer: the choices failed since the last step kept, and the root, failed.</summary>
-    public SearchNode[] NoAnswer() => [.. _failed ?? [], Root with { State = SearchNodeState.Failed }];
+    /// <summary>
+    /// The Done's patches when there is no answer: the choices failed since the last step kept, and the root, failed (or
+    /// still pruned, when a kept step cut the root itself off).
+    /// </summary>
+    public SearchNode[] NoAnswer() => [.. _failed ?? [], Node(0, "", SearchNodeState.Failed, null)];
 
-    // The node at depth d of the current branch (the root, for 0).
-    private SearchNode Node(int d, string label, SearchNodeState state, string? note) =>
-        d == 0 ? Root with { State = state, Bound = note } : new(_ids[d], _ids[d - 1], label, state) { Bound = note };
+    // The node at depth d of the current branch (the root, for 0), in the state the step gives it, unless it was cut off.
+    private SearchNode Node(int d, string label, SearchNodeState state, string? note) {
+        int id = _ids[d];
+        if (state is SearchNodeState.Failed or SearchNodeState.Pruned && _cut != null && _cut.TryGetValue(id, out var cutNote)) {
+            state = SearchNodeState.Pruned;
+            note ??= cutNote;
+        } else if (state == SearchNodeState.Pruned) {
+            (_cut ??= new())[id] = note;
+        }
+        return d == 0 ? Root with { State = state, Bound = note } : new(id, _ids[d - 1], label, state) { Bound = note };
+    }
 }

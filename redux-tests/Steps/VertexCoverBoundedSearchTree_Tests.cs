@@ -48,16 +48,27 @@ public class VertexCoverBoundedSearchTree_Tests {
         Assert.Equal(new VertexCoverBoundedSearchTree().solve(g), answer);
         var (parentOf, _) = SearchTreeSteps.CheckLinks(rec.Steps);
         // Each step is about its last node: an Accept's is the end it takes, a Backtrack's the end it backs out (failed, or
-        // pruned when the budget ran out under it), a Reject's the branch the budget cuts off (pruned).
+        // pruned, with the note it was cut with, when the budget ran out under it), a Reject's the branch the budget cuts off
+        // (pruned, its note the edges left).
+        var cutWith = new Dictionary<int, string>();
         foreach (var step in rec.Steps.Where(s => s.Event != StepEvent.Done)) {
             var node = step.Tree![^1];
             if (step.Event == StepEvent.Accept) Assert.Equal(step.Focus[0], node.Label);
             if (step.Event == StepEvent.Backtrack) Assert.Contains(node.State, new[] { SearchNodeState.Failed, SearchNodeState.Pruned });
-            if (step.Event == StepEvent.Reject) Assert.Equal(SearchNodeState.Pruned, node.State);
+            if (step.Event == StepEvent.Backtrack && node.State == SearchNodeState.Pruned) Assert.Equal(cutWith[node.NodeId], node.Bound);
+            if (step.Event == StepEvent.Reject) {
+                Assert.Equal(SearchNodeState.Pruned, node.State);
+                Assert.EndsWith(" uncovered", node.Bound);
+                cutWith[node.NodeId] = node.Bound!;
+            }
         }
         if (!Verifies(g, answer)) {
+            // No cover: the Done marks the root failed, or leaves it pruned when the budget was 0 from the start.
             Assert.False(rec.Steps[^1].Ok);
-            Assert.Null(rec.Steps[^1].Tree);
+            var root = Assert.Single(rec.Steps[^1].Tree!);
+            Assert.Equal(0, root.NodeId);
+            if (cutWith.TryGetValue(0, out var note)) Assert.Equal((SearchNodeState.Pruned, note), (root.State, root.Bound));
+            else Assert.Equal((SearchNodeState.Failed, null), (root.State, root.Bound));
             return;
         }
         var ends = SearchTreeSteps.AnswerPath(rec.Steps, parentOf);
