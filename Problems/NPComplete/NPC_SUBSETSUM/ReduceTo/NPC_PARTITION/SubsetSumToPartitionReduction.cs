@@ -8,6 +8,10 @@ using API.Problems.NPComplete.NPC_PARTITION.Verifiers;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_PARTITION;
 
+// Subset Sum to Partition: the numbers of S, unchanged, plus two added numbers, T + 1 and sum - T + 1, so each side of an
+// even split holds sum + 1 and the numbers of S beside sum - T + 1 add up to T. It records the construction steps (one per
+// number of S, one per added number, then the sides; see Build) and the backward map's steps (where sum - T + 1 is, then
+// one per number of S; see MapBack).
 class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION, Placement>, IRecordedReduction<SUBSETSUM, PARTITION> {
 
     // --- Fields ---
@@ -78,7 +82,7 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
     public SubsetSumToPartitionReduction() : this(new SUBSETSUM()) { }
 
     /// <summary>
-    /// The gadgets (#695), in the Packing picture's ids on both sides: per number of S, an element (Subset Sum's item I{i} to
+    /// The gadgets, in the Packing picture's ids on both sides: per number of S, an element (Subset Sum's item I{i} to
     /// Partition's item I{i}); the two added numbers, palette pieces made from Subset Sum's target (its container C1); and the
     /// bound, that container to Partition's two sides, which each hold sum + 1.
     /// </summary>
@@ -91,7 +95,28 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
 
     public PARTITION reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per number of S, one per added number, then the two sides.
+    // How the construction steps show a number of S: the number in Subset Sum, the same number in Partition, and the gadget
+    // that copies it. The state is (Item, Gadget): the number's item id (the same on both sides) and its gadget's index.
+    private static RunSteps<(string Item, int Gadget), BuildDelta> NewNumberSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the number on both sides, and the gadget.
+        partial: s => new BuildDelta { SourceFocus = [s.Item], Nodes = [s.Item], Gadgets = [s.Gadget] },
+        focus: s => [s.Item]);
+
+    // How the construction steps show an added number: Subset Sum's target (its container), the number added to Partition,
+    // and the gadget that makes it from the target. The state is (Item, Gadget): the added number's item id and its gadget's
+    // index.
+    private static RunSteps<(string Item, int Gadget), BuildDelta> NewAddedSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the target, the added number, and the gadget.
+        partial: s => new BuildDelta { SourceFocus = [PackingFrames.ContainerId(0)], Nodes = [s.Item], Gadgets = [s.Gadget] },
+        focus: s => [s.Item]);
+
+    // Builds the Partition instance, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per number of S, in order: it is a number of Partition, unchanged;
+    //   - an Accept for each added number, T + 1 and then sum - T + 1;
+    //   - the Done: each side must hold sum + 1, and the two added numbers always sit on different sides.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: an element per number of S, a palette piece per added number (from the target), then the bound (the sides).
     private PARTITION Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -105,8 +130,8 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
             throw new ReductionInputException(this, SUBSETSUMInstance.instance, SUBSETSUMInstance.instanceFormat,
                 $"the added numbers T + 1 = {withT} and sum - T + 1 = {withRest} must fit Partition's integers (at most {int.MaxValue})");
         // T + 1 or sum - T + 1 can be a number S already has, or both can be the same number (T = sum / 2): Partition keeps
-        // every copy of a repeated number (#628), so such a Partition is still the one built here and has the same answer
-        // (#831), and nothing is refused.
+        // every copy of a repeated number, so such a Partition is still the one built here and has the same answer, and
+        // nothing is refused.
 
         List<string> partitionNumbers = new List<string>(SUBSETSUMInstance.S) { withT.ToString(), withRest.ToString() };
         string instance = "{" + string.Join(",", partitionNumbers) + "}";
@@ -114,41 +139,43 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
         reducedPARTITION.S = partitionNumbers;
         reducedPARTITION.instance = instance;
 
+        // One gadget per number of S, copying it; each number is then one step.
         int n = SUBSETSUMInstance.S.Count, t = SUBSETSUMInstance.T;
         string target = PackingFrames.ContainerId(0);
+        var numberSteps = NewNumberSteps(rec);
         for (int i = 0; i < n; i++) {
             string id = PackingFrames.ItemId(i), number = SUBSETSUMInstance.S[i];
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { id }, new List<string> { id }));
-            rec.Accept(() => new BuildDelta { SourceFocus = [id], Nodes = [id], Gadgets = [gadget] },
-                () => $"Number {number} of S becomes the number {number} of Partition, unchanged.", id);
+            numberSteps.Accept((id, gadget), $"Number {number} of S becomes the number {number} of Partition, unchanged.");
         }
+        // The two added numbers, each made from the target T, and one step each.
+        var addedSteps = NewAddedSteps(rec);
         string tItem = PackingFrames.ItemId(n), restItem = PackingFrames.ItemId(n + 1);
         int tGadget = gadgets.Count;
         gadgets.Add(new Gadget(GadgetKind.Palette, new List<string> { target }, new List<string> { tItem }, note: $"T + 1 = {withT}"));
+        addedSteps.Accept((tItem, tGadget),
+            $"Partition gets the number T + 1 = {withT}. On its side it needs numbers of S adding up to (sum + 1) - (T + 1) = {sum - t}: the ones left out of a subset that adds up to T = {t}.");
         int restGadget = gadgets.Count;
         gadgets.Add(new Gadget(GadgetKind.Palette, new List<string> { target }, new List<string> { restItem }, note: $"sum - T + 1 = {withRest}"));
+        addedSteps.Accept((restItem, restGadget),
+            $"Partition gets the number sum - T + 1 = {withRest}. On its side it needs numbers of S adding up to (sum + 1) - (sum - T + 1) = {t}: a subset that adds up to T.");
+        // Then the bound: the target to Partition's two sides, which each hold sum + 1.
         int sides = gadgets.Count;
         long half = sum + 1;
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { target }, new List<string> { PackingFrames.ContainerId(0), PackingFrames.ContainerId(1) },
             note: $"each side holds sum + 1 = {half}"));
-        if (rec.Enabled) {
-            rec.Accept(() => new BuildDelta { SourceFocus = [target], Nodes = [tItem], Gadgets = [tGadget] },
-                () => $"Partition gets the number T + 1 = {withT}. On its side it needs numbers of S adding up to (sum + 1) - (T + 1) = {sum - t}: the ones left out of a subset that adds up to T = {t}.",
-                tItem);
-            rec.Accept(() => new BuildDelta { SourceFocus = [target], Nodes = [restItem], Gadgets = [restGadget] },
-                () => $"Partition gets the number sum - T + 1 = {withRest}. On its side it needs numbers of S adding up to (sum + 1) - (sum - T + 1) = {t}: a subset that adds up to T.",
-                restItem);
-            rec.Done(new BuildDelta { SourceFocus = [target], Nodes = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [sides] }, true,
-                $"Partition's numbers add up to 2 * {sum} + 2 = {2 * sum + 2}, so each side must hold {half}. The two added numbers add up to {withT + withRest}, more than a side holds, so they always sit on different sides.");
-        }
+
+        // The closing step, on either recorder (both record to rec).
+        addedSteps.Done(new BuildDelta { SourceFocus = [target], Nodes = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [sides] }, true,
+            $"Partition's numbers add up to 2 * {sum} + 2 = {2 * sum + 2}, so each side must hold {half}. The two added numbers add up to {withT + withRest}, more than a side holds, so they always sit on different sides.");
 
         reductionTo = reducedPARTITION;
         return reducedPARTITION;
     }
 
     /// <summary>
-    /// Maps a Subset Sum answer to a Partition answer (#817): the chosen numbers, which add up to T, go on one side with
+    /// Maps a Subset Sum answer to a Partition answer: the chosen numbers, which add up to T, go on one side with
     /// sum - T + 1, and the rest of S, which adds up to sum - T, goes on the other with T + 1, so both sides add up to sum + 1.
     /// A number S does not have (or has fewer times than the answer uses it) is a 400.
     /// </summary>
@@ -158,7 +185,7 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}");
         List<string> chosen;
         try {
-            // Repeats kept (#628): {7,7} chooses two 7s.
+            // Repeats kept: {7,7} chooses two 7s.
             chosen = RepeatedElements.Parse(text).Select(x => x.ToString()).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}", ex);
@@ -184,11 +211,17 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
     // "{}" on either side keeps the default (the verifiers): Partition never takes "{}" as a split, and the empty subset is an
     // answer exactly when T = 0.
 
-    /// <summary>
-    /// Backward map (#695): the numbers of S on the same side as sum - T + 1 add up to (sum + 1) - (sum - T + 1) = T, so they
-    /// are the subset. The first step reads where sum - T + 1 is; then one step per number of S, in order: on that side
-    /// (Accept, in the subset) or on the other, with T + 1 (Reject, left out).
-    /// </summary>
+    // How the map-back steps show a number read: the subset so far (the numbers of S in it), and the number's item.
+    private static RunSteps<string, Placement> NewMapSteps(StepRecorder<Placement> rec, int[] assign) => new(rec,
+        // What every picture shows: the subset so far, and the number the step is about.
+        partial: _ => new Placement(assign),
+        focus: id => [id]);
+
+    // Backward map: the numbers of S on the same side as sum - T + 1 add up to (sum + 1) - (sum - T + 1) = T, so they are
+    // the subset.
+    // Its steps: a Try that reads which side sum - T + 1 is on; then one per number of S, in order: an Accept when it is on
+    // that side (it is in the subset), a Reject when it is on the other side, with T + 1, or on neither (it is left out).
+    // The caller adds the Done.
     public (string Answer, Placement Partial) MapBack(string problemToSolution, StepRecorder<Placement> rec) {
         int n = reductionFrom.S.Count;
         var keys = reductionTo.S.Select(PackingFrames.Key).ToList();
@@ -198,19 +231,19 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
             throw new FormatException($"'{problemToSolution}' does not put the number {reductionTo.S[n + 1]} (sum - T + 1) on either side");
         string restNumber = reductionTo.S[n + 1], tNumber = reductionTo.S[n];
         var assign = Enumerable.Repeat(-1, n).ToArray();
-        rec.Try(() => new Placement(assign),
-            () => $"Number {restNumber} (sum - T + 1) is on side S{restSide + 1}, so the numbers of S beside it add up to T: they are the subset.",
-            PackingFrames.ItemId(n + 1));
+        var steps = NewMapSteps(rec, assign);
+        steps.Try(PackingFrames.ItemId(n + 1),
+            $"Number {restNumber} (sum - T + 1) is on side S{restSide + 1}, so the numbers of S beside it add up to T: they are the subset.");
         for (int i = 0; i < n; i++) {
             string number = reductionFrom.S[i], id = PackingFrames.ItemId(i);
             int side = split.Of(i);
             if (side == restSide) {
                 assign[i] = 0;
-                rec.Accept(() => new Placement(assign), () => $"Number {number} is on side S{side + 1} with {restNumber}, so {number} is in the subset.", id);
+                steps.Accept(id, $"Number {number} is on side S{side + 1} with {restNumber}, so {number} is in the subset.");
+            } else if (side < 0) {
+                steps.Reject(id, $"Number {number} is on neither side, so {number} is left out of the subset.");
             } else {
-                rec.Reject(() => new Placement(assign),
-                    () => side < 0 ? $"Number {number} is on neither side, so {number} is left out of the subset."
-                        : $"Number {number} is on side S{side + 1} with {tNumber} (T + 1), so {number} is left out of the subset.", id);
+                steps.Reject(id, $"Number {number} is on side S{side + 1} with {tNumber} (T + 1), so {number} is left out of the subset.");
             }
         }
         var subset = Enumerable.Range(0, n).Where(i => assign[i] == 0).Select(i => reductionFrom.S[i]);
@@ -219,7 +252,7 @@ class SubsetSumToPartitionReduction : IReversibleReduction<SUBSETSUM, PARTITION,
 
     // A Partition answer: two sides, "{(1,12,15,8),(7,29)}" or "(1,12,15,8),(7,29)", as Partition's verifier reads them.
     // Malformed text throws FormatException, which the endpoint reports as a 400.
-    // Read as Partition's verifier reads it, repeats included (#628): {(10,4,5),(10,3,6)} has a 10 on each side.
+    // Read as Partition's verifier reads it, repeats included: {(10,4,5),(10,3,6)} has a 10 on each side.
     private static List<List<string>> ReadSides(string certificate) {
         List<List<string>>? sides = PartitionVerifier.ReadSides(certificate.Trim());
         if (sides == null)

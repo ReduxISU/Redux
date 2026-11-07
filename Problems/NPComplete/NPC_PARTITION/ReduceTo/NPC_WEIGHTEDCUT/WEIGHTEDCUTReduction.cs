@@ -9,6 +9,10 @@ using API.Problems.NPComplete.NPC_WEIGHTEDCUT;
 
 namespace API.Problems.NPComplete.NPC_PARTITION.ReduceTo.NPC_WEIGHTEDCUT;
 
+// Partition to Weighted Cut: every number becomes a node, every two nodes are joined by an edge weighing the product of
+// their numbers, and K is the weight of an even split's cut (sum^2 / 4), or one more than the best cut when the total is
+// odd. It records the construction steps (one per number, then K; see Build) and the backward map's steps (one per node;
+// see MapBack).
 class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placement>, IRecordedReduction<PARTITION, WEIGHTEDCUT> {
 
     // --- Fields ---
@@ -80,7 +84,7 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
     public WEIGHTEDCUTReduction() : this(new PARTITION()) { }
 
     /// <summary>
-    /// The gadgets (#695): per number of S, an element (Partition's item I{i} to node i); per pair of numbers, an edge rule
+    /// The gadgets: per number of S, an element (Partition's item I{i} to node i); per pair of numbers, an edge rule
     /// (the two items to the edge between their nodes, weighing their product); and the bound, Partition's two sides to K,
     /// which Weighted Cut's picture draws as no piece of its own.
     /// </summary>
@@ -93,7 +97,27 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
 
     public WEIGHTEDCUT reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per number of S (its node, and its edges to the nodes before it), then K.
+    // How the construction steps show a number: the number in Partition; its node and its edges to the nodes before it,
+    // added to Weighted Cut; and the gadgets that make them. The state is (Number, FirstGadget): the number's index, and the
+    // index of its first gadget (its element, then one edge rule per earlier node).
+    private static RunSteps<(int Number, int FirstGadget), BuildDelta> NewNumberSteps(StepRecorder<BuildDelta> rec, List<string> nodes) => new(rec,
+        // What the Reduction View shows: the number, the node and edges added, and the gadgets that make them.
+        partial: s => new BuildDelta {
+            SourceFocus = [PackingFrames.ItemId(s.Number)],
+            Nodes = [nodes[s.Number]],
+            Edges = BuildEdge.Sorted(Enumerable.Range(0, s.Number).Select(j => new BuildEdge(nodes[j], nodes[s.Number]))),
+            Gadgets = Enumerable.Range(s.FirstGadget, s.Number + 1).ToArray(),
+        },
+        focus: s => [nodes[s.Number]]);
+
+    // Builds the Weighted Cut instance, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per number of S, in order: it becomes a node, joined to every earlier node by an edge weighing the
+    //     product of their numbers;
+    //   - the Done: K, the weight an even split's cut reaches (or one more than the best cut, when the total is odd).
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: per number, an element (its item to its node) and an edge rule per earlier node (the two items to the edge
+    // between their nodes); then the bound (K).
     private WEIGHTEDCUT Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -109,7 +133,7 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
             nodes.Add(i.ToString());
 
         // Node i is the i-th number; every two nodes are joined by an edge weighing the product of their numbers. Weights and K
-        // are worked out in long, so a product or square that does not fit Weighted Cut's integers is a 400, never a wrap (#830).
+        // are worked out in long, so a product or square that does not fit Weighted Cut's integers is a 400, never a wrap.
         for (int i = 0; i < numbers.Count; i++) {
             for (int j = i + 1; j < numbers.Count; j++) {
                 int weight = FitInt((long)numbers[i] * numbers[j], $"the edge {{{i + 1},{j + 1}}} weighs {numbers[i]} * {numbers[j]}");
@@ -122,7 +146,7 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
 
         // A split into sides adding up to a and b cuts edges weighing a * b in all, which reaches sum^2 / 4 exactly when
         // a = b. When the sum is odd no split is even, and the best one weighs (sum^2 - 1) / 4, which integer division would
-        // round sum^2 / 4 down to (#830): K is then (sum^2 + 3) / 4, one more, which no cut reaches.
+        // round sum^2 / 4 down to: K is then (sum^2 + 3) / 4, one more, which no cut reaches.
         long total = numbers.Sum(n => (long)n);
         long square;
         try {
@@ -132,7 +156,7 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
         }
         int k = FitInt(total % 2 == 0 ? square / 4 : (square + 3) / 4, $"K, from the sum of the numbers {total}");
 
-        // One number gives one node and no edges: "(({1},{}),K)" (#830).
+        // One number gives one node and no edges: "(({1},{}),K)".
         string instance = $"(({{{string.Join(",", nodes)}}},{{{string.Join(",", written)}}}),{k})";
 
         reducedWEIGHTEDCUT.K = k;
@@ -140,40 +164,39 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
         reducedWEIGHTEDCUT.edges = edges;
         reducedWEIGHTEDCUT.instance = instance;
 
+        // One gadget per number (its item to its node), then one edge rule per edge to an earlier node; each number is then
+        // one step.
+        var numberSteps = NewNumberSteps(rec, nodes);
         for (int i = 0; i < numbers.Count; i++) {
             string item = PackingFrames.ItemId(i), node = nodes[i];
             int element = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { item }, new List<string> { node }));
-            var rules = new List<int>();
-            var mine = new List<BuildEdge>();
-            for (int j = 0; j < i; j++) {
-                var edge = new BuildEdge(nodes[j], node);
-                rules.Add(gadgets.Count);
-                gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { PackingFrames.ItemId(j), item }, new List<string> { edge.Id },
+            for (int j = 0; j < i; j++)
+                gadgets.Add(new Gadget(GadgetKind.EdgeRule, new List<string> { PackingFrames.ItemId(j), item }, new List<string> { new BuildEdge(nodes[j], node).Id },
                     note: $"{numbers[j]} * {numbers[i]} = {(long)numbers[j] * numbers[i]}"));
-                mine.Add(edge);
-            }
-            int number = numbers[i], at = i;
-            rec.Accept(() => new BuildDelta {
-                SourceFocus = [item],
-                Nodes = [node],
-                Edges = BuildEdge.Sorted(mine),
-                Gadgets = rules.Prepend(element).ToArray(),
-            }, () => at == 0
-                ? $"Number {number} becomes node {node}."
-                : $"Number {number} becomes node {node}, joined to {(at == 1 ? "node" : "nodes")} {BuildCaptions.Names(nodes.Take(at).ToList())} by {(at == 1 ? "an edge" : "edges")} weighing the product of their numbers: "
-                    + BuildCaptions.Names(Enumerable.Range(0, at).Select(j => $"{numbers[j]} * {number} = {(long)number * numbers[j]}").ToList()) + ".",
-                node);
+
+            int number = numbers[i];
+            if (i == 0)
+                numberSteps.Accept((i, element), $"Number {number} becomes node {node}.");
+            else if (i == 1)
+                numberSteps.Accept((i, element),
+                    $"Number {number} becomes node {node}, joined to node {nodes[0]} by an edge weighing the product of their numbers: {numbers[0]} * {number} = {(long)number * numbers[0]}.");
+            else
+                numberSteps.Accept((i, element),
+                    $"Number {number} becomes node {node}, joined to nodes {BuildCaptions.Names(nodes.Take(i).ToList())} by edges weighing the product of their numbers: {BuildCaptions.Names(Enumerable.Range(0, i).Select(j => $"{numbers[j]} * {number} = {(long)number * numbers[j]}").ToList())}.");
         }
+        // Then the bound: Partition's two sides to K. The Weighted Cut picture has no piece of its own for it.
         int bound = gadgets.Count;
         gadgets.Add(new Gadget(GadgetKind.Bound, new List<string> { PackingFrames.ContainerId(0), PackingFrames.ContainerId(1) }, new List<string>(), note: $"K = {k}"));
-        if (rec.Enabled) {
-            long half = total / 2;
-            string caption = total % 2 == 0
-                ? $"K = {total}^2 / 4 = {k}. A cut between sides whose numbers add up to a and b weighs a * b, which reaches {half} * {half} = {k} only when a = b = {half}: an even split."
-                : $"The numbers add up to {total}, an odd total, so no split is even and the best cut weighs {half} * {total - half} = {half * (total - half)}. K = ({total}^2 + 3) / 4 = {k} is one more, so no cut reaches it.";
-            rec.Done(new BuildDelta { SourceFocus = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [bound], Bound = k }, true, caption);
-        }
+
+        // The closing step: the best cut is an even split when the total is even, and K is out of reach when it is odd.
+        long half = total / 2;
+        if (total % 2 == 0)
+            numberSteps.Done(new BuildDelta { SourceFocus = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [bound], Bound = k }, true,
+                $"K = {total}^2 / 4 = {k}. A cut between sides whose numbers add up to a and b weighs a * b, which reaches {half} * {half} = {k} only when a = b = {half}: an even split.");
+        else
+            numberSteps.Done(new BuildDelta { SourceFocus = [PackingFrames.ContainerId(0), PackingFrames.ContainerId(1)], Gadgets = [bound], Bound = k }, true,
+                $"The numbers add up to {total}, an odd total, so no split is even and the best cut weighs {half} * {total - half} = {half * (total - half)}. K = ({total}^2 + 3) / 4 = {k} is one more, so no cut reaches it.");
 
         reductionTo = reducedWEIGHTEDCUT;
         return reducedWEIGHTEDCUT;
@@ -187,12 +210,12 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
             $"{what} does not fit Weighted Cut's integers (at most {int.MaxValue}); use smaller numbers");
 
     /// <summary>
-    /// Maps a Partition answer to a Weighted Cut answer (#740): node i is the i-th number of S, so the cut between the two
+    /// Maps a Partition answer to a Weighted Cut answer: node i is the i-th number of S, so the cut between the two
     /// sides is every edge {i,j} whose numbers are on different sides, with its weight. The two sides must hold every number
     /// of S once; anything else is a 400.
     /// </summary>
     public string mapSolutions(string reductionFromSolution) {
-        // Read as Partition's verifier reads it, repeats included (#628): {(3),(3)} puts a 3 on each side.
+        // Read as Partition's verifier reads it, repeats included: {(3),(3)} puts a 3 on each side.
         List<List<string>> sides = PartitionVerifier.ReadSides(reductionFromSolution)
             ?? throw new ReductionInputException(this, reductionFromSolution, reductionFrom.certificateFormat, $"'{reductionFromSolution}' is not two sides like (1,7),(8)");
         var side = new int?[reductionFrom.S.Count];
@@ -220,10 +243,15 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
     // "{}" on either side keeps the default (the verifiers): Weighted Cut's verifier judges the empty cut, and Partition never
     // takes "{}" as a split.
 
-    /// <summary>
-    /// Backward map (#695): every two nodes are joined, so node j is across the cut from node 1 exactly when edge {1,j} is cut.
-    /// Node 1's number goes to side S1, then each other node's number to S1 (its edge to node 1 is not cut) or S2 (it is).
-    /// </summary>
+    // How the map-back steps show a node read: the split so far (the side of each number placed), and the node.
+    private static RunSteps<string, Placement> NewMapSteps(StepRecorder<Placement> rec, int[] assign) => new(rec,
+        // What every picture shows: the split so far, and the node the step is about.
+        partial: _ => new Placement(assign),
+        focus: node => [node]);
+
+    // Backward map: every two nodes are joined, so node j is across the cut from node 1 exactly when edge {1,j} is cut.
+    // Its steps, one per node in order, all Accepts: node 1's number goes to side S1, then each other node's number to S1
+    // (its edge to node 1 is not cut) or S2 (it is). The caller adds the Done.
     public (string Answer, Placement Partial) MapBack(string problemToSolution, StepRecorder<Placement> rec) {
         var nodes = reductionTo.nodes;
         var cut = ReadCut(problemToSolution);
@@ -231,19 +259,20 @@ class WEIGHTEDCUTReduction : IReversibleReduction<PARTITION, WEIGHTEDCUT, Placem
             if (!nodes.Contains(u) || !nodes.Contains(v))
                 throw new FormatException($"'{{{u},{v}}}' is not an edge of the Weighted Cut instance");
         var assign = Enumerable.Repeat(-1, nodes.Count).ToArray();
+        var steps = NewMapSteps(rec, assign);
         for (int i = 0; i < nodes.Count; i++) {
             string node = nodes[i], number = reductionFrom.S[i];
             if (i == 0) {
                 assign[0] = 0;
-                rec.Accept(() => new Placement(assign), () => $"Node {node} is number {number}; it goes to side S1, and every other node's side is read from its edge to {node}.", node);
+                steps.Accept(node, $"Node {node} is number {number}; it goes to side S1, and every other node's side is read from its edge to {node}.");
                 continue;
             }
             bool across = cut.Contains((nodes[0], node)) || cut.Contains((node, nodes[0]));
             assign[i] = across ? 1 : 0;
-            rec.Accept(() => new Placement(assign),
-                () => across ? $"Edge {{{nodes[0]},{node}}} is cut, so node {node} is across from node {nodes[0]}: {number} goes to side S2."
-                    : $"Edge {{{nodes[0]},{node}}} is not cut, so node {node} is on node {nodes[0]}'s side: {number} goes to side S1.",
-                node);
+            if (across)
+                steps.Accept(node, $"Edge {{{nodes[0]},{node}}} is cut, so node {node} is across from node {nodes[0]}: {number} goes to side S2.");
+            else
+                steps.Accept(node, $"Edge {{{nodes[0]},{node}}} is not cut, so node {node} is on node {nodes[0]}'s side: {number} goes to side S1.");
         }
         string Side(int s) => "(" + string.Join(",", Enumerable.Range(0, nodes.Count).Where(i => assign[i] == s).Select(i => reductionFrom.S[i])) + ")";
         return ("{" + Side(0) + "," + Side(1) + "}", new Placement(assign));

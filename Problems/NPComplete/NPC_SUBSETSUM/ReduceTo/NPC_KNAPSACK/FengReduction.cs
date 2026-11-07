@@ -7,6 +7,9 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_SUBSETSUM.ReduceTo.NPC_KNAPSACK;
 
+// Feng's Subset Sum to Knapsack: every number n becomes the item (n,n), weight n and value n, and the target T becomes both
+// the weight limit W and the value goal V. It records the construction steps (one per number, then W and V; see Build) and
+// the backward map's steps (one per item of the knapsack instance; see MapBack).
 class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRecordedReduction<SUBSETSUM, KNAPSACK> {
 
     // --- Fields ---
@@ -81,7 +84,7 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
     public FengReduction() : this(new SUBSETSUM()) { }
 
     /// <summary>
-    /// The gadgets (#695), in the Packing picture's ids on both sides: per number of S, an element (Subset Sum's item I{i} to
+    /// The gadgets, in the Packing picture's ids on both sides: per number of S, an element (Subset Sum's item I{i} to
     /// the Knapsack item I{i}, (n,n)); and the bound, Subset Sum's container (its target T) to the knapsack (W = V = T).
     /// </summary>
     public List<Gadget> gadgets { get; } = new();
@@ -93,7 +96,19 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
 
     public KNAPSACK reduce() => Build(StepRecorder<BuildDelta>.Off);
 
-    // Construction steps (see IRecordedReduction): one per number of S (its item), then the knapsack with W and V.
+    // How the construction steps show a number of S: the number in Subset Sum, the item it becomes in Knapsack, and the
+    // gadget that makes it. The state is (Item, Gadget): the item's id (the same on both sides) and its gadget's index.
+    private static RunSteps<(string Item, int Gadget), BuildDelta> NewNumberSteps(StepRecorder<BuildDelta> rec) => new(rec,
+        // What the Reduction View shows: the number, its item, and the gadget.
+        partial: s => new BuildDelta { SourceFocus = [s.Item], Nodes = [s.Item], Gadgets = [s.Gadget] },
+        focus: s => [s.Item]);
+
+    // Builds the Knapsack instance, recording the construction steps as it goes (see IRecordedReduction). Its steps:
+    //   - an Accept per number n of S, in order: it becomes the item (n,n), weight n and value n;
+    //   - the Done: the target T becomes both the weight limit W and the value goal V.
+    // A construction has no verdicts, so Accept means "these pieces go into the target". The steps come from the very
+    // decisions below, so what is recorded is what is built.
+    // Gadgets: an element per number (its item to the Knapsack item), then the bound (W = V = T).
     private KNAPSACK Build(StepRecorder<BuildDelta> rec) {
         // Built afresh on every call, so calling reduce() again does not add a second copy of each gadget.
         gadgets.Clear();
@@ -105,10 +120,12 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         };
 
         // We reduce the set of integers to a set of items by having each integer n equal (n,n) as an item.
-        // One item per number, repeats included (#628): a number S has twice becomes two identical items, so the items are
+        // One item per number, repeats included: a number S has twice becomes two identical items, so the items are
         // kept in a list (Knapsack's items are an ordered collection), not added to a SPADE set, which would keep one.
+        // Each number is one step.
         List<string> integers = SUBSETSUMInstance.S;
         List<UtilCollection> items = new List<UtilCollection>();
+        var numberSteps = NewNumberSteps(rec);
         for (int i = 0; i < SUBSETSUMInstance.S.Count; i++) {
             UtilCollection item = new UtilCollection($"({integers[i]},{integers[i]})");
             items.Add(item);
@@ -116,10 +133,10 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
             string id = PackingFrames.ItemId(i), n = integers[i];
             int gadget = gadgets.Count;
             gadgets.Add(new Gadget(GadgetKind.Element, new List<string> { id }, new List<string> { id }));
-            rec.Accept(() => new BuildDelta { SourceFocus = [id], Nodes = [id], Gadgets = [gadget] },
-                () => $"Number {n} becomes the item ({n},{n}): weight {n} and value {n}, so it adds as much to the knapsack's weight as to its value.",
-                id);
+            numberSteps.Accept((id, gadget),
+                $"Number {n} becomes the item ({n},{n}): weight {n} and value {n}, so it adds as much to the knapsack's weight as to its value.");
         }
+        // Then the bound: Subset Sum's container (its target T) to the knapsack.
         int t = SUBSETSUMInstance.T;
         int bound = gadgets.Count;
         string container = PackingFrames.ContainerId(0);
@@ -129,16 +146,16 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
 
         reducedKNAPSACK.instance = $"({{{string.Join(",", items)}}},{reducedKNAPSACK.W},{reducedKNAPSACK.V})";
 
-        if (rec.Enabled)
-            rec.Done(new BuildDelta { SourceFocus = [container], Nodes = [container], Gadgets = [bound], Bound = t }, true,
-                $"The target T = {t} becomes both the weight limit W = {t} and the value goal V = {t}. An item's weight equals its value, so items that weigh at most {t} and are worth at least {t} add up to exactly {t}.");
+        // The closing step.
+        numberSteps.Done(new BuildDelta { SourceFocus = [container], Nodes = [container], Gadgets = [bound], Bound = t }, true,
+            $"The target T = {t} becomes both the weight limit W = {t} and the value goal V = {t}. An item's weight equals its value, so items that weigh at most {t} and are worth at least {t} add up to exactly {t}.");
 
         reductionTo = reducedKNAPSACK;
         return reducedKNAPSACK;
     }
 
     /// <summary>
-    /// Maps a Subset Sum answer to a Knapsack answer (#828): each chosen number n becomes the item (n,n). The chosen numbers
+    /// Maps a Subset Sum answer to a Knapsack answer: each chosen number n becomes the item (n,n). The chosen numbers
     /// add up to T, so the items weigh T (at most W = T) and are worth T (at least V = T). A number S does not have is a 400.
     /// </summary>
     public string mapSolutions(string problemFromSolution) {
@@ -146,7 +163,7 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         List<string> chosen;
         try {
             if (text.Length < 2 || text[0] != '{' || text[^1] != '}') throw new FormatException();
-            // Repeats kept (#628): {7,7} chooses two 7s.
+            // Repeats kept: {7,7} chooses two 7s.
             chosen = RepeatedElements.Parse(text).Select(x => x.ToString()).ToList();
         } catch (Exception ex) when (ParseGuard.IsCertificateParseFailure(ex)) {
             throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, $"'{problemFromSolution}' is not a set of numbers like {{1,12,15}}", ex);
@@ -168,10 +185,16 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
     // "{}" on either side keeps the default (the verifiers): the empty knapsack is an answer exactly when T = 0, and so is the
     // empty subset.
 
-    /// <summary>
-    /// Backward map (#695): item I{i} is (n,n) for the i-th number n of S, so the items in the knapsack are the numbers of the
-    /// subset. One step per item of the knapsack instance, in order: in the knapsack (Accept) or left out (Reject).
-    /// </summary>
+    // How the map-back steps show an item read: the subset so far (the items in it), and the item.
+    private static RunSteps<string, Placement> NewMapSteps(StepRecorder<Placement> rec, int[] assign) => new(rec,
+        // What every picture shows: the subset so far, and the item the step is about.
+        partial: _ => new Placement(assign),
+        focus: id => [id]);
+
+    // Backward map: item I{i} is (n,n) for the i-th number n of S, so the items in the knapsack are the numbers of the
+    // subset.
+    // Its steps, one per item of the knapsack instance in order: an Accept when it is in the knapsack (its number is in the
+    // subset), a Reject when it is not (its number is left out). The caller adds the Done.
     public (string Answer, Placement Partial) MapBack(string problemToSolution, StepRecorder<Placement> rec) {
         var keys = reductionTo.items.ToList().Select(PackingFrames.Key).ToList();
         var chosen = new bool[keys.Count];
@@ -181,13 +204,14 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
             chosen[i] = true;
         }
         var assign = Enumerable.Repeat(-1, keys.Count).ToArray();
+        var steps = NewMapSteps(rec, assign);
         for (int i = 0; i < keys.Count; i++) {
             string n = reductionFrom.S[i], id = PackingFrames.ItemId(i);
             if (chosen[i]) {
                 assign[i] = 0;
-                rec.Accept(() => new Placement(assign), () => $"Item ({n},{n}) is in the knapsack, so {n} is in the subset.", id);
+                steps.Accept(id, $"Item ({n},{n}) is in the knapsack, so {n} is in the subset.");
             } else {
-                rec.Reject(() => new Placement(assign), () => $"Item ({n},{n}) is not in the knapsack, so {n} is left out of the subset.", id);
+                steps.Reject(id, $"Item ({n},{n}) is not in the knapsack, so {n} is left out of the subset.");
             }
         }
         var subset = Enumerable.Range(0, keys.Count).Where(i => chosen[i]).Select(i => reductionFrom.S[i]);
@@ -201,7 +225,7 @@ class FengReduction : IReversibleReduction<SUBSETSUM, KNAPSACK, Placement>, IRec
         if (text.Length < 2 || text[0] != '{' || text[^1] != '}')
             throw new FormatException($"'{certificate}' is not a set of items in braces like {{(1,1),(12,12)}}");
         try {
-            // Repeats kept (#628): {(7,7),(7,7)} is two items.
+            // Repeats kept: {(7,7),(7,7)} is two items.
             var items = RepeatedElements.Parse(text);
             foreach (var item in items) item.assertPair();
             return items.Select(PackingFrames.Key).ToList();
