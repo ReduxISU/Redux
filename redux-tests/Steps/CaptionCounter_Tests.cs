@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using API;
 using API.Interfaces;
+using API.Interfaces.Steps;
 using Xunit;
 
 namespace redux_tests;
@@ -14,7 +15,9 @@ namespace redux_tests;
 // "Take 2: ...", "Go 1 → 3: ...") is already a sentence.
 //
 // Every solver that records typed steps (found as the capture tool finds them) runs on its problem's default instance, with
-// steps at the default cap and at a small one, and with fixed seeds when it is random.
+// steps at the default cap and at a small one, and with fixed seeds when it is random. The same holds for a reduction's
+// steps, its construction and its backward map, and they are checked for a label of the reduction's own too ("Palette:
+// ...", "K = 3, ...").
 public class CaptionCounter_Tests {
     // A counter at the start, optionally after one short sentence ("Restart. Try 2: ..."): a counting word and a number (not
     // a tour like "Try 1 → 2 → 1"), "#3", "(3):" or "3. ".
@@ -115,5 +118,99 @@ public class CaptionCounter_Tests {
         }
         Assert.True(runs > 100, $"only {runs} runs");
         Assert.True(found.Count == 0, "Captions that start with a counter or a position label:\n" + string.Join("\n", found.Distinct().Take(40)));
+    }
+
+    // A reduction's own label at the start: a bound given as "K = 3, ..." or "K' = ...", or a short name of up to three words
+    // and a colon ("Palette: ...", "Variable x1: ...", "Garbage collection: ...", "K stays 3: ..."). A caption led by a verb
+    // ("Join clauses C1 and C2: ...", "Copy every node ..."), or with a longer sentence before its colon ("Variable x3 only
+    // appears as x3: ..."), is already a sentence.
+    private static readonly Regex LeadingLabel = new(
+        @"^(?:K'?\s*=|(?!(?:Try|Put|Take|Go|Join|Copy|Keep|Undo|Close|Start|Set|Color|Remove|Add|Pick|Move)\b)[A-Z][\w'-]*(?:\s+[^\s:]+){0,2}:\s)",
+        RegexOptions.CultureInvariant);
+
+    [Theory]
+    [InlineData("Palette: nodes F, T and B, joined in a triangle.")]
+    [InlineData("Variable x1: nodes !x1 and x1, each joined to B and to each other.")]
+    [InlineData("Garbage collection: 2 pairs x_garb_i and y_garb_i, each with a triple to every one of the 6 z elements.")]
+    [InlineData("K = 3, one node per clause: a clique of 3 nodes has to take one node from every clause.")]
+    [InlineData("K = 3 colors: the graph can be colored with 3 colors exactly when the formula can be satisfied.")]
+    [InlineData("K = 14^2 / 4 = 49. A cut between sides whose numbers add up to a and b weighs a * b.")]
+    [InlineData("K' = N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.")]
+    [InlineData("K stays 3: at most 3 sets can cover every element exactly when at most 3 nodes can touch every edge.")]
+    public void TheLabelPattern_CatchesALeadingLabel(string caption) => Assert.Matches(LeadingLabel, caption);
+
+    [Theory]
+    [InlineData("The palette is nodes F, T and B, joined in a triangle.")]
+    [InlineData("Variable x1 becomes nodes !x1 and x1, each joined to B and to each other.")]
+    [InlineData("Variable x3 only appears as x3: one node x3, joined to B, so it takes the true color or the false color.")]
+    [InlineData("The garbage collection is 2 pairs x_garb_i and y_garb_i, each with a triple to every one of the 6 z elements.")]
+    [InlineData("K is 3, one node per clause: a clique of 3 nodes has to take one node from every clause.")]
+    [InlineData("K' is N - K = 4 - 3 = 1. The clique graph has a clique of size 3 exactly when the complement has a vertex cover of size 1.")]
+    [InlineData("K stays 3, since at most 3 sets can cover every element exactly when at most 3 nodes can touch every edge.")]
+    [InlineData("K stays 2. 2 nodes with no edge between them in the original graph are 2 nodes joined to each other in the complement.")]
+    [InlineData("The target T = 4 becomes both the weight limit W = 4 and the value goal V = 4.")]
+    [InlineData("Join clauses C1 and C2: 4 edges.")]
+    [InlineData("Set S1 {a:b,c} becomes the number 4: 011 in base 3.")]
+    [InlineData("x1 = True, so x1 is true in clause C2: its node x1_1 is in the clique.")]
+    [InlineData("Node a becomes set S2, the edges it touches: {a_b}.")]
+    public void TheLabelPattern_LetsAnOrdinaryCaptionThrough(string caption) => Assert.DoesNotMatch(LeadingLabel, caption);
+
+    // Every reduction that records steps (found as the capture tool finds them): its construction steps on its default
+    // instance and on the snapshot tests' instances, at the default cap and at 5; and, on the snapshot tests' instances, the
+    // backward map's steps for no answer, the answer the Reduction View's solver finds, and the capture's wrong answer, at
+    // the default cap and at 5.
+    [Fact]
+    public void NoReductionStepCaption_StartsWithALabel() {
+        var known = ReductionCapture_Tests.KnownInstances();
+        var found = new List<string>();
+        int runs = 0;
+        foreach (var (name, type, builds, partial) in ReductionCapture_Tests.RecordingReductions()) {
+            var solved = known.Where(k => k.Reduction == name).Select(k => k.Instance).Distinct().ToList();
+            var instances = solved.Prepend(((IReduction)Activator.CreateInstance(type)!).reductionFrom.instance).Distinct().ToList();
+            void Check(IEnumerable<object> steps) {
+                runs++;
+                foreach (object step in steps) {
+                    string? caption = step.GetType().GetProperty("Caption")?.GetValue(step) as string;
+                    if (caption != null && (LeadingCounter.IsMatch(caption) || LeadingPosition.IsMatch(caption) || LeadingLabel.IsMatch(caption)))
+                        found.Add($"{type.Name}: {caption}");
+                }
+            }
+            foreach (string instance in instances) {
+                if (builds)
+                    foreach (int? cap in Caps) {
+                        var rec = cap is int c ? new StepRecorder<BuildDelta>(c) : new StepRecorder<BuildDelta>();
+                        var reduction = (IReduction)Activator.CreateInstance(type, instance)!;
+                        type.GetMethod("Rebuild")!.Invoke(reduction, [rec]);
+                        Check(rec.Steps);
+                    }
+                if (partial == null || !solved.Contains(instance)) continue;
+                typeof(CaptionCounter_Tests).GetMethod(nameof(CheckMapBack), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                    .MakeGenericMethod(partial).Invoke(null, [type, instance, (Action<IEnumerable<object>>)Check]);
+            }
+        }
+        Assert.True(runs > 100, $"only {runs} runs");
+        Assert.True(found.Count == 0, "Reduction captions that start with a counter or a label:\n" + string.Join("\n", found.Distinct().Take(40)));
+    }
+
+    // The backward map of no answer, of the answer the Reduction View's solver finds for the target, and of the capture's
+    // wrong answer when it has one, at the default cap and at 5.
+    private static void CheckMapBack<TPartial>(Type type, string instance, Action<IEnumerable<object>> check) {
+        IReduction New() => (IReduction)Activator.CreateInstance(type, instance)!;
+        var answers = new List<string> { ReductionBack.NoAnswer };
+        var red = New();
+        ISolver solver = red.ReductionViewSolver() ?? red.reductionTo.defaultVisualization?.solver ?? red.reductionTo.defaultSolver;
+        RandomizedSolvers.Apply(solver, Seeds[^1]);
+        answers.Add(solver.solve(red.reductionTo.instance));
+        if (ReductionCapture_Tests.WrongAnswers.TryGetValue(type.Name, out var wrong)) answers.Add(wrong(New()));
+        foreach (string answer in answers) {
+            // A wrong answer the backward map refuses (as the capture records it) has no steps to check.
+            SolveRun run;
+            try { run = New().MapBackRun(answer, true)!; } catch (FormatException) { continue; }
+            check(run.Steps);
+            if (ReductionBack.IsNoAnswer(answer)) continue;
+            var rec = new StepRecorder<TPartial>(5);
+            type.GetMethod("MapBack")!.Invoke(New(), [answer, rec]);
+            check(rec.Steps.Cast<object>());
+        }
     }
 }

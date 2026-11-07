@@ -62,14 +62,7 @@ public class ReductionCapture_Tests : IClassFixture<AppFactory> {
         var known = KnownInstances();
         var summary = new List<string>();
         int reductions = 0, totalRuns = 0;
-        foreach (var (name, type) in ProblemProvider.Reductions.OrderBy(r => r.Key, StringComparer.Ordinal)) {
-            bool builds = Implements(type, typeof(IRecordedReduction<,>));
-            Type? partial = type.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReversibleReduction<,,>))
-                ?.GetGenericArguments()[2];
-            if (!builds && partial == null) continue;
-            // The reductions the tests add for themselves (TestOnlyReductions) are not part of the app.
-            if (type.Assembly != typeof(IReduction).Assembly) continue;
-
+        foreach (var (name, type, builds, partial) in RecordingReductions()) {
             var defaultReduction = (IReduction)Activator.CreateInstance(type)!;
             var solved = known.Where(k => k.Reduction == name).Select(k => k.Instance).Distinct().ToList();
             var instances = new List<(string Instance, bool Solve)> { (defaultReduction.reductionFrom.instance, solved.Contains(defaultReduction.reductionFrom.instance)) };
@@ -109,11 +102,25 @@ public class ReductionCapture_Tests : IClassFixture<AppFactory> {
         File.WriteAllText(Path.Combine(dir!, "_reductions_summary.txt"), string.Join("\n", summary) + "\n", new UTF8Encoding(false));
     }
 
+    // Every reduction of the app that records steps, by its lower-case name, in name order: whether it records construction
+    // steps, and the partial-answer shape of its backward map (null when it has none).
+    internal static IEnumerable<(string Name, Type Type, bool Builds, Type? Partial)> RecordingReductions() {
+        foreach (var (name, type) in ProblemProvider.Reductions.OrderBy(r => r.Key, StringComparer.Ordinal)) {
+            bool builds = Implements(type, typeof(IRecordedReduction<,>));
+            Type? partial = type.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReversibleReduction<,,>))
+                ?.GetGenericArguments()[2];
+            if (!builds && partial == null) continue;
+            // The reductions the tests add for themselves (TestOnlyReductions) are not part of the app.
+            if (type.Assembly != typeof(IReduction).Assembly) continue;
+            yield return (name, type, builds, partial);
+        }
+    }
+
     private static bool Implements(Type type, Type generic) =>
         type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == generic);
 
     // Every (reduction, instance) the Reduction View and reduction-output snapshot tests use, by the reduction's lower-case name.
-    private static List<(string Reduction, string Instance)> KnownInstances() =>
+    internal static List<(string Reduction, string Instance)> KnownInstances() =>
         Reduction_Output_Snapshot_Tests.Cases()
             .Concat(ReductionView_Graph_Tests.Cases().Select(c => (c.Reduction, c.Instance)))
             .Concat(ReductionView_Sat3_Tests.Cases())
@@ -196,7 +203,7 @@ public class ReductionCapture_Tests : IClassFixture<AppFactory> {
 
     // A target answer that is not a real one, for the steps a backward map records only then (a node it ignores), by
     // reduction class: built from the target of the reduction on the instance.
-    private static readonly Dictionary<string, Func<IReduction, string>> WrongAnswers = new() {
+    internal static readonly Dictionary<string, Func<IReduction, string>> WrongAnswers = new() {
         // Every node of the clique graph: two nodes of one clause, and contradicting literals, so later nodes are ignored.
         ["SipserReduceToCliqueStandard"] = red => "{" + string.Join(",", ((API.Problems.NPComplete.NPC_CLIQUE.CLIQUE)red.reductionTo).nodes) + "}",
         // Every node of the complement graph: a clique larger than K, so the nodes past K are left out.
