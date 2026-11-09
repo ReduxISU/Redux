@@ -49,6 +49,13 @@ public class ProblemProvider : ControllerBase {
     /// <summary>The time limit of every other compute request, from <see cref="ComputeLimits.TimeLimitKey"/>.</summary>
     private TimeSpan? ComputeLimit => ComputeLimits.TimeLimit(_configuration);
 
+    /// <summary>
+    /// <see cref="ComputeLimits.WithBackstop{T}"/> with this request's slot in the cap on jobs running at once (#936), so
+    /// work the backstop gives up on keeps the slot until it finishes.
+    /// </summary>
+    private Task<(bool Finished, T? Result)> Backstop<T>(Func<T> work, TimeSpan? backstop) =>
+        ComputeLimits.WithBackstop(work, backstop, HttpContext?.Items[ComputeJob.ItemKey] as ComputeJob);
+
     /// <summary>The backstop for a request whose solver stops itself at <paramref name="limit"/> (see <see cref="ComputeLimits.SolverBackstopGrace"/>).</summary>
     private static TimeSpan? SolverBackstop(TimeSpan? limit) => limit is { } l ? l + ComputeLimits.SolverBackstopGrace : null;
 
@@ -239,11 +246,12 @@ public class ProblemProvider : ControllerBase {
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     [HttpPost("verify")]
+    [ComputeJob]
     public async Task<IActionResult> verify(string verifier, [FromBody] Verify verify) {
         try {
             // Verifiers have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
             TimeSpan? limit = ComputeLimit;
-            var (finished, verdict) = await ComputeLimits.WithBackstop(
+            var (finished, verdict) = await Backstop(
                 () => Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate), limit);
             if (!finished)
                 return TimeLimitError("verification", limit!.Value, ComputeLimits.BackstopDetail,
@@ -336,6 +344,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="problemInstance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">The instance of the problem to solve</param>
     /// <returns>solution certificate</returns>
     [HttpPost("solve")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     public async Task<IActionResult> solve(string solver, [FromBody] string problemInstance) {
@@ -347,7 +356,7 @@ public class ProblemProvider : ControllerBase {
             // solver that does not stop (#935). With no limit this is solve(problemInstance), as before.
             TimeSpan? limit = ComputeLimit;
             ISolver chosen = Solver(solver);
-            var (finished, run) = await ComputeLimits.WithBackstop(
+            var (finished, run) = await Backstop(
                 () => limit == null ? new SolveRun(chosen.solve(problemInstance), new List<object>(), null)
                                     : chosen.Run(problemInstance, withSteps: false, limit),
                 SolverBackstop(limit));
@@ -508,6 +517,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="format" example = "frames">Optional. "list" (default) returns a flat list of [initial, ...steps, solved]. "frames" returns an object with "type" (the visualization type), "payload" (the initial visual, or null) and "frames" (the steps followed by the solved visual). A picture type that builds its own frames (type "Graph") returns its own payload and frames instead</param>
     /// <returns>the basic visualization, any steps from the solver, and the solved visualization, shaped by <paramref name="format"/></returns>
     [HttpPost("visualize")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     public async Task<IActionResult> visualize(string visualization, [FromBody] string instance, string? solver = null, string? format = null) {
@@ -534,7 +544,7 @@ public class ProblemProvider : ControllerBase {
             // its recorder, a legacy one by its timerHasExpired flag); the stopped run is drawn, not reported as an
             // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit.
             TimeSpan? limit = SolveTimeLimit;
-            var (finished, body) = await ComputeLimits.WithBackstop(() => {
+            var (finished, body) = await Backstop(() => {
                 var clock = System.Diagnostics.Stopwatch.StartNew();
                 var run = chosen.Run(instance, withSteps: true, limit);
                 // A picture type that builds its own frames serves them only for format=frames.
@@ -570,6 +580,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="includePictures">True for a client that draws the redesigned visualizations: the target's own default is drawn. Default false, what Redux_GUI reads: an opt-in default is drawn as the placeholder (see GuiView).</param>
     /// <returns>a list containing the basic visualization, any steps from the solver, and the solved visualization</returns>
     [HttpPost("visualizeReduction")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     public async Task<IActionResult> visualizeReduction(string reduction, string solution, [FromBody] string instance, [FromQuery] bool includePictures = false) {
@@ -583,7 +594,7 @@ public class ProblemProvider : ControllerBase {
         bool finished;
         string? body;
         try {
-            (finished, body) = await ComputeLimits.WithBackstop(() => {
+            (finished, body) = await Backstop(() => {
                 IReduction? red = null;
                 foreach (string reductionname in reds) {
                     red = Reduction(reductionname, instance);
@@ -612,6 +623,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="includePictures">True for a client that draws the redesigned visualizations; default false, what Redux_GUI reads (see GuiView).</param>
     /// <returns>reduction</returns>
     [HttpPost("reduce")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     public async Task<IActionResult> reduce(string reduction, [FromBody] string instance, [FromQuery] bool includePictures = false) {
@@ -621,7 +633,7 @@ public class ProblemProvider : ControllerBase {
             // The reduction runs in its constructor, and serializing it can run more (computed members), so both are
             // inside the backstop, which is the limit itself: reductions have no time checks (see ComputeLimits).
             TimeSpan? limit = ComputeLimit;
-            var (finished, body) = await ComputeLimits.WithBackstop(
+            var (finished, body) = await Backstop(
                 () => JsonSerializer.Serialize(Reduction(reduction, instance), GuiView.Options(ReduceJsonOptions, includePictures)), limit);
             if (!finished)
                 return ReductionTimeLimitError(limit!.Value, reduction);
@@ -639,6 +651,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the problem</param>
     /// <returns>solution certificate of the reduction</returns>
     [HttpPost("mapSolution")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     public async Task<IActionResult> mapSolution(string reduction, string solution, [FromBody] string instance) {
@@ -646,7 +659,7 @@ public class ProblemProvider : ControllerBase {
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
             TimeSpan? limit = ComputeLimit;
-            var (finished, mappedSolution) = await ComputeLimits.WithBackstop(
+            var (finished, mappedSolution) = await Backstop(
                 () => MapSolutions(Reduction(reduction, instance), solution), limit);
             if (!finished)
                 return ReductionTimeLimitError(limit!.Value, reduction);
@@ -673,6 +686,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">instance of the SOURCE problem</param>
     /// <returns>solution certificate of the source problem, or { answer, steps }</returns>
     [HttpPost("mapSolutionBack")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     public IActionResult mapSolutionBack(string reduction, string solution, [FromBody] string instance, bool steps = false) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
@@ -710,6 +724,7 @@ public class ProblemProvider : ControllerBase {
     /// <param name="instance" example = "(x1 | !x2 | x3) &amp; (!x1 | x3 | x1) &amp; (x2 | !x3 | x1)">the instance of the problem</param>
     /// <returns>gadget map</returns>
     [HttpPost("gadgets")]
+    [ComputeJob]
     [ProducesResponseType(400)]
     [ProducesResponseType(422)]
     public async Task<IActionResult> gadgets(string reduction, [FromBody] string instance) {
@@ -717,7 +732,7 @@ public class ProblemProvider : ControllerBase {
             return BadRequest(new { error = "unknown_reduction", received = reduction });
         try {
             TimeSpan? limit = ComputeLimit;
-            var (finished, body) = await ComputeLimits.WithBackstop(
+            var (finished, body) = await Backstop(
                 () => JsonSerializer.Serialize(Reduction(reduction, instance).gadgets, new JsonSerializerOptions() { WriteIndented = true }), limit);
             if (!finished)
                 return ReductionTimeLimitError(limit!.Value, reduction);
