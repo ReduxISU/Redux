@@ -37,6 +37,7 @@ class LOSSLESSDATACOMPRESSION : IProblem<LosslessDataCompressionSolver, Lossless
     // redux-tests/Metadata/ComplexityClass_Tests.cs.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.StorageAndRetrieval;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
 
     private static readonly string _defaultInstance =
         "this is an example of lossless data compression using huffman encoding";

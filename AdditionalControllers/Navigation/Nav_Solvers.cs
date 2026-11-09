@@ -10,16 +10,19 @@ using API.Interfaces;
 // check would silently skip a solver that implements only non-generic ISolver. One
 // solver with a throwing/missing default constructor must not take down the whole catalog.
 internal static class SolverTypeCatalog {
-    internal static readonly Lazy<Dictionary<string, string>> SolverTypeByClassName = new(BuildSolverType);
+    // Every declared tag, in enum order, and the deprecated single value (the first of them, Tags.First).
+    internal static readonly Lazy<Dictionary<string, List<string>>> SolverTypesByClassName = new(BuildSolverTypes);
+    internal static readonly Lazy<Dictionary<string, string>> SolverTypeByClassName = new(() =>
+        SolverTypesByClassName.Value.ToDictionary(kv => kv.Key, kv => kv.Value[0], StringComparer.OrdinalIgnoreCase));
     internal static readonly Lazy<Dictionary<string, string>> ComplexityBucketByClassName = new(BuildComplexityBucket);
     internal static readonly Lazy<Dictionary<string, string>> ComplexityByClassName = new(BuildComplexity);
 
-    private static Dictionary<string, string> BuildSolverType() {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    private static Dictionary<string, List<string>> BuildSolverTypes() {
+        var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         foreach (var (_, type) in ProblemProvider.Solvers) {
             try {
                 if (Activator.CreateInstance(type) is ISolver instance)
-                    result[type.Name] = instance.solverType.ToString();
+                    result[type.Name] = Tags.Names(instance.solverType);
             } catch {
                 // Skip a solver that can't be default-constructed instead of failing the whole
                 // catalog. It falls back to Unclassified at the call site.

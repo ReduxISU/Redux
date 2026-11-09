@@ -25,7 +25,7 @@ In Redux:
   1. `visualize`: the plain picture of the instance.
   2. `SolvedVisualization`: the same picture with the solution highlighted. Optional.
   3. `StepsVisualization`: one picture per solver step, for animations. Optional.
-- It declares a `visualizationType`. The GUI looks that name up in its list of renderers and uses the matching one.
+- It declares a `visualizationType`. The GUI looks that name up in its list of renderers and uses the matching one. If more than one renderer can draw the payload, declare each, joined with `|`; the API lists them as `visualizationTypes`, and the deprecated single `visualizationType` field holds the first.
 - You do not write a controller or register anything on the API side. Redux finds every visualization class automatically (see section 3).
 
 ### Which case are you in?
@@ -67,7 +67,7 @@ At startup, `ProblemProvider` ([AdditionalControllers/ProblemProvider.cs](../../
 - The class needs a public constructor with **no arguments**. Redux creates it with `Activator.CreateInstance`. A class that cannot be built this way is silently skipped by the type catalog and breaks the endpoints.
 - You do not edit any list. Creating the class is enough.
 - The class is attached to a problem by its generic type: `IVisualization<INDEPENDENTSET, ...>` means "a visualization of Independent Set". The navigation endpoints use that to answer "which visualizations does this problem have?" (`GET /Navigation/Problem_VisualizationsRefactor?chosenProblem=INDEPENDENTSET`).
-- Each problem names one of its visualizations as `defaultVisualization`. That is the one the GUI picks first.
+- Each problem has one default visualization, `defaultVisualization`. That is the one the GUI picks first. Mark yours `[DefaultFor(typeof(PROBLEM))]` to make it the default (older `IProblem<...>` problems name it in the problem class instead).
 
 The endpoints you get for free (all in `ProblemProvider.cs`, all `POST` with the instance string as the request body):
 
@@ -139,7 +139,7 @@ You have two options. Both give you the same file.
 Two template details to fix by hand:
 
 - The template starts with `visualizationType = VisualizationType.Unimplemented`. **Replace it** with a real type. A left-over `Unimplemented` fails a test (section 6), on purpose. If no renderer fits, use `DummyVisualization` as the problem's default visualization instead of this class.
-- The template sets `solver => new PROBLEM().defaultSolver`, so `visualize` works out of the box. You may replace it with a specific solver, for example `new MyBruteForce()`. Keep it expression-bodied (`=>`), because the problem's constructor builds its default visualization and an initializer would recurse.
+- The template sets `solver => ((IProblem)new PROBLEM()).defaultSolver`, so `visualize` works out of the box. (The cast is there because `defaultSolver` comes from the `IProblem` interface.) You may replace it with a specific solver, for example `new MyBruteForce()`. Keep it expression-bodied (`=>`): an older problem's constructor builds its default visualization, and an initializer would recurse.
 - The template declares `IVisualization<{PROBLEM}>` with a plain `API_JSON` return type. Change it to `IVisualization<PROBLEM, API_GraphJSON>` (or your payload class) so the compiler checks you return the right shape.
 
 ### Step 2. Fill in the members
@@ -162,7 +162,14 @@ The members come from [Interfaces/VisualizationInterface.cs](../../Interfaces/Vi
 
 The constructor must be public with no arguments: `public IndependentSetDefaultVisualization() { }`.
 
-Then **connect the visualization to its problem** if it is the default one. In the problem's class ([INDEPENDENTSET_Class.cs](../../Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs)):
+Then **connect the visualization to its problem** if it is the default one. For a problem on plain `IProblem`, mark the visualization class:
+
+```csharp
+[DefaultFor(typeof(INDEPENDENTSET))]
+class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_GraphJSON> {
+```
+
+Older problems on `IProblem<Solver, Verifier, Visualization>`, like Independent Set, name it in the problem's class instead ([INDEPENDENTSET_Class.cs](../../Problems/NPComplete/NPC_INDEPENDENTSET/INDEPENDENTSET_Class.cs)):
 
 ```csharp
 public IndependentSetDefaultVisualization defaultVisualization { get; } = new IndependentSetDefaultVisualization();
@@ -436,7 +443,7 @@ Case (a), always:
 - [ ] The class implements `IVisualization<PROBLEM, PAYLOAD>`.
 - [ ] `visualizationName`, `visualizationDefinition`, and `contributors` are filled in (no `"TODO"` left).
 - [ ] `visualizationType` is a real type from section 2 (not `Unimplemented`), and `solver` is not `null`.
-- [ ] If it is the problem's default, the problem's `defaultVisualization` points at it.
+- [ ] If it is the problem's default, it is marked `[DefaultFor(typeof(PROBLEM))]` (or, for an older `IProblem<...>` problem, the problem's `defaultVisualization` points at it).
 - [ ] `SolvedVisualization` handles an empty or bad solution without crashing.
 - [ ] You added tests for `visualize` and `SolvedVisualization`.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.

@@ -6,6 +6,8 @@ using API.Interfaces.JSON_Objects;
 
 namespace API.DummyClasses;
 
+// Default visualization of a problem with no [DefaultFor] visualization yet (see Interfaces/DefaultFor.cs).
+// No new problem needs to name it; Redux falls back to it. It draws nothing (API_empty, with no steps).
 class DummyVisualization : IVisualization<IProblem, API_empty> {
 
     // --- Fields ---

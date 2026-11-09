@@ -27,9 +27,9 @@ public class ProblemTemplate : ControllerBase {
             new Dictionary<string, string>{
                 {"README.md", System.IO.File.ReadAllText($"{templatePath}/README.md")},
                 {$"NPC_{problemNameUpper}/{problemNameUpper}_Class.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/PROBLEM_Class.txt"))},
-                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"))},
-                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Solution Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"), $"{problemName} Verifier")},
-                {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"))},
+                {$"NPC_{problemNameUpper}/Solvers/{problemNamePascal}Solver.cs", GenerateSolverTemplate(problemNameUpper, $"{problemName} Solver", System.IO.File.ReadAllText($"{templatePath}/Solvers/ProblemSolver.txt"), isDefault: true)},
+                {$"NPC_{problemNameUpper}/Verifiers/{problemNamePascal}Verifier.cs", GenerateVerifierTemplate(problemNameUpper, $"{problemName} Solution Verifier", System.IO.File.ReadAllText($"{templatePath}/Verifiers/ProblemVerifier.txt"), $"{problemName} Verifier", isDefault: true)},
+                {$"NPC_{problemNameUpper}/Visualizations/{problemNamePascal}Visualization.cs", GenerateVisualizationTemplate(problemNameUpper, $"{problemName} Visualization", System.IO.File.ReadAllText($"{templatePath}/Visualizations/PROBLEMVisualization.txt"), isDefault: true)},
                 {$"redux-tests/Problems/NPC_{problemNameUpper}/{problemNameUpper}_Tests.cs", GenerateProblemTemplate(problemName, System.IO.File.ReadAllText($"{templatePath}/Tests/PROBLEM_Tests.txt"))}
             }
         );
@@ -125,7 +125,15 @@ public class ProblemTemplate : ControllerBase {
             .Replace("{NAME}", problemName);
     }
 
-    static string GenerateSolverTemplate(string problemName, string solverName, string template) {
+    // The {DEFAULT_FOR} line. A new problem's own solver/verifier/visualization are its defaults. One
+    // downloaded on its own is usually an extra for a problem that already has a default, and a second
+    // [DefaultFor] for the same problem fails DefaultFor_Tests, so it only gets a comment saying how.
+    static string DefaultForLine(string problemName, string kind, bool isDefault) => isDefault
+        ? $"[DefaultFor(typeof({problemName}))]"
+        : $"// To make this {problemName}'s default {kind}, add [DefaultFor(typeof({problemName}))] above the class.\n" +
+          $"// Only for a problem that implements plain IProblem and has no default {kind} yet.";
+
+    static string GenerateSolverTemplate(string problemName, string solverName, string template, bool isDefault = false) {
         if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
@@ -134,13 +142,14 @@ public class ProblemTemplate : ControllerBase {
         }
 
         return template
+            .Replace("{DEFAULT_FOR}", DefaultForLine(problemName, "solver", isDefault))
             .Replace("{PROBLEM}", problemName)
             .Replace("{SOLVER}", solverName)
             .Replace("{SOLVER_PASCAL_CASE}", ToPascalCase(solverName));
     }
 
     // className overrides the name the class (and its file) are derived from; by default it is the display name.
-    static string GenerateVerifierTemplate(string problemName, string verifierName, string template, string? className = null) {
+    static string GenerateVerifierTemplate(string problemName, string verifierName, string template, string? className = null, bool isDefault = false) {
         if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
@@ -149,12 +158,13 @@ public class ProblemTemplate : ControllerBase {
         }
 
         return template
+            .Replace("{DEFAULT_FOR}", DefaultForLine(problemName, "verifier", isDefault))
             .Replace("{PROBLEM}", problemName)
             .Replace("{VERIFIER}", verifierName)
             .Replace("{VERIFIER_PASCAL_CASE}", ToPascalCase(className ?? verifierName));
     }
 
-    static string GenerateVisualizationTemplate(string problemName, string visualizationName, string template) {
+    static string GenerateVisualizationTemplate(string problemName, string visualizationName, string template, bool isDefault = false) {
         if (string.IsNullOrEmpty(problemName)) {
             problemName = "Problem";
         }
@@ -163,6 +173,7 @@ public class ProblemTemplate : ControllerBase {
         }
 
         return template
+            .Replace("{DEFAULT_FOR}", DefaultForLine(problemName, "visualization", isDefault))
             .Replace("{PROBLEM}", problemName)
             .Replace("{VISUALIZATION}", visualizationName)
             .Replace("{VISUALIZATION_PASCAL_CASE}", ToPascalCase(visualizationName));

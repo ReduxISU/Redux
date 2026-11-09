@@ -13,7 +13,11 @@ builder.Services.AddHttpClient("quantum", (sp, client) => {
     client.BaseAddress = new Uri(settings.BaseURL);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddControllers();
+// The cap on compute jobs running at once (#936); see API.Interfaces.ComputeJobLimiter.
+builder.Services.AddSingleton<API.Interfaces.ComputeJobLimiter>();
+
+// A solver whose outside service fails answers 503 solver_unavailable on every endpoint (#625).
+builder.Services.AddControllers(options => options.Filters.Add(new API.Interfaces.SolverUnavailableFilter()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {

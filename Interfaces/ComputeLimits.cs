@@ -42,14 +42,19 @@ static class ComputeLimits {
     /// (true, result) when it finished in time, and rethrows its exception if it failed; returns (false, default) when
     /// the backstop ran out first. Then the work is NOT cancelled: it keeps running in the background until it finishes
     /// or reaches a checkpoint of its own (see the class remarks). With no backstop the work runs inline, as before.
+    /// <para>
+    /// <paramref name="job"/> is the request's slot in the cap on jobs running at once (#936). Work the backstop gives up
+    /// on keeps that slot until it finishes, so abandoned work still counts toward the cap.
+    /// </para>
     /// </summary>
-    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop) {
+    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop, ComputeJob? job = null) {
         if (backstop is not { } wait)
             return (true, work());
         var task = Task.Run(work);
         using var stopWaiting = new CancellationTokenSource();
         var first = await Task.WhenAny(task, Task.Delay(wait, stopWaiting.Token)).ConfigureAwait(false);
         if (first != task) {
+            job?.FinishWhen(task);
             // Observe a later failure of the abandoned work, so it is not reported as an unobserved task exception.
             _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);

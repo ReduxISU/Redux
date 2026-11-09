@@ -111,6 +111,9 @@ public class GuiView_Endpoint_Tests : IClassFixture<AppFactory> {
             var own = ((IVisualization)Activator.CreateInstance(type)!).visualizationType.ToString();
             Assert.Equal(legacy.ToString(), plain.GetProperty("visualizationType").GetString());
             Assert.Equal(own, withPictures.GetProperty("visualizationType").GetString());
+            // The tag list says the same as the single field, for each client.
+            Assert.Equal(legacy.ToString(), plain.GetProperty("visualizationTypes")[0].GetString());
+            Assert.Equal(own, withPictures.GetProperty("visualizationTypes")[0].GetString());
             Assert.Equal(legacy.ToString(), types.GetProperty(type.Name).GetString());
             Assert.Equal(own, typesWithPictures.GetProperty(type.Name).GetString());
         }

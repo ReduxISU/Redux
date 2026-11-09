@@ -185,7 +185,7 @@ public class WEIGHTEDMAXSAT_Tests {
         var solver = new WeightedMaxSatConditionalExpectationsSolver();
         ((ISolver)solver).TimerExpired();
 
-        Assert.Equal("timeout", solver.solve(new WEIGHTEDMAXSAT()));
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(new WEIGHTEDMAXSAT()));
     }
 
     [Fact]

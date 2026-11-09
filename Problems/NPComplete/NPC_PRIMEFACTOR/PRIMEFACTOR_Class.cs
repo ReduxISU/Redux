@@ -6,7 +6,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_PRIMEFACTOR;
 
-class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefaultVisualization> {
+class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, ShorsDefaultVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Prime Factorization"; // Name as it appears in the dropdown selection panel
@@ -27,7 +27,8 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
         $"Format: {PrimeFactorVerifier.CertificateGrammar} Example: {PrimeFactorVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "https://en.wikipedia.org/wiki/Fundamental_theorem_of_arithmetic"; // Wiki name or link? - not used yet
-    public ShorsQuantumSolver defaultSolver { get; } = new ShorsQuantumSolver();
+    // The classical solver, so solve works without the quantum service; ShorsQuantumSolver stays a choice (#625).
+    public PrimeFactorSolver defaultSolver { get; } = new PrimeFactorSolver();
     public PrimeFactorVerifier defaultVerifier { get; } = new PrimeFactorVerifier();
     public ShorsDefaultVisualization defaultVisualization { get; } = new ShorsDefaultVisualization();
     public string[] contributors { get; } = { "Paul Gilbreath", "Alex Svancara" };
@@ -37,6 +38,8 @@ class PRIMEFACTOR : IProblem<ShorsQuantumSolver, PrimeFactorVerifier, ShorsDefau
     public ComplexityClass complexityClass { get; } = ComplexityClass.NP;
     // Declared, not derived. Number-theoretic decomposition problem.
     public ProblemType problemType { get; } = ProblemType.AlgebraAndNumberTheory;
+    // Variant (#616): Judgement call: a function problem with one answer and no bound or objective.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // TODO: implement properties if {NAME} is a graphing problem
     // private List<string> _nodes = new List<string>();
