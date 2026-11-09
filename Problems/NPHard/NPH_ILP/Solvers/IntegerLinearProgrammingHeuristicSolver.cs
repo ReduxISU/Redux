@@ -30,8 +30,11 @@ class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING
     private string Run(INTEGERLINEARPROGRAMMING problem, List<object>? steps, StepRecorder<Assignment>? recorder = null) {
         string Finish(string result, BigInteger[]? point) {
             steps?.Add(new SearchStep(result, point is null ? null : (BigInteger[])point.Clone()));
-            recorder?.Done(point is null ? new Assignment([]) : ToAssignment(point), false,
-                point is null ? result : "Feasible heuristic assignment; optimality not proven.");
+            recorder?.Done(
+                point is null ? new Assignment([]) : ToAssignment(point),
+                point is not null,
+                point is null ? result : "Feasible heuristic assignment; optimality not proven."
+            );
             return result;
         }
         if (timerHasExpired || IterationLimit <= 0) return Finish(SolveRun.TimedOutAnswer, null);

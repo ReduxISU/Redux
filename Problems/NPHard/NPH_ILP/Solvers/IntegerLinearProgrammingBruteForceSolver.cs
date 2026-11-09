@@ -16,7 +16,7 @@ class IntegerLinearProgrammingBruteForceSolver : ISolver<INTEGERLINEARPROGRAMMIN
     public string[] contributors => ["Prashant Pant"];
     public SolverType solverType => SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket => SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("product(U_i - L_i + 1) * m * n", "L_i and U_i = explicit integer bounds for variable i; m = constraints; n = variables");
+    public MathematicalFunction timeComplexity { get; } = new("U^n * m * n", "U = maximum number of values per variable, n = number of variables, m = number of constraints");
     public bool timerHasExpired { get; set; }
     public int WorkLimit { get; set; } = 1_000_000;
 
