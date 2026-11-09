@@ -8,6 +8,15 @@ updates:
     labels:
       - "dependencies"
       - "nuget"
+    groups:
+      # xunit.v3 and Microsoft.Testing.Extensions.CodeCoverage both build on Microsoft Testing Platform
+      # and must move in step (CodeCoverage 18.x is MTP v2, as xunit.v3 4.x is; mixed, the test host
+      # crashes), so they are bumped in one PR.
+      test-platform:
+        patterns:
+          - "xunit*"
+          - "Microsoft.Testing.*"
+          - "Microsoft.NET.Test.Sdk"
 
   - package-ecosystem: "docker"
     directory: "/"

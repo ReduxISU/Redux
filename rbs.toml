@@ -23,7 +23,9 @@ pre-command-optional = true
 [integration]
 # A separate project, deliberately not in Redux.slnx: `rbs unit-test` runs `dotnet test` on the
 # solution, so this can never be collected without a container to talk to.
-command = "dotnet test integration/Redux.Integration.csproj"
+# `--project`, not a bare path: global.json runs the tests on Microsoft Testing Platform, where
+# `dotnet test path/To.csproj` is refused.
+command = "dotnet test --project integration/Redux.Integration.csproj"
 # Cold start plus the reflection scan on a CI runner.
 timeout = 240
 

@@ -14,17 +14,19 @@
     <ProjectReference Include="../API.csproj" />
   </ItemGroup>
 
+  <!-- `dotnet test` runs these on Microsoft Testing Platform (selected in global.json). Coverage
+       comes from Microsoft.Testing.Extensions.CodeCoverage (dotnet test's coverage option),
+       which replaces coverlet.collector. Microsoft.NET.Test.Sdk and xunit.runner.visualstudio are only
+       for editors whose test explorer still uses VSTest; xunit recommends keeping them until
+       every supported editor uses MTP. -->
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
-    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.v3" Version="4.0.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="10.1.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
   </ItemGroup>
 
