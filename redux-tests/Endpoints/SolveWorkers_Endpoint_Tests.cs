@@ -298,14 +298,58 @@ public class SolveWorkers_Endpoint_Tests : IClassFixture<SolveWorkersAppFactory>
 
     [Fact]
     public async Task ASolveWithNoWarmWorker_StartsOneForItself() {
-        // Two at once take both warm workers; the third right after them finds none ready and starts its own.
+        // Shor's solver blocks in its call to the silent quantum service, and with no time limit only cancelling the
+        // token stops it, so the two holders keep both warm workers busy for as long as the test needs them.
         await SolveWorkerChecks.WaitUntilWarm(Pool);
-        string instance = SolverTimeLimit_Tests.DefaultInstance(ProblemProvider.Solvers["sat3backtrackingsolver"]);
-        var first = await Task.WhenAll(Enumerable.Range(0, Pool.Size)
-            .Select(_ => SolveWorkerChecks.PostSolve(_isolated, "Sat3BacktrackingSolver", instance)));
-        var third = await SolveWorkerChecks.PostSolve(_isolated, "Sat3BacktrackingSolver", instance);
-        Assert.All(first, r => Assert.Equal(HttpStatusCode.OK, r.Status));
-        Assert.Equal(HttpStatusCode.OK, third.Status);
+        using var release = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        var held = new List<int>();
+        var holders = new List<Task<SolveOutcome>>();
+        Pool.RefillPaused = true;
+        try {
+            for (int i = 0; i < Pool.Size; i++) {
+                // RunAsync takes its warm worker before it first waits, so the worker is taken when the call returns.
+                holders.Add(Pool.RunAsync("ShorsQuantumSolver", "15", null, release.Token));
+                held.Add(Pool.LastJobPid);
+            }
+            Assert.Equal(0, Pool.IdleWorkers);
+            Assert.Equal(0, Pool.StartingWorkers);
+            Assert.Equal(Pool.Size, held.Distinct().Count());
+
+            string instance = SolverTimeLimit_Tests.DefaultInstance(ProblemProvider.Solvers["sat3backtrackingsolver"]);
+            var third = await SolveWorkerChecks.PostSolve(_isolated, "Sat3BacktrackingSolver", instance);
+            Assert.Equal(HttpStatusCode.OK, third.Status);
+            Assert.DoesNotContain(Pool.LastJobPid, held);
+            Assert.All(held, pid => Assert.True(SolveWorkerChecks.IsRunning(pid), $"holder {pid} stopped early"));
+            Assert.All(holders, h => Assert.False(h.IsCompleted));
+        } finally {
+            release.Cancel();
+            foreach (var holder in holders)
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => holder);
+            Pool.RefillPaused = false;
+        }
+        foreach (int pid in held)
+            await SolveWorkerChecks.AssertGone(pid);
+        await SolveWorkerChecks.WaitUntilWarm(Pool);
+    }
+
+    [Fact]
+    public async Task AClientGoneBeforeTheJobIsSent_KillsItsWorkerAtOnce() {
+        // The token is cancelled already, so the cancellation lands in writing the job to the worker, before RunAsync
+        // waits for a reply. The worker must be killed there too, not left for the five seconds an answered worker is
+        // given to exit.
+        await SolveWorkerChecks.WaitUntilWarm(Pool);
+        using var gone = new CancellationTokenSource();
+        gone.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => Pool.RunAsync("Sat3BacktrackingSolver", "(x1 | x2 | x3)", null, gone.Token));
+        int pid = Pool.LastJobPid;
+        var sw = Stopwatch.StartNew();
+        // Kill returns before the process is gone (on Linux it is reaped a moment later), so wait for it.
+        while (SolveWorkerChecks.IsRunning(pid) && sw.Elapsed < TimeSpan.FromSeconds(10))
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        Assert.False(SolveWorkerChecks.IsRunning(pid), "the worker of the abandoned solve is still running");
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(2), $"the worker took {sw.Elapsed} to go");
+        await SolveWorkerChecks.WaitUntilWarm(Pool);
     }
 
     [Fact]

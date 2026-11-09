@@ -61,6 +61,7 @@ public sealed class SolveWorkerPool : IDisposable {
     private bool _started;
     private bool _disposed;
     private int _lastJobPid;
+    private volatile bool _refillPaused;
 
     /// <summary>Reads the settings; no process starts until <see cref="Start"/>.</summary>
     public SolveWorkerPool(IConfiguration configuration, ComputeJobLimiter limiter, IHostEnvironment environment,
@@ -96,6 +97,22 @@ public sealed class SolveWorkerPool : IDisposable {
     /// <summary>The process id of the worker that took the latest solve, for tests that check it is gone afterwards.</summary>
     internal int LastJobPid => Volatile.Read(ref _lastJobPid);
 
+    /// <summary>The workers being started to become warm.</summary>
+    internal int StartingWorkers { get { lock (_lock) return _starting; } }
+
+    /// <summary>
+    /// For tests only: while true, the pool starts no warm workers, so a test can run it out of them; setting it back to
+    /// false starts the ones missing.
+    /// </summary>
+    internal bool RefillPaused {
+        get => _refillPaused;
+        set {
+            _refillPaused = value;
+            if (!value)
+                Refill();
+        }
+    }
+
     /// <summary>Starts the warm workers (from <see cref="SolveWorkerPoolService"/>); does nothing when the pool is off.</summary>
     public void Start() {
         lock (_lock) {
@@ -129,6 +146,7 @@ public sealed class SolveWorkerPool : IDisposable {
         Volatile.Write(ref _lastJobPid, worker.Pid);
 
         using var done = CancellationTokenSource.CreateLinkedTokenSource(aborted);
+        bool answered = false;
         try {
             string job = JsonSerializer.Serialize(new WorkerJob(solver, instance, limit?.Ticks), ComputeWorker.WireOptions);
             try {
@@ -156,8 +174,10 @@ public sealed class SolveWorkerPool : IDisposable {
             if (first == exited && !reply.IsCompleted)
                 await Task.WhenAny(reply, Task.Delay(TimeSpan.FromSeconds(1), CancellationToken.None)).ConfigureAwait(false);
 
-            if (reply.IsCompletedSuccessfully && reply.Result != null)
+            if (reply.IsCompletedSuccessfully && reply.Result != null) {
+                answered = true;
                 return Read(reply.Result, worker);
+            }
             if (first == overMemory && overMemory.IsCompletedSuccessfully) {
                 worker.Kill();
                 return new SolveOutcome(SolveOutcomeKind.KilledForMemory);
@@ -173,6 +193,11 @@ public sealed class SolveWorkerPool : IDisposable {
             return Crashed($"The worker process running the solve exited (code {code}) before it answered.");
         } finally {
             done.Cancel();
+            // A worker that answered exits by itself. Any other way out (the client going away while the job is being
+            // written, say, or anything else that throws) kills it here, so it is not left running after the request
+            // gives back its job slot.
+            if (!answered)
+                worker.Kill();
             Retire(worker);
         }
     }
@@ -246,11 +271,13 @@ public sealed class SolveWorkerPool : IDisposable {
         return null;
     }
 
-    // Starts workers in the background until the warm and starting ones make Size.
+    // Starts workers in the background until the warm and starting ones make Size. Busy workers are not counted, so the
+    // next solve finds a warm worker even when every job slot is busy: at the worst, Size warm or starting workers live
+    // beside one busy worker per job slot (Documentation/production.md counts their memory).
     private void Refill() {
         int toStart;
         lock (_lock) {
-            if (!_started || _disposed)
+            if (!_started || _disposed || _refillPaused)
                 return;
             toStart = Size - _idle.Count - _starting;
             if (toStart <= 0)
