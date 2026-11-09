@@ -87,8 +87,29 @@ public class WEIGHTEDMAXSAT_Tests {
 
         Assert.True(verifier.verify(problem, brute));
         Assert.True(verifier.verify(problem, bounded));
+        Assert.Equal(brute, bounded);
         Assert.Equal(optimum, WeightedMaxSatSolutionVerifier.ParseCertificate(problem, brute).Value);
         Assert.Equal(optimum, WeightedMaxSatSolutionVerifier.ParseCertificate(problem, bounded).Value);
+    }
+
+    [Theory]
+    [InlineData("(((x | y)),(1))", "((x:False,y:True),1)")]
+    [InlineData("(((x) & (!x) & (y)),(0,0,0))", "((x:False,y:False),0)")]
+    [InlineData("(((x | x) & (!x)),(9,4))", "((x:True),9)")]
+    [InlineData("(((a | b | c | d)),(7))", "((a:False,b:False,c:False,d:True),7)")]
+    [InlineData("(((x) & (!x)),(9223372036854775797,10))", "((x:True),9223372036854775797)")]
+    public void SharedExactSearch_PreservesFirstOptimalCertificate(string instance, string expected) {
+        var problem = new WEIGHTEDMAXSAT(instance);
+        var brute = WeightedMaxSatBruteForceSolver.Optimize(problem);
+        var bounded = WeightedMaxSatBranchAndBoundSolver.Optimize(problem);
+
+        Assert.Equal(expected, WeightedMaxSatBruteForceSolver.FormatCertificate(
+            problem.variables, brute.Assignment, brute.Value));
+        Assert.Equal(expected, WeightedMaxSatBruteForceSolver.FormatCertificate(
+            problem.variables, bounded.Assignment, bounded.Value));
+        Assert.Equal(expected, new WeightedMaxSatBruteForceSolver().solve(problem));
+        Assert.Equal(expected, new WeightedMaxSatBranchAndBoundSolver().solve(problem));
+        Assert.True(new WeightedMaxSatOptimalityVerifier().verify(problem, expected));
     }
 
     [Fact]
@@ -110,8 +131,83 @@ public class WEIGHTEDMAXSAT_Tests {
         Assert.Equal("Weighted Max-SAT", brute.ProblemName);
         Assert.Equal(21, brute.VariableCount);
         Assert.Equal(20, brute.MaxVariables);
+        Assert.Equal("Weighted Max-SAT", bounded.ProblemName);
         Assert.Equal(21, bounded.VariableCount);
         Assert.Equal(20, bounded.MaxVariables);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SharedExactSearch_OverLimit_PreservesDefaultAndCallerProblemNames(bool branchAndBound) {
+        var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(21));
+
+        var defaultException = Assert.Throws<ExactSearchLimitExceededException>(() => {
+            if (branchAndBound) WeightedMaxSatBranchAndBoundSolver.Optimize(problem);
+            else WeightedMaxSatBruteForceSolver.Optimize(problem);
+        });
+        // The size guard still runs before expiration is checked.
+        var callerException = Assert.Throws<ExactSearchLimitExceededException>(() => {
+            if (branchAndBound)
+                WeightedMaxSatBranchAndBoundSolver.Optimize(problem, () => true, "Weighted Max-3SAT");
+            else
+                WeightedMaxSatBruteForceSolver.Optimize(problem, () => true, "Weighted Max-3SAT");
+        });
+
+        Assert.Equal("Weighted Max-SAT", defaultException.ProblemName);
+        Assert.Equal("Weighted Max-3SAT", callerException.ProblemName);
+        Assert.Equal(21, defaultException.VariableCount);
+        Assert.Equal(21, callerException.VariableCount);
+        Assert.Equal(20, defaultException.MaxVariables);
+        Assert.Equal(20, callerException.MaxVariables);
+        Assert.Equal("Weighted Max-3SAT exact search supports at most 20 variables; received 21.",
+            callerException.Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SharedExactSearch_TwentyVariables_AlreadyExpired_DoesNotSearch(bool branchAndBound) {
+        var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(20));
+        var result = branchAndBound
+            ? WeightedMaxSatBranchAndBoundSolver.Optimize(problem, () => true, "Weighted Max-3SAT")
+            : WeightedMaxSatBruteForceSolver.Optimize(problem, () => true, "Weighted Max-3SAT");
+
+        Assert.Empty(result.Assignment);
+        Assert.Equal(-1, result.Value);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SharedExactSearch_ExpirationDuringSearch_StopsBeforeOptimum(bool branchAndBound) {
+        var problem = new WEIGHTEDMAXSAT(Instance("x & y", 1, 2));
+        int checks = 0;
+        // Expire after visiting (False,False) and (False,True), before (True,True).
+        bool Expired() => ++checks >= 5;
+
+        var result = branchAndBound
+            ? WeightedMaxSatBranchAndBoundSolver.Optimize(problem, Expired)
+            : WeightedMaxSatBruteForceSolver.Optimize(problem, Expired);
+
+        Assert.Equal(5, checks);
+        Assert.Equal(2, result.Value);
+        Assert.False(result.Assignment["x"]);
+        Assert.True(result.Assignment["y"]);
+        Assert.Equal(result.Value, problem.Value(result.Assignment));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ExactSolvers_TwentyVariables_AlreadyExpired_ReturnTimeout(bool branchAndBound) {
+        var problem = new WEIGHTEDMAXSAT(InstanceWithVariables(20));
+        ISolver<WEIGHTEDMAXSAT> solver = branchAndBound
+            ? new WeightedMaxSatBranchAndBoundSolver()
+            : new WeightedMaxSatBruteForceSolver();
+        solver.TimerExpired();
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
     }
 
     [Fact]

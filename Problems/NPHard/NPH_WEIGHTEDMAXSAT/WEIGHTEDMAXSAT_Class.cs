@@ -154,8 +154,8 @@ internal sealed record WeightedCnfClause(long Weight, CnfClause Clause);
 internal static class WeightedMaxSatExactSearchLimit {
     public const int MaxVariables = 20;
 
-    public static void ThrowIfExceeded(int variableCount) {
+    public static void ThrowIfExceeded(int variableCount, string problemName = "Weighted Max-SAT") {
         if (variableCount > MaxVariables)
-            throw new ExactSearchLimitExceededException("Weighted Max-SAT", variableCount, MaxVariables);
+            throw new ExactSearchLimitExceededException(problemName, variableCount, MaxVariables);
     }
 }
