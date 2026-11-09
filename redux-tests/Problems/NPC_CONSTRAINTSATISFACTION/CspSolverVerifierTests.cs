@@ -11,17 +11,17 @@ namespace redux_tests;
 public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
     private static ISolver<CONSTRAINTSATISFACTION>[] Solvers() => [
         new ConstraintSatisfactionBruteForce(), new ConstraintSatisfactionBacktracking(),
-        new ConstraintSatisfactionIntelligent(), new ConstraintSatisfactionSolver()
+        new ConstraintSatisfactionIntelligent(), new ConstraintSatisfactionIntelligent { ForwardChecking = false }
     ];
 
     [Theory]
-    [InlineData("((x,y),({1,2},{1,2}),{\"x!=y\"})", "{(x,1),(y,2)}")]
-    [InlineData("((x,y),({1,2},{1,2}),{\"x!=y\"})", " { (y,+2) , (x,1) } ")]
-    [InlineData("((_a,A),({-2},{3}),{\"_a+A=1\"})", "{(_a,-2),(A,3)}")]
-    [InlineData("((),(),{})", "{}")]
-    [InlineData("((),(),{\"1<2\"})", "{}")]
-    [InlineData("((x),({-2147483648}),{\"-x=2147483648\"})", "{(x,-2147483648)}")]
-    [InlineData("((x),({2147483647}),{\"x+x=4294967294\"})", "{(x,2147483647)}")]
+    [InlineData("((x,y),({1,2},{1,2}),{\"x!=y\"})", "(x:1,y:2)")]
+    [InlineData("((x,y),({1,2},{1,2}),{\"x!=y\"})", " ( y:+2 , x:1 ) ")]
+    [InlineData("((_a,A),({-2},{3}),{\"_a+A=1\"})", "(_a:-2,A:3)")]
+    [InlineData("((),(),{})", "()")]
+    [InlineData("((),(),{\"1<2\"})", "()")]
+    [InlineData("((x),({-2147483648}),{\"-x=2147483648\"})", "(x:-2147483648)")]
+    [InlineData("((x),({2147483647}),{\"x+x=4294967294\"})", "(x:2147483647)")]
     public void Verifier_AcceptsValidCertificates(string instance, string certificate) {
         var verifier = new ConstraintSatisfactionVerifier();
         Assert.True(verifier.verify(new CONSTRAINTSATISFACTION(instance), certificate));
@@ -29,16 +29,20 @@ public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
     }
 
     [Theory]
-    [InlineData("{}")]
-    [InlineData("{(x,1)}")]
-    [InlineData("{(x,1),(y,1)}")]
-    [InlineData("{(x,1),(y,3)}")]
-    [InlineData("{(x,1),(z,2)}")]
-    [InlineData("{(X,1),(y,2)}")]
-    [InlineData("{(x,1),(x,2),(y,2)}")]
-    [InlineData("{(x,1),(y,2),(z,2)}")]
-    public void Verifier_RejectsWellFormedWrongAssignments(string certificate) {
-        Assert.False(new ConstraintSatisfactionVerifier().verify(new CONSTRAINTSATISFACTION(), certificate));
+    [InlineData("()")]
+    [InlineData("(x:1)")]
+    [InlineData("(x:1,y:3)")]
+    [InlineData("(x:1,z:2)")]
+    [InlineData("(X:1,y:2)")]
+    [InlineData("(x:1,x:2,y:2)")]
+    [InlineData("(x:1,y:2,z:2)")]
+    public void Verifier_ThrowsOnInvalidAssignments(string certificate) {
+        Assert.Throws<CertificateParseException>(() => new ConstraintSatisfactionVerifier().verify(new CONSTRAINTSATISFACTION(), certificate));
+    }
+
+    [Fact]
+    public void Verifier_ReturnsFalseForValidUnsatisfiedAssignment() {
+        Assert.False(new ConstraintSatisfactionVerifier().verify(new CONSTRAINTSATISFACTION(), "(x:1,y:1)"));
     }
 
     [Theory]
@@ -47,14 +51,14 @@ public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
     [InlineData(" ")]
     [InlineData("(x,1)")]
     [InlineData("{x=1}")]
-    [InlineData("{(x,1.0)}")]
-    [InlineData("{(x,2147483648)}")]
+    [InlineData("(x:1.0)")]
+    [InlineData("(x:2147483648)")]
     [InlineData("{(x,1),}")]
     [InlineData("{,(x,1)}")]
     [InlineData("{(x,1)(y,2)}")]
     [InlineData("{(x,1),,(y,2)}")]
-    [InlineData("{(x,1)} junk")]
-    [InlineData("{(x,1),(y,no)}")]
+    [InlineData("(x:1) junk")]
+    [InlineData("(x:1,y:no)")]
     public void Verifier_ThrowsOnMalformedCertificates(string? certificate) {
         Assert.Throws<CertificateParseException>(() => new ConstraintSatisfactionVerifier().verify(new CONSTRAINTSATISFACTION(), certificate!));
     }
@@ -76,13 +80,11 @@ public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
     [InlineData("1=2", false)]
     public void Verifier_EvaluatesExpressions(string constraint, bool expected) {
         var problem = new CONSTRAINTSATISFACTION($"((x,y),({{1}},{{2}}),{{\"{constraint}\"}})");
-        Assert.Equal(expected, new ConstraintSatisfactionVerifier().verify(problem, "{(x,1),(y,2)}"));
+        Assert.Equal(expected, new ConstraintSatisfactionVerifier().verify(problem, "(x:1,y:2)"));
         foreach (var solver in Solvers()) Assert.Equal(expected, solver.solve(problem) != "{}");
     }
 
     [Theory]
-    [InlineData("x*y=2")]
-    [InlineData("x/2=1")]
     [InlineData("x%2=1")]
     [InlineData("x^2=1")]
     [InlineData("allDifferent(x,y)")]
@@ -97,10 +99,9 @@ public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
     [InlineData("x=1)")]
     [InlineData("x=1 2")]
     [InlineData("x=1(2)")]
-    [InlineData("x=1.0")]
     public void UnsupportedConstraints_ThrowBeforeSearchOrVerification(string constraint) {
         var problem = new CONSTRAINTSATISFACTION($"((x,y),({{1}},{{2}}),{{\"1=2\",\"{constraint}\"}})");
-        Assert.Throws<ProblemParseException>(() => new ConstraintSatisfactionVerifier().verify(problem, "{(x,1),(y,2)}"));
+        Assert.Throws<ProblemParseException>(() => new ConstraintSatisfactionVerifier().verify(problem, "(x:1,y:2)"));
         foreach (var solver in Solvers()) Assert.Throws<ProblemParseException>(() => solver.solve(problem));
     }
 
@@ -129,7 +130,8 @@ public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
     public void EverySolver_ExhaustsUnsatisfiableInstances(string instance) {
         var problem = new CONSTRAINTSATISFACTION(instance);
         foreach (var solver in Solvers()) Assert.Equal("{}", solver.solve(problem));
-        Assert.False(new ConstraintSatisfactionVerifier().verify(problem, "{}"));
+        if (problem.X.Count == 0) Assert.False(new ConstraintSatisfactionVerifier().verify(problem, "()"));
+        else Assert.Throws<CertificateParseException>(() => new ConstraintSatisfactionVerifier().verify(problem, "()"));
     }
 
     [Fact]
@@ -142,7 +144,7 @@ public class CONSTRAINTSATISFACTION_SolverVerifier_Tests {
                     for (int y = -1; y <= 1; y++)
                         for (int z = -1; z <= 1; z++) {
                             bool valid = x + y - z == target && x != y && y + z <= limit;
-                            string certificate = $"{{(x,{x}),(y,{y}),(z,{z})}}";
+                            string certificate = $"(x:{x},y:{y},z:{z})";
                             Assert.Equal(valid, new ConstraintSatisfactionVerifier().verify(problem, certificate));
                             exists |= valid;
                         }
@@ -193,11 +195,13 @@ public class CONSTRAINTSATISFACTION_Timeout_Tests {
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
+    [InlineData(3)]
     public void RunningSearch_StopsThroughReduxTimer(int algorithm) {
         ISolver solver = algorithm switch {
             0 => new ConstraintSatisfactionBruteForce(),
             1 => new ConstraintSatisfactionBacktracking(),
-            _ => new ConstraintSatisfactionIntelligent()
+            2 => new ConstraintSatisfactionIntelligent(),
+            _ => new ConstraintSatisfactionIntelligent { ForwardChecking = false }
         };
         // A global sum keeps all partial assignments undecided until the last variable;
         // proving it impossible requires an exponential search for all three algorithms.

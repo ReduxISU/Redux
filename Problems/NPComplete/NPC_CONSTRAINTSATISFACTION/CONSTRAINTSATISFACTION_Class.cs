@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Solvers;
@@ -7,12 +6,15 @@ using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Visualizations;
 
 namespace API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION;
 
-class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, ConstraintSatisfactionVerifier, ConstraintSatisfactionVisualization> {
+// Problem class for the General Finite-Domain Constraint Satisfaction Problem.
+// Parses and validates X/D/C collections while leaving constraint text to the solver/verifier.
+// Variable and domain positions remain aligned throughout solving and verification.
+class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionIntelligent, ConstraintSatisfactionVerifier, ConstraintSatisfactionVisualization> {
     public string problemName { get; } = "General Finite-Domain Constraint Satisfaction Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
     public string formalDefinition { get; } = "CONSTRAINTSATISFACTION = {<X,D,C> | there exists an assignment a with a(X[i]) in D[i] for every i, satisfying every constraint in C}";
-    public string problemDefinition { get; } = "Given distinct variables, an explicitly listed finite nonempty integer domain for each variable, and constraints, determine whether values can be assigned to all variables so that every constraint is satisfied.";
-    public string inputDescription { get; } = "X, an ordered list of distinct variables; D, their corresponding finite integer domains; and C, a set of quoted constraint expressions";
+    public string problemDefinition { get; } = "Given distinct variables, an explicitly listed finite nonempty numeric domain for each variable, and constraints, determine whether values can be assigned to all variables so that every constraint is satisfied.";
+    public string inputDescription { get; } = "X, an ordered list of distinct variables; D, their corresponding finite numeric domains; and C, a set of quoted constraint expressions";
     public string outputDescription { get; } = "True or False, whether a complete assignment from the specified domains satisfies all constraints";
     public string source { get; } = "U. Montanari, “Networks of Constraints: Fundamental Properties and Applications to Picture Processing,” Information Sciences, vol. 7, pp. 95–132, Jan. 1974.";
     public string sourceLink { get; } = "https://ics.uci.edu/~dechter/courses/ics-276/spring-19/reading/montanari.pdf";
@@ -21,55 +23,70 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, Constraint
 
     private const string DefaultInstance = "((x,y),({1,2},{1,2}),{\"x!=y\"})";
     public string defaultInstance { get; } = DefaultInstance;
-    public string instanceFormat { get; } = "Format: (X,D,C). X is a parenthesized list of distinct identifiers; D is a parenthesized list of nonempty sets of 32-bit integers, one per variable in the same order; C is a set of double-quoted constraint expressions. Identifiers use letters, digits and underscores, starting with a letter or underscore. Example: " + DefaultInstance;
-    public string certificateFormat { get; } = "A set of (variable,value) pairs assigning every variable exactly once from its domain. Example: {(x,1),(y,2)}";
+    public string instanceFormat { get; } = "Format: (X,D,C). X is a parenthesized list of distinct identifiers; D is a parenthesized list of nonempty sets of exactly representable System.Decimal values, one per variable in the same order; C is a set of double-quoted constraint expressions. Identifiers use letters, digits and underscores, starting with a letter or underscore. Example: " + DefaultInstance;
+    public string certificateFormat { get; } = "A parenthesized list assigning every variable exactly once from its domain. Example: (x:1, y:2)";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = "Constraint_satisfaction_problem";
-    public ConstraintSatisfactionSolver defaultSolver { get; } = new ConstraintSatisfactionSolver();
+    public ConstraintSatisfactionIntelligent defaultSolver { get; } = new ConstraintSatisfactionIntelligent();
     public ConstraintSatisfactionVerifier defaultVerifier { get; } = new ConstraintSatisfactionVerifier();
     public ConstraintSatisfactionVisualization defaultVisualization { get; } = new ConstraintSatisfactionVisualization();
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;
 
+    // Distinct case-sensitive identifiers, retained in input order.
     public IReadOnlyList<string> X { get; }
-    public IReadOnlyList<IReadOnlyList<int>> D { get; }
+    // Nonempty finite domains; D[i] belongs to X[i]. Values retain input order.
+    public IReadOnlyList<IReadOnlyList<decimal>> D { get; }
+    // Unquoted constraint text, deduplicated in order of first occurrence.
     public IReadOnlyList<string> C { get; }
 
     public CONSTRAINTSATISFACTION() : this(DefaultInstance) { }
 
+    // Validates collection structure, identifiers, domain values, and quoted constraints. 
+    // Prepare the expression during each solve/verify call to support cancellation and preserve the original text.
     public CONSTRAINTSATISFACTION(string stringInstance) {
         if (string.IsNullOrWhiteSpace(stringInstance))
             throw new ProblemParseException(problemName, stringInstance, "instance is empty");
 
         try {
+            // Split only at the current collection level; nested domains and quoted
+            // commas in constraints must not become extra X/D/C sections.
             var sections = SplitCollection(stringInstance, '(', ')');
             if (sections.Count != 3)
                 throw new FormatException("Instance must contain exactly three sections: (X,D,C).");
 
+            // Validate names before building indices elsewhere. Ordinal distinctness
+            // keeps x and X separate while rejecting repeated spellings.
             var variables = SplitCollection(sections[0], '(', ')');
             if (variables.Any(v => !Regex.IsMatch(v, @"\A[A-Za-z_][A-Za-z0-9_]*\z")))
                 throw new FormatException("Each variable must be an identifier.");
             if (variables.Distinct(StringComparer.Ordinal).Count() != variables.Count)
                 throw new FormatException("Variables must be distinct.");
 
+            // Enforce one nonempty domain per variable. A set detects numeric duplicates
+            // (including 1 and 1.0); a list independently preserves enumeration order.
             var domains = SplitCollection(sections[1], '(', ')');
             if (domains.Count != variables.Count)
                 throw new FormatException("There must be exactly one domain per variable.");
-            var parsedDomains = new List<IReadOnlyList<int>>();
+            var parsedDomains = new List<IReadOnlyList<decimal>>();
             foreach (string domain in domains) {
                 var values = SplitCollection(domain, '{', '}');
                 if (values.Count == 0)
                     throw new FormatException("Variable domains must be nonempty.");
-                var integers = new HashSet<int>();
+                var seenNumbers = new HashSet<decimal>();
+                var numbers = new List<decimal>();
                 foreach (string value in values) {
-                    if (!int.TryParse(value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out int integer))
-                        throw new FormatException($"'{value}' is not a 32-bit integer domain value.");
-                    if (!integers.Add(integer))
+                    decimal number = CspNumber.Parse(value);
+                    if (!seenNumbers.Add(number))
                         throw new FormatException("Domain values must be distinct.");
+                    numbers.Add(number);
                 }
-                parsedDomains.Add(integers.ToList().AsReadOnly());
+                parsedDomains.Add(numbers.AsReadOnly());
             }
 
+            // Only the quoting envelope is handled here; arithmetic and membership
+            // syntax are validated later by the model. Embedded/escaped quotes are unsupported.
             var constraints = new List<string>();
             foreach (string constraint in SplitCollection(sections[2], '{', '}')) {
                 if (constraint.Length < 3 || constraint[0] != '"' || constraint[^1] != '"' ||
@@ -84,12 +101,16 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, Constraint
             D = parsedDomains.AsReadOnly();
             C = constraints.Distinct(StringComparer.Ordinal).ToList().AsReadOnly();
             instance = stringInstance;
-        } catch (Exception ex) when (ex is not ProblemParseException) {
+        } catch (FormatException ex) {
+            // Preserve the failed instance and cause for Redux callers. Do not broadly
+            // catch unrelated runtime failures and mislabel them as invalid input.
             throw new ProblemParseException(problemName, stringInstance, ex.Message, ex);
         }
     }
 
-    // Split top-level commas, preserving domain nesting and quoted expressions.
+    // Split top-level commas while preserving nested collections and quoted expressions.
+    // Extracts comma-separated elements from a collection.
+    // Nested collections are handled using a delimiter stack, while quoted expressions are left for the expression parser to validate.
     private static List<string> SplitCollection(string text, char open, char close) {
         text = text.Trim();
         if (text.Length < 2 || text[0] != open || text[^1] != close)
@@ -99,6 +120,8 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, Constraint
         if (string.IsNullOrWhiteSpace(text[1..^1]))
             return result;
 
+        // Store expected closing characters rather than merely counting depth, so
+        // crossing or mismatched delimiters cannot pass as balanced input.
         var brackets = new Stack<char>();
         bool quoted = false;
         int start = 1;
@@ -113,6 +136,8 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionSolver, Constraint
                     if (brackets.Count == 0 || brackets.Pop() != current)
                         throw new FormatException("Mismatched collection delimiters.");
                 } else if (current == ',' && brackets.Count == 0) {
+                    // Keep empty elements until the final check; dropping them would
+                    // silently accept leading, trailing, or doubled commas.
                     result.Add(text[start..i].Trim());
                     start = i + 1;
                 }

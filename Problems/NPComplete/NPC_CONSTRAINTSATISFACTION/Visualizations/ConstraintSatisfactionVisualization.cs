@@ -18,7 +18,7 @@ class ConstraintSatisfactionVisualization : IVisualization<CONSTRAINTSATISFACTIO
     // Redux_GUI/components/Visualization/svgs/Visualizations.js (CI enforces this).
     public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
     //public ISolver solver { get; } = null; //TODO fill in solver to use for this visualization
-    public ISolver solver { get; } = new ConstraintSatisfactionSolver();
+    public ISolver solver { get; } = new ConstraintSatisfactionIntelligent();
     // --- Methods Including Constructors ---
     public ConstraintSatisfactionVisualization() {
 

@@ -17,6 +17,7 @@ public class CONSTRAINTSATISFACTION_Tests {
         Assert.Contains("x!=y", problem.C[0].ToString());
         Assert.Equal(ComplexityClass.NPComplete, problem.complexityClass);
         Assert.Equal(ProblemType.MathematicalProgramming, problem.problemType);
+        Assert.Equal(ProblemVariant.Decision, problem.problemVariant);
         Assert.NotNull(problem.defaultSolver);
         Assert.NotNull(problem.defaultVerifier);
         Assert.NotNull(problem.defaultVisualization);
@@ -39,8 +40,8 @@ public class CONSTRAINTSATISFACTION_Tests {
     public void Parsing_PreservesDomainPositionsAndQuotedConstraintText() {
         var problem = new CONSTRAINTSATISFACTION("((y,x),({-2,3},{1}),{\"f(y, x)=1\"})");
         Assert.Equal(new[] { "y", "x" }, problem.X);
-        Assert.Equal(new[] { -2, 3 }, problem.D[0]);
-        Assert.Equal(new[] { 1 }, problem.D[1]);
+        Assert.Equal(new decimal[] { -2, 3 }, problem.D[0]);
+        Assert.Equal(new decimal[] { 1 }, problem.D[1]);
         Assert.Equal("f(y, x)=1", Assert.Single(problem.C));
     }
 
@@ -56,7 +57,7 @@ public class CONSTRAINTSATISFACTION_Tests {
     [InlineData("((x,y),({1}),{})")]
     [InlineData("((x),({}),{})")]
     [InlineData("((x),({a}),{})")]
-    [InlineData("((x),({2147483648}),{})")]
+    [InlineData("((x),({79228162514264337593543950336}),{})")]
     [InlineData("((x),({1,01}),{})")]
     [InlineData("((x),({1,}),{})")]
     [InlineData("((x),({1}),{x=1})")]
@@ -66,7 +67,7 @@ public class CONSTRAINTSATISFACTION_Tests {
     [InlineData("((x),({1}),{}) trailing")]
     public void MalformedInstance_ThrowsProblemParseException(string? instance) {
         var error = Assert.Throws<ProblemParseException>(() => new CONSTRAINTSATISFACTION(instance!));
-        Assert.Equal("Constraint Satisfaction Problem", error.ProblemName);
+        Assert.Equal("General Finite-Domain Constraint Satisfaction Problem", error.ProblemName);
         Assert.Equal(instance, error.Received);
     }
 }
