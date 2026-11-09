@@ -85,10 +85,17 @@ the number of processors by default) waiting for solves. An idle worker is a sma
 process: about 62 MB resident, measured in the Docker image (43 MB on Windows). A busy
 one may grow to the solve memory limit (`ComputeLimits:SolveMemoryMB`, 512 MB by
 default) plus about 128 MB the server allows for the runtime before it stops the worker.
-So give the Redux container at least the server itself (about 100 MB) plus, per job slot,
-the memory limit and the allowance: with 4 slots and the defaults, about 100 MB +
-4 × 640 MB, roughly 2.7 GB. If the container has less, lower `MaxConcurrentJobs` or
-`SolveMemoryMB`.
+
+When a solve takes a warm worker, the server starts a new one in its place at once, even
+when every other slot is busy too, so the next solve does not wait for a worker to start.
+So at the worst, every job slot has a busy worker and a warm one beside it: give the Redux
+container at least the server itself (about 100 MB) plus, per job slot, the memory limit,
+the allowance and an idle worker. With 4 slots and the defaults that is about 100 MB +
+4 × (640 MB + 62 MB), roughly 2.9 GB. A worker that has just answered or been stopped
+takes a moment to exit, so the total can pass this briefly. If the container has less,
+lower `MaxConcurrentJobs` or `SolveMemoryMB`. With the cap on jobs turned off
+(`MaxConcurrentJobs` zero or less) nothing bounds the number of busy workers, so keep
+the cap on in production.
 
  ### service restarts (sudo)
 
