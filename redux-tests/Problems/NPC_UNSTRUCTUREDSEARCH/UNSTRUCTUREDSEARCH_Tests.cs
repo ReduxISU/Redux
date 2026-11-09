@@ -9,6 +9,8 @@ using API.Problems.NPComplete.NPC_UNSTRUCTUREDSEARCH.Verifiers;
 namespace redux_tests;
 #pragma warning disable CS1591
 
+// Replaces the quantum service settings, so it runs with the other tests that do (FakeQuantumService.cs).
+[Collection(QuantumServiceCollection.Name)]
 public class UNSTRUCTUREDSEARCH_tests {
     [Fact]
     public void DEUTSCH_Default_Instantiation() {
@@ -164,16 +166,17 @@ public class UNSTRUCTUREDSEARCH_tests {
     [Fact]
     public void UnstructuredGroverSolver_Solve_Missing_AnswerBitstring_ThrowsClearError() {
         // Regression test for GitHub issue #538. When the quantum server's response has no
-        // "answer_bitstring" field, SolveAsSat now throws a clear InvalidOperationException
-        // instead of handing the raw JSON response back for solve() to misinterpret as
-        // bitstring data (which used to throw a confusing FormatException).
+        // "answer_bitstring" field, SolveAsSat throws a clear error instead of handing the raw
+        // JSON response back for solve() to misinterpret as bitstring data (which used to throw
+        // a confusing FormatException). Since #625 that error is SolverUnavailableException, which
+        // the endpoints answer with 503 solver_unavailable.
         var problem = new UNSTRUCTUREDSEARCH("(0, 1, 0, 0)");
         var handler = new FakeQuantumHandler("{\"qasm\":\"c\"}");
         InstallFakeQuantumServer(handler);
         var solver = new UnstructuredGroverSolver();
 
-        var ex = Assert.Throws<InvalidOperationException>(() => solver.solve(problem));
-        Assert.NotEmpty(ex.Message);
+        var ex = Assert.Throws<API.Interfaces.SolverUnavailableException>(() => solver.solve(problem));
+        Assert.Contains("answer_bitstring", ex.Message);
     }
 
     // -------------------------------------------------------------------------
