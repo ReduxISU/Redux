@@ -16,7 +16,7 @@ Commands assume you are in the repo root (the folder with `Redux.slnx`) unless s
 
 | What you see | What it means | How to fix it |
 | --- | --- | --- |
-| `error MSB1011: Specify which project or solution file to use because this folder contains more than one project or solution file.` | You ran `dotnet build` or `dotnet test` with no file name. The repo root holds both `API.csproj` and `Redux.slnx`, so .NET will not guess. | Name the file: `dotnet build Redux.slnx`, `dotnet test Redux.slnx`. (Plain `dotnet run` is fine, because it only considers project files.) See [building-and-testing.md](building-and-testing.md). |
+| `error MSB1011: Specify which project or solution file to use because this folder contains more than one project or solution file.` | You ran `dotnet build` or `dotnet test` with no file name. The repo root holds both `API.csproj` and `Redux.slnx`, so .NET will not guess. | Name the file: `dotnet build Redux.slnx`, `dotnet test --solution Redux.slnx`. (Plain `dotnet run` is fine, because it only considers project files.) See [building-and-testing.md](building-and-testing.md). |
 | `dotnet : The term 'dotnet' is not recognized` (or `command not found`) | The .NET SDK is not installed, or your terminal was opened before you installed it. | Install the .NET 10 SDK from [dotnet.microsoft.com](https://dotnet.microsoft.com/en-us/download), then open a **new** terminal. See [setup.md](setup.md). |
 | `The current .NET SDK does not support targeting .NET 10.0` or `NETSDK1045` | Your newest SDK is older than 10. | Run `dotnet --list-sdks`. If no line starts with `10.`, install the .NET 10 SDK. Older SDKs can stay installed. Then open a new terminal and check `dotnet --version` again. |
 | `Failed to bind to address http://0.0.0.0:27000: address already in use` | Port 27000 is taken, usually by another copy of Redux (a forgotten terminal, `dotnet watch`, or a Docker container). | Find and stop it. Windows PowerShell: `Get-NetTCPConnection -LocalPort 27000` shows the process id, then `Stop-Process -Id <id>`. Mac or Linux: `lsof -i :27000`, then `kill <pid>`. Docker: `docker ps`, then `docker stop reduxapi`. |
@@ -49,7 +49,7 @@ Commands assume you are in the repo root (the folder with `Redux.slnx`) unless s
 First, run just the failing test so you do not wait for everything:
 
 ```bash
-dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~<part of the test name>"
+dotnet test --solution Redux.slnx -c Release --filter "FullyQualifiedName~<part of the test name>"
 ```
 
 | What you see | What it means | How to fix it |
@@ -66,7 +66,8 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~<part of the test
 | A request answers HTTP 429 with `"error": "server_busy"` | Every slot for compute jobs (solve, verify, reduce, visualize and the other endpoints that run a reduction) was in use, so the job wasn't started (#936). The cap is `ComputeLimits:MaxConcurrentJobs` in `appsettings.json`, the number of processors by default. A job the time limit gave up waiting for keeps its slot until it really stops. | Wait a few seconds and try again (the `Retry-After` header says how long). For local experiments you can raise the cap, or set it to 0 to turn it off. |
 | `visualization-types` test fails (`VisualizationType_Tests`) | Your `visualizationType` is not in [Documentation/visualization-types.json](../visualization-types.json). | Follow [adding-a-visualization.md](adding-a-visualization.md). Do not edit the JSON file casually, because code and the GUI check it. |
 | A test fails with "Allowlist ... stale" or "not added to the allowlist" | The metadata ratchet tests compare against short lists in the test files. | Do not edit the lists to hide a failure. Fix your metadata. If the message says an entry is stale because you classified a problem, remove that one line. |
-| "No test matches the given testcase filter" | Typo in `--filter`, or tests are not built. | Check the spelling. Leave out `--no-build`. |
+| "Zero tests ran" (exit code 8) | Typo in `--filter`, or tests are not built. | Check the spelling. Leave out `--no-build`. |
+| "Specifying a solution for 'dotnet test' should be via '--solution'" | You ran `dotnet test Redux.slnx`. The tests run on Microsoft Testing Platform (see [global.json](../../global.json)), which wants the solution named with `--solution`. | Use `dotnet test --solution Redux.slnx`. |
 | Performance tests fail (`--filter "Category=Performance"`) | Something is too slow, not wrong. | Run again once. If it still fails, look at what you added (a solver on the default instance, or `reduce()`). |
 | A test passes alone but fails with the others | Shared state, such as a static variable changed by one test. | Avoid `static` fields that tests change. Build a fresh object in each test. |
 

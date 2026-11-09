@@ -42,13 +42,13 @@ Start from the newest `CSharpAPI` branch (the main branch; there is no `develop`
 - Step-by-step guides: [adding a problem](Documentation/guides/adding-a-problem.md), [solver](Documentation/guides/adding-a-solver.md), [verifier](Documentation/guides/adding-a-verifier.md), [reduction](Documentation/guides/adding-a-reduction.md), and [visualization](Documentation/guides/adding-a-visualization.md)
 
 ### 4. Test your changes
-Run these from the repo root (always name `Redux.slnx`; a bare `dotnet build` fails with `MSB1011`):
+Run these from the repo root (always name `Redux.slnx`, as `--solution Redux.slnx` for `dotnet test`; a bare `dotnet build` fails with `MSB1011`):
 
 ```bash
 dotnet format Redux.slnx
 dotnet build Redux.slnx -c Release
-dotnet test Redux.slnx -c Release --filter "Category!=Performance"
-dotnet test Redux.slnx -c Release --filter "Category=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category!=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category=Performance"
 ```
 
 - The Release build checks formatting and treats compiler warnings as errors, so run `dotnet format Redux.slnx` first.

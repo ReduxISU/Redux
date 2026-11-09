@@ -29,14 +29,15 @@ The build-and-test part of the rbs check is, in effect, these commands:
 ```bash
 dotnet restore Redux.slnx
 dotnet build Redux.slnx --configuration Release
-dotnet test Redux.slnx --configuration Release --collect "XPlat Code Coverage"
+dotnet test --solution Redux.slnx --configuration Release --coverage --coverage-output-format cobertura
 ```
 
-Three things about them that surprise people:
+Four things about them that surprise people:
 
 1. **Always name `Redux.slnx`.** A bare `dotnet build` in the repo root fails with `error MSB1011`, because the root folder holds both `API.csproj` and `Redux.slnx` and .NET will not guess which one you mean.
-2. **Formatting is part of the build.** [Directory.Build.targets](../../Directory.Build.targets) runs `dotnet format Redux.slnx --verify-no-changes` as part of every Release build. Badly formatted code makes the **build** fail. The fix is to run `dotnet format Redux.slnx` first. Note that this check runs only *after* the code compiles. If your code has a compile error, you will see that error first, and the formatting errors only appear once it is fixed. So a build that fails, gets fixed, and then fails again with `WHITESPACE` errors is normal.
-3. **Warnings are errors.** [Directory.Build.props](../../Directory.Build.props) sets `TreatWarningsAsErrors`. So a compiler warning (an unused variable, say) fails the build. In practice the compiler is the linter.
+2. **`dotnet test` takes the solution as `--solution Redux.slnx`.** The tests run on Microsoft Testing Platform (MTP), chosen in [global.json](../../global.json), and under MTP `dotnet test Redux.slnx` (without `--solution`) is refused with "Specifying a solution for 'dotnet test' should be via '--solution'". A single project is `--project path/To.csproj`. `--filter`, `-c Release` and `--no-build` work as before.
+3. **Formatting is part of the build.** [Directory.Build.targets](../../Directory.Build.targets) runs `dotnet format Redux.slnx --verify-no-changes` as part of every Release build. Badly formatted code makes the **build** fail. The fix is to run `dotnet format Redux.slnx` first. Note that this check runs only *after* the code compiles. If your code has a compile error, you will see that error first, and the formatting errors only appear once it is fixed. So a build that fails, gets fixed, and then fails again with `WHITESPACE` errors is normal.
+4. **Warnings are errors.** [Directory.Build.props](../../Directory.Build.props) sets `TreatWarningsAsErrors`. So a compiler warning (an unused variable, say) fails the build. In practice the compiler is the linter.
 
 **Performance tests** are tests tagged `Category=Performance`. They run with everything else. If one fails, it means "too slow", not "wrong answer". Run it again once to rule out a slow moment on your computer, then look at the code you just added.
 
@@ -69,21 +70,26 @@ Build succeeded.
 **Step 3. Run the tests.**
 
 ```bash
-dotnet test Redux.slnx -c Release --no-build --filter "Category!=Performance"
+dotnet test --solution Redux.slnx -c Release --no-build --filter "Category!=Performance"
 ```
 
 Success looks like this (your counts will differ):
 
 ```text
-Passed!  - Failed:     0, Passed:  3006, Skipped:     4, Total:  3010, Duration: 45 s - redux-tests.dll (net10.0)
+Test run summary: Passed!
+  total: 4647
+  failed: 0
+  succeeded: 4647
+  skipped: 0
+  duration: 1m 18s 923ms
 ```
 
-"Skipped" tests are on purpose. You are looking for `Failed: 0`. The first run can take a minute or two.
+"Skipped" tests are on purpose. You are looking for `failed: 0`. The first run can take a minute or two.
 
 **Step 4. Run the performance tests.**
 
 ```bash
-dotnet test Redux.slnx -c Release --no-build --filter "Category=Performance"
+dotnet test --solution Redux.slnx -c Release --no-build --filter "Category=Performance"
 ```
 
 You should see `Passed!` again (about 25 tests).
@@ -92,13 +98,13 @@ You should see `Passed!` again (about 25 tests).
 
 ```bash
 # One test (here, the name of a test in redux-tests/Problems/NPC_SUBSETSUM/SUBSETSUM_Tests.cs)
-dotnet test Redux.slnx -c Release --no-build --filter "FullyQualifiedName~SUBSETSUM_PartitionReduction_Accepts_New_Instance_Format"
+dotnet test --solution Redux.slnx -c Release --no-build --filter "FullyQualifiedName~SUBSETSUM_PartitionReduction_Accepts_New_Instance_Format"
 
 # One whole class of tests
-dotnet test Redux.slnx -c Release --no-build --filter "FullyQualifiedName~redux_tests.SUBSETSUM_Tests"
+dotnet test --solution Redux.slnx -c Release --no-build --filter "FullyQualifiedName~redux_tests.SUBSETSUM_Tests"
 ```
 
-The first prints `Passed: 1`, the second `Passed: 34` (at the time of writing). If you see "No test matches the given testcase filter", check your spelling. If you changed code since the last build, leave out `--no-build` so it rebuilds first.
+The first prints `succeeded: 1`, the second `succeeded: 38` (at the time of writing). If you see "Zero tests ran" (exit code 8), nothing matched the filter: check your spelling. If you changed code since the last build, leave out `--no-build` so it rebuilds first.
 
 Before you push, run all steps once. That is the same thing CI will do.
 
@@ -155,10 +161,12 @@ Click **Details** next to the red check, open the failed step, and read the last
 
 | What you see | What it means | Fix |
 | --- | --- | --- |
-| `MSB1011` | You ran `dotnet build` or `dotnet test` without a file name. | Add `Redux.slnx`. |
+| `MSB1011` | You ran `dotnet build` or `dotnet test` without a file name. | Add `Redux.slnx` (`--solution Redux.slnx` for `dotnet test`). |
+| "Specifying a solution for 'dotnet test' should be via '--solution'" | You ran `dotnet test Redux.slnx`. | Use `dotnet test --solution Redux.slnx` (section 1). |
+| Unit tests: "Zero tests ran", exit code 8 | Your `--filter` matched no test. | Check the spelling of the filter. |
 | The build step fails and mentions `dotnet format` or "formatting" | Your code is not formatted. | Run `dotnet format Redux.slnx`, commit the changes, push. |
 | `error CS...` or a warning shown as an error | The code does not compile, or has a compiler warning. | Fix the line it points to. |
-| Unit tests: `Failed: 1` (or more) | A test fails. | The log names the test. Run just that test (section 2, step 5), read the message, and fix the code or the test. |
+| Unit tests: `failed: 1` (or more) | A test fails. | The log names the test. Run just that test (section 2, step 5), read the message, and fix the code or the test. |
 | Performance tests fail | Something is too slow. | Look at what you just added. Re-run once to rule out a fluke. |
 | It works on your machine but not in CI | Different OS or leftover files. | Try the dev container (above). |
 
@@ -181,7 +189,7 @@ The report has one line per gate. For the Redux (dotnet) setup, configured in [r
 | `format-check` | `dotnet format Redux.slnx --verify-no-changes` | Run `dotnet format Redux.slnx` and push. |
 | `lint` | `dotnet build Redux.slnx -c Release` | Fix the compiler errors and warnings. |
 | `typecheck` | skipped | Nothing. The compiler already checked types in `lint`. |
-| `unit-test` | `dotnet test Redux.slnx -c Release --collect "XPlat Code Coverage"` | See the coverage note just below. |
+| `unit-test` | `dotnet test --solution Redux.slnx -c Release --coverage --coverage-output-format cobertura` | See the coverage note just below. |
 | `build` | `docker build` of the production image | Rarely your fault. Ask a maintainer if it fails. |
 | `integration-test` | Starts that image and runs [integration/](../../integration/) against it over HTTP | A route stopped answering, or the catalogue changed shape. The test names what it expected. |
 | `push` | After a merge to `CSharpAPI`, publishes the tested image to GHCR. Skipped on PRs. | Not your concern on a PR. |

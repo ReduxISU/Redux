@@ -403,14 +403,14 @@ Run these from the repo root (the folder that contains `Redux.slnx`). The full e
 ```bash
 dotnet format Redux.slnx
 dotnet build Redux.slnx -c Release
-dotnet test Redux.slnx -c Release --filter "Category!=Performance"
-dotnet test Redux.slnx -c Release --filter "Category=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category!=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category=Performance"
 ```
 
 To run only the visualization-related metadata tests while you work:
 
 ```bash
-dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~VisualizationType_Tests"
+dotnet test --solution Redux.slnx -c Release --filter "FullyQualifiedName~VisualizationType_Tests"
 ```
 
 ### On the Redux_GUI side (case (b) only)

@@ -222,14 +222,14 @@ Run these from the repo root (the folder that contains `Redux.slnx`). The full e
 ```bash
 dotnet format Redux.slnx
 dotnet build Redux.slnx -c Release
-dotnet test Redux.slnx -c Release --filter "Category!=Performance"
-dotnet test Redux.slnx -c Release --filter "Category=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category!=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category=Performance"
 ```
 
 To run only your own tests while you work:
 
 ```bash
-dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_PartitionReduction"
+dotnet test --solution Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_PartitionReduction"
 ```
 
 (Replace the text after `~` with part of your test name.)

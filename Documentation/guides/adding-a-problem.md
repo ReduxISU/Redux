@@ -423,14 +423,14 @@ Run these from the repo root (the folder that contains `Redux.slnx`). The full e
 ```bash
 dotnet format Redux.slnx
 dotnet build Redux.slnx -c Release
-dotnet test Redux.slnx -c Release --filter "Category!=Performance"
-dotnet test Redux.slnx -c Release --filter "Category=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category!=Performance"
+dotnet test --solution Redux.slnx -c Release --filter "Category=Performance"
 ```
 
 To run only your own tests while you work:
 
 ```bash
-dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM"
+dotnet test --solution Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM"
 ```
 
 (Replace the text after `~` with part of your test names.)
@@ -438,7 +438,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM"
 **Check your problem before you push.** This runs the checks on every problem's fields, names and contributors, plus your own tests. Replace `SUBSETSUM` with your class name:
 
 ```bash
-dotnet test Redux.slnx -c Release --filter "Category=Metadata|FullyQualifiedName~SUBSETSUM"
+dotnet test --solution Redux.slnx -c Release --filter "Category=Metadata|FullyQualifiedName~SUBSETSUM"
 ```
 
 Each failure names your class and says what to change. CI still runs every test, so run the full commands above once before you open the PR.
