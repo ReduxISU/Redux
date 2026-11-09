@@ -19,18 +19,19 @@ class WeightedMaxSatBranchAndBoundSolver : ISolver<WEIGHTEDMAXSAT> {
     public WeightedMaxSatBranchAndBoundSolver() { }
 
     public string solve(WEIGHTEDMAXSAT problem) {
-        var result = Optimize(problem);
+        var result = Optimize(problem, () => timerHasExpired);
         return timerHasExpired ? SolveRun.TimedOutAnswer : WeightedMaxSatBruteForceSolver.FormatCertificate(problem.variables, result.Assignment, result.Value);
     }
 
-    private (Dictionary<string, bool> Assignment, long Value) Optimize(WEIGHTEDMAXSAT problem) {
-        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count);
+    internal static (Dictionary<string, bool> Assignment, long Value) Optimize(
+        WEIGHTEDMAXSAT problem, Func<bool>? expired = null, string problemName = "Weighted Max-SAT") {
+        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count, problemName);
         var assignment = new Dictionary<string, bool>(StringComparer.Ordinal);
         var best = new Dictionary<string, bool>(StringComparer.Ordinal);
         long bestValue = -1;
 
         void Search(int index) {
-            if (timerHasExpired) return;
+            if (expired?.Invoke() == true) return;
 
             // A clause contributes to the upper bound unless the partial assignment has
             // already made every literal false. The bound is therefore at least the value
