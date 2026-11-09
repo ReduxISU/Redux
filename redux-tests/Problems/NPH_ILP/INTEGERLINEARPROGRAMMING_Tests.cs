@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using API.Interfaces;
 using API.Interfaces.JSON_Objects.Tables;
@@ -307,5 +308,173 @@ public class INTEGERLINEARPROGRAMMING_Tests {
                 );
             }
         }
+    }
+    [Fact]
+    public void BruteForceFindsDefaultOptimum() {
+        var problem = new INTEGERLINEARPROGRAMMING();
+        var solver = new IntegerLinearProgrammingBruteForceSolver();
+
+        string result = solver.solve(problem);
+
+        Assert.Equal("(2,2)", result);
+        Assert.True(problem.defaultVerifier.verify(problem, result));
+    }
+
+    [Theory]
+    [InlineData("((1),((1),(-1)),(2,3))", "(2)")]
+    [InlineData("((-1),((1),(-1)),(2,3))", "(-3)")]
+    [InlineData("((1),((1),(-1)),(-2,0))", "infeasible")]
+    [InlineData(
+        "((1),((1),(-1)),(100000000000000000000,100000000000000000000))",
+        SolveRun.TimedOutAnswer)]
+    public void BruteForceHandlesBoundsAndLimits(
+        string input,
+        string expected
+    ) {
+        var problem = new INTEGERLINEARPROGRAMMING(input);
+        var solver = new IntegerLinearProgrammingBruteForceSolver();
+
+        Assert.Equal(expected, solver.solve(problem));
+    }
+
+    [Fact]
+    public void BruteForceRequiresFiniteEnumerationBounds() {
+        var problem = new INTEGERLINEARPROGRAMMING(
+            "((1),((-1)),(0))"
+        );
+
+        var solver = new IntegerLinearProgrammingBruteForceSolver();
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
+    }
+
+    [Fact]
+    public void BruteForceHonorsTimerAndWorkLimit() {
+        var problem = new INTEGERLINEARPROGRAMMING();
+
+        var solver = new IntegerLinearProgrammingBruteForceSolver {
+            timerHasExpired = true
+        };
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
+
+        ((ISolver)solver).ResetTimer();
+
+        Assert.Equal("(2,2)", solver.solve(problem));
+
+        solver.WorkLimit = 1;
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
+    }
+
+    [Fact]
+    public void BruteForceAgreesWithIndependentEnumeration() {
+        var random = new Random(20261109);
+
+        for (int sample = 0; sample < 50; sample++) {
+            int c1 = random.Next(-3, 4);
+            int c2 = random.Next(-3, 4);
+            int a1 = random.Next(-3, 4);
+            int a2 = random.Next(-3, 4);
+            int rhs = random.Next(-4, 5);
+
+            var problem = new INTEGERLINEARPROGRAMMING(
+                $"(({c1},{c2}),((1,0),(-1,0),(0,1),(0,-1),({a1},{a2})),(2,2,2,2,{rhs}))"
+            );
+
+            BigInteger? expected = null;
+
+            for (int x = -2; x <= 2; x++) {
+                for (int y = -2; y <= 2; y++) {
+                    if (a1 * x + a2 * y > rhs)
+                        continue;
+
+                    BigInteger value = c1 * x + c2 * y;
+
+                    if (expected is null || value > expected.Value)
+                        expected = value;
+                }
+            }
+
+            string result = new IntegerLinearProgrammingBruteForceSolver()
+                .solve(problem);
+
+            if (expected is null) {
+                Assert.Equal("infeasible", result);
+            } else {
+                Assert.True(problem.defaultVerifier.verify(problem, result));
+
+                var vector = IntegerLinearProgrammingVerifier.ParseAssignment(
+                    problem, result
+                );
+
+                Assert.Equal(
+                    expected.Value,
+                    c1 * vector[0] + c2 * vector[1]
+                );
+            }
+        }
+    }
+
+    // ------------------------------------------------------------
+    // Heuristic solver tests
+    // ------------------------------------------------------------
+
+    [Fact]
+    public void HeuristicReturnsFeasibleAssignment() {
+        var problem = new INTEGERLINEARPROGRAMMING();
+        var solver = new IntegerLinearProgrammingHeuristicSolver();
+
+        string result = solver.solve(problem);
+
+        Assert.StartsWith("(", result);
+        Assert.True(problem.defaultVerifier.verify(problem, result));
+    }
+
+    [Fact]
+    public void HeuristicDoesNotClaimOptimalityGuarantee() {
+        var solver = new IntegerLinearProgrammingHeuristicSolver();
+
+        Assert.Contains(
+            "not guaranteed optimal",
+            solver.solverDefinition
+        );
+    }
+
+    [Fact]
+    public void HeuristicDoesNotFalselyDeclareInfeasibility() {
+        var problem = new INTEGERLINEARPROGRAMMING(
+            "((1),((1),(-1)),(-2,0))"
+        );
+
+        var solver = new IntegerLinearProgrammingHeuristicSolver();
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
+    }
+
+    [Fact]
+    public void HeuristicHonorsTimer() {
+        var problem = new INTEGERLINEARPROGRAMMING();
+
+        var solver = new IntegerLinearProgrammingHeuristicSolver {
+            timerHasExpired = true
+        };
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
+    }
+
+    // ------------------------------------------------------------
+    // Step recording
+    // ------------------------------------------------------------
+
+    [Fact]
+    public void AdditionalSolversProduceSteps() {
+        var problem = new INTEGERLINEARPROGRAMMING();
+
+        var bruteForce = new IntegerLinearProgrammingBruteForceSolver();
+        var heuristic = new IntegerLinearProgrammingHeuristicSolver();
+
+        Assert.NotEmpty(bruteForce.GetSteps(problem));
+        Assert.NotEmpty(heuristic.GetSteps(problem));
     }
 }

@@ -12,7 +12,8 @@ class IntegerLinearProgrammingDefaultVisualization : IVisualization<INTEGERLINEA
     public string visualizationName => "Integer Linear Programming Table";
     public string visualizationDefinition => "Displays objective and constraint coefficients, integer assignments, objective values, and constraint slack.";
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
-    public string source => "";
+    public string source { get; } = "Nemhauser, G. L., & Wolsey, L. A. (1988). Integer and Combinatorial Optimization. Wiley.";
+    public string sourceLink { get; } = "https://www.wiley.com/en-us/Integer+and+Combinatorial+Optimization-p-9780471359432";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Prashant Pant" };
     public ISolver solver { get; } = new IntegerLinearProgrammingSolver();
