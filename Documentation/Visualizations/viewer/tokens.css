@@ -1,0 +1,34 @@
+/* Theme tokens copied verbatim from ../mockups/design.src.html (the :root blocks and the --av-* mapping), so the mockup renderers look exactly as they do in the design mockup. Keep in sync if the tokens change there. */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --ink: #19202d; --muted: #5b6577; --line: #d8dde6; --soft: #eceff4;
+  --accent: #3552c9;
+  --s-bg: #ffffff; --s-bg-stroke: #7d879a;
+  --s-false: #e9ecf1; --s-false-ink: #646b77;
+  --s-hl: #a97809; --s-sol: #1e774e; --s-sol-fill: #d8f1e4; --s-rej: #ba3932; --s-rej-fill: #fbe1df;
+  --edge: #616773;
+  --edge-dim: #7b8392; --cov: #67927e; --sol-ink: #1e774e; --rej-ink: #ba3932; --hl-ink: #896107; --on-sol: #ffffff; --on-rej: #ffffff; --on-hl: #1b1300; --ctrl-line: #8a8d93; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #2b7fb0; --g1s: #a87200; --g2s: #7a5cb8; --g3s: #968c0c; --g4s: #2a8a70; --g5s: #9a4c78; --g0i: #2a7cac; --g1i: #a06c00; --g2i: #7a5cb8; --g3i: #827809; --g4i: #28846c; --g5i: #9a4c78; --hl-mix: 14%;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
+  --accent: #8fa3ff;
+  --s-bg: #1f2430; --s-bg-stroke: #8791a5;
+  --s-false: #1a1e27; --s-false-ink: #7e8694;
+  --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
+  --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11141a; --surface: #191d26; --ink: #e5e8ee; --muted: #9aa3b4; --line: #2b3240; --soft: #222835;
+  --accent: #8fa3ff;
+  --s-bg: #1f2430; --s-bg-stroke: #8791a5;
+  --s-false: #1a1e27; --s-false-ink: #7e8694;
+  --s-hl: #f0b63e; --s-sol: #4cc38a; --s-sol-fill: #173828; --s-rej: #ff6b61; --s-rej-fill: #3d1d1b;
+  --edge: #929aa7; --edge-dim: #7b8595; --cov: #467c64; --sol-ink: #4cc38a; --rej-ink: #ff6b61; --hl-ink: #f0b63e; --on-sol: #0b1f15; --on-rej: #1f0b0a; --on-hl: #1b1300; --ctrl-line: #6d727b; --g0: #56B4E9; --g1: #E69F00; --g2: #b59ce0; --g3: #F0E442; --g4: #5fc4a8; --g5: #CC79A7; --g0s: #56B4E9; --g1s: #E69F00; --g2s: #b59ce0; --g3s: #F0E442; --g4s: #5fc4a8; --g5s: #CC79A7; --g0i: #56B4E9; --g1i: #E69F00; --g2i: #b59ce0; --g3i: #F0E442; --g4i: #5fc4a8; --g5i: #CC79A7; --hl-mix: 15%; color-scheme: dark }
+
+:root {
+  --av-bg: var(--s-bg); --av-stroke: var(--s-bg-stroke); --av-ink: var(--ink); --av-muted: var(--muted);
+  --av-surface: var(--surface); --av-line: var(--line); --av-edge: var(--edge);
+  --av-hl: var(--s-hl); --av-hl-fill: color-mix(in srgb, var(--s-hl) var(--hl-mix), var(--surface));
+  --av-edge-dim: var(--edge-dim); --av-cov: var(--cov); --av-sol-ink: var(--sol-ink); --av-rej-ink: var(--rej-ink); --av-hl-ink: var(--hl-ink); --av-on-sol: var(--on-sol); --av-on-rej: var(--on-rej); --av-on-hl: var(--on-hl); --av-ctrl: var(--ctrl-line); --av-g0: var(--g0); --av-g0s: var(--g0s); --av-g0i: var(--g0i); --av-g1: var(--g1); --av-g1s: var(--g1s); --av-g1i: var(--g1i); --av-g2: var(--g2); --av-g2s: var(--g2s); --av-g2i: var(--g2i); --av-g3: var(--g3); --av-g3s: var(--g3s); --av-g3i: var(--g3i); --av-g4: var(--g4); --av-g4s: var(--g4s); --av-g4i: var(--g4i); --av-g5: var(--g5); --av-g5s: var(--g5s); --av-g5i: var(--g5i);
+  --av-sol: var(--s-sol); --av-sol-fill: var(--s-sol-fill); --av-rej: var(--s-rej); --av-rej-fill: var(--s-rej-fill); --av-hot: var(--accent); --av-mono: var(--mono);
+}
