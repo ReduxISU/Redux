@@ -17,7 +17,7 @@ class AkariVisualization : IVisualization<AKARI> {
     // a broken view. Do NOT add a new member without adding a renderer in
     // Redux_GUI/components/Visualization/svgs/Visualizations.js (CI enforces this).
     public VisualizationType visualizationType { get; } = VisualizationType.Unimplemented;
-    public ISolver solver { get; } = new AkariSolver();
+    public ISolver solver { get; } = new AkariConstraintPropagation();
 
     // --- Methods Including Constructors ---
     public AkariVisualization() {

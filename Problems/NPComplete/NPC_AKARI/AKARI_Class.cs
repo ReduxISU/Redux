@@ -7,7 +7,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_AKARI;
 
-class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
+class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualization> {
 
     // --- Fields ---
     public string problemName { get; } = "Akari (Light Up Puzzle)";
@@ -34,10 +34,10 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
     public string instanceFormat { get; } = $"Nested list of rows, each row a parenthesized comma-separated list of cells: _ (white), # (black wall), or 0-4 (clue wall). Example: {_defaultInstance}";
-    public string certificateFormat { get; } = "TODO: describe the certificate string the verifier accepts with an embedded example, e.g. '(x1:True,x2:False,x3:True) -- one variable:Boolean pair per variable, comma-separated'";
+    public string certificateFormat { get; } = $"The instance grid with every light bulb marked '*' in place of a white cell '_'; walls and clues are copied unchanged, and \"{{}}\" means no solution. Example (default instance): {AkariVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = ""; // Deprecated, do not implement
-    public AkariSolver defaultSolver { get; } = new AkariSolver();
+    public AkariConstraintPropagation defaultSolver { get; } = new AkariConstraintPropagation();
     public AkariVerifier defaultVerifier { get; } = new AkariVerifier();
     public AkariVisualization defaultVisualization { get; } = new AkariVisualization();
     public string[] contributors { get; } = { "Carter Luker", "Danny Fawson" };
@@ -55,6 +55,8 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
     // Integer encodings for non-clue cells in the parsed grid. Clue walls are stored as their value (0-4).
     public const int EMPTY_CELL = -2;
     public const int WALL = -1;
+    // Only appears in a parsed certificate (see AkariVerifier), never in an instance's grid.
+    public const int BULB = -3;
 
     public int[][] grid { get; } = Array.Empty<int[]>();
 
@@ -86,16 +88,20 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         */
 
         // Puzzle Grid Version: 2D array of integer-encoded cells (see EMPTY_CELL / WALL).
-        grid = ParseGrid(stringInstance);
+        grid = ParseGrid(stringInstance, allowBulbs: false, detail => new ProblemParseException("Akari", stringInstance, detail));
     }
 
     // Parses a nested list such as "((_,_,#,_),(#,_,_,1))" into an int[][].
-    // Whitespace between tokens is ignored; valid cells are _ (EMPTY_CELL), # (WALL), and digits 0-4 (clue value).
-    // Errors report line/column in the original input, plus row/cell for bad cell characters.
+    // Whitespace between tokens is ignored; valid cells are _ (EMPTY_CELL), # (WALL), and digits 0-4 (clue value),
+    // plus * (BULB) when allowBulbs is set, which is how the verifier reads a certificate with the same grammar.
+    // Errors report line/column in the original input, plus row/cell for bad cell characters; `fail` turns the
+    // message into the exception to throw (ProblemParseException for an instance, CertificateParseException for a certificate).
     // This custom parser was built since SPADE currently struggles with nested lists (as of 10-15-2026).
-    private static int[][] ParseGrid(string input) {
+    internal static int[][] ParseGrid(string input, bool allowBulbs, Func<string, Exception> fail) {
+        string what = allowBulbs ? "certificate" : "instance";
+        string allowed = allowBulbs ? "_, *, #, 0-4" : "_, #, 0-4";
         if (string.IsNullOrWhiteSpace(input)) {
-            throw new ProblemParseException("Akari", input, "instance is empty");
+            throw fail($"{what} is empty");
         }
 
         // The input is scanned as written (whitespace skipped between tokens) so that
@@ -120,7 +126,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
             SkipWhitespace();
             if (pos >= input.Length || input[pos] != c) {
                 string found = pos >= input.Length ? "end of input" : $"'{input[pos]}'";
-                throw new ProblemParseException("Akari", input, $"expected '{c}' but found {found} at {Location()}");
+                throw fail($"expected '{c}' but found {found} at {Location()}");
             }
             pos++;
         }
@@ -139,14 +145,15 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
             while (true) {
                 SkipWhitespace();
                 if (pos >= input.Length) {
-                    throw new ProblemParseException("Akari", input, $"unexpected end of input inside row {rows.Count + 1} at {Location()}");
+                    throw fail($"unexpected end of input inside row {rows.Count + 1} at {Location()}");
                 }
                 char c = input[pos];
                 int cell = c switch {
                     '_' => EMPTY_CELL,
                     '#' => WALL,
                     >= '0' and <= '4' => c - '0',
-                    _ => throw new ProblemParseException("Akari", input, $"invalid cell character '{c}' at row {rows.Count + 1}, cell {row.Count + 1} ({Location()}); allowed: _, #, 0-4")
+                    '*' when allowBulbs => BULB,
+                    _ => throw fail($"invalid cell character '{c}' at row {rows.Count + 1}, cell {row.Count + 1} ({Location()}); allowed: {allowed}")
                 };
                 row.Add(cell);
                 pos++;
@@ -155,7 +162,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
             }
             Expect(')');
             if (rows.Count > 0 && row.Count != rows[0].Length) {
-                throw new ProblemParseException("Akari", input, $"row {rows.Count + 1} has {row.Count} cells but row 1 has {rows[0].Length}");
+                throw fail($"row {rows.Count + 1} has {row.Count} cells but row 1 has {rows[0].Length}");
             }
             rows.Add(row.ToArray());
             if (TryConsume(',')) { continue; }
@@ -164,7 +171,7 @@ class AKARI : IProblem<AkariSolver, AkariVerifier, AkariVisualization> {
         Expect(')');
         SkipWhitespace();
         if (pos != input.Length) {
-            throw new ProblemParseException("Akari", input, $"unexpected trailing characters at {Location()}");
+            throw fail($"unexpected trailing characters at {Location()}");
         }
         return rows.ToArray();
     }

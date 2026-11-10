@@ -1,12 +1,14 @@
 using Xunit;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_AKARI;
+using API.Problems.NPComplete.NPC_AKARI.Solvers;
+using API.Problems.NPComplete.NPC_AKARI.Verifiers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// Tests for the AKARI problem class definition only (AKARI_Class.cs): metadata,
-// cell encodings, and the instance parser. Solver/verifier/visualization are not covered here.
+// Tests for AKARI: the problem class (metadata, cell encodings, instance parser), the verifier, and the three
+// solvers (brute force, backtracking, constraint propagation). The visualization is not covered here.
 public class AKARI_Tests {
 
     private const int E = AKARI.EMPTY_CELL;
@@ -256,6 +258,381 @@ public class AKARI_Tests {
     public void AKARI_Parser_AcceptsTrailingWhitespace() {
         var problem = new AKARI("((_))  \n\t ");
         Assert.Equal(new[] { new[] { E } }, problem.grid);
+    }
+
+    #endregion
+
+    #region Certificate Format
+
+    [Fact]
+    public void AKARI_CertificateFormat_DescribesBulbsAndQuotesExample() {
+        var problem = new AKARI();
+        Assert.Contains("'*'", problem.certificateFormat);
+        Assert.Contains("\"{}\"", problem.certificateFormat);
+        Assert.Contains(AkariVerifier.CertificateExample, problem.certificateFormat);
+    }
+
+    [Fact]
+    public void AKARI_DefaultSolver_IsConstraintPropagation() {
+        Assert.IsType<AkariConstraintPropagation>(new AKARI().defaultSolver);
+    }
+
+    #endregion
+
+    #region Verifier - Accepts
+
+    [Theory]
+    [InlineData("((_))", "((*))")]                                         // smallest instance: one white cell
+    [InlineData("((#))", "((#))")]                                         // no white cells, no clues: no bulbs needed
+    [InlineData("((0))", "((0))")]                                         // a 0 clue with no neighbours
+    [InlineData("((_,_))", "((*,_))")]                                     // one bulb lights its whole row segment
+    [InlineData("((_,_))", "((_,*))")]                                     // ...from either end
+    [InlineData("((_,2,_))", "((*,2,*))")]                                 // clue satisfied by bulbs on both sides
+    [InlineData("((_,_),(_,_))", "((*,_),(_,*))")]                         // diagonal: lights both rows and columns
+    [InlineData("((_,_,_),(_,4,_),(_,_,_))", "((_,*,_),(*,4,*),(_,*,_))")] // a 4 clue; the corners are lit across
+    [InlineData("((1,_,1))", "((1,*,1))")]                                 // one bulb serving two clues
+    public void AKARI_Verifier_Accepts_Valid_Certificate(string instance, string certificate) {
+        Assert.True(new AkariVerifier().verify(new AKARI(instance), certificate));
+    }
+
+    [Fact]
+    public void AKARI_Verifier_Accepts_CertificateExample_On_DefaultInstance() {
+        Assert.True(new AkariVerifier().verify(new AKARI(), AkariVerifier.CertificateExample));
+    }
+
+    [Fact]
+    public void AKARI_Verifier_Accepts_Certificate_With_Whitespace_And_Newlines() {
+        Assert.True(new AkariVerifier().verify(new AKARI("((_,2,_))"), "  (\n  ( * , 2 , * )\n)  "));
+    }
+
+    #endregion
+
+    #region Verifier - Rejects
+
+    [Theory]
+    [InlineData("((_,_))", "((_,_))")]             // no bulbs: cells stay dark
+    [InlineData("((_,#,_))", "((*,#,_))")]         // the wall blocks the light, so the right cell is dark
+    [InlineData("((_,_))", "((*,*))")]             // two bulbs in one row segment see each other
+    [InlineData("((_),(_))", "((*),(*))")]         // two bulbs in one column segment see each other
+    [InlineData("((_,2,_))", "((*,2,_))")]         // clue 2 has only one bulb (and a dark cell)
+    [InlineData("((_,1,_))", "((*,1,*))")]         // clue 1 has two bulbs
+    [InlineData("((0,_))", "((0,*))")]             // a 0 clue with an adjacent bulb
+    [InlineData("((_,_),(_,_))", "((*,_),(_,_))")] // one bulb leaves the opposite corner dark
+    public void AKARI_Verifier_Rejects_Rule_Violations(string instance, string certificate) {
+        Assert.False(new AkariVerifier().verify(new AKARI(instance), certificate));
+    }
+
+    [Theory]
+    [InlineData("((_,#))", "((*,_))")]             // a wall replaced by a white cell
+    [InlineData("((_,#))", "((*,*))")]             // a bulb on a wall
+    [InlineData("((_,1),(_,_))", "((*,2),(_,*))")] // a clue's number changed
+    [InlineData("((_,1),(_,_))", "((*,#),(_,*))")] // a clue replaced by a plain wall
+    [InlineData("((_,_))", "((*))")]               // fewer columns than the instance
+    [InlineData("((_,_))", "((*,_),(_,_))")]       // more rows than the instance
+    [InlineData("((_))", "((*,_))")]               // more columns than the instance
+    public void AKARI_Verifier_Rejects_Certificate_Not_Matching_Instance(string instance, string certificate) {
+        Assert.False(new AkariVerifier().verify(new AKARI(instance), certificate));
+    }
+
+    [Fact]
+    public void AKARI_Verifier_Rejects_NoSolution_Answer() {
+        // "{}" is the solvers' "no solution" answer: well-formed, so false rather than a parse error.
+        Assert.False(new AkariVerifier().verify(new AKARI(), "{}"));
+        Assert.False(new AkariVerifier().verify(new AKARI("((1))"), " {} "));
+    }
+
+    [Fact]
+    public void AKARI_Verifier_Uses_The_Instance() {
+        // The same certificate is right for one instance and wrong for another.
+        Assert.True(new AkariVerifier().verify(new AKARI("((_,2,_))"), "((*,2,*))"));
+        Assert.False(new AkariVerifier().verify(new AKARI("((_,1,_))"), "((*,2,*))"));
+    }
+
+    [Fact]
+    public void AKARI_Verifier_StringInterface_Accepts_And_Rejects() {
+        // Through the string-based IVerifier entry point the API uses.
+        IVerifier verifier = new AkariVerifier();
+        Assert.True(verifier.verify("((_,2,_))", "((*,2,*))"));
+        Assert.False(verifier.verify("((_,2,_))", "((*,2,_))"));
+    }
+
+    #endregion
+
+    #region Verifier - Malformed
+
+    [Theory]
+    [InlineData("")]                  // empty
+    [InlineData("   ")]               // whitespace only
+    [InlineData("((x))")]             // unknown cell symbol
+    [InlineData("((5))")]             // clue out of range
+    [InlineData("((_,*)")]            // unclosed outer list
+    [InlineData("(_,*)")]             // missing outer list
+    [InlineData("((_,*),(_))")]       // ragged rows
+    [InlineData("((_ *))")]           // missing comma
+    [InlineData("{a,b}")]             // wrong shape
+    [InlineData("{{{")]
+    [InlineData("not a certificate")]
+    [InlineData("((*))extra")]        // trailing characters
+    public void AKARI_Verifier_Throws_On_Malformed_Certificate(string certificate) {
+        Assert.Throws<CertificateParseException>(() => new AkariVerifier().verify(new AKARI(), certificate));
+    }
+
+    [Fact]
+    public void AKARI_Verifier_Malformed_Certificate_Reports_Location_And_Allowed_Symbols() {
+        var ex = Assert.Throws<CertificateParseException>(() => new AkariVerifier().verify(new AKARI("((_,_))"), "((*,x))"));
+        Assert.Contains("invalid cell character 'x' at row 1, cell 2", ex.Message);
+        Assert.Contains("allowed: _, *, #, 0-4", ex.Message);
+    }
+
+    [Fact]
+    public void AKARI_Verifier_Empty_Certificate_Says_Certificate_Is_Empty() {
+        var ex = Assert.Throws<CertificateParseException>(() => new AkariVerifier().verify(new AKARI(), ""));
+        Assert.Contains("certificate is empty", ex.Message);
+    }
+
+    [Fact]
+    public void AKARI_Instance_Parser_Still_Rejects_Bulb_Symbol() {
+        // '*' is a certificate symbol only; an instance cannot contain bulbs.
+        var ex = Assert.Throws<ProblemParseException>(() => new AKARI("((*))"));
+        Assert.Contains("allowed: _, #, 0-4", ex.Message);
+    }
+
+    #endregion
+
+    #region Solvers
+
+    // Every test below runs against each solver named here.
+    public static TheoryData<string> AllSolvers => new() { nameof(AkariBruteForce), nameof(AkariBacktracking), nameof(AkariConstraintPropagation) };
+
+    // The two that can finish the default instance (35 white cells: 2^35 placements for brute force) and larger grids.
+    public static TheoryData<string> SearchSolvers => new() { nameof(AkariBacktracking), nameof(AkariConstraintPropagation) };
+
+    private static ISolver<AKARI> SolverNamed(string name) => name switch {
+        nameof(AkariBruteForce) => new AkariBruteForce(),
+        nameof(AkariBacktracking) => new AkariBacktracking(),
+        nameof(AkariConstraintPropagation) => new AkariConstraintPropagation(),
+        _ => throw new ArgumentException(name),
+    };
+
+    private static string Solve(string solver, string instance) => SolverNamed(solver).solve(new AKARI(instance));
+
+    // Small solvable instances, each with its unique solution (worked out by hand).
+    public static TheoryData<string, string, string> UniqueSolutions {
+        get {
+            var cases = new (string Instance, string Solution)[] {
+                ("((_))", "((*))"),                                         // smallest instance
+                ("((#))", "((#))"),                                         // no white cells
+                ("((0))", "((0))"),                                         // a lone 0 clue
+                ("((_,2,_))", "((*,2,*))"),
+                ("((_,#,_),(#,_,#),(_,#,_))", "((*,#,*),(#,*,#),(*,#,*))"), // isolated cells each need their own bulb
+                ("((0,_,_))", "((0,_,*))"),                                 // only the LAST cell can hold the bulb
+                ("((_,_,0))", "((*,_,0))"),                                 // only the FIRST cell can hold the bulb
+                ("((_,_,_),(_,4,_),(_,_,_))", "((_,*,_),(*,4,*),(_,*,_))"),
+                ("((1,_,1))", "((1,*,1))"),                                 // one bulb serving two clues
+                ("((2,_),(_,_))", "((2,*),(*,_))"),
+            };
+            var data = new TheoryData<string, string, string>();
+            foreach (string solver in AllSolvers)
+                foreach (var (instance, solution) in cases)
+                    data.Add(solver, instance, solution);
+            return data;
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(UniqueSolutions))]
+    public void AKARI_Solver_Finds_Unique_Solution(string solver, string instance, string expected) {
+        string solution = Solve(solver, instance);
+        Assert.Equal(expected, solution);
+        Assert.True(new AkariVerifier().verify(new AKARI(instance), solution));
+    }
+
+    // Small instances with several solutions: any answer is fine as long as the verifier accepts it.
+    public static TheoryData<string, string> SeveralSolutions {
+        get {
+            var instances = new[] {
+                "((_,_))",
+                "((_,_),(_,_))",
+                "((_,_,_),(_,0,_),(_,_,_))",
+                "((_,_,#,_),(_,1,_,_),(#,_,_,2),(_,_,_,_))",
+            };
+            var data = new TheoryData<string, string>();
+            foreach (string solver in AllSolvers)
+                foreach (string instance in instances)
+                    data.Add(solver, instance);
+            return data;
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(SeveralSolutions))]
+    public void AKARI_Solver_ProducesVerifiableCertificate(string solver, string instance) {
+        string solution = Solve(solver, instance);
+        Assert.True(new AkariVerifier().verify(new AKARI(instance), solution), $"{solver} returned {solution} for {instance}");
+    }
+
+    // Instances with no solution, each for a different reason.
+    public static TheoryData<string, string> Unsolvable {
+        get {
+            var instances = new[] {
+                "((1))",             // a clue with no neighbours to hold its bulb
+                "((_,3,_))",         // a 3 clue with only two neighbours
+                "((_,1,_))",         // each side needs its own bulb, but the clue allows only one
+                "((2,_,2),(_,_,_))", // the clues force bulbs at both ends of row 2, which see each other
+                "((0,_,0),(_,0,_))", // every white cell is next to a 0 clue, so none can be lit
+            };
+            var data = new TheoryData<string, string>();
+            foreach (string solver in AllSolvers)
+                foreach (string instance in instances)
+                    data.Add(solver, instance);
+            return data;
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(Unsolvable))]
+    public void AKARI_Solver_Returns_NoSolution_When_Unsolvable(string solver, string instance) {
+        Assert.Equal(AkariVerifier.NoSolution, Solve(solver, instance));
+    }
+
+    [Theory]
+    [MemberData(nameof(SearchSolvers))]
+    public void AKARI_Solver_Solves_DefaultInstance(string solver) {
+        var problem = new AKARI();
+        string solution = SolverNamed(solver).solve(problem);
+        Assert.True(problem.defaultVerifier.verify(problem, solution));
+        // Both search orders land on the published example (CertificateExample_Tests checks it verifies too).
+        Assert.Equal(AkariVerifier.CertificateExample, solution);
+    }
+
+    [Fact]
+    public void AKARI_DefaultSolver_Output_Passes_DefaultVerifier() {
+        var problem = new AKARI();
+        string solution = problem.defaultSolver.solve(problem);
+        Assert.True(problem.defaultVerifier.verify(problem, solution));
+    }
+
+    [Theory]
+    [MemberData(nameof(SearchSolvers))]
+    public void AKARI_Solver_Solves_Open_8x8_Grid(string solver) {
+        // No walls: needs 8 bulbs, one per row and column (8 non-attacking rooks). 2^64 placements for brute force.
+        string row = "(" + string.Join(",", Enumerable.Repeat("_", 8)) + ")";
+        string instance = "(" + string.Join(",", Enumerable.Repeat(row, 8)) + ")";
+        string solution = Solve(solver, instance);
+        Assert.True(new AkariVerifier().verify(new AKARI(instance), solution));
+        Assert.Equal(8, solution.Count(c => c == '*'));
+    }
+
+    // Builds a puzzle that is solvable by construction: random walls, then a bulb on every cell still dark in a random
+    // order (so no bulb lights another and every cell ends up lit), then each wall labelled with its count of adjacent
+    // bulbs with probability clueRate. A fixed seed keeps the instance the same on every run.
+    private static string GeneratePuzzle(int rows, int cols, int seed, double wallRate = 0.2, double clueRate = 0.6) {
+        var rng = new Random(seed);
+        var wall = new bool[rows, cols];
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                wall[r, c] = rng.NextDouble() < wallRate;
+
+        var bulb = new bool[rows, cols];
+        var lit = new bool[rows, cols];
+        var order = Enumerable.Range(0, rows * cols).OrderBy(_ => rng.Next()).ToList();
+        foreach (int cell in order) {
+            int r = cell / cols, c = cell % cols;
+            if (wall[r, c] || lit[r, c]) continue;
+            bulb[r, c] = true;
+            lit[r, c] = true;
+            foreach (var (dr, dc) in new[] { (-1, 0), (1, 0), (0, -1), (0, 1) }) {
+                for (int nr = r + dr, nc = c + dc; nr >= 0 && nr < rows && nc >= 0 && nc < cols && !wall[nr, nc]; nr += dr, nc += dc)
+                    lit[nr, nc] = true;
+            }
+        }
+
+        var lines = new List<string>();
+        for (int r = 0; r < rows; r++) {
+            var cells = new List<string>();
+            for (int c = 0; c < cols; c++) {
+                if (!wall[r, c]) { cells.Add("_"); continue; }
+                int adjacent = new[] { (r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1) }
+                    .Count(p => p.Item1 >= 0 && p.Item1 < rows && p.Item2 >= 0 && p.Item2 < cols && bulb[p.Item1, p.Item2]);
+                cells.Add(rng.NextDouble() < clueRate ? adjacent.ToString() : "#");
+            }
+            lines.Add("(" + string.Join(",", cells) + ")");
+        }
+        return "(" + string.Join(",", lines) + ")";
+    }
+
+    [Theory]
+    [InlineData(nameof(AkariBacktracking), 10, 1)]
+    [InlineData(nameof(AkariBacktracking), 10, 2)]
+    [InlineData(nameof(AkariBacktracking), 10, 3)]
+    [InlineData(nameof(AkariConstraintPropagation), 10, 1)]
+    [InlineData(nameof(AkariConstraintPropagation), 10, 2)]
+    [InlineData(nameof(AkariConstraintPropagation), 10, 3)]
+    [InlineData(nameof(AkariConstraintPropagation), 20, 4)]
+    [InlineData(nameof(AkariConstraintPropagation), 20, 5)]
+    [InlineData(nameof(AkariConstraintPropagation), 30, 6)]
+    public void AKARI_Solver_Solves_Generated_Puzzle(string solver, int size, int seed) {
+        string instance = GeneratePuzzle(size, size, seed);
+        string solution = Solve(solver, instance);
+        Assert.True(new AkariVerifier().verify(new AKARI(instance), solution), $"{solver} returned {solution} for {instance}");
+    }
+
+    [Theory]
+    [MemberData(nameof(SearchSolvers))]
+    public void AKARI_Solver_Returns_NoSolution_On_Larger_Unsolvable_Grid(string solver) {
+        // A 6x6 open grid around a 2x2 block of 2 clues. The top two clues each have just two white neighbours, so
+        // both bulbs above the block are forced, and they share row 2. The search has to prove there is no way out.
+        const string instance = "((_,_,_,_,_,_),(_,_,_,_,_,_),(_,_,2,2,_,_),(_,_,2,2,_,_),(_,_,_,_,_,_),(_,_,_,_,_,_))";
+        Assert.Equal(AkariVerifier.NoSolution, Solve(solver, instance));
+    }
+
+    [Fact]
+    public void AKARI_Solvers_Agree_With_BruteForce() {
+        // Brute force is the reference: on every small instance the search solvers find a solution exactly when it does.
+        var instances = new[] {
+            "((_,_,_),(_,1,_),(_,_,_))", "((_,_,_),(_,2,_),(_,_,_))", "((_,_,_),(_,3,_),(_,_,_))",
+            "((_,#,_),(1,_,1),(_,#,_))", "((2,_,_),(_,_,_),(_,_,2))", "((_,1,_),(1,_,1),(_,1,_))",
+            "((_,_,_,_),(_,3,_,_),(_,_,1,_),(_,_,_,_))", "((0,_,_),(_,_,_),(_,_,0))", "((_,4,_),(_,_,_),(_,_,_))",
+            "((_,_,#,_),(_,1,_,_),(#,_,_,2),(_,_,_,_))", "((_,2,_,_),(_,_,_,1),(3,_,_,_),(_,_,0,_))",
+        };
+        foreach (string instance in instances) {
+            bool solvable = Solve(nameof(AkariBruteForce), instance) != AkariVerifier.NoSolution;
+            foreach (string solver in SearchSolvers) {
+                string solution = Solve(solver, instance);
+                Assert.True(solvable == (solution != AkariVerifier.NoSolution), $"{solver} disagrees with brute force on {instance}");
+                if (solvable) Assert.True(new AkariVerifier().verify(new AKARI(instance), solution));
+            }
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(AllSolvers))]
+    public void AKARI_Solver_Stops_When_Timer_Has_Expired(string solver) {
+        // An expired timer makes the solver give up: it has no answer, so it says it was stopped.
+        var s = SolverNamed(solver);
+        s.timerHasExpired = true;
+        Assert.Equal(SolveRun.TimedOutAnswer, s.solve(new AKARI()));
+    }
+
+    [Fact]
+    public void AKARI_BruteForce_Stops_At_Time_Limit_On_DefaultInstance() {
+        // 2^35 candidates: far too many to finish, so the run must come back stopped by the limit instead of hanging.
+        ISolver solver = new AkariBruteForce();
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        SolveRun run = solver.Run(new AKARI().instance, withSteps: false, TimeSpan.FromMilliseconds(200));
+        Assert.True(run.TimedOut);
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(5), $"took {watch.Elapsed}");
+    }
+
+    [Theory]
+    [MemberData(nameof(AllSolvers))]
+    public void AKARI_Solver_Metadata_IsDeclared(string solver) {
+        ISolver s = SolverNamed(solver);
+        Assert.StartsWith("Akari ", s.solverName);
+        Assert.NotEqual(SolverType.Unclassified, s.solverType);
+        Assert.Equal(SolverComplexityBucket.Exponential, s.complexityBucket);
+        Assert.NotNull(s.timeComplexity);
+        Assert.Contains("w", s.timeComplexity!.VariableNames);
     }
 
     #endregion
