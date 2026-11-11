@@ -11,7 +11,7 @@ namespace redux_tests;
 
 // The app with every compute job in worker processes (#991) and the limits the in-process AppFactory has (the default
 // 10-second time limit, the default 512 MB memory limit, and a quantum service that refuses connections, as the
-// in-process host's does), so the two hosts answer alike; a pool of four, so the sweep below can run four jobs at once.
+// in-process host's does), so the two hosts answer alike; a pool of four, so the sample below can run four jobs at once.
 // (The silent quantum service of SolveWorkersAppFactory would leave the visualizations that call it hanging in a worker
 // until the time limit, where the in-process host's refused connection answers at once.)
 public class ComputeWorkersAppFactory : SolveWorkersAppFactory {
@@ -123,8 +123,12 @@ internal static class ComputeWorkerChecks {
 }
 
 // Every compute endpoint answers from a worker process byte for byte as it does in the server (#991): the same
-// status, content type and body, over the default instance of every reduction, visualization and verifier.
-[Collection(TimingCollection.Name)]
+// status, content type and body. The requests are a fixed sample, chosen to be deterministic (no randomized solver), that
+// covers every kind of job (verify, reduce, mapSolution, mapSolutionBack, gadgets, visualize in both formats,
+// visualizeReduction), a 400 parse-error body of each, and a spread of problem families: formulas (SAT, 3SAT, weighted
+// Max-SAT), graphs (Clique, Vertex Cover), numbers and sets (Subset Sum, Partition, Exact Cover, Set Cover), automata
+// (DFA, NFA) and table pictures (NFA, SSSP). Nothing here is timed, so the class runs in parallel with the rest of the
+// suite, not in the timing collection.
 public class ComputeWorkers_SameAnswers_Tests : IClassFixture<ComputeWorkersAppFactory>, IClassFixture<AppFactory> {
     private readonly ComputeWorkersAppFactory _factory;
     private readonly HttpClient _isolated;
@@ -138,136 +142,159 @@ public class ComputeWorkers_SameAnswers_Tests : IClassFixture<ComputeWorkersAppF
         _inProcess.Timeout = TimeSpan.FromMinutes(2);
     }
 
-    // Each request in the server twice (an answer that differs between two runs there, a randomized solver's, is not
-    // compared) and once in a worker, four at a time. A 500 is compared by status only: its body is the exception
-    // page, which carries a stack trace. So is a 503 solver_unavailable, whose detail names the quantum service's URL,
-    // which differs between the two test hosts (SolveWorkers_NoHeapLimit_Tests checks that body from a worker).
-    // Returns how many were compared.
-    private async Task<int> AssertSameAnswers(IReadOnlyList<ComputeRequest> requests, int atLeast) {
+    private const string Malformed = "not an instance ((";
+    private const string MalformedCertificate = "not a certificate ((";
+
+    // Reductions across the families: formula to graph, graph to graph, set to number, number to number, graph to set,
+    // formula to formula. The reversible ones also map an answer back.
+    private static readonly string[] SampleReductions = {
+        "SipserReduceToCliqueStandard", "sipserReductionVertexCover", "KarpExactCoverToSubsetSum",
+        "SubsetSumToPartitionReduction", "KarpVertexCoverToSetCover", "KarpSATToSAT3",
+    };
+
+    // Visualizations across the families, among them the automata and the table pictures.
+    private static readonly string[] SampleVisualizations = {
+        "Sat3DefaultVisualization", "WeightedMaxSatVisualization", "CliqueDefaultVisualization",
+        "VertexCoverDefaultVisualization", "PartitionDefaultVisualization", "SetCoverDefaultVisualization",
+        "DFAVisualization", "NFATableVisualization", "SSSPTableVisualization",
+    };
+
+    // Problems whose default verifier is checked.
+    private static readonly string[] SampleProblems = {
+        "sat3", "clique", "vertexcover", "subsetsum", "setcover", "dfa", "nfa", "sssp",
+    };
+
+    // Each request once in the server and once in a worker, four at a time. A 500 is compared by status only: its body
+    // is the exception page, which carries a stack trace.
+    private async Task AssertSameAnswers(IReadOnlyList<ComputeRequest> requests) {
         await SolveWorkerChecks.WaitUntilWarm(_factory.Pool);
         var mismatches = new System.Collections.Concurrent.ConcurrentBag<string>();
-        int compared = 0;
         using var gate = new SemaphoreSlim(_factory.Pool.Size);
         await Task.WhenAll(requests.Select(async request => {
             await gate.WaitAsync(TestContext.Current.CancellationToken);
             try {
-                var first = await ComputeWorkerChecks.Post(_inProcess, request);
-                var second = await ComputeWorkerChecks.Post(_inProcess, request);
-                if (first.Status != second.Status || first.Body != second.Body)
-                    return; // not deterministic in the server itself
+                var server = await ComputeWorkerChecks.Post(_inProcess, request);
                 var worker = await ComputeWorkerChecks.Post(_isolated, request);
-                Interlocked.Increment(ref compared);
-                if (worker.Status != first.Status)
-                    mismatches.Add($"{request}: status {worker.Status} in a worker, {first.Status} in the server; worker body {Head(worker.Body)}");
-                else if (first.Status is not (HttpStatusCode.InternalServerError or HttpStatusCode.ServiceUnavailable)
-                         && (worker.ContentType != first.ContentType || worker.Body != first.Body))
-                    mismatches.Add($"{request}: {worker.ContentType} {Head(worker.Body)} in a worker, {first.ContentType} {Head(first.Body)} in the server");
+                if (worker.Status != server.Status)
+                    mismatches.Add($"{request}: status {worker.Status} in a worker, {server.Status} in the server; worker body {Head(worker.Body)}");
+                else if (server.Status != HttpStatusCode.InternalServerError
+                         && (worker.ContentType != server.ContentType || worker.Body != server.Body))
+                    mismatches.Add($"{request}: {worker.ContentType} {Head(worker.Body)} in a worker, {server.ContentType} {Head(server.Body)} in the server");
             } finally {
                 gate.Release();
             }
         }));
         Assert.True(mismatches.IsEmpty, string.Join(Environment.NewLine, mismatches.OrderBy(m => m, StringComparer.Ordinal)));
-        Assert.True(compared >= atLeast, $"only {compared} requests compared");
-        return compared;
     }
 
     private static string Head(string body) => body.Length > 300 ? body[..300] + "..." : body;
 
+    // At least one answer of each status the sample is meant to reach, so a sample that silently stops reaching the work
+    // (every request a 400, say) fails.
+    private async Task AssertReaches(ComputeRequest request, HttpStatusCode status) {
+        var response = await ComputeWorkerChecks.Post(_isolated, request);
+        Assert.True(response.Status == status, $"{request}: {response.Status} {Head(response.Body)}");
+    }
+
     [Fact]
     public async Task Reductions_AnswerExactlyAsInTheServer() {
         var requests = new List<ComputeRequest>();
-        foreach (var (name, type) in ProblemProvider.Reductions.OrderBy(r => r.Key, StringComparer.Ordinal)) {
-            if (type.Assembly != typeof(ProblemProvider).Assembly)
-                continue;
-            if (ComputeWorkerChecks.ReductionInputs(type) is not { } inputs)
-                continue;
-            requests.Add(ComputeWorkerChecks.Reduce(type.Name, inputs.Instance));
-            requests.Add(ComputeWorkerChecks.Reduce(type.Name, inputs.Instance, includePictures: true));
-            requests.Add(ComputeWorkerChecks.Gadgets(type.Name, inputs.Instance));
-            // Malformed input: the 400 parse-error bodies.
-            requests.Add(ComputeWorkerChecks.Reduce(type.Name, "not an instance (("));
-            requests.Add(ComputeWorkerChecks.Gadgets(type.Name, "not an instance (("));
-            if (inputs.SourceAnswer is { } source) {
-                requests.Add(ComputeWorkerChecks.MapSolution(type.Name, source, inputs.Instance));
-                requests.Add(ComputeWorkerChecks.VisualizeReduction(type.Name, source, inputs.Instance));
-                requests.Add(ComputeWorkerChecks.VisualizeReduction(type.Name, source, inputs.Instance, includePictures: true));
-            }
-            requests.Add(ComputeWorkerChecks.MapSolution(type.Name, "not a certificate ((", inputs.Instance));
-            if (inputs.TargetAnswer is { } target) {
-                requests.Add(ComputeWorkerChecks.MapSolutionBack(type.Name, target, inputs.Instance, steps: false));
-                requests.Add(ComputeWorkerChecks.MapSolutionBack(type.Name, target, inputs.Instance, steps: true));
+        int mappedBack = 0;
+        foreach (string name in SampleReductions) {
+            Type type = ProblemProvider.Reductions[name.ToLower()];
+            var inputs = ComputeWorkerChecks.ReductionInputs(type);
+            Assert.True(inputs is { SourceAnswer: not null }, $"{name} has no default instance and answer");
+            var (instance, source, target) = inputs!.Value;
+            requests.Add(ComputeWorkerChecks.Reduce(name, instance));
+            requests.Add(ComputeWorkerChecks.Reduce(name, instance, includePictures: true));
+            requests.Add(ComputeWorkerChecks.Gadgets(name, instance));
+            requests.Add(ComputeWorkerChecks.MapSolution(name, source!, instance));
+            requests.Add(ComputeWorkerChecks.VisualizeReduction(name, source!, instance));
+            requests.Add(ComputeWorkerChecks.VisualizeReduction(name, source!, instance, includePictures: true));
+            if (target != null && ((IReduction)Activator.CreateInstance(type)!).hasBackwardMap()) {
+                requests.Add(ComputeWorkerChecks.MapSolutionBack(name, target, instance, steps: false));
+                requests.Add(ComputeWorkerChecks.MapSolutionBack(name, target, instance, steps: true));
+                mappedBack++;
             }
         }
+        Assert.True(mappedBack >= 2, $"only {mappedBack} reductions mapped an answer back");
+        // Malformed input: the 400 parse-error bodies of each kind.
+        const string sipser = "SipserReduceToCliqueStandard";
+        requests.Add(ComputeWorkerChecks.Reduce(sipser, Malformed));
+        requests.Add(ComputeWorkerChecks.Gadgets(sipser, Malformed));
+        requests.Add(ComputeWorkerChecks.MapSolution(sipser, "(x1:True)", Malformed));
+        requests.Add(ComputeWorkerChecks.MapSolution(sipser, MalformedCertificate, "(x1 | x2 | x3)"));
+        requests.Add(ComputeWorkerChecks.MapSolutionBack(sipser, "{x1_0}", Malformed, steps: false));
+        requests.Add(ComputeWorkerChecks.MapSolutionBack(sipser, MalformedCertificate, "(x1 | x2 | x3)", steps: true));
+        requests.Add(ComputeWorkerChecks.VisualizeReduction(sipser, "(x1:True)", Malformed));
+        requests.Add(ComputeWorkerChecks.Reduce("KarpExactCoverToSubsetSum", Malformed));
+        // A reduction with no backward map: the no_backward_map 400.
+        requests.Add(ComputeWorkerChecks.MapSolutionBack("KarpExactCoverToSubsetSum", "{1}", "({1,2},{{1},{2}})", steps: false));
         // A chain of two reductions.
         requests.Add(ComputeWorkerChecks.VisualizeReduction("SipserReduceToCliqueStandard-sipserReductionVertexCover", "(x1:True,x2:True)",
             "(x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | x1)"));
-        await AssertSameAnswers(requests, atLeast: 100);
+        await AssertSameAnswers(requests);
+        await AssertReaches(requests[0], HttpStatusCode.OK);
+        await AssertReaches(ComputeWorkerChecks.Reduce(sipser, Malformed), HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Visualizations_AnswerExactlyAsInTheServer() {
         var requests = new List<ComputeRequest>();
-        foreach (var (name, type) in ProblemProvider.Visualizers.OrderBy(v => v.Key, StringComparer.Ordinal)) {
-            // The test assembly's own fixtures are in the test host's registry, not in a worker's (API.dll alone).
-            if (type.Assembly != typeof(ProblemProvider).Assembly)
-                continue;
-            IVisualization vis;
-            try { vis = (IVisualization)Activator.CreateInstance(type)!; } catch { continue; }
-            if (vis.solver.GetType().Name.Contains("Quantum", StringComparison.OrdinalIgnoreCase))
-                continue;
+        foreach (string name in SampleVisualizations) {
+            Type type = ProblemProvider.Visualizers[name.ToLower()];
+            var vis = (IVisualization)Activator.CreateInstance(type)!;
             string? instance = ComputeWorkerChecks.DefaultInstanceOf(
                 ProblemProvider.ProblemTypeOf(type, typeof(IVisualization<>)) ?? ProblemProvider.ProblemTypeOf(vis.solver.GetType(), typeof(ISolver<>)));
-            if (string.IsNullOrWhiteSpace(instance))
-                continue;
-            requests.Add(ComputeWorkerChecks.Visualize(type.Name, instance));
-            requests.Add(ComputeWorkerChecks.Visualize(type.Name, instance, "frames"));
-            requests.Add(ComputeWorkerChecks.Visualize(type.Name, "not an instance (("));
+            Assert.False(string.IsNullOrWhiteSpace(instance), $"{name} has no default instance");
+            requests.Add(ComputeWorkerChecks.Visualize(name, instance!));
+            requests.Add(ComputeWorkerChecks.Visualize(name, instance!, "frames"));
         }
-        await AssertSameAnswers(requests, atLeast: 100);
+        // Malformed input, in both formats: the 400 parse-error bodies.
+        requests.Add(ComputeWorkerChecks.Visualize("Sat3DefaultVisualization", Malformed));
+        requests.Add(ComputeWorkerChecks.Visualize("CliqueDefaultVisualization", Malformed, "frames"));
+        requests.Add(ComputeWorkerChecks.Visualize("NFATableVisualization", Malformed));
+        await AssertSameAnswers(requests);
+        await AssertReaches(requests[0], HttpStatusCode.OK);
+        await AssertReaches(ComputeWorkerChecks.Visualize("Sat3DefaultVisualization", Malformed), HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Verifiers_AnswerExactlyAsInTheServer() {
         var requests = new List<ComputeRequest>();
-        foreach (var (name, type) in ProblemProvider.Problems.OrderBy(p => p.Key, StringComparer.Ordinal)) {
-            if (type.Assembly != typeof(ProblemProvider).Assembly)
-                continue;
-            IProblem problem;
-            IVerifier verifier;
-            try {
-                problem = (IProblem)Activator.CreateInstance(type)!;
-                verifier = problem.defaultVerifier;
-            } catch {
-                continue;
-            }
+        ComputeRequest? solved = null;
+        foreach (string key in SampleProblems) {
+            var problem = (IProblem)Activator.CreateInstance(ProblemProvider.Problems[key])!;
+            string verifier = problem.defaultVerifier.GetType().Name;
             string instance = problem.defaultInstance;
-            if (verifier.GetType().Assembly != typeof(ProblemProvider).Assembly || string.IsNullOrWhiteSpace(instance))
-                continue;
-            if (ComputeWorkerChecks.SolveQuietly(problem.defaultSolver, instance) is { } answer)
-                requests.Add(ComputeWorkerChecks.Verify(verifier.GetType().Name, instance, answer));
-            requests.Add(ComputeWorkerChecks.Verify(verifier.GetType().Name, instance, "{}"));
-            requests.Add(ComputeWorkerChecks.Verify(verifier.GetType().Name, instance, "not a certificate (("));
-            requests.Add(ComputeWorkerChecks.Verify(verifier.GetType().Name, "not an instance ((", "{}"));
+            string? answer = ComputeWorkerChecks.SolveQuietly(problem.defaultSolver, instance);
+            Assert.True(answer != null, $"{key}'s default solver gave no answer");
+            var request = ComputeWorkerChecks.Verify(verifier, instance, answer!);
+            solved ??= request;
+            requests.Add(request);
+            requests.Add(ComputeWorkerChecks.Verify(verifier, instance, "{}"));
+            requests.Add(ComputeWorkerChecks.Verify(verifier, instance, MalformedCertificate));
+            requests.Add(ComputeWorkerChecks.Verify(verifier, Malformed, "{}"));
         }
-        await AssertSameAnswers(requests, atLeast: 100);
+        await AssertSameAnswers(requests);
+        await AssertReaches(solved!, HttpStatusCode.OK);
+        await AssertReaches(ComputeWorkerChecks.Verify("SAT3Verifier", Malformed, "{}"), HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task ALargeVisualization_TravelsWhole() {
-        // The 30-clause formula of the time-limit tests, reduced to a 90-node CLIQUE graph and drawn with its steps:
-        // a reply of several hundred kilobytes, sent back on one line.
-        string sat3 = SlowInputs.Sat3;
+        // A 15-clause formula over 12 variables (the first half of the time-limit tests' formula), reduced to a 45-node
+        // CLIQUE graph and drawn: a reply of about a megabyte, sent back on one line.
+        string sat3 = string.Join(" & ", Enumerable.Range(0, 15).Select(i =>
+            $"(x{i % 12 + 1} | !x{(i * 7 + 3) % 12 + 1} | x{(i * 13 + 5) % 12 + 1})"));
         string answer = ComputeWorkerChecks.SolveQuietly((ISolver)Activator.CreateInstance(ProblemProvider.Solvers["sat3backtrackingsolver"])!, sat3)!;
         var requests = new[] {
             ComputeWorkerChecks.VisualizeReduction("SipserReduceToCliqueStandard", answer, sat3),
-            ComputeWorkerChecks.Visualize("Sat3DefaultVisualization", sat3),
-            ComputeWorkerChecks.Visualize("Sat3DefaultVisualization", sat3, "frames"),
-            ComputeWorkerChecks.Reduce("SipserReduceToCliqueStandard", sat3),
         };
-        await AssertSameAnswers(requests, atLeast: requests.Length);
+        await AssertSameAnswers(requests);
         var largest = await ComputeWorkerChecks.Post(_isolated, requests[0]);
         Assert.Equal(HttpStatusCode.OK, largest.Status);
-        Assert.True(largest.Body.Length > 100_000, $"only {largest.Body.Length} characters");
+        Assert.True(largest.Body.Length > 500_000, $"only {largest.Body.Length} characters");
     }
 }
 
