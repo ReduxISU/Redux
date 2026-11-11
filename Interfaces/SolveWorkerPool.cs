@@ -8,18 +8,22 @@ using Microsoft.Extensions.Options;
 namespace API.Interfaces;
 
 /// <summary>
-/// Runs each solve in a worker process of its own (#936), so the time limit really cancels it and a memory limit can
-/// stop it. On when <see cref="ComputeLimits.IsolateSolvesKey"/> is (the default); off, <see cref="Enabled"/> is false,
-/// no process is started, and the solve runs in the server as before.
+/// Runs each compute job in a worker process of its own, so the time limit really cancels it and a memory limit can
+/// stop it: solves since #936, and the work of verify, reduce, mapSolution, mapSolutionBack, gadgets, visualize and
+/// visualizeReduction since #991 (a <see cref="WorkerJob"/> names which). On when
+/// <see cref="ComputeLimits.IsolateSolvesKey"/> is (the default); off, <see cref="Enabled"/> is false, no process is
+/// started, and every job runs in the server as before.
 /// <para>
 /// The pool keeps <see cref="Size"/> workers started ahead of time, each already past .NET start-up and the registry
-/// load (<see cref="ComputeWorker"/>), so a solve does not pay for them. A worker serves one solve and then exits, and a
+/// load (<see cref="ComputeWorker"/>), so a job does not pay for them. A worker serves one job and then exits, and a
 /// new one is started in the background to take its place; a worker that dies while it waits is replaced too. When no
-/// warm worker is ready (at start-up, or in a burst), one is started for the request.
+/// warm worker is ready (at start-up, or in a burst), one is started for the request. Every kind of job shares the one
+/// pool, as they share the one cap on jobs running at once.
 /// </para>
 /// <para>
-/// The limits: the server waits for the reply up to the time limit plus <see cref="ComputeLimits.SolverBackstopGrace"/>
-/// (the solver's own stop at the limit answers first), then kills the worker. The worker's managed heap is capped at
+/// The limits: the server waits for the reply up to a deadline, then kills the worker: for a solve or a visualize, the
+/// time limit plus <see cref="ComputeLimits.SolverBackstopGrace"/> (the solver's own stop at the limit answers first);
+/// for the other jobs, which have no time checks of their own, the time limit itself. The worker's managed heap is capped at
 /// <see cref="ComputeLimits.SolveMemoryKey"/> (<c>DOTNET_GCHeapHardLimit</c>), and the server also kills a worker whose
 /// working set passes that limit plus <see cref="MemoryAllowanceMB"/>. A client that goes away kills its worker too.
 /// The request keeps its slot of <see cref="ComputeJobLimiter"/> while it waits, and a killed worker leaves nothing
@@ -41,7 +45,7 @@ public sealed class SolveWorkerPool : IDisposable {
     /// <summary>How long a worker may take to start before the server gives up on it.</summary>
     public static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(60);
 
-    /// <summary>The <c>error</c> code of a solve whose worker process died without answering.</summary>
+    /// <summary>The <c>error</c> code of a job whose worker process died without answering.</summary>
     public const string WorkerFailedError = "worker_failed";
 
     // For tests only: false leaves out DOTNET_GCHeapHardLimit, so only the server's watch on the working set enforces
@@ -62,6 +66,7 @@ public sealed class SolveWorkerPool : IDisposable {
     private bool _disposed;
     private int _lastJobPid;
     private volatile bool _refillPaused;
+    private volatile string? _testFault;
 
     /// <summary>Reads the settings; no process starts until <see cref="Start"/>.</summary>
     public SolveWorkerPool(IConfiguration configuration, ComputeJobLimiter limiter, IHostEnvironment environment,
@@ -113,6 +118,16 @@ public sealed class SolveWorkerPool : IDisposable {
         }
     }
 
+    /// <summary>
+    /// For tests only: a <see cref="WorkerJob.TestFault"/> (<see cref="ComputeWorker.HangFault"/>, ...) the pool adds to
+    /// every job it sends while this is set, so a test can reach the kill, memory and crash paths of any endpoint. It
+    /// is never read from a request.
+    /// </summary>
+    internal string? TestFault {
+        get => _testFault;
+        set => _testFault = value;
+    }
+
     /// <summary>Starts the warm workers (from <see cref="SolveWorkerPoolService"/>); does nothing when the pool is off.</summary>
     public void Start() {
         lock (_lock) {
@@ -121,7 +136,7 @@ public sealed class SolveWorkerPool : IDisposable {
             _started = true;
         }
         var (file, arguments) = WorkerCommand();
-        _logger.LogInformation("Solves run in worker processes: {Size} warm, memory limit {MemoryMB} MB, started as {File} {Arguments}.",
+        _logger.LogInformation("Compute jobs run in worker processes: {Size} warm, memory limit {MemoryMB} MB, started as {File} {Arguments}.",
             Size, MemoryLimitMB?.ToString() ?? "none", file, string.Join(' ', arguments));
         Refill();
     }
@@ -130,7 +145,19 @@ public sealed class SolveWorkerPool : IDisposable {
     /// Runs one solve in a worker and returns its outcome; see the class remarks for the limits. Cancelling
     /// <paramref name="aborted"/> (the client went away) kills the worker and throws <see cref="OperationCanceledException"/>.
     /// </summary>
-    internal async Task<SolveOutcome> RunAsync(string solver, string instance, TimeSpan? limit, CancellationToken aborted) {
+    internal Task<SolveOutcome> RunAsync(string solver, string instance, TimeSpan? limit, CancellationToken aborted) =>
+        RunAsync(WorkerJob.ForSolve(solver, instance, limit), limit + ComputeLimits.SolverBackstopGrace, "solve", solver, aborted);
+
+    /// <summary>
+    /// Runs one job in a worker and returns its outcome. The worker is killed at <paramref name="deadline"/> (null: no
+    /// deadline) or when it grows past the memory limit; see the class remarks. <paramref name="job"/> is what the job
+    /// is called in messages ("solve", "verification", ...) and <paramref name="subject"/> the solver, verifier or
+    /// reduction it runs, for the log. Cancelling <paramref name="aborted"/> (the client went away) kills the worker and
+    /// throws <see cref="OperationCanceledException"/>.
+    /// </summary>
+    internal async Task<SolveOutcome> RunAsync(WorkerJob work, TimeSpan? deadline, string job, string subject, CancellationToken aborted) {
+        if (_testFault is { } fault)
+            work = work with { TestFault = fault };
         Worker? worker = TakeIdle();
         Refill();
         if (worker == null) {
@@ -139,8 +166,8 @@ public sealed class SolveWorkerPool : IDisposable {
             } catch (OperationCanceledException) when (aborted.IsCancellationRequested) {
                 throw;
             } catch (Exception ex) {
-                _logger.LogError(ex, "Could not start a worker process for a solve with {Solver}.", solver);
-                return Crashed($"The server could not start a worker process for the solve: {ex.Message}");
+                _logger.LogError(ex, "Could not start a worker process for a {Job} with {Subject}.", job, subject);
+                return Crashed($"The server could not start a worker process for the {job}: {ex.Message}");
             }
         }
         Volatile.Write(ref _lastJobPid, worker.Pid);
@@ -148,9 +175,9 @@ public sealed class SolveWorkerPool : IDisposable {
         using var done = CancellationTokenSource.CreateLinkedTokenSource(aborted);
         bool answered = false;
         try {
-            string job = JsonSerializer.Serialize(new WorkerJob(solver, instance, limit?.Ticks), ComputeWorker.WireOptions);
+            string line = JsonSerializer.Serialize(work, ComputeWorker.WireOptions);
             try {
-                await worker.Process.StandardInput.WriteLineAsync(job.AsMemory(), done.Token).ConfigureAwait(false);
+                await worker.Process.StandardInput.WriteLineAsync(line.AsMemory(), done.Token).ConfigureAwait(false);
                 await worker.Process.StandardInput.FlushAsync(done.Token).ConfigureAwait(false);
             } catch (IOException) {
                 // The worker died after it was taken; the checks below report how.
@@ -161,11 +188,11 @@ public sealed class SolveWorkerPool : IDisposable {
             Task overMemory = MemoryLimitMB is { } mb
                 ? Observed(WatchMemoryAsync(worker, (long)(mb + MemoryAllowanceMB) * 1024 * 1024, done.Token))
                 : Observed(Task.Delay(Timeout.Infinite, done.Token));
-            Task deadline = Observed(limit is { } l
-                ? Task.Delay(l + ComputeLimits.SolverBackstopGrace, done.Token)
+            Task timeUp = Observed(deadline is { } d
+                ? Task.Delay(d, done.Token)
                 : Task.Delay(Timeout.Infinite, done.Token));
 
-            Task first = await Task.WhenAny(reply, exited, overMemory, deadline).ConfigureAwait(false);
+            Task first = await Task.WhenAny(reply, exited, overMemory, timeUp).ConfigureAwait(false);
             if (aborted.IsCancellationRequested) {
                 worker.Kill();
                 aborted.ThrowIfCancellationRequested();
@@ -176,21 +203,21 @@ public sealed class SolveWorkerPool : IDisposable {
 
             if (reply.IsCompletedSuccessfully && reply.Result != null) {
                 answered = true;
-                return Read(reply.Result, worker);
+                return Read(reply.Result, job);
             }
             if (first == overMemory && overMemory.IsCompletedSuccessfully) {
                 worker.Kill();
                 return new SolveOutcome(SolveOutcomeKind.KilledForMemory);
             }
-            if (first == deadline && deadline.IsCompletedSuccessfully) {
+            if (first == timeUp && timeUp.IsCompletedSuccessfully) {
                 worker.Kill();
                 return new SolveOutcome(SolveOutcomeKind.Killed);
             }
             worker.Kill();
             string code = worker.Process.HasExited ? worker.Process.ExitCode.ToString() : "unknown";
-            _logger.LogError("The worker process for a solve with {Solver} exited with code {Code} before it answered. Its last output: {Output}",
-                solver, code, worker.ErrorTail());
-            return Crashed($"The worker process running the solve exited (code {code}) before it answered.");
+            _logger.LogError("The worker process for a {Job} with {Subject} exited with code {Code} before it answered. Its last output: {Output}",
+                job, subject, code, worker.ErrorTail());
+            return Crashed($"The worker process running the {job} exited (code {code}) before it answered.");
         } finally {
             done.Cancel();
             // A worker that answered exits by itself. Any other way out (the client going away while the job is being
@@ -203,23 +230,35 @@ public sealed class SolveWorkerPool : IDisposable {
     }
 
     /// <summary>The 500 body of a solve whose worker died without answering, in the error contract of #933.</summary>
-    internal static object WorkerFailedBody(string solver, string? detail) => new Dictionary<string, object?> {
-        ["error"] = WorkerFailedError,
-        ["message"] = "The solve stopped unexpectedly, so there is no answer.",
-        ["detail"] = detail ?? "The worker process running the solve stopped before it answered.",
-        ["solver"] = solver,
-        ["hint"] = "Try again. If it keeps happening, report the solver and the instance.",
-    };
+    internal static object WorkerFailedBody(string solver, string? detail) =>
+        WorkerFailedBody("solve", "the solver", new Dictionary<string, object?> { ["solver"] = solver }, detail);
+
+    /// <summary>
+    /// The 500 body of a job whose worker died without answering: <paramref name="job"/> names the job ("solve",
+    /// "verification", ...), <paramref name="context"/> what it ran, and <paramref name="report"/> what the hint asks to
+    /// report with the instance ("the solver", ...).
+    /// </summary>
+    internal static object WorkerFailedBody(string job, string report, IReadOnlyDictionary<string, object?> context, string? detail) {
+        var body = new Dictionary<string, object?> {
+            ["error"] = WorkerFailedError,
+            ["message"] = $"The {job} stopped unexpectedly, so there is no answer.",
+            ["detail"] = detail ?? $"The worker process running the {job} stopped before it answered.",
+        };
+        foreach (var (key, value) in context)
+            body[key] = value;
+        body["hint"] = $"Try again. If it keeps happening, report {report} and the instance.";
+        return body;
+    }
 
     private static SolveOutcome Crashed(string detail) => new(SolveOutcomeKind.Crashed) { Detail = detail };
 
-    private SolveOutcome Read(string line, Worker worker) {
+    private SolveOutcome Read(string line, string job) {
         WorkerReply? reply;
         try {
             reply = JsonSerializer.Deserialize<WorkerReply>(line, ComputeWorker.WireOptions);
         } catch (JsonException ex) {
-            _logger.LogError(ex, "A solve worker sent a reply the server cannot read: {Line}", line);
-            return Crashed("The worker process running the solve sent a reply the server cannot read.");
+            _logger.LogError(ex, "A {Job} worker sent a reply the server cannot read: {Line}", job, line.Length > 2000 ? line[..2000] + "..." : line);
+            return Crashed($"The worker process running the {job} sent a reply the server cannot read.");
         }
         return reply?.Kind switch {
             SolveOutcomeKind.Answered => new SolveOutcome(SolveOutcomeKind.Answered) { Answer = reply.Answer },
@@ -230,7 +269,7 @@ public sealed class SolveWorkerPool : IDisposable {
             },
             SolveOutcomeKind.OutOfMemory => new SolveOutcome(SolveOutcomeKind.OutOfMemory),
             SolveOutcomeKind.Failed => new SolveOutcome(SolveOutcomeKind.Failed) { Detail = reply.Detail },
-            _ => Crashed("The worker process running the solve sent a reply the server cannot read."),
+            _ => Crashed($"The worker process running the {job} sent a reply the server cannot read."),
         };
     }
 
@@ -300,7 +339,7 @@ public sealed class SolveWorkerPool : IDisposable {
             }
             if (_stopping.IsCancellationRequested)
                 return;
-            _logger.LogError(ex, "Could not start a warm worker process for solves.");
+            _logger.LogError(ex, "Could not start a warm worker process for compute jobs.");
             // Back off, so a worker that cannot start is not restarted in a tight loop: 1 s, 2 s, 4 s, ... up to a minute.
             try {
                 await Task.Delay(TimeSpan.FromSeconds(Math.Min(60, 1 << Math.Min(failures - 1, 6))), _stopping.Token).ConfigureAwait(false);
@@ -404,7 +443,7 @@ public sealed class SolveWorkerPool : IDisposable {
             wasIdle = _idle.Remove(worker);
         if (!wasIdle)
             return;
-        _logger.LogWarning("A warm solve worker (process {Pid}) exited while it waited; starting another. Its last output: {Output}",
+        _logger.LogWarning("A warm compute worker (process {Pid}) exited while it waited; starting another. Its last output: {Output}",
             worker.Pid, worker.ErrorTail());
         Forget(worker);
         Refill();

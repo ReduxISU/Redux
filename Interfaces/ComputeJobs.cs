@@ -11,9 +11,10 @@ namespace API.Interfaces;
 /// <para>
 /// A slot is held until the work itself finishes, not just until the response is sent: when the time-limit backstop
 /// (<see cref="ComputeLimits.WithBackstop{T}"/>) stops waiting, the work it gave up on keeps running and keeps its slot
-/// (<see cref="ComputeJob.FinishWhen"/>). So the cap counts what is really using the processor. A solve in a worker
+/// (<see cref="ComputeJob.FinishWhen"/>). So the cap counts what is really using the processor. A job in a worker
 /// process (<see cref="SolveWorkerPool"/>) needs no hand-off: the request waits for its worker, and a worker that does
-/// not stop is killed, so the slot is given back when the request answers.
+/// not stop is killed, so the slot is given back when the request answers. Since #991 that is every compute endpoint
+/// when the worker pool is on, and only work left to the backstop (the pool off) hands its slot off.
 /// </para>
 /// </summary>
 public sealed class ComputeJobLimiter {
