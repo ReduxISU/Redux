@@ -299,21 +299,23 @@ public class ProblemProvider : ControllerBase {
     private static bool IsExactSearchLimitError(Exception ex) =>
         Unwrap(ex) is ExactSearchLimitExceededException;
 
-    private IActionResult ExactSearchLimitError(Exception ex) {
+    private IActionResult ExactSearchLimitError(Exception ex) => BadRequest(ExactSearchLimitBody(ex));
+
+    private static object ExactSearchLimitBody(Exception ex) {
         var limit = (ExactSearchLimitExceededException)Unwrap(ex);
         if (limit.SearchSpaceSize is { } size)
-            return BadRequest(new {
+            return new {
                 error = "exact_search_limit_exceeded",
                 searchSpaceSize = size.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 maxAssignments = limit.MaxAssignments,
                 detail = limit.Message
-            });
-        return BadRequest(new {
+            };
+        return new {
             error = "exact_search_limit_exceeded",
             variableCount = limit.VariableCount,
             maxVariables = limit.MaxVariables,
             detail = limit.Message
-        });
+        };
     }
 
     /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
