@@ -301,6 +301,13 @@ public class ProblemProvider : ControllerBase {
 
     private IActionResult ExactSearchLimitError(Exception ex) {
         var limit = (ExactSearchLimitExceededException)Unwrap(ex);
+        if (limit.SearchSpaceSize is { } size)
+            return BadRequest(new {
+                error = "exact_search_limit_exceeded",
+                searchSpaceSize = size.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                maxAssignments = limit.MaxAssignments,
+                detail = limit.Message
+            });
         return BadRequest(new {
             error = "exact_search_limit_exceeded",
             variableCount = limit.VariableCount,

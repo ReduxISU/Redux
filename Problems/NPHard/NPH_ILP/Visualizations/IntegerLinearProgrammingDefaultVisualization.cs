@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Numerics;
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Interfaces.JSON_Objects;
 using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.NPHard.NPH_ILP.Solvers;
@@ -12,10 +13,12 @@ class IntegerLinearProgrammingDefaultVisualization : IVisualization<INTEGERLINEA
     public string visualizationName => "Integer Linear Programming Table";
     public string visualizationDefinition => "Displays objective and constraint coefficients, integer assignments, objective values, and constraint slack.";
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
-    public string source => "";
+    public string source { get; } = "Nemhauser, G. L., & Wolsey, L. A. (1988). Integer and Combinatorial Optimization. Wiley.";
+    public string sourceLink { get; } = "https://www.wiley.com/en-us/Integer+and+Combinatorial+Optimization-p-9780471359432";
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Prashant Pant" };
     public ISolver solver { get; } = new IntegerLinearProgrammingSolver();
+    Type? IVisualization.StepShape => typeof(Assignment);
 
     public API_TableJSON visualize(INTEGERLINEARPROGRAMMING problem) => Build(problem, "Integer Linear Program", null);
 
@@ -43,9 +46,21 @@ class IntegerLinearProgrammingDefaultVisualization : IVisualization<INTEGERLINEA
         );
     }
 
-    public List<API_JSON> StepsVisualization(INTEGERLINEARPROGRAMMING problem, List<object> steps) =>
-        steps.OfType<IntegerLinearProgrammingSolver.Step>()
-            .Select(step => (API_JSON)Build(problem, step.Status, step.Assignment)).ToList();
+    public List<API_JSON> StepsVisualization(INTEGERLINEARPROGRAMMING problem, List<object> steps) {
+        var tables = new List<API_JSON>();
+        foreach (var step in steps) {
+            if (step is IntegerLinearProgrammingSolver.Step legacy) {
+                tables.Add(Build(problem, legacy.Status, legacy.Assignment));
+            } else if (step is SolverStep<Assignment> typed) {
+                BigInteger[]? values = typed.Partial.Values.Count == problem.c.Count
+                    ? Enumerable.Range(1, problem.c.Count)
+                        .Select(i => BigInteger.Parse(typed.Partial.Values[$"x{i}"], CultureInfo.InvariantCulture)).ToArray()
+                    : null;
+                tables.Add(Build(problem, typed.Caption, values));
+            }
+        }
+        return tables;
+    }
 
     private static API_TableJSON Build(INTEGERLINEARPROGRAMMING problem, string title, IReadOnlyList<BigInteger>? x) {
         var table = new API_TableJSON { title = title };

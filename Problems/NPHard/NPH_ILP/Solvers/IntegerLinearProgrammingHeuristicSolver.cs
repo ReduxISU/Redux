@@ -8,13 +8,13 @@ namespace API.Problems.NPHard.NPH_ILP.Solvers;
 // Deterministic feasibility-first coordinate local search; no approximation guarantee.
 class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING, Assignment> {
     public string solverName => "Integer Linear Programming Local Search Heuristic";
-    public string solverDefinition => "Heuristic coordinate search that first reduces total constraint violation, then improves the objective using feasible neighboring assignments. A returned assignment is feasible, but is not guaranteed optimal; no approximation ratio is claimed.";
+    public string solverDefinition => "Heuristic coordinate search that first reduces total constraint violation, then improves the objective using feasible neighboring assignments. A returned assignment is feasible, but is not guaranteed optimal; no approximation ratio is claimed. For compatibility, returns the time-limit status if no feasible point is found after the iteration budget or local search is exhausted (even when no time has elapsed), if IterationLimit is nonpositive, or if interrupted.";
     public string source => "Original feasibility-first coordinate local search heuristic.";
     public string sourceLink => "";
     public string sourceFile => SourceFile.Path();
     public string[] contributors => ["Prashant Pant"];
-    public SolverType solverType => SolverType.Backtracking;
-    public SolverComplexityBucket complexityBucket => SolverComplexityBucket.Exponential;
+    public SolverType solverType => SolverType.Heuristic;
+    public SolverComplexityBucket complexityBucket => SolverComplexityBucket.Polynomial;
     public MathematicalFunction timeComplexity { get; } = new("K * m * n^2", "K = iteration budget, m = constraints, n = variables");
     public bool timerHasExpired { get; set; }
     public int IterationLimit { get; set; } = 5_000;
@@ -29,7 +29,7 @@ class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING
 
     private string Run(INTEGERLINEARPROGRAMMING problem, List<object>? steps, StepRecorder<Assignment>? recorder = null) {
         string Finish(string result, BigInteger[]? point) {
-            steps?.Add(new SearchStep(result, point is null ? null : (BigInteger[])point.Clone()));
+            steps?.Add(new IntegerLinearProgrammingSolver.Step(result, point is null ? null : (BigInteger[])point.Clone()));
             recorder?.Done(
                 point is null ? new Assignment([]) : ToAssignment(point),
                 point is not null,
@@ -47,7 +47,7 @@ class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING
         if (violation.IsZero) {
             best = (BigInteger[])current.Clone();
             bestObjective = objective;
-            steps?.Add(new SearchStep("Feasible assignment", (BigInteger[])best.Clone()));
+            steps?.Add(new IntegerLinearProgrammingSolver.Step("Feasible assignment", (BigInteger[])best.Clone()));
             recorder?.Accept(() => ToAssignment(best), () => "Found a feasible heuristic assignment.");
         }
         // Multiple scales let the search cross large distances without integer-by-integer walks.
@@ -81,7 +81,7 @@ class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING
                 if (violation.IsZero && (best is null || objective > bestObjective)) {
                     best = (BigInteger[])current.Clone();
                     bestObjective = objective;
-                    steps?.Add(new SearchStep("Improved feasible assignment", (BigInteger[])best.Clone()));
+                    steps?.Add(new IntegerLinearProgrammingSolver.Step("Improved feasible assignment", (BigInteger[])best.Clone()));
                     recorder?.Accept(() => ToAssignment(best), () => "Found a feasible heuristic assignment.");
                 }
             }
@@ -92,7 +92,6 @@ class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING
                             : Finish(IntegerLinearProgrammingSolver.Format(best), best);
     }
 
-    internal record SearchStep(string Status, BigInteger[]? Assignment);
     private static BigInteger Violation(INTEGERLINEARPROGRAMMING p, BigInteger[] x) {
         BigInteger total = BigInteger.Zero;
         for (int r = 0; r < p.A.Count; r++) {

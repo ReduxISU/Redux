@@ -8,13 +8,13 @@ namespace API.Problems.NPHard.NPH_ILP.Solvers;
 // Exact exhaustive baseline for instances with explicit finite bounds on each variable.
 // Unsupported/unbounded search domains are reported as incomplete, never optimal.
 class IntegerLinearProgrammingBruteForceSolver : ISolver<INTEGERLINEARPROGRAMMING, Assignment> {
-    public string solverName => "Integer Linear Programming Brute Force Solver";
-    public string solverDefinition => "Enumerates every integer assignment within explicit finite per-variable bounds, returning a proven optimum or infeasibility when complete. Returns the time-limit status if the domain is not explicitly bounded or the search is interrupted.";
+    public string solverName => "Integer Linear Programming Brute Force";
+    public string solverDefinition => "Enumerates every integer assignment within explicit finite per-variable bounds, returning a proven optimum or infeasibility when complete. Throws an exact-search-limit error if the search box exceeds WorkLimit. For compatibility, returns the time-limit status if any variable lacks an explicit lower or upper bound from single-variable constraints (even when no time has elapsed), or when the search is interrupted.";
     public string source => "Original exhaustive enumeration implementation; integer linear programming formulation: Papadimitriou, C. H., and Steiglitz, K. (1982). Combinatorial Optimization: Algorithms and Complexity.";
     public string sourceLink => "https://doi.org/10.1137/1.9780486144811";
     public string sourceFile => SourceFile.Path();
     public string[] contributors => ["Prashant Pant"];
-    public SolverType solverType => SolverType.Backtracking;
+    public SolverType solverType => SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket => SolverComplexityBucket.Exponential;
     public MathematicalFunction timeComplexity { get; } = new("U^n * m * n", "U = maximum number of values per variable, n = number of variables, m = number of constraints");
     public bool timerHasExpired { get; set; }
@@ -30,12 +30,12 @@ class IntegerLinearProgrammingBruteForceSolver : ISolver<INTEGERLINEARPROGRAMMIN
 
     private string Run(INTEGERLINEARPROGRAMMING problem, List<object>? steps, StepRecorder<Assignment>? recorder = null) {
         string Finish(string answer, BigInteger[]? values, bool optimal) {
-            steps?.Add(new SearchStep(answer, values is null ? null : (BigInteger[])values.Clone()));
+            steps?.Add(new IntegerLinearProgrammingSolver.Step(answer, values is null ? null : (BigInteger[])values.Clone()));
             recorder?.Done(values is null ? new Assignment([]) : ToAssignment(values), optimal,
                 optimal ? "Exhaustive enumeration completed." : answer);
             return answer;
         }
-        if (timerHasExpired || WorkLimit <= 0) return Finish(SolveRun.TimedOutAnswer, null, false);
+        if (timerHasExpired) return Finish(SolveRun.TimedOutAnswer, null, false);
         int n = problem.c.Count;
         var lower = new BigInteger?[n];
         var upper = new BigInteger?[n];
@@ -71,21 +71,20 @@ class IntegerLinearProgrammingBruteForceSolver : ISolver<INTEGERLINEARPROGRAMMIN
         BigInteger count = BigInteger.One;
         for (int j = 0; j < n; j++) {
             count *= upper[j]!.Value - lower[j]!.Value + 1;
-            if (count > WorkLimit) return Finish(SolveRun.TimedOutAnswer, null, false);
         }
+        if (count > WorkLimit)
+            throw new ExactSearchLimitExceededException(problem.problemName, count, WorkLimit);
         var point = lower.Select(v => v!.Value).ToArray();
         BigInteger[]? best = null;
         BigInteger bestValue = BigInteger.Zero;
-        int visited = 0;
         while (true) {
-            if (timerHasExpired || visited >= WorkLimit) return Finish(SolveRun.TimedOutAnswer, null, false);
-            visited++;
+            if (timerHasExpired) return Finish(SolveRun.TimedOutAnswer, null, false);
             if (Feasible(problem, point)) {
                 BigInteger value = IntegerLinearProgrammingSolver.Dot(problem.c, point);
                 if (best is null || value > bestValue) {
                     best = (BigInteger[])point.Clone();
                     bestValue = value;
-                    steps?.Add(new SearchStep("Improved feasible assignment", (BigInteger[])best.Clone()));
+                    steps?.Add(new IntegerLinearProgrammingSolver.Step("Improved feasible assignment", (BigInteger[])best.Clone()));
                     recorder?.Accept(() => ToAssignment(best), () => "Found a better feasible assignment.");
                 }
             }
@@ -101,7 +100,6 @@ class IntegerLinearProgrammingBruteForceSolver : ISolver<INTEGERLINEARPROGRAMMIN
                             : Finish(IntegerLinearProgrammingSolver.Format(best), best, true);
     }
 
-    internal record SearchStep(string Status, BigInteger[]? Assignment);
     private static bool Feasible(INTEGERLINEARPROGRAMMING p, BigInteger[] x) {
         for (int r = 0; r < p.A.Count; r++)
             if (IntegerLinearProgrammingSolver.Dot(p.A[r], x) > p.b[r]) return false;
