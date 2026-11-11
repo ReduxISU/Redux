@@ -318,6 +318,13 @@ public class ProblemProvider : ControllerBase {
 
     private static object ExactSearchLimitBody(Exception ex) {
         var limit = (ExactSearchLimitExceededException)Unwrap(ex);
+        if (limit.SearchSpaceSize is { } size)
+            return new {
+                error = "exact_search_limit_exceeded",
+                searchSpaceSize = size.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                maxAssignments = limit.MaxAssignments,
+                detail = limit.Message
+            };
         return new {
             error = "exact_search_limit_exceeded",
             variableCount = limit.VariableCount,
