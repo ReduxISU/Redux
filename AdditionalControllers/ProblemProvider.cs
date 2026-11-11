@@ -63,8 +63,11 @@ public class ProblemProvider : ControllerBase {
     private IActionResult TimeLimitError(string job, TimeSpan limit, string detail, string hint, IReadOnlyDictionary<string, object?>? context = null) =>
         UnprocessableEntity(ComputeLimits.TimeLimitBody(job, limit, detail, hint, context));
 
-    /// <summary>The time-limit error of a solve, naming the solver, its problem and the problem's other solvers.</summary>
-    private IActionResult SolveTimeLimitError(string job, Type solverType, TimeSpan limit, string detail) {
+    /// <summary>
+    /// The hint and context of a solve stopped by a limit (time or memory): the solver, its problem, and the problem's
+    /// other solvers, which the hint suggests.
+    /// </summary>
+    private static (string Hint, Dictionary<string, object?> Context) SolveLimitContext(Type solverType) {
         Type? problemType = ProblemTypeOf(solverType, typeof(ISolver<>));
         var others = problemType == null ? new List<string>() : Solvers.Values
             .Where(t => t != solverType && ProblemTypeOf(t, typeof(ISolver<>)) == problemType)
@@ -74,11 +77,23 @@ public class ProblemProvider : ControllerBase {
         string hint = others.Count > 0
             ? $"Try a smaller instance, or a faster solver for this problem: {string.Join(", ", others)}."
             : "Try a smaller instance.";
-        return TimeLimitError(job, limit, detail, hint, new Dictionary<string, object?> {
+        return (hint, new Dictionary<string, object?> {
             ["solver"] = solverType.Name,
             ["problem"] = problemName,
             ["options"] = others,
         });
+    }
+
+    /// <summary>The time-limit error of a solve, naming the solver, its problem and the problem's other solvers.</summary>
+    private IActionResult SolveTimeLimitError(string job, Type solverType, TimeSpan limit, string detail) {
+        var (hint, context) = SolveLimitContext(solverType);
+        return TimeLimitError(job, limit, detail, hint, context);
+    }
+
+    /// <summary>HTTP 422 with the <c>memory_limit</c> body of a solve (#936); see <see cref="ComputeLimits.MemoryLimitBody"/>.</summary>
+    private IActionResult SolveMemoryLimitError(Type solverType, int limitMB, string detail) {
+        var (hint, context) = SolveLimitContext(solverType);
+        return UnprocessableEntity(ComputeLimits.MemoryLimitBody("solve", limitMB, detail, hint, context));
     }
 
     /// <summary>The time-limit error of a reduction (or a chain of them, separated by dashes).</summary>
@@ -299,31 +314,29 @@ public class ProblemProvider : ControllerBase {
     private static bool IsExactSearchLimitError(Exception ex) =>
         Unwrap(ex) is ExactSearchLimitExceededException;
 
-    private IActionResult ExactSearchLimitError(Exception ex) {
+    private IActionResult ExactSearchLimitError(Exception ex) => BadRequest(ExactSearchLimitBody(ex));
+
+    private static object ExactSearchLimitBody(Exception ex) {
         var limit = (ExactSearchLimitExceededException)Unwrap(ex);
-        if (limit.SearchSpaceSize is { } size)
-            return BadRequest(new {
-                error = "exact_search_limit_exceeded",
-                searchSpaceSize = size.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                maxAssignments = limit.MaxAssignments,
-                detail = limit.Message
-            });
-        return BadRequest(new {
+        return new {
             error = "exact_search_limit_exceeded",
             variableCount = limit.VariableCount,
             maxVariables = limit.MaxVariables,
             detail = limit.Message
-        });
+        };
     }
 
     /// <summary>Maps a parse exception to a 400 BadRequest with the matching structured body.</summary>
-    private IActionResult ParseError(Exception ex) => Unwrap(ex) switch {
-        ProblemParseException p => BadRequest(ParseErrorBody("instance_parse_error", p.ProblemName,
-                                           LookupInstanceFormat(p.ProblemName), p.Received, p.Message)),
-        ReductionInputException r => BadRequest(ReductionParseErrorBody("reduction_input_parse_error",
-                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.ProblemName)),
-        CertificateParseException c => BadRequest(ParseErrorBody("certificate_parse_error",
-                                           c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message)),
+    private IActionResult ParseError(Exception ex) => BadRequest(ParseErrorBodyOf(ex));
+
+    /// <summary>The 400 body of a parse exception (see <see cref="IsParseError"/>); rethrows any other exception.</summary>
+    private static object ParseErrorBodyOf(Exception ex) => Unwrap(ex) switch {
+        ProblemParseException p => ParseErrorBody("instance_parse_error", p.ProblemName,
+                                           LookupInstanceFormat(p.ProblemName), p.Received, p.Message),
+        ReductionInputException r => ReductionParseErrorBody("reduction_input_parse_error",
+                                           r.Reduction, r.ExpectedFormat, r.Received, r.Message, r.ProblemName),
+        CertificateParseException c => ParseErrorBody("certificate_parse_error",
+                                           c.Problem.problemName, c.Problem.certificateFormat, c.Received, c.Message),
         _ => throw ex,
     };
 
@@ -357,28 +370,69 @@ public class ProblemProvider : ControllerBase {
     public async Task<IActionResult> solve(string solver, [FromBody] string problemInstance) {
         if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
             return BadRequest(new { error = "unknown_solver", received = solver });
+        TimeSpan? limit = ComputeLimit;
+        // With ComputeLimits:IsolateSolves on, the solve runs in a worker process of its own, which is killed when it
+        // does not stop at the time limit or grows past the memory limit (#936). The worker runs SolveCore too, so it
+        // answers exactly as the in-process path below.
+        if (HttpContext?.RequestServices.GetService<SolveWorkerPool>() is { Enabled: true } pool)
+            return SolveResult(solverType, limit, pool.MemoryLimitMB,
+                await pool.RunAsync(solver, problemInstance, limit, HttpContext.RequestAborted));
+        // The solver stops itself at the limit (ISolver.Run: the recorder of a typed solver, the timerHasExpired flag of a
+        // legacy one), and the run is then marked TimedOut; the backstop answers a little later for a solver that does
+        // not stop (#935).
+        var (finished, outcome) = await Backstop(() => SolveCore(solver, problemInstance, limit), SolverBackstop(limit));
+        if (!finished)
+            return SolveTimeLimitError("solve", solverType, limit!.Value, ComputeLimits.BackstopDetail);
+        return SolveResult(solverType, limit, null, outcome!);
+    }
+
+    /// <summary>
+    /// The solve itself, shared by the in-process path of <see cref="solve"/> and the worker process
+    /// (<see cref="ComputeWorker"/>), so both answer alike: the answer, a run the solver stopped at
+    /// <paramref name="limit"/>, or the 400 body of a parse error or an exact-search limit. With no limit this is
+    /// <c>solve(instance)</c>, as before #935. Any other exception propagates. <paramref name="solver"/> must be a key
+    /// of <see cref="Solvers"/> (any case).
+    /// </summary>
+    internal static SolveOutcome SolveCore(string solver, string instance, TimeSpan? limit) {
         try {
-            // The solver stops itself at the limit (ISolver.Run: the recorder of a typed solver, the timerHasExpired
-            // flag of a legacy one), and the run is then marked TimedOut; the backstop answers a little later for a
-            // solver that does not stop (#935). With no limit this is solve(problemInstance), as before.
-            TimeSpan? limit = ComputeLimit;
             ISolver chosen = Solver(solver);
-            var (finished, run) = await Backstop(
-                () => limit == null ? new SolveRun(chosen.solve(problemInstance), new List<object>(), null)
-                                    : chosen.Run(problemInstance, withSteps: false, limit),
-                SolverBackstop(limit));
-            if (!finished || run!.TimedOut)
-                return SolveTimeLimitError("solve", solverType, limit!.Value,
-                    finished ? ComputeLimits.StoppedBySolverDetail : ComputeLimits.BackstopDetail);
-            return Content(
-                JsonSerializer.Serialize(
-                    run.Answer,
-                    new JsonSerializerOptions { WriteIndented = true }),
-                "application/json");
+            SolveRun run = limit == null ? new SolveRun(chosen.solve(instance), new List<object>(), null)
+                                         : chosen.Run(instance, withSteps: false, limit);
+            return run.TimedOut ? SolveOutcome.Stopped : SolveOutcome.Answered(run.Answer);
         } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
         } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
-            return ExactSearchLimitError(ex);
+            return SolveOutcome.Rejected(ExactSearchLimitBody(ex));
+        }
+    }
+
+    /// <summary>The response of a solve, from its outcome in this process (<see cref="SolveCore"/>) or in a worker.</summary>
+    private IActionResult SolveResult(Type solverType, TimeSpan? limit, int? memoryLimitMB, SolveOutcome outcome) {
+        switch (outcome.Kind) {
+            case SolveOutcomeKind.Answered:
+                return Content(
+                    JsonSerializer.Serialize(
+                        outcome.Answer,
+                        new JsonSerializerOptions { WriteIndented = true }),
+                    "application/json");
+            case SolveOutcomeKind.Rejected:
+                return BadRequest(outcome.Body);
+            case SolveOutcomeKind.Stopped:
+                return SolveTimeLimitError("solve", solverType, limit!.Value, ComputeLimits.StoppedBySolverDetail);
+            case SolveOutcomeKind.Killed:
+                return SolveTimeLimitError("solve", solverType, limit!.Value, ComputeLimits.CancelledDetail);
+            case SolveOutcomeKind.OutOfMemory:
+                return SolveMemoryLimitError(solverType, memoryLimitMB ?? 0, ComputeLimits.HeapLimitDetail);
+            case SolveOutcomeKind.KilledForMemory:
+                return SolveMemoryLimitError(solverType, memoryLimitMB ?? 0, ComputeLimits.MemoryWatchDetail);
+            case SolveOutcomeKind.Unavailable:
+                // Thrown here, so SolverUnavailableFilter answers 503 exactly as for a solve in this process.
+                throw outcome.Unavailable!;
+            case SolveOutcomeKind.Failed:
+                // Thrown here, so an unexpected exception in the worker is a 500, as it is in this process.
+                throw new ComputeWorkerException(outcome.Detail ?? "The solve failed in its worker process.");
+            default: // SolveOutcomeKind.Crashed: the worker died without answering.
+                return StatusCode(StatusCodes.Status500InternalServerError, SolveWorkerPool.WorkerFailedBody(solverType.Name, outcome.Detail));
         }
     }
 
