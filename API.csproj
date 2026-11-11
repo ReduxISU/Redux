@@ -45,5 +45,14 @@
     <None Remove="integration/**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Redux.Library/**" />
+    <Content Remove="Redux.Library/**" />
+    <None Remove="Redux.Library/**" />
+
+    <Compile Remove="Redux.Library.Tests/**" />
+    <Content Remove="Redux.Library.Tests/**" />
+    <None Remove="Redux.Library.Tests/**" />
+  </ItemGroup>
 
 </Project>

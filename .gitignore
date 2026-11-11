@@ -12,3 +12,8 @@ global.json
 # Redux Build System output
 .rbs/
 report.md
+
+# Redux C# Package
+Redux.Library/bin/
+Redux.Library/obj/
+nupkgs/
