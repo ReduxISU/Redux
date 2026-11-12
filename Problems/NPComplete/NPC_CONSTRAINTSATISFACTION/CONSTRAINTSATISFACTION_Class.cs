@@ -2,14 +2,15 @@ using System.Text.RegularExpressions;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Solvers;
 using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Verifiers;
-using API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION.Visualizations;
+using API.DummyClasses;
+
 
 namespace API.Problems.NPComplete.NPC_CONSTRAINTSATISFACTION;
 
 // Problem class for the General Finite-Domain Constraint Satisfaction Problem.
 // Parses and validates X/D/C collections while leaving constraint text to the solver/verifier.
 // Variable and domain positions remain aligned throughout solving and verification.
-class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionIntelligent, ConstraintSatisfactionVerifier, ConstraintSatisfactionVisualization> {
+class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionIntelligent, ConstraintSatisfactionVerifier, DummyVisualization> {
     public string problemName { get; } = "General Finite-Domain Constraint Satisfaction Problem";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Constraint_satisfaction_problem";
     public string formalDefinition { get; } = "CONSTRAINTSATISFACTION = {<X,D,C> | there exists an assignment a with a(X[i]) in D[i] for every i, satisfying every constraint in C}";
@@ -29,7 +30,7 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionIntelligent, Const
     public string wikiName { get; } = "Constraint_satisfaction_problem";
     public ConstraintSatisfactionIntelligent defaultSolver { get; } = new ConstraintSatisfactionIntelligent();
     public ConstraintSatisfactionVerifier defaultVerifier { get; } = new ConstraintSatisfactionVerifier();
-    public ConstraintSatisfactionVisualization defaultVisualization { get; } = new ConstraintSatisfactionVisualization();
+    public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     public ProblemType problemType { get; } = ProblemType.MathematicalProgramming;
