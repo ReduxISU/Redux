@@ -11,9 +11,10 @@ on:
         type: boolean
         default: false
 
+# The default GITHUB_TOKEN only reads: the PR is pushed and opened with the ReduxISU Bot app's
+# token (#648), because GitHub Actions is not allowed to create pull requests in this repo.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   sync:
@@ -39,10 +40,26 @@ jobs:
           dotnet run --configuration Release --project Tools/ContributorStatsSync -- \
             --scan-only ${{ inputs.dry_run && '--dry-run' || '' }}
 
+      # A short-lived token for the ReduxISU Bot GitHub App (#648), limited to this repo's contents
+      # and pull requests. Like Dependabot's, the app's PRs are allowed even though Actions' own
+      # token may not open PRs here, and they run CI, which PRs opened with GITHUB_TOKEN don't.
+      - name: Get a token for the ReduxISU Bot app
+        if: ${{ !inputs.dry_run }}
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.REDUXISU_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.REDUXISU_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Open PR with new contributors
         if: ${{ !inputs.dry_run }}
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ steps.app-token.outputs.token }}
+          # Commits are made through the API and signed as the app, so they show as ReduxISU Bot.
+          sign-commits: true
           commit-message: 'chore: add newly detected contributors'
           title: 'New contributors detected — please review'
           body: |
