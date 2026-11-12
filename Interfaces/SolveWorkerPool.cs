@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using API.Interfaces.Tools;
 
 namespace API.Interfaces;
 
@@ -166,7 +167,7 @@ public sealed class SolveWorkerPool : IDisposable {
             } catch (OperationCanceledException) when (aborted.IsCancellationRequested) {
                 throw;
             } catch (Exception ex) {
-                _logger.LogError(ex, "Could not start a worker process for a {Job} with {Subject}.", job, subject);
+                _logger.LogError(ex, "Could not start a worker process for a {Job} with {Subject}.", job, LogValue.Safe(subject));
                 return Crashed($"The server could not start a worker process for the {job}: {ex.Message}");
             }
         }
@@ -216,7 +217,7 @@ public sealed class SolveWorkerPool : IDisposable {
             worker.Kill();
             string code = worker.Process.HasExited ? worker.Process.ExitCode.ToString() : "unknown";
             _logger.LogError("The worker process for a {Job} with {Subject} exited with code {Code} before it answered. Its last output: {Output}",
-                job, subject, code, worker.ErrorTail());
+                job, LogValue.Safe(subject), code, worker.ErrorTail());
             return Crashed($"The worker process running the {job} exited (code {code}) before it answered.");
         } finally {
             done.Cancel();
@@ -257,7 +258,7 @@ public sealed class SolveWorkerPool : IDisposable {
         try {
             reply = JsonSerializer.Deserialize<WorkerReply>(line, ComputeWorker.WireOptions);
         } catch (JsonException ex) {
-            _logger.LogError(ex, "A {Job} worker sent a reply the server cannot read: {Line}", job, line.Length > 2000 ? line[..2000] + "..." : line);
+            _logger.LogError(ex, "A {Job} worker sent a reply the server cannot read: {Line}", job, LogValue.Safe(line, 2000));
             return Crashed($"The worker process running the {job} sent a reply the server cannot read.");
         }
         return reply?.Kind switch {
