@@ -5,10 +5,17 @@ using SPADE;
 
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAXCLIQUE;
 
-// Phase 1 model only. Implement IGraphProblem when real components are available;
-// registering now would expose the infrastructure's empty-result DummySolver.
-internal sealed class WEIGHTEDMAXCLIQUE {
+internal sealed class WEIGHTEDMAXCLIQUE : IGraphProblem {
     public string problemName { get; } = "Weighted Maximum Clique";
+    public string problemLink { get; } = "https://en.wikipedia.org/wiki/Clique_problem";
+    public string formalDefinition { get; } = "Given an undirected graph G=(V,E) and nonnegative integer vertex weights w, find a clique C subset V maximizing the sum of w(v) for v in C.";
+    public string inputDescription { get; } = "An undirected graph and one nonnegative integer weight for every vertex";
+    public string outputDescription { get; } = "One maximum-weight clique and its total vertex weight";
+    public string source { get; } = "Carraghan, R. and Pardalos, P. M. (1990). An exact algorithm for the maximum clique problem. Operations Research Letters 9(6), 375–382. Vertex-weighted optimization generalization.";
+    public string sourceLink { get; } = "https://doi.org/10.1016/0167-6377(90)90057-C";
+    public string sourceFile { get; } = SourceFile.Path();
+    public string wikiName { get; } = "Clique_problem";
+    public string[] contributors { get; } = { "Corbin Hay" };
     public string problemDefinition { get; } = "Find a clique of maximum total nonnegative integer vertex weight in an undirected graph. The empty clique is allowed. Unit weights recover Maximum Clique.";
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPHard;
     public ProblemVariant problemVariant { get; } = ProblemVariant.Optimization;
@@ -27,6 +34,42 @@ internal sealed class WEIGHTEDMAXCLIQUE {
     // Also bounds every possible clique value and the planned candidate-weight upper bound.
     public long totalVertexWeight { get; }
     public UtilCollectionGraph graph { get; }
+    Graph IGraphProblem.graph => graph;
+
+    // Stable indices shared by all solvers, independent of input collection order.
+    // Keep adjacency private so algorithms cannot mutate the problem's graph.
+    private readonly string[] _orderedNodes;
+    private readonly HashSet<int>[] _adjacency;
+    internal int VertexCount => _orderedNodes.Length;
+    internal long VertexWeight(int vertex) => weights[_orderedNodes[vertex]];
+    internal int Degree(int vertex) => _adjacency[vertex].Count;
+    internal bool AreAdjacent(int a, int b) => _adjacency[a].Contains(b);
+
+    internal bool CanAdd(int vertex, IReadOnlyList<int> clique) {
+        foreach (int member in clique) {
+            if (!AreAdjacent(vertex, member)) return false;
+        }
+        return true;
+    }
+
+    internal bool IsClique(IReadOnlyList<int> vertices) {
+        for (int i = 0; i < vertices.Count; i++) {
+            for (int j = 0; j < i; j++) {
+                if (!AreAdjacent(vertices[i], vertices[j])) return false;
+            }
+        }
+        return true;
+    }
+
+    internal long Value(IReadOnlyList<int> vertices) {
+        long value = 0;
+        foreach (int vertex in vertices) value = checked(value + VertexWeight(vertex));
+        return value;
+    }
+
+    internal string FormatCertificate(IReadOnlyList<int> clique, long weight) =>
+        "({" + string.Join(",", clique.Order().Select(v => _orderedNodes[v])) + "},"
+        + weight.ToString(CultureInfo.InvariantCulture) + ")";
 
     public WEIGHTEDMAXCLIQUE() : this(DefaultInstance) { }
 
@@ -85,6 +128,15 @@ internal sealed class WEIGHTEDMAXCLIQUE {
             nodes = nodeList.AsReadOnly();
             edges = edgeList.AsReadOnly();
             weights = new ReadOnlyDictionary<string, long>(weightMap);
+            _orderedNodes = nodeList.Order(StringComparer.Ordinal).ToArray();
+            var indices = _orderedNodes.Select((name, index) => (name, index))
+                .ToDictionary(entry => entry.name, entry => entry.index, StringComparer.Ordinal);
+            _adjacency = _orderedNodes.Select(_ => new HashSet<int>()).ToArray();
+            foreach (var edge in edgeList) {
+                int a = indices[edge.Key], b = indices[edge.Value];
+                _adjacency[a].Add(b);
+                _adjacency[b].Add(a);
+            }
             totalVertexWeight = total;
             var canonicalEdges = edgeList.Select(edge =>
                 new UtilCollection(new HashSet<string> { edge.Key, edge.Value })).ToHashSet();

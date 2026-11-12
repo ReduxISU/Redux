@@ -150,8 +150,29 @@ public class WEIGHTEDMAXCLIQUE_Tests {
     }
 
     [Fact]
-    public void PhaseOneModel_IsNotRegisteredWithPlaceholderComponents() {
-        Assert.False(typeof(IProblem).IsAssignableFrom(typeof(WEIGHTEDMAXCLIQUE)));
-        Assert.DoesNotContain("weightedmaxclique", ProblemProvider.Problems.Keys);
+    public void Problem_IsRegisteredWithItsRealDefaultSolver() {
+        IGraphProblem problem = new WEIGHTEDMAXCLIQUE();
+        Assert.Equal(typeof(WEIGHTEDMAXCLIQUE), ProblemProvider.Problems["weightedmaxclique"]);
+        Assert.Equal(typeof(WEIGHTEDMAXCLIQUE), ProblemProvider.GraphProblems["weightedmaxclique"]);
+        Assert.IsType<API.Problems.NPHard.NPH_WEIGHTEDMAXCLIQUE.Solvers.WeightedMaxCliqueBruteForceSolver>(problem.defaultSolver);
+        Assert.NotNull(problem.graph.ToAPIGraph());
+    }
+
+    [Fact]
+    public void ProblemOperations_UseStableIndicesAndCheckedVertexWeights() {
+        var problem = new WEIGHTEDMAXCLIQUE();
+        Assert.True(problem.AreAdjacent(0, 1));
+        Assert.True(problem.AreAdjacent(1, 0));
+        Assert.False(problem.AreAdjacent(0, 0));
+        Assert.True(problem.IsClique([0, 1, 2]));
+        Assert.False(problem.IsClique([0, 3]));
+        Assert.False(problem.IsClique([0, 0]));
+        Assert.True(problem.CanAdd(2, [0, 1]));
+        Assert.False(problem.CanAdd(3, [0, 1]));
+        Assert.Equal(12, problem.Value([0, 1, 2]));
+        Assert.Equal("({a,b,c},12)", problem.FormatCertificate([2, 0, 1], 12));
+        Assert.True(problem.IsClique([]));
+        Assert.Equal(0, problem.Value([]));
+        Assert.Equal("({},0)", problem.FormatCertificate([], 0));
     }
 }
