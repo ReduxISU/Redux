@@ -607,3 +607,96 @@ public class ComputeWorkers_PoolOff_Tests : IClassFixture<AppFactory>, IClassFix
         Assert.Equal(0, _tiny.Services.GetRequiredService<SolveWorkerPool>().LiveWorkers);
     }
 }
+
+// The worker app with a 30-second time limit, so hung jobs hold their slots for as long as a test needs them (the test
+// ends them itself, by going away, long before the limit).
+public class SlowLimitWorkersAppFactory : SolveWorkersAppFactory {
+    protected override Dictionary<string, string?> Settings() {
+        var settings = base.Settings();
+        settings[ComputeLimits.TimeLimitKey] = "30";
+        return settings;
+    }
+}
+
+// #937: with the worker pool on, a request whose job runs in a worker waits for it without holding a thread, so cheap
+// requests (health, info, navigation) still answer quickly while every compute job slot is full of slow work.
+[Collection(TimingCollection.Name)]
+public class ComputeWorkers_CheapRequests_Tests : IClassFixture<SlowLimitWorkersAppFactory> {
+    private readonly SlowLimitWorkersAppFactory _factory;
+    private readonly HttpClient _client;
+
+    public ComputeWorkers_CheapRequests_Tests(SlowLimitWorkersAppFactory factory) {
+        _factory = factory;
+        _client = factory.CreateClient();
+    }
+
+    private static readonly string[] CheapPaths = {
+        "/health", "/ProblemProvider/info?interface=SAT3", "/ProblemProvider/info?interface=CliqueBruteForce",
+        "/Navigation/Batch/allProblems",
+    };
+
+    private async Task<(HttpStatusCode Status, TimeSpan Took)> Get(string path) {
+        var sw = Stopwatch.StartNew();
+        var response = await _client.GetAsync(path, TestContext.Current.CancellationToken);
+        await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        return (response.StatusCode, sw.Elapsed);
+    }
+
+    [Fact]
+    public async Task CheapRequests_StayFast_WhileEveryJobSlotIsFullOfSlowWork() {
+        var pool = _factory.Pool;
+        var limiter = _factory.Services.GetRequiredService<ComputeJobLimiter>();
+        // Warm the cheap endpoints first (the first navigation call builds its caches), so what is timed is the answer.
+        foreach (string path in CheapPaths)
+            Assert.Equal(HttpStatusCode.OK, (await Get(path)).Status);
+        await SolveWorkerChecks.WaitUntilWarm(pool);
+
+        using var leave = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        var held = new List<Task<ComputeResponse>>();
+        var pids = new List<int>();
+        pool.TestFault = ComputeWorker.HangFault;
+        try {
+            // Fill every slot with a verification that never answers (killed only at the 30-second limit).
+            for (int i = 0; i < limiter.MaxJobs; i++) {
+                int before = pool.LastJobPid;
+                held.Add(ComputeWorkerChecks.Post(_client,
+                    ComputeWorkerChecks.Verify("SAT3Verifier", "(x1 | x2 | x3)", "(x1:True)"), leave.Token));
+                var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+                while (pool.LastJobPid == before && DateTime.UtcNow < deadline)
+                    await Task.Delay(5, TestContext.Current.CancellationToken);
+                pids.Add(pool.LastJobPid);
+            }
+            await ComputeWorkerChecks.WaitForRunningJobs(limiter, limiter.MaxJobs!.Value);
+            var start = Stopwatch.StartNew();
+
+            // The slots really are full: a compute request is turned away.
+            var busy = await ComputeWorkerChecks.Post(_client, ComputeWorkerChecks.Reduce("SipserReduceToCliqueStandard", "(x1 | x2 | x3)"));
+            Assert.Equal(HttpStatusCode.TooManyRequests, busy.Status);
+
+            // A burst of cheap requests, all at once, while the slow jobs run.
+            var cheap = await Task.WhenAll(Enumerable.Range(0, 40).Select(i => Get(CheapPaths[i % CheapPaths.Length])));
+            TimeSpan burst = start.Elapsed;
+
+            Assert.All(cheap, c => Assert.Equal(HttpStatusCode.OK, c.Status));
+            Assert.All(cheap, c => Assert.True(c.Took < TimeSpan.FromSeconds(2), $"a cheap request took {c.Took}"));
+            Assert.True(burst < TimeSpan.FromSeconds(5), $"the burst took {burst}");
+            // And the slow jobs were running the whole time.
+            Assert.Equal(limiter.MaxJobs, limiter.Running);
+            Assert.All(held, h => Assert.False(h.IsCompleted));
+            Assert.All(pids, pid => Assert.True(SolveWorkerChecks.IsRunning(pid), $"worker {pid} stopped early"));
+        } finally {
+            pool.TestFault = null;
+            // End the slow jobs: a client that goes away kills its worker and gives its slot back.
+            leave.Cancel();
+            foreach (var h in held)
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => h);
+        }
+        foreach (int pid in pids)
+            await SolveWorkerChecks.AssertGone(pid);
+        var freed = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+        while (limiter.Running > 0 && DateTime.UtcNow < freed)
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        Assert.Equal(0, limiter.Running);
+        await SolveWorkerChecks.WaitUntilWarm(pool);
+    }
+}
