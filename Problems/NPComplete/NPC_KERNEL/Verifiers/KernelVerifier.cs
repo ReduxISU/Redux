@@ -7,7 +7,7 @@ class KernelVerifier : IVerifier<KERNEL> {
 
     // --- Fields ---
     public const string CertificateGrammar = "K = {v_1, v_2, ..., v_k} ⊆ V | (∀u,v ∈ K, (u,v) ∉ E) ∧ (∀u ∈ V\\K, ∃v ∈ K : (u,v) ∈ E)";
-    public const string CertificateExample = "{1, 2, 3}";
+    public const string CertificateExample = "{1, 3}";
     public string verifierName { get; } = "Kernel Solution Verifier";
     public string verifierDefinition { get; } = "Verifies that a candidate kernel satisfies two conditions: independence (no edge connects two vertices in the kernel) and absorption (every vertex outside the kernel has an outgoing edge to a vertex in the kernel).";
     public string source { get; } = "";
