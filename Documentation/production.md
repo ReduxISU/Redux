@@ -76,6 +76,27 @@ exposes the following ports to the internet at large:
 In front of the composed container is an nginx server which handles TLS and connects
 to redux as a reverse proxy.
 
+### Memory for solve workers
+
+Each solve runs in a worker process of its own (`ComputeLimits:IsolateSolves`, on by
+default; #936), started from the same image as `dotnet API.dll --compute-worker`. The
+Redux container keeps one warm worker per job slot (`ComputeLimits:MaxConcurrentJobs`,
+the number of processors by default) waiting for solves. An idle worker is a small .NET
+process: about 62 MB resident, measured in the Docker image (43 MB on Windows). A busy
+one may grow to the solve memory limit (`ComputeLimits:SolveMemoryMB`, 512 MB by
+default) plus about 128 MB the server allows for the runtime before it stops the worker.
+
+When a solve takes a warm worker, the server starts a new one in its place at once, even
+when every other slot is busy too, so the next solve does not wait for a worker to start.
+So at the worst, every job slot has a busy worker and a warm one beside it: give the Redux
+container at least the server itself (about 100 MB) plus, per job slot, the memory limit,
+the allowance and an idle worker. With 4 slots and the defaults that is about 100 MB +
+4 × (640 MB + 62 MB), roughly 2.9 GB. A worker that has just answered or been stopped
+takes a moment to exit, so the total can pass this briefly. If the container has less,
+lower `MaxConcurrentJobs` or `SolveMemoryMB`. With the cap on jobs turned off
+(`MaxConcurrentJobs` zero or less) nothing bounds the number of busy workers, so keep
+the cap on in production.
+
  ### service restarts (sudo)
 
  Members of the `redux` group are allowed to start/stop/restart the service
