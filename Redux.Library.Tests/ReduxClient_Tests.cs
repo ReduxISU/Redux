@@ -31,4 +31,23 @@ public class ReduxClient_Tests {
         Assert.Throws<ArgumentException>(() =>
             redux.Solve("NonExistentSolver", "(x1)"));
     }
+    [Fact]
+    public void ExcludesDummyImplementations() {
+        Assert.DoesNotContain("DummySolver", redux.GetSolvers());
+        Assert.DoesNotContain("DummyVerifier", redux.GetVerifiers());
+        Assert.DoesNotContain("DummyVisualization", redux.GetVisualizations());
+    }
+
+    [Fact]
+    public void DiscoversRealImplementations() {
+        Assert.Contains("SATBruteForceSolver", redux.GetSolvers());
+        Assert.Contains("CliqueDefaultVisualization", redux.GetVisualizations());
+    }
+
+    [Fact]
+    public void KeepsAllProblemsIncludingThoseWithMissingDefaults() {
+        // Placeholder implementations must not affect problem discovery.
+        Assert.NotEmpty(redux.GetProblems());
+        Assert.DoesNotContain("DummySolver", redux.GetProblems());
+    }
 }

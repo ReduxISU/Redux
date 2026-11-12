@@ -15,18 +15,23 @@ public class ReduxClient {
     public ReduxClient() {
         var types = typeof(ReduxClient).Assembly.GetTypes();
 
-        _solvers = Discover<ISolver>(types);
-        _verifiers = Discover<IVerifier>(types);
+        _solvers = Discover<ISolver>(types, "DummySolver");
+        _verifiers = Discover<IVerifier>(types, "DummyVerifier");
         _problems = Discover<IProblem>(types);
         _reductions = Discover<IReduction>(types);
-        _visualizations = Discover<IVisualization>(types);
+        _visualizations = Discover<IVisualization>(types, "DummyVisualization");
     }
 
-    private static Dictionary<string, Type> Discover<T>(Type[] types) {
+    private static Dictionary<string, Type> Discover<T>(
+        Type[] types,
+        params string[] excludedNames) {
+
         return types
-            .Where(t => t.IsClass && !t.IsAbstract &&
+            .Where(t => t.IsClass &&
+                        !t.IsAbstract &&
                         !t.ContainsGenericParameters &&
-                        typeof(T).IsAssignableFrom(t))
+                        typeof(T).IsAssignableFrom(t) &&
+                        !excludedNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase))
             .ToDictionary(
                 t => t.Name,
                 t => t,

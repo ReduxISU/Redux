@@ -45,6 +45,8 @@
     <None Remove="integration/**" />
   </ItemGroup>
 
+
+  <!-- Exclude the library and its tests because they compile in separate projects. -->
   <ItemGroup>
     <Compile Remove="Redux.Library/**" />
     <Content Remove="Redux.Library/**" />

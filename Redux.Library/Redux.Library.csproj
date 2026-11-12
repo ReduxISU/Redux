@@ -9,7 +9,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
     <PackageId>ISU.Redux.Library</PackageId>
-    <Version>1.0.101</Version>
+    <Version>0.1.0</Version>
     <Authors>Redux Contributors</Authors>
     <Description>A .NET library for computational problems, solvers, verifiers, reductions, and visualizations.</Description>
 
@@ -23,18 +23,17 @@
 
   <ItemGroup>
     <Compile Include="ReduxClient.cs" />
+    <!-- Share interface implementations while excluding API-only files. -->
     <Compile Include="../Interfaces/**/*.cs"
-         Exclude="../Interfaces/DefaultFor.cs;
-                  ../Interfaces/ComputeWorker.cs;
+         Exclude="../Interfaces/ComputeWorker.cs;
                   ../Interfaces/SolveWorkerPool.cs;
-                  ../Interfaces/SolverUnavailableException.cs" />
+                  ../Interfaces/DefaultFor.Server.cs" />
     <Compile Include="../Problems/**/*.cs" />
     <Compile Include="../Tools/QasmD3Scheduler.cs" />
     <Compile Include="../Tools/QuantumServerAPI.cs" />
     <Compile Include="../QuantumSolverSettings.cs" />
     <Compile Include="../ProjectSourcePath.cs" />
-    <Compile Include="DefaultFor.Library.cs" />
-    <Compile Include="SolverUnavailableException.Library.cs" />
+    <Compile Include="DefaultFor.LibraryDiscovery.cs" />
   </ItemGroup>
 
   <ItemGroup>

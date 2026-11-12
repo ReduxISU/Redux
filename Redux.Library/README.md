@@ -22,13 +22,13 @@ dotnet build Redux.Library/Redux.Library.csproj -c Release
 
 dotnet test Redux.Library.Tests/Redux.Library.Tests.csproj -c Release
 
-dotnet pack Redux.Library/Redux.Library.csproj -c Release -p:PackageVersion=1.0.101 -o ./nupkgs
+dotnet pack Redux.Library/Redux.Library.csproj -c Release -p:PackageVersion=0.1.0 -o ./nupkgs
 
 ```
 
-`1.0.101` is an example local package version. Use a new version when distributing changed code, so NuGet does not reuse an older cached package.
+`0.1.0` is an example local package version. Use a new version when distributing changed code, so NuGet does not reuse an older cached package.
 
-The GitHub Actions workflow at `.github/workflows/build-nuget.yml` builds and tests the library on `CSharpAPI`. If configured for publishing, it also pushes a new version to NuGet.org (the proposed automated version scheme is `1.1.<github.run_number>`). Verify the actual workflow before relying on automatic publishing. You can also download its `.nupkg` build artifact.
+The GitHub Actions workflow at `.github/workflows/publish.yml` runs when a release tag matching `v<Version>` is pushed. It checks that the tag matches the project version, runs tests, packages the library, and publishes it to NuGet.org.
 
 ## Install in another .NET application
 
@@ -48,7 +48,7 @@ Copy your newly built `ISU.Redux.Library.<version>.nupkg` into `MyReduxApp/packa
 
 ```bash
 
-dotnet add package ISU.Redux.Library --version 1.0.101 --source ./packages --no-restore
+dotnet add package ISU.Redux.Library --version 0.1.0 --source ./packages --no-restore
 
 dotnet restore --source ./packages --source https://api.nuget.org/v3/index.json
 
@@ -65,10 +65,29 @@ Once `ISU.Redux.Library` has been accepted and indexed on NuGet.org, install it 
 ```bash
 dotnet new console -n ReduxPublicDemo --framework net10.0
 cd ReduxPublicDemo
-dotnet add package ISU.Redux.Library --version 1.0.101
+dotnet add package ISU.Redux.Library --version 0.1.0
 ```
 
 Use the actual published version if it differs. In C#, keep `using Redux.Library;` — **the package ID and C# namespace are different things**.
+
+### Quantum solvers
+
+Redux.Library includes quantum solvers, but they require a separately
+running Redux quantum service.
+
+The default service URL is `http://localhost:27100`, as defined in
+`QuantumSolverSettings.cs`. The quantum HTTP client has a 30-second
+timeout.
+
+Quantum solvers use `QuantumServerAPI`, which depends on the shared
+`QuantumSolverSettingsGlobal.QuantumSolver` and
+`QuantumSolverSettingsGlobal.HttpClientFactory` configuration.
+
+The Redux API initializes this configuration. The standalone library
+does not currently expose a public configuration method for the quantum
+service. Quantum solvers remain discoverable, but operations requiring
+the service throw `SolverUnavailableException` when the required
+configuration is unavailable.
 
 ## Publishing and automated releases
 
@@ -76,7 +95,7 @@ Use the actual published version if it differs. In C#, keep `using Redux.Library
 2. Upload the first `ISU.Redux.Library.<version>.nupkg` through NuGet.org and wait for indexing.
 3. Create a scoped NuGet.org API key with permission to push new versions of `ISU.Redux.Library` (or configure NuGet Trusted Publishing).
 4. For an API key, save it in the GitHub repository's Actions secrets as `NUGET_API_KEY`. Never commit or share the key.
-5. Configure `.github/workflows/build-nuget.yml` to test, pack with a **new unique version** (for example `1.1.${{ github.run_number }}`), and push the `.nupkg` to NuGet.org on pushes to `CSharpAPI`.
+5. Configure NuGet Trusted Publishing for `ReduxISU/Redux` using `.github/workflows/publish.yml`. Publish by pushing a release tag such as `v0.1.0` that matches the project version.
 6. Confirm the workflow succeeds and the new version is visible on NuGet.org before updating consumers.
 
 NuGet.org does not allow replacing an existing package version. Consumers must explicitly update their dependency to receive new releases. The GitHub Actions workflow and its release permissions must be configured separately; this README does not perform that setup.
@@ -293,6 +312,20 @@ An unknown class name raises `ArgumentException`; unsupported reduction construc
 
 ****Important:**** Pulling newer Redux source code does not change an already installed package. Rebuild and install a ****new package version**** to make new implementations available to the consuming application.
 
+Redux.Library compiles shared implementations from `Interfaces/`
+and `Problems/`.
+
+Server-only files added under `Interfaces/` must be explicitly
+excluded in `Redux.Library.csproj` when they depend on API-only
+services or infrastructure.
+
+For example, `DefaultFor.Server.cs`, `ComputeWorker.cs`, and
+`SolveWorkerPool.cs` are excluded from the library.
+
+The shared `SolverUnavailableException` is included in the library,
+while its server-specific HTTP response handling is compiled
+only into the API.
+
 ## Automated tests
 
 The `Redux.Library.Tests` xUnit project tests the library without running the HTTP API. The test suite includes solver functionality and tests for reduction discovery, CLIQUE-to-VERTEXCOVER reduction, visualization discovery, graph JSON structure, and solved CLIQUE highlighting.
@@ -341,7 +374,7 @@ Redux/
 
 ├── Problems/
 
-├── .github/workflows/build-nuget.yml
+├── .github/workflows/publish.yml
 
 └── nupkgs/                 # generated locally
 
