@@ -41,6 +41,8 @@ Each constraint contains **one comparison or membership test**. Its operands can
 
 Unary signs are evaluated first, followed by multiplication/division, then addition/subtraction. Binary operations at the same precedence are evaluated left to right. Parentheses override this order.
 
+Write multiple conditions as separate quoted constraints. For example, `{"x<y","y<z"}` requires both comparisons; `{"x!=y","x!=z","y!=z"}` requires three distinct values.
+
 ### Range membership
 
 Square brackets include an endpoint; parentheses exclude it.
@@ -62,7 +64,28 @@ x in [y-z,y/z+1)
 
 Use lower bounds less than or equal to upper bounds. Equal endpoints include a value only when both ends are closed. Empty sets are accepted: `x in {}` is false and `x not in {}` is true. The keywords `in` and `not` are case insensitive.
 
-Write multiple conditions as separate quoted constraints. For example, `{"x<y","y<z"}` requires both comparisons; `{"x!=y","x!=z","y!=z"}` requires three distinct values.
+### Membership input on the webpage
+
+Membership constraints accept both spaced and compact forms:
+
+```text
+x in [2,5]
+xin[2,5]
+
+x not in (2,5)
+xnotin(2,5)
+```
+
+The compact forms allow membership constraints to work when the webpage removes spaces.
+
+If variable names make a compact expression ambiguous, parenthesize the left operand. For example, when both `x` and `xnot` are declared:
+
+```text
+(x) not in [2,5]
+(xnot) in [2,5]
+```
+
+The parentheses preserve the intended meaning after spaces are removed.
 
 ## Integer and decimal values
 

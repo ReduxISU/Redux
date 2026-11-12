@@ -157,8 +157,17 @@ internal sealed class ConstraintSatisfactionModel {
         // Parses exactly one comparison or membership predicate and rejects trailing data.
         // Membership supports sets and independently open/closed interval endpoints.
         internal Constraint Parse() {
-            var expressions = new List<Arithmetic> { ParseArithmetic() };
+            // Only the left operand may contain a membership keyword attached by the
+            // webpage's space removal. Right operands retain the original arithmetic grammar.
+            var expressions = new List<Arithmetic> { ParseArithmetic(allowCompactMembership: true) };
             string op = Take();
+            // Parentheses or a numeric left operand already separate tokens, e.g.
+            // (x+y)notin[2,5] or 2notin{3}. Normalize the joined keyword before using
+            // the existing membership parser; spaced "not in" still follows its usual path.
+            if (op.Equals("notin", StringComparison.OrdinalIgnoreCase)) {
+                tokens.Insert(position, "in");
+                op = "not";
+            }
             // Only membership accepts "not". Ordinary arithmetic comparisons retain
             // their own operators, including !=; Boolean combinations are unsupported.
             bool negated = op.Equals("not", StringComparison.OrdinalIgnoreCase);
@@ -190,12 +199,42 @@ internal sealed class ConstraintSatisfactionModel {
             if (position != tokens.Count) throw new FormatException($"Unexpected token '{Current}'.");
             return new Constraint(expressions.ToArray(), variables.ToArray(), op, negated, lower, upper);
         }
+        // Recover the single variable/operator boundary lost in inputs such as
+        // xnotin(2,5) and x+yin{2,5}. This is deliberately not a global replacement:
+        // identifiers may themselves contain "in" or "notin", and right-hand set
+        // elements/range bounds must never acquire nested membership predicates.
+        private void ExpandCompactMembership() {
+            // A compact operator must be immediately followed by a set/range opener.
+            // Names in comparisons (e.g. xnotin=2) are therefore left untouched.
+            if (position + 1 >= tokens.Count || tokens[position + 1] is not ("{" or "[" or "(")) return;
+            string token = Current;
+            string? variable = null, keyword = null;
+            foreach (string suffix in new[] { "notin", "in" }) {
+                checkTime?.Invoke();
+                // Keywords are case insensitive, while the remaining variable prefix
+                // must exactly match a declared name. Unknown names are never guessed.
+                if (token.Length <= suffix.Length || !token.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+                string prefix = token[..^suffix.Length];
+                if (!indices.ContainsKey(prefix)) continue;
+                // If x and xnot both exist, xnotin could mean either x not in or
+                // xnot in. Parenthesizing the left operand preserves that distinction
+                // even after the webpage removes spaces; do not silently choose one.
+                if (variable != null) throw new FormatException("Ambiguous compact membership; parenthesize the left operand, e.g. (x) not in [2,5].");
+                variable = prefix;
+                keyword = suffix;
+            }
+            if (variable == null) return;
+            // Split only this token. All later parsing, dependency tracking, evaluation,
+            // and certificate validation continue through the existing shared code.
+            tokens[position] = variable;
+            tokens.Insert(position + 1, keyword!);
+        }
         // Shunting yard preserves precedence and left associativity with no recursive calls.
 
         // Produces postfix instructions without recursion. Stops at the first predicate
         // or collection delimiter outside arithmetic parentheses, leaving it for Parse.
         // The operand flag distinguishes unary signs from binary addition/subtraction.
-        private Arithmetic ParseArithmetic() {
+        private Arithmetic ParseArithmetic(bool allowCompactMembership = false) {
             var output = new List<Instruction>();
             var operators = new Stack<string>();
             bool operand = true;
@@ -203,6 +242,10 @@ internal sealed class ConstraintSatisfactionModel {
             // depth zero must remain unconsumed for the membership parser.
             int depth = 0;
             while (position < tokens.Count) {
+                // Membership terminates the outer arithmetic operand. Expanding only
+                // when an operand is expected also leaves a standalone "notin" token
+                // after a completed expression for Parse() to handle as the operator.
+                if (allowCompactMembership && operand && depth == 0) ExpandCompactMembership();
                 checkTime?.Invoke(); string token = Current;
                 if (operand) {
                     // Stack unary signs in encounter order; popping applies them from
