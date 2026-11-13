@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_UNRESTRICTEDLONGESTPATH.Verifiers;
 class UnrestrictedLongestPathVerifier : IVerifier<UNRESTRICTEDLONGESTPATH> {
     public const string CertificateGrammar =
         "{v1,v2,...,vt} | all vertices are distinct, consecutive vertices share an edge, and t - 1 >= K";
-    public const string CertificateExample = "{1,2,3,5,4,6}";
+    public const string CertificateExample = "{5,1,4,2,6,7,3}";
 
     // --- Fields ---
     public string verifierName { get; } = "Unrestricted Longest Path Solution Verifier";

@@ -10,10 +10,10 @@ public class UNRESTRICTEDLONGESTPATH_Tests {
     public void DefaultInstance_ParsesExpectedGraphAndThreshold() {
         var problem = new UNRESTRICTEDLONGESTPATH();
         Assert.Equal(problem.defaultInstance, problem.instance);
-        Assert.Equal(6, problem.nodes.Count);
-        Assert.Equal(8, problem.edges.Count);
-        Assert.Equal(5, problem.K);
-        Assert.True(problem.defaultVerifier.verify(problem, "{1,2,3,5,4,6}"));
+        Assert.Equal(7, problem.nodes.Count);
+        Assert.Equal(10, problem.edges.Count);
+        Assert.Equal(6, problem.K);
+        Assert.True(problem.defaultVerifier.verify(problem, "{5,1,4,2,6,7,3}"));
     }
 
     [Theory]

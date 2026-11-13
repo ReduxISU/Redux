@@ -23,11 +23,11 @@ public class UNRESTRICTEDLONGESTPATH_HumanTests {
     // ---------- Parsing ----------
 
     [Fact]
-    public void DefaultInstance_HasSixVerticesEightEdgesAndKOfFive() {
+    public void DefaultInstance_HasSevenVerticesTenEdgesAndKOfSix() {
         var problem = new UNRESTRICTEDLONGESTPATH();
-        Assert.Equal(6, problem.nodes.Count);
-        Assert.Equal(8, problem.edges.Count);
-        Assert.Equal(5, problem.K);
+        Assert.Equal(7, problem.nodes.Count);
+        Assert.Equal(10, problem.edges.Count);
+        Assert.Equal(6, problem.K);
     }
 
     [Theory]
