@@ -192,4 +192,39 @@ public class CHANGEMAKING_Tests {
         solver.timerHasExpired = true;
         Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
     }
+
+    // -------------------------------------------------------------------------
+    // Size limits: refused with a 400, never an out-of-memory crash
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void CHANGEMAKING_DPSolver_Accepts_Largest_Allowed_X() {
+        CHANGEMAKING problem = new CHANGEMAKING($"({{1,1000}},{ChangeMakingDP.MaxAmount},10000)");
+        Assert.Equal("{(1000,10000)}", new ChangeMakingDP().solve(problem));
+    }
+
+    [Theory]
+    [InlineData("({1},10000001,1)")]       // one past the limit
+    [InlineData("({1},2000000000,1)")]     // about 8 GB per table if it were allocated
+    public void CHANGEMAKING_DPSolver_Refuses_X_Above_Limit(string instance) {
+        CHANGEMAKING problem = new CHANGEMAKING(instance);
+        Assert.Throws<ExactSearchLimitExceededException>(() => new ChangeMakingDP().solve(problem));
+    }
+
+    [Fact]
+    public void CHANGEMAKING_MemoSolver_Solves_Large_X_With_Few_Reachable_Amounts() {
+        // X is far past ChangeMakingDP.MaxAmount, but only multiples of 10^8 can be reached from it.
+        CHANGEMAKING problem = new CHANGEMAKING("({100000000,300000000},1000000000,4)");
+        string solution = new ChangeMakingMemo().solve(problem);
+        Assert.Equal("{(100000000,1),(300000000,3)}", solution);
+        Assert.True(new ChangeMakingVerifier().verify(problem, solution));
+        Assert.Throws<ExactSearchLimitExceededException>(() => new ChangeMakingDP().solve(problem));
+    }
+
+    [Fact]
+    public void CHANGEMAKING_MemoSolver_Refuses_When_Too_Many_Amounts_Are_Reachable() {
+        // With a 1-coin every amount up to X is reachable, so the memo would hold X + 1 entries.
+        CHANGEMAKING problem = new CHANGEMAKING("({1},2000000000,1)");
+        Assert.Throws<ExactSearchLimitExceededException>(() => new ChangeMakingMemo().solve(problem));
+    }
 }

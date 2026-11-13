@@ -11,8 +11,9 @@ class ChangeMakingVerifier : IVerifier<CHANGEMAKING> {
     // --- Fields ---
     public string verifierName { get; } = "Change-Making Solution Verifier";
     public string verifierDefinition { get; } = "Checks that every coin in the certificate is in C with a nonnegative count, that the coins total exactly X, and that at most K coins are used.";
-    public string source { get; } = "";
+    public string source { get; } = "Kozen, Dexter and Zaks, Shmuel. Optimal bounds for the change-making problem. Theoretical Computer Science 123(2), 1994. 377-388.";
     public string sourceFile { get; } = SourceFile.Path();
+    public string sourceLink { get; } = "https://www.cs.cornell.edu/~kozen/Papers/change";
     public string[] contributors { get; } = { "Jason L. Wright" };
 
     private string _certificate = "";
