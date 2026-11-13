@@ -61,8 +61,32 @@ public class SolverReplay_Tests {
             }
             return distances;
         }
+        if (lastPartial is Assignment) {
+            if (answer is "infeasible" or "unbounded" || answer == SolveRun.TimedOutAnswer)
+                return new Assignment(
+                    Array.Empty<KeyValuePair<string, string>>()
+                );
+
+            string[] values = answer.Trim()
+                .Trim('(', ')')
+                .Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+            return new Assignment(
+                values.Select((value, index) =>
+                    new KeyValuePair<string, string>(
+                        $"x{index + 1}",
+                        value.Trim()
+                    ))
+            );
+        }
         throw new NotImplementedException(
             $"Add an expected final Partial for {lastPartial.GetType().Name} to SolverReplay_Tests.ExpectedFinalPartial.");
+    }
+
+    [Fact]
+    public void TimedOutAssignmentHasEmptyFinalPartial() {
+        var partial = new Assignment(Array.Empty<KeyValuePair<string, string>>());
+        Assert.Equal(partial, ExpectedFinalPartial(partial, SolveRun.TimedOutAnswer));
     }
 
     [Fact]

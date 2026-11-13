@@ -33,14 +33,13 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
 
     // --- Methods ---
 
+    // On any failure of the quantum service this throws SolverUnavailableException (HTTP 503 solver_unavailable), never
+    // an error text in place of the answer (#625).
     public string solve(DEUTSCH problem) {
-        try {
-            // Get the function values directly from the problem instance
-            bool[] requestBody = problem.funcValues;
+        // Get the function values directly from the problem instance
+        bool[] requestBody = problem.funcValues;
 
-            // Create the API client
-            var client = new QuantumServerAPI();
-
+        return QuantumServerAPI.Ask(this, problem.problemName, client => {
             // Make the API call to the quantum endpoint
             string response = client.PostAsync("/deutsch-quantum", requestBody).Result;
 
@@ -48,15 +47,13 @@ class DeutschQuantumSolver : ISolver<DEUTSCH> {
             using JsonDocument doc = JsonDocument.Parse(response);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("answer", out JsonElement answerElement)) {
-                return answerElement.GetString() ?? "No answer found";
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("answer", out JsonElement answerElement)
+                && answerElement.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(answerElement.GetString())) {
+                return answerElement.GetString()!;
             }
 
-            // If no answer field, return the whole response
-            return response;
-        } catch (Exception ex) {
-            // Return error information in case of failure
-            return $"{{\"error\": \"{ex.Message}\"}}";
-        }
+            // No answer in the response: not an answer to pass on.
+            throw QuantumServerAPI.MissingAnswer("answer", response);
+        });
     }
 }

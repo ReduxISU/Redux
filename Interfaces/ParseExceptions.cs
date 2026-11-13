@@ -56,12 +56,21 @@ internal class ExactSearchLimitExceededException : Exception {
     public string ProblemName { get; }
     public int VariableCount { get; }
     public int MaxVariables { get; }
+    public System.Numerics.BigInteger? SearchSpaceSize { get; }
+    public int? MaxAssignments { get; }
 
     public ExactSearchLimitExceededException(string problemName, int variableCount, int maxVariables)
         : base($"{problemName} exact search supports at most {maxVariables} variables; received {variableCount}.") {
         ProblemName = problemName;
         VariableCount = variableCount;
         MaxVariables = maxVariables;
+    }
+
+    public ExactSearchLimitExceededException(string problemName, System.Numerics.BigInteger searchSpaceSize, int maxAssignments)
+        : base($"{problemName} exact search supports at most {maxAssignments} assignments in its search box; received {searchSpaceSize}.") {
+        ProblemName = problemName;
+        SearchSpaceSize = searchSpaceSize;
+        MaxAssignments = maxAssignments;
     }
 }
 
