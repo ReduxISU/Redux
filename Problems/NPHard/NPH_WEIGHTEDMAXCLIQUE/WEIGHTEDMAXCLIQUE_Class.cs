@@ -9,7 +9,7 @@ internal sealed class WEIGHTEDMAXCLIQUE : IGraphProblem {
     public string problemName { get; } = "Weighted Maximum Clique";
     public string problemLink { get; } = "https://en.wikipedia.org/wiki/Clique_problem";
     public string formalDefinition { get; } = "Given an undirected graph G=(V,E) and nonnegative integer vertex weights w, find a clique C subset V maximizing the sum of w(v) for v in C.";
-    public string inputDescription { get; } = "An undirected graph and one nonnegative integer weight for every vertex";
+    public string inputDescription { get; } = "A graph defined by a set of vertices and undirected edges, with a list of (vertex, weight) pairs assigning exactly one nonnegative integer weight to each vertex";
     public string outputDescription { get; } = "One maximum-weight clique and its total vertex weight";
     public string source { get; } = "Carraghan, R. and Pardalos, P. M. (1990). An exact algorithm for the maximum clique problem. Operations Research Letters 9(6), 375–382. Vertex-weighted optimization generalization.";
     public string sourceLink { get; } = "https://doi.org/10.1016/0167-6377(90)90057-C";
@@ -41,6 +41,7 @@ internal sealed class WEIGHTEDMAXCLIQUE : IGraphProblem {
     private readonly string[] _orderedNodes;
     private readonly HashSet<int>[] _adjacency;
     internal int VertexCount => _orderedNodes.Length;
+    internal int VertexIndex(string vertex) => Array.BinarySearch(_orderedNodes, vertex, StringComparer.Ordinal);
     internal long VertexWeight(int vertex) => weights[_orderedNodes[vertex]];
     internal int Degree(int vertex) => _adjacency[vertex].Count;
     internal bool AreAdjacent(int a, int b) => _adjacency[a].Contains(b);
