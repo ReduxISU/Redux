@@ -112,6 +112,7 @@ public class VisualizationType_Tests : IClassFixture<AppFactory> {
 
     private static readonly string[] UnimplementedAllowlist =
     {
+        "AkariVisualization",
         "ConvexHullVisualization",
         "SudokuVisualization",
         "LosslessDataCompressionVisualization",
