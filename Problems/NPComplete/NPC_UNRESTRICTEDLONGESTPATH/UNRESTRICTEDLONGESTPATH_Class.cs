@@ -20,7 +20,7 @@ class UNRESTRICTEDLONGESTPATH : IGraphProblem<UnrestrictedLongestPathSolver, Unr
     public string source { get; } = "Monien, B. (1985). How to find long paths efficiently. North-Holland Mathematics Studies, 239–254.";
     public string sourceLink { get; } = "https://doi.org/10.1016/s0304-0208(08)73110-4";
 
-    private static readonly string _defaultInstance = "(({1,2,3,4,5,6},{{1,2},{1,3},{2,3},{2,4},{3,5},{4,5},{4,6},{5,6}}),5)";
+    private static readonly string _defaultInstance = "(({1,2,3,4,5,6,7},{{1,2},{1,3},{1,4},{2,3},{2,4},{3,4},{1,5},{2,6},{3,7},{6,7}}),6)";
     public const string InstanceGrammar =
         "{((N,E),K) | N is set, E subset N unorderedcross N, K is int}";
     private const string VertexPattern = @"[^\s,{}()]+";
