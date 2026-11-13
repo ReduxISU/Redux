@@ -1,12 +1,25 @@
+using System.Text;
 using API.Interfaces;
 using API.Problems.NPComplete.NPC_AKARI.Solvers;
 using API.Problems.NPComplete.NPC_AKARI.Verifiers;
 using API.Problems.NPComplete.NPC_AKARI.Visualizations;
-using Microsoft.Net.Http.Headers;
 using SPADE;
 
 namespace API.Problems.NPComplete.NPC_AKARI;
 
+/// <summary>
+/// The Akari (Light Up) problem: the instance, its parser, and the grid geometry that the verifier and every solver
+/// read the rules from. This class is the single source of truth for Akari in Redux.
+/// <para>
+/// White cells are numbered 0..<see cref="WhiteCount"/>-1 in row-major order; a bulb placement is a <c>bool[]</c>
+/// indexed by that number. Each white cell lies in exactly one <b>row segment</b> and one <b>column segment</b>: a
+/// maximal run of white cells in its row or column between walls (or the edge of the grid). A bulb lights exactly the
+/// cells of its two segments, so "lit" and "two bulbs see each other" are both questions about segments.
+/// </para>
+/// <para>
+/// The geometry members are internal so they stay out of the serialized problem JSON (as SAT's <c>formula</c>).
+/// </para>
+/// </summary>
 class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualization> {
 
     // --- Fields ---
@@ -33,8 +46,8 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
     // /ProblemProvider/info and by parse-error responses; this is the
     // canonical place to tell an LLM (or a human, or the GUI) what
     // shape your instance/certificate strings take.
-    public string instanceFormat { get; } = $"Nested list of rows, each row a parenthesized comma-separated list of cells: _ (white), # (black wall), or 0-4 (clue wall). Example: {_defaultInstance}";
-    public string certificateFormat { get; } = $"The instance grid with every light bulb marked '*' in place of a white cell '_'; walls and clues are copied unchanged, and \"{{}}\" means no solution. Example (default instance): {AkariVerifier.CertificateExample}";
+    public string instanceFormat { get; } = $"Nested list of rows, each row a parenthesized comma-separated list of cells: {EMPTY_SYMBOL} (white), {WALL_SYMBOL} (black wall), or 0-4 (clue wall). Example: {_defaultInstance}";
+    public string certificateFormat { get; } = $"The instance grid with every light bulb marked '{BULB_SYMBOL}' in place of a white cell '{EMPTY_SYMBOL}'; walls and clues are copied unchanged, and \"{{}}\" means no solution. Example (default instance): {AkariVerifier.CertificateExample}";
     public string instance { get; set; } = string.Empty;
     public string wikiName { get; } = ""; // Deprecated, do not implement
     public AkariConstraintPropagation defaultSolver { get; } = new AkariConstraintPropagation();
@@ -58,7 +71,42 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
     // Only appears in a parsed certificate (see AkariVerifier), never in an instance's grid.
     public const int BULB = -3;
 
+    // The text symbols for those cells, shared by the parser (ParseGrid) and the writer (Format). Clues are the digits 0-4.
+    internal const char EMPTY_SYMBOL = '_';
+    internal const char WALL_SYMBOL = '#';
+    internal const char BULB_SYMBOL = '*';
+
+    // Up, down, left, right.
+    private static readonly (int dr, int dc)[] Directions = { (-1, 0), (1, 0), (0, -1), (0, 1) };
+
     public int[][] grid { get; } = Array.Empty<int[]>();
+
+    // --- Geometry (internal: built once per instance, read by the verifier and the solvers) ---
+
+    internal int Rows { get; private set; }
+    internal int Cols { get; private set; }
+    internal int WhiteCount => CellRow.Length;
+
+    /// <summary>White-cell index to its row and column in the grid.</summary>
+    internal int[] CellRow { get; private set; } = Array.Empty<int>();
+    internal int[] CellCol { get; private set; } = Array.Empty<int>();
+
+    /// <summary>Grid position to white-cell index, or -1 for a wall or clue.</summary>
+    internal int[][] WhiteIndex { get; private set; } = Array.Empty<int[]>();
+
+    /// <summary>White-cell index to the id of its row segment and of its column segment (one id space for both).</summary>
+    internal int[] RowSegment { get; private set; } = Array.Empty<int>();
+    internal int[] ColSegment { get; private set; } = Array.Empty<int>();
+
+    /// <summary>Segment id to the white cells in it.</summary>
+    internal int[][] SegmentCells { get; private set; } = Array.Empty<int[]>();
+
+    /// <summary>Clue index to the clue's number and to the white cells orthogonally next to it.</summary>
+    internal int[] ClueValue { get; private set; } = Array.Empty<int>();
+    internal int[][] ClueNeighbors { get; private set; } = Array.Empty<int[]>();
+
+    /// <summary>White-cell index to the clues orthogonally next to it.</summary>
+    internal int[][] CellClues { get; private set; } = Array.Empty<int[]>();
 
     // --- Methods and Constructors ---
     public AKARI() : this(_defaultInstance) {
@@ -89,6 +137,152 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
 
         // Puzzle Grid Version: 2D array of integer-encoded cells (see EMPTY_CELL / WALL).
         grid = ParseGrid(stringInstance, allowBulbs: false, detail => new ProblemParseException("Akari", stringInstance, detail));
+        BuildGeometry();
+    }
+
+    // Works out the white-cell numbering, the segments and the clue adjacency of `grid`.
+    private void BuildGeometry() {
+        Rows = grid.Length;
+        Cols = Rows == 0 ? 0 : grid[0].Length;
+
+        var cellRow = new List<int>();
+        var cellCol = new List<int>();
+        var whiteIndex = new int[Rows][];
+        for (int r = 0; r < Rows; r++) {
+            whiteIndex[r] = new int[Cols];
+            for (int c = 0; c < Cols; c++) {
+                if (grid[r][c] == EMPTY_CELL) {
+                    whiteIndex[r][c] = cellRow.Count;
+                    cellRow.Add(r);
+                    cellCol.Add(c);
+                } else {
+                    whiteIndex[r][c] = -1;
+                }
+            }
+        }
+        WhiteIndex = whiteIndex;
+        CellRow = cellRow.ToArray();
+        CellCol = cellCol.ToArray();
+
+        // Segments: scan each row, then each column, starting a new segment after every wall.
+        var segments = new List<List<int>>();
+        var rowSegment = new int[WhiteCount];
+        var colSegment = new int[WhiteCount];
+        for (int r = 0; r < Rows; r++) {
+            List<int>? current = null;
+            for (int c = 0; c < Cols; c++) {
+                int i = whiteIndex[r][c];
+                if (i < 0) { current = null; continue; }
+                if (current == null) { current = new List<int>(); segments.Add(current); }
+                current.Add(i);
+                rowSegment[i] = segments.Count - 1;
+            }
+        }
+        for (int c = 0; c < Cols; c++) {
+            List<int>? current = null;
+            for (int r = 0; r < Rows; r++) {
+                int i = whiteIndex[r][c];
+                if (i < 0) { current = null; continue; }
+                if (current == null) { current = new List<int>(); segments.Add(current); }
+                current.Add(i);
+                colSegment[i] = segments.Count - 1;
+            }
+        }
+        RowSegment = rowSegment;
+        ColSegment = colSegment;
+        SegmentCells = segments.Select(s => s.ToArray()).ToArray();
+
+        var clueValue = new List<int>();
+        var clueNeighbors = new List<int[]>();
+        var cellClues = Enumerable.Range(0, WhiteCount).Select(_ => new List<int>()).ToArray();
+        for (int r = 0; r < Rows; r++) {
+            for (int c = 0; c < Cols; c++) {
+                if (grid[r][c] < 0) continue; // white cell or unnumbered wall
+                int clue = clueValue.Count;
+                clueValue.Add(grid[r][c]);
+                var neighbors = new List<int>();
+                foreach (var (dr, dc) in Directions) {
+                    int nr = r + dr, nc = c + dc;
+                    if (nr < 0 || nr >= Rows || nc < 0 || nc >= Cols) continue;
+                    int i = whiteIndex[nr][nc];
+                    if (i < 0) continue;
+                    neighbors.Add(i);
+                    cellClues[i].Add(clue);
+                }
+                clueNeighbors.Add(neighbors.ToArray());
+            }
+        }
+        ClueValue = clueValue.ToArray();
+        ClueNeighbors = clueNeighbors.ToArray();
+        CellClues = cellClues.Select(l => l.ToArray()).ToArray();
+    }
+
+    /// <summary>
+    /// True when <paramref name="bulb"/> (one entry per white cell) solves the puzzle: every white cell is lit, no
+    /// two bulbs share a row or column segment (so none lights another), and every clue has exactly its number of
+    /// bulbs next to it. O(rows * cols).
+    /// </summary>
+    internal bool IsSolution(bool[] bulb) {
+        if (bulb.Length != WhiteCount) return false;
+
+        var segmentBulbs = new int[SegmentCells.Length];
+        for (int i = 0; i < WhiteCount; i++) {
+            if (!bulb[i]) continue;
+            if (++segmentBulbs[RowSegment[i]] > 1) return false;
+            if (++segmentBulbs[ColSegment[i]] > 1) return false;
+        }
+        for (int i = 0; i < WhiteCount; i++) {
+            if (segmentBulbs[RowSegment[i]] == 0 && segmentBulbs[ColSegment[i]] == 0) return false;
+        }
+        for (int k = 0; k < ClueValue.Length; k++) {
+            int count = 0;
+            foreach (int i in ClueNeighbors[k]) {
+                if (bulb[i]) count++;
+            }
+            if (count != ClueValue[k]) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Reads a parsed certificate grid (cells as in <see cref="grid"/>, plus <see cref="BULB"/>) against this
+    /// instance. Returns the bulb placement, or null when the certificate does not describe this instance: a
+    /// different size, a wall or clue changed, or a bulb where the instance has a wall or clue.
+    /// </summary>
+    internal bool[]? BulbsFrom(int[][] certificateGrid) {
+        if (certificateGrid.Length != Rows) return null;
+        var bulb = new bool[WhiteCount];
+        for (int r = 0; r < Rows; r++) {
+            if (certificateGrid[r].Length != Cols) return null;
+            for (int c = 0; c < Cols; c++) {
+                int cell = certificateGrid[r][c];
+                int i = WhiteIndex[r][c];
+                if (i >= 0) {
+                    if (cell == BULB) bulb[i] = true;
+                    else if (cell != EMPTY_CELL) return null;
+                } else if (cell != grid[r][c]) {
+                    return null;
+                }
+            }
+        }
+        return bulb;
+    }
+
+    /// <summary>Writes a bulb placement as a certificate: the instance grid on one line, with bulbs as <see cref="BULB_SYMBOL"/>.</summary>
+    internal string Format(bool[] bulb) {
+        var sb = new StringBuilder("(");
+        for (int r = 0; r < Rows; r++) {
+            if (r > 0) sb.Append(',');
+            sb.Append('(');
+            for (int c = 0; c < Cols; c++) {
+                if (c > 0) sb.Append(',');
+                int i = WhiteIndex[r][c];
+                int cell = grid[r][c];
+                sb.Append(i >= 0 ? (bulb[i] ? BULB_SYMBOL : EMPTY_SYMBOL) : cell == WALL ? WALL_SYMBOL : (char)('0' + cell));
+            }
+            sb.Append(')');
+        }
+        return sb.Append(')').ToString();
     }
 
     // Parses a nested list such as "((_,_,#,_),(#,_,_,1))" into an int[][].
@@ -99,7 +293,7 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
     // This custom parser was built since SPADE currently struggles with nested lists (as of 10-15-2026).
     internal static int[][] ParseGrid(string input, bool allowBulbs, Func<string, Exception> fail) {
         string what = allowBulbs ? "certificate" : "instance";
-        string allowed = allowBulbs ? "_, *, #, 0-4" : "_, #, 0-4";
+        string allowed = allowBulbs ? $"{EMPTY_SYMBOL}, {BULB_SYMBOL}, {WALL_SYMBOL}, 0-4" : $"{EMPTY_SYMBOL}, {WALL_SYMBOL}, 0-4";
         if (string.IsNullOrWhiteSpace(input)) {
             throw fail($"{what} is empty");
         }
@@ -149,10 +343,10 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
                 }
                 char c = input[pos];
                 int cell = c switch {
-                    '_' => EMPTY_CELL,
-                    '#' => WALL,
+                    EMPTY_SYMBOL => EMPTY_CELL,
+                    WALL_SYMBOL => WALL,
                     >= '0' and <= '4' => c - '0',
-                    '*' when allowBulbs => BULB,
+                    BULB_SYMBOL when allowBulbs => BULB,
                     _ => throw fail($"invalid cell character '{c}' at row {rows.Count + 1}, cell {row.Count + 1} ({Location()}); allowed: {allowed}")
                 };
                 row.Add(cell);

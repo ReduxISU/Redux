@@ -54,13 +54,12 @@ class AkariConstraintPropagation : ISolver<AKARI> {
 
     public string solve(AKARI problem) {
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
-        var board = new AkariBoard(problem.grid);
-        bool[]? solution = Search(board, new State(board.WhiteCount, board.SegmentCells.Length));
+        bool[]? solution = Search(problem, new State(problem.WhiteCount, problem.SegmentCells.Length));
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
-        return solution != null ? board.Format(solution) : AkariVerifier.NoSolution;
+        return solution != null ? problem.Format(solution) : AkariVerifier.NoSolution;
     }
 
-    private bool[]? Search(AkariBoard b, State s) {
+    private bool[]? Search(AKARI b, State s) {
         if (timerHasExpired) return null;
         if (!Propagate(b, s)) return null;
 
@@ -91,12 +90,12 @@ class AkariConstraintPropagation : ISolver<AKARI> {
         return Search(b, s);
     }
 
-    private static bool Lit(AkariBoard b, State s, int i) =>
+    private static bool Lit(AKARI b, State s, int i) =>
         s.SegmentBulbs[b.RowSegment[i]] > 0 || s.SegmentBulbs[b.ColSegment[i]] > 0;
 
     // The undecided cells that could light dark cell d (d itself included when undecided). Cells in both of d's
     // segments are counted once.
-    private static int Candidates(AkariBoard b, State s, int d, out int first) {
+    private static int Candidates(AKARI b, State s, int d, out int first) {
         first = -1;
         int count = 0;
         foreach (int u in b.SegmentCells[b.RowSegment[d]]) {
@@ -113,7 +112,7 @@ class AkariConstraintPropagation : ISolver<AKARI> {
     }
 
     // Puts a bulb on undecided cell i and rules out every cell it lights. False if i is already lit.
-    private static bool PlaceBulb(AkariBoard b, State s, int i) {
+    private static bool PlaceBulb(AKARI b, State s, int i) {
         if (Lit(b, s, i)) return false;
         s.Cell[i] = Bulb;
         s.SegmentBulbs[b.RowSegment[i]]++;
@@ -125,7 +124,7 @@ class AkariConstraintPropagation : ISolver<AKARI> {
 
     // Applies the deductions until none changes anything. False on a contradiction. Invariant: an undecided cell is
     // never lit, because PlaceBulb rules out everything a new bulb lights.
-    private bool Propagate(AkariBoard b, State s) {
+    private bool Propagate(AKARI b, State s) {
         bool changed = true;
         while (changed) {
             if (timerHasExpired) return false;

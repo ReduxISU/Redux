@@ -18,7 +18,7 @@ class AkariBruteForce : ISolver<AKARI> {
     public string[] contributors { get; } = { "Carter Luker" };
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    // 2^w candidates, each checked in O(n * m) by AkariBoard.IsSolution; the binary-counter step is amortized O(1).
+    // 2^w candidates, each checked in O(n * m) by AKARI.IsSolution; the binary-counter step is amortized O(1).
     public MathematicalFunction timeComplexity { get; } = new("2^w * n * m", ", w = white cells, n = rows, m = columns");
     public MathematicalFunction spaceComplexity { get; } = new("n * m", ", n = rows, m = columns");
     public bool timerHasExpired { get; set; }
@@ -27,14 +27,13 @@ class AkariBruteForce : ISolver<AKARI> {
     public AkariBruteForce() { }
 
     public string solve(AKARI problem) {
-        var board = new AkariBoard(problem.grid);
-        var bulb = new bool[board.WhiteCount];
+        var bulb = new bool[problem.WhiteCount];
 
         // bulb[] is a w-bit binary counter (bulb[0] the low bit), so the loop visits every subset exactly once,
         // whatever w is (no 64-bit mask to overflow).
         while (true) {
             if (timerHasExpired) return SolveRun.TimedOutAnswer;
-            if (board.IsSolution(bulb)) return board.Format(bulb);
+            if (problem.IsSolution(bulb)) return problem.Format(bulb);
 
             int i = 0;
             while (i < bulb.Length && bulb[i]) {

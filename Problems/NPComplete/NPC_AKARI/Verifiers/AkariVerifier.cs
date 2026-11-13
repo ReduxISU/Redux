@@ -47,8 +47,7 @@ class AkariVerifier : IVerifier<AKARI> {
         int[][] certificateGrid = AKARI.ParseGrid(certificate!, allowBulbs: true,
             detail => new CertificateParseException(problem, certificate!, detail));
 
-        var board = new AkariBoard(problem.grid);
-        bool[]? bulbs = board.BulbsFrom(certificateGrid);
-        return bulbs != null && board.IsSolution(bulbs);
+        bool[]? bulbs = problem.BulbsFrom(certificateGrid);
+        return bulbs != null && problem.IsSolution(bulbs);
     }
 }

@@ -28,22 +28,21 @@ class AkariBacktracking : ISolver<AKARI> {
     public AkariBacktracking() { }
 
     public string solve(AKARI problem) {
-        var board = new AkariBoard(problem.grid);
-        var search = new Search(board, this);
+        var search = new Search(problem, this);
         bool found = search.Run(0);
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
-        return found ? board.Format(search.Bulb) : AkariVerifier.NoSolution;
+        return found ? problem.Format(search.Bulb) : AkariVerifier.NoSolution;
     }
 
     private sealed class Search {
-        private readonly AkariBoard _b;
+        private readonly AKARI _b;
         private readonly AkariBacktracking _solver;
         public readonly bool[] Bulb;
         private readonly int[] _segmentBulbs;   // bulbs in each segment
         private readonly int[] _clueBulbs;      // bulbs next to each clue
         private readonly int[] _clueUndecided;  // undecided white cells next to each clue
 
-        public Search(AkariBoard board, AkariBacktracking solver) {
+        public Search(AKARI board, AkariBacktracking solver) {
             _b = board;
             _solver = solver;
             Bulb = new bool[board.WhiteCount];

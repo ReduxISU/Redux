@@ -7,8 +7,9 @@ using API.Problems.NPComplete.NPC_AKARI.Verifiers;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// Tests for AKARI: the problem class (metadata, cell encodings, instance parser), the verifier, and the three
-// solvers (brute force, backtracking, constraint propagation). The visualization is not covered here.
+// Tests for AKARI: the problem class (metadata, cell encodings, instance parser, grid geometry), the verifier, and the
+// four solvers (brute force, backtracking, constraint propagation, simulated annealing). The visualization is not
+// covered here.
 public class AKARI_Tests {
 
     private const int E = AKARI.EMPTY_CELL;
@@ -401,8 +402,12 @@ public class AKARI_Tests {
 
     #region Solvers
 
-    // Every test below runs against each solver named here.
-    public static TheoryData<string> AllSolvers => new() { nameof(AkariBruteForce), nameof(AkariBacktracking), nameof(AkariConstraintPropagation) };
+    // The exact solvers: each finds a solution whenever one exists and proves "{}" when none does.
+    public static TheoryData<string> ExactSolvers => new() { nameof(AkariBruteForce), nameof(AkariBacktracking), nameof(AkariConstraintPropagation) };
+
+    // Every solver, including simulated annealing (incomplete: "{}" means it found no solution within its budget). The
+    // small-instance theories below run against each solver named here.
+    public static TheoryData<string> AllSolvers => new() { nameof(AkariBruteForce), nameof(AkariBacktracking), nameof(AkariConstraintPropagation), nameof(AkariAnnealing) };
 
     // The two that can finish the default instance (35 white cells: 2^35 placements for brute force) and larger grids.
     public static TheoryData<string> SearchSolvers => new() { nameof(AkariBacktracking), nameof(AkariConstraintPropagation) };
@@ -411,6 +416,7 @@ public class AKARI_Tests {
         nameof(AkariBruteForce) => new AkariBruteForce(),
         nameof(AkariBacktracking) => new AkariBacktracking(),
         nameof(AkariConstraintPropagation) => new AkariConstraintPropagation(),
+        nameof(AkariAnnealing) => new AkariAnnealing(),
         _ => throw new ArgumentException(name),
     };
 
@@ -625,7 +631,7 @@ public class AKARI_Tests {
     }
 
     [Theory]
-    [MemberData(nameof(AllSolvers))]
+    [MemberData(nameof(ExactSolvers))]
     public void AKARI_Solver_Metadata_IsDeclared(string solver) {
         ISolver s = SolverNamed(solver);
         Assert.StartsWith("Akari ", s.solverName);
@@ -633,6 +639,121 @@ public class AKARI_Tests {
         Assert.Equal(SolverComplexityBucket.Exponential, s.complexityBucket);
         Assert.NotNull(s.timeComplexity);
         Assert.Contains("w", s.timeComplexity!.VariableNames);
+    }
+
+    [Fact]
+    public void AKARI_Annealing_Metadata_IsDeclared() {
+        ISolver s = new AkariAnnealing();
+        Assert.StartsWith("Akari ", s.solverName);
+        Assert.Equal(SolverType.Heuristic | SolverType.Stochastic, s.solverType);
+        Assert.Equal(SolverComplexityBucket.Polynomial, s.complexityBucket);
+        Assert.NotNull(s.timeComplexity);
+        Assert.Contains("w", s.timeComplexity!.VariableNames);
+    }
+
+    [Fact]
+    public void AKARI_Annealing_Solves_DefaultInstance() {
+        var problem = new AKARI();
+        string solution = new AkariAnnealing().solve(problem);
+        Assert.True(problem.defaultVerifier.verify(problem, solution), $"returned {solution}");
+    }
+
+    [Theory]
+    [InlineData(10, 1)]
+    [InlineData(10, 2)]
+    [InlineData(10, 3)]
+    public void AKARI_Annealing_Solves_Generated_Puzzle(int size, int seed) {
+        string instance = GeneratePuzzle(size, size, seed);
+        string solution = Solve(nameof(AkariAnnealing), instance);
+        Assert.True(new AkariVerifier().verify(new AKARI(instance), solution), $"returned {solution} for {instance}");
+    }
+
+    [Fact]
+    public void AKARI_Annealing_Is_Reproducible_For_A_Seed() {
+        string instance = GeneratePuzzle(10, 10, 2);
+        Assert.Equal(new AkariAnnealing(7).solve(new AKARI(instance)), new AkariAnnealing(7).solve(new AKARI(instance)));
+    }
+
+    [Theory]
+    [InlineData(6, 1)]
+    [InlineData(10, 2)]
+    [InlineData(12, 3)]
+    public void AKARI_Annealing_Incremental_Energy_Matches_Recomputed(int size, int seed) {
+        // The energy is kept up to date from segment counts on every toggle; it must always equal a recount from the
+        // bulb placement alone. Random toggles (forbidden cells included) hit every case: a segment gaining its first
+        // bulb, losing its last, both segments of a cell flipping at once, conflicts, and over- and under-full clues.
+        var problem = new AKARI(GeneratePuzzle(size, size, seed));
+        var solver = new AkariAnnealing(seed);
+        solver.StartForTest(problem);
+        Assert.Equal(solver.EnergyFromScratch(), solver.Energy);
+
+        var rng = new Random(seed);
+        for (int step = 0; step < 2000; step++) {
+            solver.ToggleForTest(rng.Next(problem.WhiteCount));
+            Assert.Equal(solver.EnergyFromScratch(), solver.Energy);
+        }
+    }
+
+    #endregion
+
+    #region Geometry
+
+    [Fact]
+    public void AKARI_Geometry_Numbers_White_Cells_RowMajor() {
+        var p = new AKARI("((_,#,_),(_,_,1))");
+        Assert.Equal(4, p.WhiteCount);
+        Assert.Equal(new[] { 0, 0, 1, 1 }, p.CellRow);
+        Assert.Equal(new[] { 0, 2, 0, 1 }, p.CellCol);
+        Assert.Equal(new[] { 0, -1, 1 }, p.WhiteIndex[0]);
+        Assert.Equal(new[] { 2, 3, -1 }, p.WhiteIndex[1]);
+    }
+
+    [Fact]
+    public void AKARI_Geometry_Splits_Segments_At_Walls() {
+        // Row 0 is split by the wall into {0} and {1}; row 1 is {2,3}. Column 0 is {0,2}, column 1 is {3} (the wall
+        // above it ends it), column 2 is {1} (the clue below ends it).
+        var p = new AKARI("((_,#,_),(_,_,1))");
+        int[] Row(int i) => p.SegmentCells[p.RowSegment[i]];
+        int[] Col(int i) => p.SegmentCells[p.ColSegment[i]];
+        Assert.Equal(new[] { 0 }, Row(0));
+        Assert.Equal(new[] { 1 }, Row(1));
+        Assert.Equal(new[] { 2, 3 }, Row(2));
+        Assert.Equal(new[] { 2, 3 }, Row(3));
+        Assert.Equal(new[] { 0, 2 }, Col(0));
+        Assert.Equal(new[] { 0, 2 }, Col(2));
+        Assert.Equal(new[] { 3 }, Col(3));
+        Assert.Equal(new[] { 1 }, Col(1));
+        // 3 row segments + 3 column segments, one id space.
+        Assert.Equal(6, p.SegmentCells.Length);
+    }
+
+    [Fact]
+    public void AKARI_Geometry_Links_Clues_And_Neighbours() {
+        // Clues are numbered row-major (the 0 first, then the 2); the unnumbered wall is not a clue.
+        var p = new AKARI("((0,_,#),(_,2,_))");
+        Assert.Equal(new[] { 0, 2 }, p.ClueValue);
+        // White cells: 0 = (0,1), 1 = (1,0), 2 = (1,2). Neighbours are listed up, down, left, right.
+        Assert.Equal(new[] { 1, 0 }, p.ClueNeighbors[0]);
+        Assert.Equal(new[] { 0, 1, 2 }, p.ClueNeighbors[1]);
+        Assert.Equal(new[] { 0, 1 }, p.CellClues[0]);
+        Assert.Equal(new[] { 0, 1 }, p.CellClues[1]);
+        Assert.Equal(new[] { 1 }, p.CellClues[2]);
+    }
+
+    [Fact]
+    public void AKARI_Format_And_BulbsFrom_RoundTrip_Through_The_Parser() {
+        var p = new AKARI();
+        bool[]? bulbs = p.BulbsFrom(AKARI.ParseGrid(AkariVerifier.CertificateExample, allowBulbs: true, d => new Exception(d)));
+        Assert.NotNull(bulbs);
+        Assert.True(p.IsSolution(bulbs!));
+        Assert.Equal(AkariVerifier.CertificateExample, p.Format(bulbs!));
+    }
+
+    [Fact]
+    public void AKARI_Format_Uses_The_Shared_Cell_Symbols() {
+        var p = new AKARI("((_,#,_),(_,_,1))");
+        Assert.Equal($"(({AKARI.BULB_SYMBOL},{AKARI.WALL_SYMBOL},{AKARI.EMPTY_SYMBOL}),({AKARI.EMPTY_SYMBOL},{AKARI.EMPTY_SYMBOL},1))",
+            p.Format(new[] { true, false, false, false }));
     }
 
     #endregion
