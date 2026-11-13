@@ -14,8 +14,15 @@ namespace API.Interfaces;
 /// <see cref="WithBackstop{T}"/>, which stops the server from waiting, not the work.</item>
 /// </list>
 /// None of these is true cancellation: a flag or a recorder check stops the work only at its next checkpoint, and the
-/// backstop only stops waiting while the abandoned work runs on until it finishes. Real cancellation comes with
-/// running each job in its own process (#936) and on its own threads (#937).
+/// backstop only stops waiting while the abandoned work runs on until it finishes.
+/// </para>
+/// <para>
+/// Worker processes are the exception: when <see cref="IsolateSolvesKey"/> is on (the default), each compute job (a
+/// solve since #936; verify, reduce, mapSolution, mapSolutionBack, gadgets, visualize and visualizeReduction since #991)
+/// runs in a worker process of its own (<see cref="SolveWorkerPool"/>), which the server kills when the job does not
+/// stop by itself at the limit, so the work really is cancelled (<see cref="CancelledDetail"/>,
+/// <see cref="JobCancelledDetail"/>). The worker also has a memory limit (<see cref="SolveMemoryKey"/>). With the
+/// setting off, every endpoint uses the backstop as before; real cancellation inside one process comes with #937.
 /// </para>
 /// </summary>
 static class ComputeLimits {
@@ -42,14 +49,19 @@ static class ComputeLimits {
     /// (true, result) when it finished in time, and rethrows its exception if it failed; returns (false, default) when
     /// the backstop ran out first. Then the work is NOT cancelled: it keeps running in the background until it finishes
     /// or reaches a checkpoint of its own (see the class remarks). With no backstop the work runs inline, as before.
+    /// <para>
+    /// <paramref name="job"/> is the request's slot in the cap on jobs running at once (#936). Work the backstop gives up
+    /// on keeps that slot until it finishes, so abandoned work still counts toward the cap.
+    /// </para>
     /// </summary>
-    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop) {
+    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop, ComputeJob? job = null) {
         if (backstop is not { } wait)
             return (true, work());
         var task = Task.Run(work);
         using var stopWaiting = new CancellationTokenSource();
         var first = await Task.WhenAny(task, Task.Delay(wait, stopWaiting.Token)).ConfigureAwait(false);
         if (first != task) {
+            job?.FinishWhen(task);
             // Observe a later failure of the abandoned work, so it is not reported as an unobserved task exception.
             _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
@@ -87,6 +99,73 @@ static class ComputeLimits {
 
     /// <summary>The <c>detail</c> when the backstop answered: the work did not stop on its own.</summary>
     public const string BackstopDetail = "The server stopped waiting at the time limit. The computation was not cancelled and may run on for a while.";
+
+    /// <summary>
+    /// The <c>detail</c> when a solve in a worker process did not stop by itself at the limit, so the server killed the
+    /// process: unlike <see cref="BackstopDetail"/>, nothing runs on.
+    /// </summary>
+    public const string CancelledDetail = "The solver did not stop at the time limit, so the server stopped the process running it. The computation was cancelled.";
+
+    /// <summary>
+    /// The detail when a job other than a solve or a visualize (a verify or a reduction) in a worker process did not
+    /// finish by the limit, so the server killed the process. Those jobs have no time checks of their own.
+    /// </summary>
+    public const string JobCancelledDetail = "The computation did not finish by the time limit, so the server stopped the process running it. The computation was cancelled.";
+
+    /// <summary>
+    /// The configuration key that runs each compute job (a solve since #936, every compute endpoint since #991) in a
+    /// worker process of its own, with real cancellation at the time limit and a memory limit. Default true; false runs
+    /// every job inside the server, as before. The name is from when only solves moved.
+    /// </summary>
+    public const string IsolateSolvesKey = "ComputeLimits:IsolateSolves";
+
+    /// <summary>Whether compute jobs run in worker processes (<see cref="IsolateSolvesKey"/>, default true).</summary>
+    public static bool IsolateSolves(IConfiguration? configuration) =>
+        configuration?.GetValue<bool?>(IsolateSolvesKey) ?? true;
+
+    /// <summary>The configuration key for the memory limit, in megabytes, of a compute job (any endpoint's) run in a worker process.</summary>
+    public const string SolveMemoryKey = "ComputeLimits:SolveMemoryMB";
+    /// <summary>The memory limit used when <see cref="SolveMemoryKey"/> is not set.</summary>
+    public const int DefaultSolveMemoryMB = 512;
+
+    /// <summary>The memory limit from <see cref="SolveMemoryKey"/> (default <see cref="DefaultSolveMemoryMB"/>); zero or less means none.</summary>
+    public static int? SolveMemoryMB(IConfiguration? configuration) {
+        int mb = configuration?.GetValue<int?>(SolveMemoryKey) ?? DefaultSolveMemoryMB;
+        return mb > 0 ? mb : null;
+    }
+
+    /// <summary>
+    /// The body of a compute job stopped by the memory limit, in the same error contract as <see cref="TimeLimitBody"/>:
+    /// <c>error</c>, a plain <c>message</c>, the technical <c>detail</c>, <c>limitMB</c>, context, and a <c>hint</c>.
+    /// </summary>
+    public static object MemoryLimitBody(string job, int limitMB, string detail, string hint, IReadOnlyDictionary<string, object?>? context = null) {
+        var body = new Dictionary<string, object?> {
+            ["error"] = MemoryLimitError,
+            ["message"] = $"The {job} used more than the {limitMB} MB memory limit, so it was stopped.",
+            ["detail"] = detail,
+            ["limitMB"] = limitMB,
+        };
+        if (context != null)
+            foreach (var (key, value) in context)
+                body[key] = value;
+        body["hint"] = hint;
+        return body;
+    }
+
+    /// <summary>The <c>error</c> code of a solve stopped by the memory limit.</summary>
+    public const string MemoryLimitError = "memory_limit";
+
+    /// <summary>The <c>detail</c> when the solver asked for more memory than the worker's heap limit allows.</summary>
+    public const string HeapLimitDetail = "The solver asked for more memory than the limit allows and was stopped; there is no answer.";
+
+    /// <summary>The <c>detail</c> when the server saw the worker process grow past the limit and killed it.</summary>
+    public const string MemoryWatchDetail = "The process running the solve grew past the memory limit, so the server stopped it; there is no answer.";
+
+    /// <summary>The <see cref="HeapLimitDetail"/> of a verify or a reduction, which runs no solver.</summary>
+    public const string JobHeapLimitDetail = "The computation asked for more memory than the limit allows and was stopped; there is no answer.";
+
+    /// <summary>The <see cref="MemoryWatchDetail"/> of a verify or a reduction, which runs no solver.</summary>
+    public const string JobMemoryWatchDetail = "The process running the computation grew past the memory limit, so the server stopped it; there is no answer.";
 }
 
 /// <summary>

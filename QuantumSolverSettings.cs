@@ -17,3 +17,16 @@ public class QuantumSolverSettings {
     /// </summary>
     public string BaseURL { get; set; } = "http://localhost:27100";
 }
+
+/// <summary>Registers the HTTP client the quantum solvers use, in the web host and in a solve worker process (#936).</summary>
+public static class QuantumHttpClientRegistration {
+    /// <summary>The named client "quantum": the configured base URL and a 30-second timeout.</summary>
+    public static IServiceCollection AddQuantumHttpClient(this IServiceCollection services) {
+        services.AddHttpClient("quantum", (sp, client) => {
+            var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<QuantumSolverSettings>>().CurrentValue;
+            client.BaseAddress = new Uri(settings.BaseURL);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+        return services;
+    }
+}
