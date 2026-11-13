@@ -36,7 +36,6 @@ internal static partial class ProblemDefaults {
     // The three kinds a default can be, in a fixed order so lookups and tests agree.
     internal static readonly Type[] Kinds = { typeof(ISolver), typeof(IVerifier), typeof(IVisualization) };
 
-    // Several declarations for one (problem, kind) are a mistake that DefaultFor_Tests reports;
     // until it is fixed the first by full name wins, so the choice at least doesn't vary by run.
     private static readonly Lazy<List<Declaration>> _declarations =
         new(() => Scan(GetDefaultTypes()));

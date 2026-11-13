@@ -1,10 +1,10 @@
 
 name: Publish ISU Redux Library to NuGet
 
-# Publish only when a v<Version> tag matches Redux.Library.csproj.
+# Publish only when a lib-v<Version> tag matches Redux.Library.csproj.
 on:
   push:
-    tags: ['v*']
+    tags: ['lib-v*']
 
 concurrency:
   group: nuget-publish
@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           version=$(grep -oP '(?<=<Version>)[^<]+' Redux.Library/Redux.Library.csproj)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+          if [ "lib-v$version" != "$GITHUB_REF_NAME" ]; then
             echo "Tag $GITHUB_REF_NAME does not match <Version>$version</Version> in Redux.Library.csproj"
             exit 1
           fi
@@ -49,6 +49,7 @@ jobs:
           if-no-files-found: error
 
       # NuGet trusted publishing must authorize ReduxISU/Redux and publish.yml.
+      # Trusted-publishing policy is owned by the account isu-redux which is owned by Dr. Bodily.
       - name: NuGet login
         id: login
         uses: NuGet/login@v1
@@ -59,4 +60,5 @@ jobs:
         run: |
           dotnet nuget push out/*.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
-            --source https://api.nuget.org/v3/index.json
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

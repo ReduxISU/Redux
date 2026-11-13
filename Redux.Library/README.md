@@ -68,7 +68,7 @@ cd ReduxPublicDemo
 dotnet add package ISU.Redux.Library --version 0.1.0
 ```
 
-Use the actual published version if it differs. In C#, keep `using Redux.Library;` — **the package ID and C# namespace are different things**.
+Use the actual published version if it differs. In C#, keep `using Redux.Library;` â€” **the package ID and C# namespace are different things**.
 
 ### Quantum solvers
 
@@ -91,12 +91,25 @@ configuration is unavailable.
 
 ## Publishing and automated releases
 
-1. Confirm the project license, package metadata, and permission to use the `ISU` name.
-2. Upload the first `ISU.Redux.Library.<version>.nupkg` through NuGet.org and wait for indexing.
-3. Create a scoped NuGet.org API key with permission to push new versions of `ISU.Redux.Library` (or configure NuGet Trusted Publishing).
-4. For an API key, save it in the GitHub repository's Actions secrets as `NUGET_API_KEY`. Never commit or share the key.
-5. Configure NuGet Trusted Publishing for `ReduxISU/Redux` using `.github/workflows/publish.yml`. Publish by pushing a release tag such as `v0.1.0` that matches the project version.
-6. Confirm the workflow succeeds and the new version is visible on NuGet.org before updating consumers.
+NuGet releases use GitHub Actions and NuGet trusted publishing. No manual package upload or NuGet API key secret is required.
+
+1. Configure a NuGet trusted-publishing policy under the `isu-redux` account with:
+   - GitHub repository: `ReduxISU/Redux`
+   - Workflow filename: `publish.yml`
+   - Package: `ISU.Redux.Library`
+
+2. Update `<Version>` in `Redux.Library/Redux.Library.csproj`.
+
+3. Create and push the matching release tag:
+
+   ```bash
+   git tag lib-v1.0.0
+   git push origin lib-v1.0.0
+   ```
+
+   Replace `1.0.0` with the version specified in the project file.
+
+4. Confirm the workflow succeeds and the new version is visible on NuGet.org before updating consumers.
 
 NuGet.org does not allow replacing an existing package version. Consumers must explicitly update their dependency to receive new releases. The GitHub Actions workflow and its release permissions must be configured separately; this README does not perform that setup.
 
@@ -126,7 +139,7 @@ Console.WriteLine($"SAT result: {satSolution}");
 
 ```
 
-The number of discovered implementations depends on the package version. In one local test of the library, discovery returned 52 problems, 83 solvers, 52 verifiers, 20 reductions, and 52 visualizations.
+The available implementations depend on the installed package version. Use `GetProblems()`, `GetSolvers()`, `GetVerifiers()`, `GetReductions()`, and `GetVisualizations()` to retrieve the current implementations.
 
 ## Public client API
 
@@ -170,7 +183,7 @@ var redux = new ReduxClient();
 
 string cliqueInstance =
 
-    "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
+Â  Â  "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
 
 string cliqueSolution = redux.Solve("CliqueBruteForce", cliqueInstance);
 
@@ -178,9 +191,9 @@ Console.WriteLine(cliqueSolution); // {1,2,3}
 
 string knapsackSolution = redux.Solve(
 
-    "KnapsackBruteForce",
+Â  Â  "KnapsackBruteForce",
 
-    "({(10,60),(20,100),(30,120)},50,220)"
+Â  Â  "({(10,60),(20,100),(30,120)},50,220)"
 
 );
 
@@ -202,7 +215,7 @@ string[] verifierNames = redux.GetVerifiers();
 
 foreach (string name in verifierNames)
 
-    Console.WriteLine(name);
+Â  Â  Console.WriteLine(name);
 
 // bool valid = redux.Verify("ActualVerifierClassName", instance, certificate);
 
@@ -216,13 +229,13 @@ Verification is exposed by the client, but the examples in this README do not cl
 
 string cliqueInstance =
 
-    "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
+Â  Â  "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
 
 string reduced = redux.Reduce(
 
-    "sipserReductionVertexCover",
+Â  Â  "sipserReductionVertexCover",
 
-    cliqueInstance
+Â  Â  cliqueInstance
 
 );
 
@@ -238,13 +251,13 @@ The input is a complete three-vertex graph. Its complement has no edges, so the 
 
 string cliqueInstance =
 
-    "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
+Â  Â  "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
 
 string graphJson = redux.Visualize(
 
-    "CliqueDefaultVisualization",
+Â  Â  "CliqueDefaultVisualization",
 
-    cliqueInstance
+Â  Â  cliqueInstance
 
 );
 
@@ -260,17 +273,17 @@ The JSON includes `kind: "graph"`, a `nodes` array, and a `links` array. This is
 
 string cliqueInstance =
 
-    "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
+Â  Â  "(({1,2,3},{{1,2},{2,3},{1,3}}),3)";
 
 string solution = redux.Solve("CliqueBruteForce", cliqueInstance);
 
 string solvedGraphJson = redux.VisualizeSolved(
 
-    "CliqueDefaultVisualization",
+Â  Â  "CliqueDefaultVisualization",
 
-    cliqueInstance,
+Â  Â  cliqueInstance,
 
-    solution
+Â  Â  solution
 
 );
 
@@ -288,9 +301,9 @@ try
 
 {
 
-    string result = redux.Solve("CliqueBruteForce", "invalid input");
+Â  Â  string result = redux.Solve("CliqueBruteForce", "invalid input");
 
-    Console.WriteLine(result);
+Â  Â  Console.WriteLine(result);
 
 }
 
@@ -298,7 +311,7 @@ catch (Exception ex)
 
 {
 
-    Console.WriteLine($"Redux operation failed: {ex.Message}");
+Â  Â  Console.WriteLine($"Redux operation failed: {ex.Message}");
 
 }
 
@@ -360,23 +373,23 @@ The CI workflow should run the library tests before packaging or publishing. A s
 
 Redux/
 
-├── Redux.Library/
+â”œâ”€â”€ Redux.Library/
 
-│   ├── Redux.Library.csproj
+â”‚ Â  â”œâ”€â”€ Redux.Library.csproj
 
-│   └── ReduxClient.cs
+â”‚ Â  â””â”€â”€ ReduxClient.cs
 
-├── Redux.Library.Tests/
+â”œâ”€â”€ Redux.Library.Tests/
 
-│   └── Redux.Library.Tests.csproj
+â”‚ Â  â””â”€â”€ Redux.Library.Tests.csproj
 
-├── Interfaces/
+â”œâ”€â”€ Interfaces/
 
-├── Problems/
+â”œâ”€â”€ Problems/
 
-├── .github/workflows/publish.yml
+â”œâ”€â”€ .github/workflows/publish.yml
 
-└── nupkgs/                 # generated locally
+â””â”€â”€ nupkgs/ Â  Â  Â  Â  Â  Â  Â  Â  # generated locally
 
 ```
 

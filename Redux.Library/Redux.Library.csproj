@@ -25,9 +25,8 @@
     <Compile Include="ReduxClient.cs" />
     <!-- Share interface implementations while excluding API-only files. -->
     <Compile Include="../Interfaces/**/*.cs"
-         Exclude="../Interfaces/ComputeWorker.cs;
-                  ../Interfaces/SolveWorkerPool.cs;
-                  ../Interfaces/DefaultFor.Server.cs" />
+            Exclude="../Interfaces/ComputeWorker.cs;
+                      ../Interfaces/SolveWorkerPool.cs" />
     <Compile Include="../Problems/**/*.cs" />
     <Compile Include="../Tools/QasmD3Scheduler.cs" />
     <Compile Include="../Tools/QuantumServerAPI.cs" />
