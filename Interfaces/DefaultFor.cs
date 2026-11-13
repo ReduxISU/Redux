@@ -30,23 +30,26 @@ public sealed class DefaultForAttribute : Attribute {
 /// <see cref="DefaultForAttribute"/>s on the types ProblemProvider already scanned. Problems that
 /// implement <see cref="IProblem{T, U, V}"/> name their defaults themselves and never come here.
 /// </summary>
-internal static class ProblemDefaults {
+internal static partial class ProblemDefaults {
     internal sealed record Declaration(Type Problem, Type Kind, Type Class);
 
     // The three kinds a default can be, in a fixed order so lookups and tests agree.
     internal static readonly Type[] Kinds = { typeof(ISolver), typeof(IVerifier), typeof(IVisualization) };
 
-    private static readonly Lazy<List<Declaration>> _declarations = new(() => Scan(
-        ProblemProvider.Solvers.Values
-            .Concat(ProblemProvider.Verifiers.Values)
-            .Concat(ProblemProvider.Visualizers.Values)));
-
-    // Several declarations for one (problem, kind) are a mistake that DefaultFor_Tests reports;
     // until it is fixed the first by full name wins, so the choice at least doesn't vary by run.
+    private static readonly Lazy<List<Declaration>> _declarations =
+        new(() => Scan(GetDefaultTypes()));
+
+    private static partial IEnumerable<Type> GetDefaultTypes();
+
+    // Several declarations for one (problem, kind) are a mistake.
+    // Until fixed, the first by full name wins.
     private static readonly Lazy<Dictionary<(Type Problem, Type Kind), Type>> _byProblem = new(() =>
         _declarations.Value
             .GroupBy(d => (d.Problem, d.Kind))
-            .ToDictionary(g => g.Key, g => g.OrderBy(d => d.Class.FullName, StringComparer.Ordinal).First().Class));
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(d => d.Class.FullName, StringComparer.Ordinal).First().Class));
 
     /// <summary>Every [DefaultFor] declaration, one per (problem, kind) the class implements.</summary>
     internal static IReadOnlyList<Declaration> Declarations => _declarations.Value;

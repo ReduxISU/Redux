@@ -1,0 +1,64 @@
+
+name: Publish ISU Redux Library to NuGet
+
+# Publish only when a lib-v<Version> tag matches Redux.Library.csproj.
+on:
+  push:
+    tags: ['lib-v*']
+
+concurrency:
+  group: nuget-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check tag matches project version
+        shell: bash
+        run: |
+          version=$(grep -oP '(?<=<Version>)[^<]+' Redux.Library/Redux.Library.csproj)
+          if [ "lib-v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match <Version>$version</Version> in Redux.Library.csproj"
+            exit 1
+          fi
+
+      - name: Test Redux library
+        run: dotnet test Redux.Library.Tests/Redux.Library.Tests.csproj -c Release
+
+      - name: Pack ISU.Redux.Library
+        run: dotnet pack Redux.Library/Redux.Library.csproj -c Release -o out
+
+      - name: Upload NuGet artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ISU-Redux-NuGet-Package
+          path: out/*.nupkg
+          if-no-files-found: error
+
+      # NuGet trusted publishing must authorize ReduxISU/Redux and publish.yml.
+      # Trusted-publishing policy is owned by the account isu-redux which is owned by Dr. Bodily.
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: isu-redux
+
+      - name: Publish to NuGet.org
+        run: |
+          dotnet nuget push out/*.nupkg \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

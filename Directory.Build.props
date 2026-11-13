@@ -1,4 +1,4 @@
-<!-- Auto-imported by MSBuild into every project (API.csproj, redux-tests). -->
+<!-- Auto-imported by MSBuild into every project. -->
 <Project>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
