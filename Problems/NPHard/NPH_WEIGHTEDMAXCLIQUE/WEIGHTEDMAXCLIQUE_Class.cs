@@ -114,7 +114,10 @@ internal sealed class WEIGHTEDMAXCLIQUE : IGraphProblem {
                 string vertex = Vertex(entry[0]);
                 if (!nodeSet.Contains(vertex))
                     throw new FormatException($"weight assignment names unknown vertex '{vertex}'");
-                if (!entry[1].IsValue() || !long.TryParse(entry[1].ToString(), NumberStyles.None,
+                string weightText = entry[1].ToString();
+                // TryParse accepts trailing NULs even with NumberStyles.None.
+                if (!entry[1].IsValue() || weightText.Length == 0 || weightText.Any(c => c is < '0' or > '9')
+                    || !long.TryParse(weightText, NumberStyles.None,
                         CultureInfo.InvariantCulture, out long weight))
                     throw new FormatException($"weight for '{vertex}' must be a nonnegative integer no greater than {long.MaxValue}");
                 if (!weightMap.TryAdd(vertex, weight))

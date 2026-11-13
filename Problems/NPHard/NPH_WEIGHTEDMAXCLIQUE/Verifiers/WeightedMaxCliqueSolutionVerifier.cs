@@ -40,7 +40,10 @@ internal sealed class WeightedMaxCliqueSolutionVerifier : IVerifier<WEIGHTEDMAXC
                 throw new FormatException("certificate must contain exactly a vertex set and an objective value");
             if (!root[0].IsOrdered())
                 throw new FormatException("certificate must contain a vertex set");
-            if (!root[1].IsValue() || !long.TryParse(root[1].ToString(), NumberStyles.None,
+            string valueText = root[1].ToString();
+            // TryParse accepts trailing NULs even with NumberStyles.None.
+            if (!root[1].IsValue() || valueText.Length == 0 || valueText.Any(c => c is < '0' or > '9')
+                || !long.TryParse(valueText, NumberStyles.None,
                     CultureInfo.InvariantCulture, out long value))
                 throw new FormatException($"objective value must be a nonnegative 64-bit integer no greater than {long.MaxValue}");
 
