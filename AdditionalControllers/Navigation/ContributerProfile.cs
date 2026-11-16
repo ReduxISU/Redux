@@ -400,7 +400,7 @@ public class ContributionArea {
     [JsonPropertyName("area")]
     public string Area { get; set; } = "";
 
-    /// <summary>The pull requests in this area, newest merge first</summary>
+    /// <summary>The pull requests in this area, newest merge first (by merge time across repos, not by PR number)</summary>
     [JsonPropertyName("pullRequests")]
     public List<ContributionPullRequest> PullRequests { get; set; } = new List<ContributionPullRequest>();
 }

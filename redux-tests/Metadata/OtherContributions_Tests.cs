@@ -127,6 +127,22 @@ public class OtherContributions_Tests {
     }
 
     [Fact]
+    public void OtherContributionsNode_OrdersByMergeTimeAcrossRepos_NotByNumber() {
+        // Real case: Redux_GUI #390 merged Nov 11, after #424 (Nov 9), so #390 comes first.
+        var t0 = new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero);
+        Tool.MergedPullRequest Pr(string repo, int number, double days) =>
+            new(repo, number, "", "", t0.AddDays(days), "ada", Tool.TestsArea);
+
+        var node = Tool.OtherContributionsNode([
+            Pr("Redux_GUI", 424, 8.8), Pr("Redux", 1016, 13), Pr("Redux_GUI", 390, 10), Pr("SPADE", 31, 9.5),
+        ]);
+
+        Assert.Equal(new[] { "Redux#1016", "Redux_GUI#390", "SPADE#31", "Redux_GUI#424" },
+            node[0]!["pullRequests"]!.AsArray()
+                .Select(pr => $"{pr!["repo"]!.GetValue<string>()}#{pr["number"]!.GetValue<int>()}"));
+    }
+
+    [Fact]
     public void OtherContributionsNode_NothingIsAnEmptyArray() {
         Assert.Equal("[]", Tool.OtherContributionsNode([]).ToJsonString());
     }

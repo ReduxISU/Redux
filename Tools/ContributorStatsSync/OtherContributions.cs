@@ -133,7 +133,9 @@ internal static partial class Program {
         string Repo, int Number, string Title, string Url, DateTimeOffset MergedAt, string Author, string Area);
 
     // The otherContributions array for one person: their merged PRs grouped by area (areas with
-    // none left out), areas in display order, PRs in each area newest merge first.
+    // none left out), areas in display order, PRs in each area newest merge first: by mergedAt,
+    // descending, across repos, so PR numbers can look out of order (an older PR merged later
+    // comes first). Equal merge times fall back to repo name, then PR number descending.
     internal static JsonArray OtherContributionsNode(IEnumerable<MergedPullRequest> pullRequests) {
         var areas = pullRequests
             .GroupBy(pr => pr.Area)
