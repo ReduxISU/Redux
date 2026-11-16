@@ -12,6 +12,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../API.csproj" />
+    <ProjectReference Include="../Tools/ContributorStatsSync/ContributorStatsSync.csproj" />
   </ItemGroup>
 
   <ItemGroup>
