@@ -13,6 +13,9 @@ using API.Interfaces;
 public class ContributorProfileController : ControllerBase {
 #pragma warning restore CS1591
 
+    // Where contributor details are read from. Tests point it at a fixture file.
+    internal string InfoFilePath { get; init; } = Path.Combine(ProjectSourcePath.Value, "wwwroot", "contributorInfo.json");
+
     /// <summary>Pull up everything we know about a contributor — their personal info plus every problem, solver, and reduction they've touched</summary>
     /// <param name="contributorName">Just pass in their full name, e.g. "Himanshu Jha"</param>
     /// <param name="includePictures">True to also count the opt-in visualizations (IOptInVisualization). Default false: what Redux_GUI reads.</param>
@@ -55,6 +58,7 @@ public class ContributorProfileController : ControllerBase {
                 VerifiersContributed = allVerifiers.ToList(),
                 VisualizationsCreated = allVisualizations.ToList(),
                 LegacyContributions = contributorInfo?.LegacyContributions ?? new List<string>(),
+                OtherContributions = contributorInfo?.OtherContributions ?? new List<ContributionArea>(),
                 TotalContributions = allProblems.Count() + allSolvers.Count() + allReductions.Count()
                     + allVerifiers.Count() + allVisualizations.Count()
             };
@@ -71,7 +75,7 @@ public class ContributorProfileController : ControllerBase {
     [HttpGet("names")]
     public IActionResult GetContributorNames() {
         try {
-            string infoFilePath = Path.Combine(ProjectSourcePath.Value, "wwwroot", "contributorInfo.json");
+            string infoFilePath = InfoFilePath;
 
             if (!System.IO.File.Exists(infoFilePath)) {
                 return NotFound(new { message = "contributorInfo.json not found" });
@@ -97,7 +101,7 @@ public class ContributorProfileController : ControllerBase {
     [HttpGet("directory")]
     public IActionResult GetContributorDirectory() {
         try {
-            string infoFilePath = Path.Combine(ProjectSourcePath.Value, "wwwroot", "contributorInfo.json");
+            string infoFilePath = InfoFilePath;
 
             if (!System.IO.File.Exists(infoFilePath)) {
                 return NotFound(new { message = "contributorInfo.json not found" });
@@ -249,8 +253,7 @@ public class ContributorProfileController : ControllerBase {
 
     private ContributorInfo? GetContributorInfo(string contributorName) {
         try {
-            string projectSourcePath = ProjectSourcePath.Value;
-            string infoFilePath = Path.Combine(projectSourcePath, "wwwroot", "contributorInfo.json");
+            string infoFilePath = InfoFilePath;
 
             if (!System.IO.File.Exists(infoFilePath)) {
                 return null;
@@ -334,6 +337,12 @@ public class ContributorPortfolio {
     [JsonPropertyName("legacyContributions")]
     public List<string> LegacyContributions { get; set; } = new List<string>();
 
+    /// <summary>Everything else they did, from their merged pull requests in every ReduxISU repo — tests, CI, docs,
+    /// API/core code, frontend work — grouped by area. Problem work is left out (it's in the lists above). Filled in
+    /// at release time, so empty in development builds; not counted in TotalContributions.</summary>
+    [JsonPropertyName("otherContributions")]
+    public List<ContributionArea> OtherContributions { get; set; } = new List<ContributionArea>();
+
     /// <summary>Quick total — problems + solvers + reductions + verifiers + visualizations combined</summary>
     [JsonPropertyName("totalContributions")]
     public int TotalContributions { get; set; }
@@ -378,6 +387,41 @@ public class ContributorInfo {
     /// unlike ProblemsContributed/SolversCreated/etc. this is never derived from currently-registered code.</summary>
     [JsonPropertyName("legacyContributions")]
     public List<string>? LegacyContributions { get; set; }
+
+    /// <summary>Their merged pull requests outside problem work, grouped by area. Written at release time by
+    /// Tools/ContributorStatsSync --counts-only; never committed (a test fails if it is).</summary>
+    [JsonPropertyName("otherContributions")]
+    public List<ContributionArea>? OtherContributions { get; set; }
+}
+
+/// <summary>One area of work (e.g. "CI and build tooling") and the merged pull requests that went into it</summary>
+public class ContributionArea {
+    /// <summary>The area's display name, e.g. "Tests", "Redux_GUI interface", "SPADE code"</summary>
+    [JsonPropertyName("area")]
+    public string Area { get; set; } = "";
+
+    /// <summary>The pull requests in this area, newest merge first</summary>
+    [JsonPropertyName("pullRequests")]
+    public List<ContributionPullRequest> PullRequests { get; set; } = new List<ContributionPullRequest>();
+}
+
+/// <summary>One merged pull request</summary>
+public class ContributionPullRequest {
+    /// <summary>The ReduxISU repo it was merged into, e.g. "Redux"</summary>
+    [JsonPropertyName("repo")]
+    public string Repo { get; set; } = "";
+
+    /// <summary>Its pull request number in that repo</summary>
+    [JsonPropertyName("number")]
+    public int Number { get; set; }
+
+    /// <summary>Its title</summary>
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = "";
+
+    /// <summary>Its GitHub page</summary>
+    [JsonPropertyName("url")]
+    public string Url { get; set; } = "";
 }
 
 /// <summary>Per-repo GitHub contribution counts for a contributor. All fields are nullable/optional — many contributors only have partial data, especially for pre-PR-workflow-era work.</summary>
