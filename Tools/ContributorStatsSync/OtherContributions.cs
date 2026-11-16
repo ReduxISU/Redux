@@ -31,8 +31,9 @@ internal static partial class Program {
 
     // The area one changed file belongs to. null means the file is ignored (not counted at all);
     // ProblemWorkArea means problem work, which the profile already lists from code. Rules are
-    // checked top to bottom and the first match wins, so a test script under .github/ counts as CI
-    // and a README under Tools/ counts as CI too.
+    // checked top to bottom and the first match wins, so redux-tests/redux-tests.csproj counts as
+    // Tests and a README under Tools/ counts as CI. Folder rules ending in /** match at the repo
+    // root only, except the test folders, which match at any depth.
     //   1. Problem work: Redux Problems/**
     //   2. Tests: in any repo a test/, tests/, e2e/, integration/ or __tests__/ folder at any depth,
     //      a folder whose name ends in "Tests" or "-tests"/".tests"/"_tests" (redux-tests/,
