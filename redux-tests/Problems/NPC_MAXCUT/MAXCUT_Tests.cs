@@ -1,4 +1,7 @@
+using System.Net;
+using System.Text.Json;
 using Xunit;
+using API.Interfaces;
 using API.Interfaces.JSON_Objects.Graphs;
 using API.Problems.NPComplete.NPC_MAXCUT;
 using API.Problems.NPComplete.NPC_MAXCUT.Solvers;
@@ -197,5 +200,85 @@ public class MAXCUT_Tests {
             .ToHashSet();
 
         return MaxCutSolver.CutWeight(problem.edges, sNodes);
+    }
+}
+
+// MaxCutQAOASolver against a fake quantum service: no test here touches the network.
+[Collection(QuantumServiceCollection.Name)]
+public class MAXCUT_QAOA_Tests {
+    [Fact]
+    public void MAXCUT_QAOA_Sends_Nodes_And_Weighted_Edges() {
+        string? body = null;
+        using var service = FakeQuantumService.Responding(request => {
+            body = request.Content!.ReadAsStringAsync().Result;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{\"answer\":\"{1,4}\"}") };
+        });
+
+        new MaxCutQAOASolver().solve(new MAXCUT());
+
+        using JsonDocument doc = JsonDocument.Parse(body!);
+        Assert.Equal(new[] { "1", "2", "3", "4", "5" },
+            doc.RootElement.GetProperty("nodes").EnumerateArray().Select(n => n.GetString()));
+        JsonElement first = doc.RootElement.GetProperty("edges")[0];
+        Assert.Equal("2", first[0].GetString());
+        Assert.Equal("1", first[1].GetString());
+        Assert.Equal(5, first[2].GetInt32());
+        Assert.Equal(6, doc.RootElement.GetProperty("edges").GetArrayLength());
+    }
+
+    [Theory]
+    [InlineData("{1,4}")]
+    [InlineData("{2,3,5}")]
+    public void MAXCUT_QAOA_Passes_The_Answer_On_And_It_Verifies(string answer) {
+        using var service = FakeQuantumService.Answering(JsonSerializer.Serialize(new { answer, cut_weight = 15 }));
+        MAXCUT problem = new MAXCUT();
+
+        string solution = new MaxCutQAOASolver().solve(problem);
+
+        Assert.Equal(answer, solution);
+        Assert.True(new MaxCutVerifier().verify(problem, solution));
+    }
+
+    // QAOA is approximate: a valid but non-maximum cut is still passed on; the verifier rejects it.
+    [Fact]
+    public void MAXCUT_QAOA_Passes_A_NonMaximum_Cut_On() {
+        using var service = FakeQuantumService.Answering("{\"answer\":\"{1}\"}");
+        MAXCUT problem = new MAXCUT();
+
+        string solution = new MaxCutQAOASolver().solve(problem);
+
+        Assert.Equal("{1}", solution);
+        Assert.False(new MaxCutVerifier().verify(problem, solution));
+    }
+
+    // Anything but a non-empty proper subset of the nodes is no answer (#625).
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{1,2,3,4,5}")]
+    [InlineData("{1,9}")]
+    [InlineData("{1,1}")]
+    [InlineData("1,4")]
+    public void MAXCUT_QAOA_Malformed_Answer_Throws_SolverUnavailable(string answer) {
+        using var service = FakeQuantumService.Answering(JsonSerializer.Serialize(new { answer }));
+
+        var ex = Assert.Throws<SolverUnavailableException>(() => new MaxCutQAOASolver().solve(new MAXCUT()));
+
+        Assert.Contains("not a non-empty proper subset", ex.Message);
+    }
+
+    [Fact]
+    public void MAXCUT_QAOA_Error_Reply_Throws_SolverUnavailable() {
+        using var service = FakeQuantumService.Answering("{\"error\":\"need at least 2 nodes to form a cut\"}");
+
+        Assert.Throws<SolverUnavailableException>(() => new MaxCutQAOASolver().solve(new MAXCUT("({1},{})")));
+    }
+
+    [Fact]
+    public void MAXCUT_QAOA_Timer_Expired_Returns_TimedOut_Without_Asking() {
+        using var service = FakeQuantumService.Answering("{\"answer\":\"{1,4}\"}");
+        var solver = new MaxCutQAOASolver { timerHasExpired = true };
+
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(new MAXCUT()));
+        Assert.Equal(0, service.Handler.Requests);
     }
 }

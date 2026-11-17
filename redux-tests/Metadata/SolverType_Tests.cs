@@ -158,6 +158,7 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
         "DeutschQuantumSolver",
         "DeutschJozsaQuantumSolver",
         "BernsteinVaziraniQuantumSolver",
+        "MaxCutQAOASolver",
 
         // Placeholder/test-scaffolding class (Interfaces/DummyClasses/DummySolver.cs), not one
         // of the 65 real solvers in scope for this classification pass — same precedent as
