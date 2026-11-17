@@ -36,7 +36,7 @@ class NQueensConstructive : ISolver<NQUEENS> {
     public SolverType solverType { get; } = SolverType.Constructive;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
-    public MathematicalFunction timeComplexity { get; } = new("n", "");
+    public MathematicalFunction timeComplexity { get; } = new("n", ", n = board size");
 
     // --- Solver ---
     public string solve(NQUEENS problem) {

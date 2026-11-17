@@ -1,9 +1,14 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_EDITDISTANCE;
+using API.Problems.NPComplete.NPC_KNAPSACK;
+using API.Problems.NPComplete.NPC_SETCOVER;
 using API.Problems.NPComplete.NPC_STEINERTREE;
+using API.Problems.NPComplete.NPC_SUBSETSUM;
 using API.Problems.NPComplete.NPC_TSP;
 using API.Problems.NPComplete.NPC_TSP.Solvers;
+using API.Problems.P.P_DFA;
 using redux_tests.Fixtures;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -66,15 +71,20 @@ public class ComputePrecheck_Tests {
         Assert.Equal(measures.Count, instance.SizeMeasures().Count); // each part once
     }
 
-    // The families the precheck covers so far (#843): graph problems, and the formula problems of the SAT family.
-    private static readonly string[] FormulaProblems = { "sat", "sat3", "weightedmaxsat", "weightedmax3sat" };
+    // The problems outside the graph problems that report their size measures (#843): the SAT family's formulas and
+    // the families whose instance grammar names their parts.
+    private static readonly string[] OtherReportingProblems = {
+        "binpacking", "changemaking", "convexhull", "dfa", "dm3", "editdistance", "exactcover", "hittingset",
+        "integerlinearprogramming", "intprogramming01", "jobseq", "knapsack", "nqueens", "partition", "primefactor",
+        "sat", "sat3", "setcover", "subsetsum", "weightedmax3sat", "weightedmaxsat",
+    };
 
     [Fact]
     public void TheProblemsThatReportMeasures_AreTheCoveredFamilies() {
         var reporting = ProblemProvider.Problems
             .Where(p => !p.Value.IsAbstract && Activator.CreateInstance(p.Value) is IProblem i && i.SizeMeasures().Count > 0)
             .Select(p => p.Key).ToHashSet();
-        var covered = GraphProblems().Select(row => row.Data).Concat(FormulaProblems).ToHashSet();
+        var covered = GraphProblems().Select(row => row.Data).Concat(OtherReportingProblems).ToHashSet();
         Assert.Subset(reporting, covered); // every covered problem reports its measures
         Assert.Subset(covered, reporting); // and no other problem does yet
     }
@@ -119,6 +129,43 @@ public class ComputePrecheck_Tests {
         Assert.Null(ComputePrecheck.Refusal(ProblemProvider.Solvers["schoning"], formula, ThirtySeconds, null));
     }
 
+    // The other families measure the parts their grammar names.
+    [Fact]
+    public void GrammarProblems_ReportTheirNamedParts() {
+        Assert.Equal([SizeMeasure.Count("S", 4), SizeMeasure.Number("T", 28)], new SUBSETSUM().SizeMeasures());
+        Assert.Equal([SizeMeasure.Count("U", 5), SizeMeasure.Count("S", 4), SizeMeasure.Number("K", 3)],
+            new SETCOVER().SizeMeasures());
+        Assert.Equal([SizeMeasure.Count("i", 3), SizeMeasure.Number("w", 50), SizeMeasure.Number("v", 220)],
+            new KNAPSACK().SizeMeasures());
+        Assert.Equal([SizeMeasure.Count("x", 5), SizeMeasure.Count("y", 3)], new EDITDISTANCE().SizeMeasures());
+        var dfa = new DFA().SizeMeasures().ToDictionary(m => m.Part);
+        Assert.Equal(SizeMeasure.Count("E", 6), dfa["E"]);
+        Assert.Equal(SizeMeasure.Count("I", 3), dfa["I"]);
+    }
+
+    [Fact]
+    public void SubsetSumBruteForce_HopelessSet_IsRefused_AndTheDpOfKnapsackIsNot() {
+        // 60 integers: 60 * 2^60, about 6.9e19 steps.
+        string set = "({" + string.Join(",", Enumerable.Range(1, 60)) + "},100000)";
+        var estimate = ComputePrecheck.Refusal(ProblemProvider.Solvers["subsetsumbruteforce"], set, ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.Equal(60 * Math.Pow(2, 60), estimate.Steps, 1e-9 * estimate.Steps);
+        string items = "({" + string.Join(",", Enumerable.Range(1, 60).Select(i => $"({i},{i})")) + "},1000,500)";
+        Assert.Null(ComputePrecheck.Refusal(ProblemProvider.Solvers["knapsackdp"], items, ThirtySeconds, null));
+        Assert.NotNull(ComputePrecheck.Refusal(ProblemProvider.Solvers["knapsackbruteforce"], items, ThirtySeconds, null));
+    }
+
+    [Fact]
+    public void SetCoverBruteForce_IsBoundedByTheCoverSize() {
+        // 60 subsets: 2^60 would refuse it, but it only tries covers of 1 or 2 subsets.
+        string subsets = string.Join(",", Enumerable.Range(1, 60).Select(i => $"{{{i}}}"));
+        string universe = string.Join(",", Enumerable.Range(1, 60));
+        Assert.Null(ComputePrecheck.Refusal(ProblemProvider.Solvers["setcoverbruteforce"], $"({{{universe}}},{{{subsets}}},2)",
+            ThirtySeconds, null));
+        Assert.NotNull(ComputePrecheck.Refusal(ProblemProvider.Solvers["setcoverbruteforce"], $"({{{universe}}},{{{subsets}}},30)",
+            ThirtySeconds, null));
+    }
+
     [Fact]
     public void ProblemWithoutMeasures_ReportsNone() {
         // The IProblem default: a problem that does not override SizeMeasures reports nothing.
@@ -148,44 +195,31 @@ public class ComputePrecheck_Tests {
     }
 
     // The solvers the precheck leaves to the time limit, because their Big-O uses a name their problem does not report
-    // (every problem outside the graph problems, so far) or for another reason SkipReason gives. The list shrinks as
-    // problems report their measures (#843's later slices, or #851's SPADE parts): delete a solver from it once the
-    // precheck checks it.
+    // or for another reason SkipReason gives. Delete a solver from the list once the precheck checks it.
     private static readonly string[] Skipped = {
-        "BernsteinVaziraniClassicalSolver", "BernsteinVaziraniQuantumSolver",
-        "BinPackingBruteForce", "BinPackingFFD",
-        "ChangeMakingDP", "ChangeMakingMemo",
-        "ChibaNishizeki", // a = arboricity, which CLIQUE does not report
-        // Graph solvers that prune their search (SolverType.Backtracking): their worst-case Big-O says little about how
-        // long they run, so the precheck leaves them to the timer.
+        // Solvers that prune their search (SolverType.Backtracking): their worst-case Big-O says little about how long
+        // they run, so the precheck leaves them to the timer.
         "CarraghanPardalos", "DominatingSetForcedVertex", "DominatingSetNaiveInclusionExclusion",
         "TSPBranchAndBound", "VertexCoverBoundedSearchTree",
-        "ConvexHullSolver",
-        "DeutschClassicalSolver", "DeutschQuantumSolver",
-        "DeutschJozsaClassicalSolver", "DeutschJozsaQuantumSolver",
-        "DFASolver", "NFASolver", // automata: a later slice
-        "DummySolver",
-        "EditDistanceDPSolver",
-        "DancingLinks", "ExactCoverBruteForce", "ExactCoverRecursive",
-        "HittingSetBruteForce",
-        "IntegerProgrammingBruteForce",
-        "IntegerLinearProgrammingBruteForceSolver", "IntegerLinearProgrammingHeuristicSolver", "IntegerLinearProgrammingSolver",
-        "JobSeqBruteForce",
-        "KnapsackBruteForce", "KnapsackDP",
-        "LosslessDataCompressionSolver",
-        "NQueensBacktracking", "NQueensConstructive",
-        "PartitionBruteForce",
-        "PrimeFactorSolver", "ShorsQuantumSolver",
-        "PumpSchedulingCMSolver", "PumpSchedulingEMSolver",
-        // SAT family: the quantum solver runs on the quantum service; the rest prune their search (Backtracking).
-        "SATGroverSolver", "Sat3BacktrackingSolver",
-        "GreedySetCover", "HeuristicSolver", "SetCoverBruteForce",
-        "SimonSolver",
-        "SubsetSumBruteForce", "FastApproximation",
+        "DancingLinks", "ExactCoverRecursive", "HeuristicSolver", "IntegerLinearProgrammingSolver", "NQueensBacktracking",
+        "Sat3BacktrackingSolver", "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
+        // Quantum solvers: their work runs on the external quantum service, not the server's processor.
+        "BernsteinVaziraniQuantumSolver", "DeutschQuantumSolver", "DeutschJozsaQuantumSolver", "SATGroverSolver",
+        "ShorsQuantumSolver", "UnstructuredGroverSolver",
+        // The oracle problems' classical baselines count oracle queries, and their instance is the oracle's own table, so
+        // those problems report no size measures.
+        "BernsteinVaziraniClassicalSolver", "DeutschClassicalSolver", "DeutschJozsaClassicalSolver", "SimonSolver",
+        "UnstructuredSearchSolver",
+        // Big-Os driven by a size the instance does not name.
+        "ChibaNishizeki", // a = arboricity, which CLIQUE does not report
+        "IntegerLinearProgrammingBruteForceSolver", // U = values per variable, from the constraints' bounds
+        "LosslessDataCompressionSolver", // k = distinct characters in S (LOSSLESSDATACOMPRESSION reports no measures)
+        "NFASolver", // d = largest out-degree of a state (NFA reports no measures)
+        "PumpSchedulingCMSolver", "PumpSchedulingEMSolver", // B = tank buckets, from the capacity inside T (no measures)
+        // SUDOKU's grid is always 9 x 9, so its Big-O, n^(n^2) at n = 9, is one constant for every instance and would
+        // refuse them all; SUDOKU reports no measures.
         "SudokuSolver",
-        "ThreeDimensionalMatchingBruteForce",
-        "UnstructuredGroverSolver", "UnstructuredSearchSolver",
-        "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
+        "DummySolver", // the placeholder solver of IProblem
     };
 
     private static Dictionary<string, string> ActualSkipped() =>

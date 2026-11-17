@@ -103,6 +103,13 @@ class BINPACKING : IProblem<BinPackingBruteForce, BinPackingVerifier, DummyVisua
 
 
     // Default constructor — loads the built-in example instance.
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): |S| items, the capacity C and the bin count K.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("S", S.Count),
+        SizeMeasure.Number("C", C),
+        SizeMeasure.Number("K", K),
+    ];
+
     public BINPACKING() : this(_defaultInstance) {
     }
 

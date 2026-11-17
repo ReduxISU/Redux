@@ -42,6 +42,12 @@ class INTEGERLINEARPROGRAMMING : IProblem<IntegerLinearProgrammingSolver, Intege
     public IntegerLinearProgrammingVerifier defaultVerifier { get; } = new();
     public IntegerLinearProgrammingDefaultVisualization defaultVisualization { get; } = new();
 
+    /// <summary>The instance's vectors, for the Big-O precheck (#843): |c| variables and |b| constraints (A has |b| rows of |c|).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("c", c.Count),
+        SizeMeasure.Count("b", b.Count),
+    ];
+
     public INTEGERLINEARPROGRAMMING() : this(DefaultInstance) { }
 
     public INTEGERLINEARPROGRAMMING(string instanceInput) {

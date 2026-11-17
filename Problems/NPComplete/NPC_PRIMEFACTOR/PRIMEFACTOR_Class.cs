@@ -74,6 +74,12 @@ class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, ShorsDefaul
     //     }
     // }
     // --- Methods and Constructors ---
+    // The parsed integer i, for SizeMeasures.
+    private readonly int _i;
+
+    /// <summary>The grammar's integer i, the number to factor, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Number("i", _i)];
+
     public PRIMEFACTOR() : this(_defaultInstance) {
 
     }
@@ -92,7 +98,7 @@ class PRIMEFACTOR : IProblem<PrimeFactorSolver, PrimeFactorVerifier, ShorsDefaul
         parser.parse(instance);
 
         // items = parser["i"];
-        int I = int.Parse(parser["i"].ToString());
+        _i = int.Parse(parser["i"].ToString());
 
         // This parsing is left over from the template, but we're pretty sure it works for extracting the values from the input
         // Good luck solver team :) - problems team

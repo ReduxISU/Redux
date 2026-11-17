@@ -225,8 +225,8 @@ public class SolverType_Tests : IClassFixture<AppFactory> {
         var solver = Assert.IsAssignableFrom<ISolver>(Activator.CreateInstance(solverType));
 
         var timeComplexity = Assert.IsType<MathematicalFunction>(solver.timeComplexity);
-        Assert.Equal("n * W", timeComplexity.Function);
-        Assert.Equal(24, timeComplexity.Evaluate(("n", 6), ("W", 4)));
+        Assert.Equal("|i| * w", timeComplexity.Function);
+        Assert.Equal(24, timeComplexity.Evaluate(("i", 6), ("w", 4)));
     }
 
     [Fact]

@@ -15,7 +15,7 @@ class IntegerLinearProgrammingHeuristicSolver : ISolver<INTEGERLINEARPROGRAMMING
     public string[] contributors => ["Prashant Pant"];
     public SolverType solverType => SolverType.Heuristic;
     public SolverComplexityBucket complexityBucket => SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("K * m * n^2", "K = iteration budget, m = constraints, n = variables");
+    public MathematicalFunction timeComplexity { get; } = new("5000 * |b| * |c|^2", ", 5000 = the iteration budget (IterationLimit), |b| = number of constraints, |c| = number of variables");
     public bool timerHasExpired { get; set; }
     public int IterationLimit { get; set; } = 5_000;
 
