@@ -23,7 +23,7 @@ class SPSPSolver : ISolver<SPSP, Distances> {
     // Uses .NET's built-in PriorityQueue<T> (real binary heap, O(log n) enqueue/dequeue) with
     // lazy re-insertion on relaxation and a `visited` check to skip stale entries — the
     // standard binary-heap Dijkstra bound.
-    public MathematicalFunction timeComplexity { get; } = new("(V + E) log V", "");
+    public MathematicalFunction timeComplexity { get; } = new("(|N| + |E|) log |N|", ", |N| = number of nodes, |E| = number of edges");
     PriorityQueue<string, int>? pq;
 
     public string solve(SPSP problem) => Solve(problem, StepRecorder<Distances>.Off);
