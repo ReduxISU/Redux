@@ -10,7 +10,7 @@ namespace redux_tests;
 #pragma warning disable CS1591
 
 // The app with every compute job in worker processes (#991) and the limits the in-process AppFactory has (the default
-// 10-second time limit, the default 512 MB memory limit, and a quantum service that refuses connections, as the
+// 30-second time limit, the default 512 MB memory limit, and a quantum service that refuses connections, as the
 // in-process host's does), so the two hosts answer alike; a pool of four, so the sample below can run four jobs at once.
 // (The silent quantum service of SolveWorkersAppFactory would leave the visualizations that call it hanging in a worker
 // until the time limit, where the in-process host's refused connection answers at once.)
