@@ -204,7 +204,8 @@ public class ComputePrecheck_Tests {
         "DancingLinks", "ExactCoverRecursive", "HeuristicSolver", "IntegerLinearProgrammingSolver", "NQueensBacktracking",
         "Sat3BacktrackingSolver", "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
         // Quantum solvers: their work runs on the external quantum service, not the server's processor.
-        "BernsteinVaziraniQuantumSolver", "DeutschQuantumSolver", "DeutschJozsaQuantumSolver", "SATGroverSolver",
+        "BernsteinVaziraniQuantumSolver", "DeutschQuantumSolver", "DeutschJozsaQuantumSolver", "MaxCutQAOASolver",
+        "SATGroverSolver",
         "ShorsQuantumSolver", "UnstructuredGroverSolver",
         // The oracle problems' classical baselines count oracle queries, and their instance is the oracle's own table, so
         // those problems report no size measures.
