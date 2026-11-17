@@ -57,7 +57,7 @@ internal static class TooLargeChecks {
     }
 }
 
-// The Big-O precheck at the endpoints (#843): a hopeless solve or visualize is refused at once, and nothing else changes.
+// The Big-O precheck at the endpoints (#843): a hopeless solve is refused at once, and nothing else changes.
 [Collection(TimingCollection.Name)]
 public class TooLarge_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly AppFactory _factory;
@@ -83,15 +83,6 @@ public class TooLarge_Endpoint_Tests : IClassFixture<AppFactory> {
         var (status, _, _) = await TooLargeChecks.Post(_client, "/ProblemProvider/solve?solver=TSPBruteForce", PrecheckInputs.HopelessTsp);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
         Assert.Equal(0, limiter.Running);
-    }
-
-    [Fact]
-    public async Task Visualize_HopelessInstance_Returns422TooLarge_AgainstTheVisualizeLimit() {
-        var (status, body, took) = await TooLargeChecks.Post(_client,
-            "/ProblemProvider/visualize?visualization=TSPDefaultVisualization&solver=TSPBruteForce", PrecheckInputs.HopelessTsp);
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, status);
-        Assert.True(took < TimeSpan.FromSeconds(3), $"took {took}");
-        TooLargeChecks.AssertTooLargeBody(body, "visualization", ProblemProvider.MaxDefaultSolveTimeLimitSeconds);
     }
 
     [Fact]
@@ -180,5 +171,37 @@ public class TooLarge_Workers_Tests : IClassFixture<SolveWorkersPrecheckAppFacto
         var (status, _, _, _) = await SolveWorkerChecks.PostSolve(_client, "TSPBruteForce", new API.Problems.NPComplete.NPC_TSP.TSP().instance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.NotEqual(before, pool.LastJobPid);
+    }
+}
+
+// Visualize is not prechecked yet (#1025): Redux_GUI shows nothing for an error answer, so a hopeless visualize still
+// runs to its limit and draws the run so far (#885). A 1-second limit keeps the test short; the precheck stays on, and
+// the same instance's solve is refused.
+public class OneSecondLimitPrecheckAppFactory : AppFactory {
+    protected override void ConfigureWebHost(IWebHostBuilder builder) {
+        base.ConfigureWebHost(builder);
+        builder.ConfigureAppConfiguration((_, config) =>
+            config.AddInMemoryCollection(new Dictionary<string, string?> { [ComputeLimits.TimeLimitKey] = "1" }));
+    }
+}
+
+[Collection(TimingCollection.Name)]
+public class TooLarge_Visualize_Tests : IClassFixture<OneSecondLimitPrecheckAppFactory> {
+    private readonly HttpClient _client;
+
+    public TooLarge_Visualize_Tests(OneSecondLimitPrecheckAppFactory factory) {
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task Visualize_HopelessInstance_IsNotRefused_DrawsTheStoppedRun() {
+        var (solveStatus, solveBody, _) = await TooLargeChecks.Post(_client, "/ProblemProvider/solve?solver=TSPBruteForce", PrecheckInputs.HopelessTsp);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, solveStatus);
+        Assert.Equal(ComputePrecheck.TooLargeError, solveBody.GetProperty("error").GetString());
+
+        var (status, body, _) = await TooLargeChecks.Post(_client,
+            "/ProblemProvider/visualize?visualization=TSPDefaultVisualization&solver=TSPBruteForce", PrecheckInputs.HopelessTsp);
+        Assert.Equal(HttpStatusCode.OK, status);
+        Assert.NotEqual(JsonValueKind.Undefined, body.ValueKind);
     }
 }

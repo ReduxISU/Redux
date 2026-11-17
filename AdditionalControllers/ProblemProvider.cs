@@ -100,8 +100,8 @@ public class ProblemProvider : ControllerBase {
     }
 
     /// <summary>
-    /// HTTP 422 with the <c>too_large</c> body of a solve or visualize the Big-O precheck refused (#843), with the hint
-    /// and context of the time-limit error: the solver, its problem and the problem's other solvers.
+    /// HTTP 422 with the <c>too_large</c> body of a solve the Big-O precheck refused (#843; visualize is not checked yet,
+    /// #1025), with the hint and context of the time-limit error: the solver, its problem and the problem's other solvers.
     /// </summary>
     private IActionResult TooLargeError(string job, Type solverType, ComputePrecheck.Estimate estimate) {
         var (hint, context) = SolveLimitContext(solverType);
@@ -756,9 +756,8 @@ public class ProblemProvider : ControllerBase {
         // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit,
         // or in a worker process into the deadline, where the worker is killed (#991).
         TimeSpan? limit = SolveTimeLimit;
-        // The Big-O precheck (#843), against the visualize limit, as in solve.
-        if (ComputePrecheck.Refusal(chosen.GetType(), instance, limit, _configuration) is { } tooLarge)
-            return TooLargeError("visualization", chosen.GetType(), tooLarge);
+        // No Big-O precheck here yet (#1025): a hopeless visualize still runs to the visualize limit and draws the run so
+        // far, because Redux_GUI shows nothing for an error answer. Solve is prechecked (#843).
         if (WorkerPool is { } pool)
             return await InWorker(pool,
                 new WorkerJob(WorkerJobKind.Visualize, instance) {

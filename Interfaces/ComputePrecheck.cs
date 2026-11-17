@@ -4,7 +4,7 @@ using System.Globalization;
 namespace API.Interfaces;
 
 /// <summary>
-/// The size and Big-O precheck, step 3 of the compute limits decided in #915 (#843): before a solve or a visualize
+/// The size and Big-O precheck, step 3 of the compute limits decided in #915 (#843): before a solve (visualize: #1025)
 /// starts, the server parses the instance, reads its size measures (<see cref="IProblem.SizeMeasures"/>) and evaluates
 /// the solver's declared <see cref="ISolver.timeComplexity"/> on them. When the estimate is hopelessly over what fits in
 /// the time limit, the request is refused at once with HTTP 422 and the <c>too_large</c> body
@@ -53,7 +53,7 @@ static class ComputePrecheck {
     /// </list>
     /// The rates spread over two orders of magnitude, because a Big-O drops constant factors. The default is the fastest
     /// rate seen, rounded up (1e9), so the budget errs toward running a job: with the <see cref="DefaultMargin"/> of 100,
-    /// a 30-second solve is refused above 3e12 steps and a 10-second visualize above 1e12. Brute-force TSP on 15 nodes
+    /// a 30-second solve is refused above 3e12 steps. Brute-force TSP on 15 nodes
     /// (15! * 15 * 105, about 2.1e15 steps) is refused; on 12 nodes (about 3.8e11 steps, hours at the measured rate)
     /// it is left to the timer.
     /// </summary>
