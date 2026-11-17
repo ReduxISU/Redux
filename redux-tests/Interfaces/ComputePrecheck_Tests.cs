@@ -173,6 +173,7 @@ public class ComputePrecheck_Tests {
         "JobSeqBruteForce",
         "KnapsackBruteForce", "KnapsackDP",
         "LosslessDataCompressionSolver",
+        "MaxCutQAOASolver", // runs on the quantum service (SolverType.Quantum)
         "NQueensBacktracking", "NQueensConstructive",
         "PartitionBruteForce",
         "PrimeFactorSolver", "ShorsQuantumSolver",
