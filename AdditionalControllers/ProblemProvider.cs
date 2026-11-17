@@ -97,9 +97,122 @@ public class ProblemProvider : ControllerBase {
     }
 
     /// <summary>The time-limit error of a reduction (or a chain of them, separated by dashes).</summary>
-    private IActionResult ReductionTimeLimitError(TimeSpan limit, string reduction) =>
-        TimeLimitError("reduction", limit, ComputeLimits.BackstopDetail, "Try a smaller instance.",
-            new Dictionary<string, object?> { ["reduction"] = reduction });
+    private IActionResult ReductionTimeLimitError(TimeSpan limit, string reduction) {
+        var names = ReductionNames(reduction);
+        return TimeLimitError(names.Job, limit, ComputeLimits.BackstopDetail, names.Hint, names.Context);
+    }
+
+    // --- Compute jobs in worker processes (#936, #991) ---------------------
+    // With ComputeLimits:IsolateSolves on (the default), every compute endpoint runs its work in a worker process of its
+    // own (SolveWorkerPool), which is killed at the time limit or when it grows past the memory limit. The worker runs the
+    // same static *Core method the in-process path runs, and for every endpoint but solve it sends back the finished
+    // response body, so both paths answer byte for byte alike. With the setting off, each endpoint runs its *Core method
+    // here under the #943 backstop, as before.
+
+    /// <summary>
+    /// How a compute job is named in the errors of its limits and of its worker: <see cref="Job"/> in the message ("The
+    /// verification ran past ..."), <see cref="Context"/> and <see cref="Hint"/> as in the endpoint's time-limit error,
+    /// <see cref="Failed"/> and <see cref="Report"/> in its <c>worker_failed</c>
+    /// body, and <see cref="RunsSolver"/> for the solver wording of the details (solve and visualize).
+    /// </summary>
+    private sealed record JobNames(string Job, string Hint, IReadOnlyDictionary<string, object?> Context,
+                                   IReadOnlyDictionary<string, object?> Failed, string Report, bool RunsSolver);
+
+    private const string VerifyHint = "Try a smaller instance or a shorter certificate.";
+
+    private static JobNames VerifyNames(string verifier) {
+        var context = new Dictionary<string, object?> { ["verifier"] = verifier };
+        return new("verification", VerifyHint, context, context, "the verifier", RunsSolver: false);
+    }
+
+    private static JobNames ReductionNames(string reduction) {
+        var context = new Dictionary<string, object?> { ["reduction"] = reduction };
+        return new("reduction", "Try a smaller instance.", context, context, "the reduction", RunsSolver: false);
+    }
+
+    private static JobNames VisualizeNames(string visualization, Type solverType) {
+        var (hint, context) = SolveLimitContext(solverType);
+        return new("visualization", hint, context,
+            new Dictionary<string, object?> { ["visualization"] = visualization, ["solver"] = solverType.Name },
+            "the visualization, the solver", RunsSolver: true);
+    }
+
+    /// <summary>The worker pool when compute jobs run in worker processes (<see cref="ComputeLimits.IsolateSolvesKey"/>), else null.</summary>
+    private SolveWorkerPool? WorkerPool =>
+        HttpContext?.RequestServices.GetService<SolveWorkerPool>() is { Enabled: true } pool ? pool : null;
+
+    /// <summary>
+    /// Runs <paramref name="job"/> in a worker, killed at <paramref name="deadline"/>, and answers with its outcome;
+    /// <paramref name="limit"/> is the time limit the errors name.
+    /// </summary>
+    private async Task<IActionResult> InWorker(SolveWorkerPool pool, WorkerJob job, TimeSpan? limit, TimeSpan? deadline,
+                                               string subject, Func<JobNames> names) {
+        string jobName = job.Kind == WorkerJobKind.Visualize ? "visualization"
+            : job.Kind == WorkerJobKind.Verify ? "verification" : "reduction";
+        var outcome = await pool.RunAsync(job, deadline, jobName, subject, HttpContext.RequestAborted);
+        return JobResult(outcome, limit, pool.MemoryLimitMB, names);
+    }
+
+    /// <summary>
+    /// The response of a compute job other than solve, from its outcome in this process (a *Core method: the finished
+    /// body, or a 400 body) or in a worker (also the limit errors, in the error contract of <c>solve</c>).
+    /// </summary>
+    private IActionResult JobResult(SolveOutcome outcome, TimeSpan? limit, int? memoryLimitMB, Func<JobNames> namesOf) {
+        if (outcome.Kind == SolveOutcomeKind.Answered)
+            return Content(outcome.Answer!, "application/json");
+        if (outcome.Kind == SolveOutcomeKind.Rejected)
+            return BadRequest(outcome.Body);
+        JobNames names = namesOf();
+        switch (outcome.Kind) {
+            case SolveOutcomeKind.Killed:
+                return TimeLimitError(names.Job, limit!.Value,
+                    names.RunsSolver ? ComputeLimits.CancelledDetail : ComputeLimits.JobCancelledDetail, names.Hint, names.Context);
+            case SolveOutcomeKind.OutOfMemory:
+                return UnprocessableEntity(ComputeLimits.MemoryLimitBody(names.Job, memoryLimitMB ?? 0,
+                    names.RunsSolver ? ComputeLimits.HeapLimitDetail : ComputeLimits.JobHeapLimitDetail, names.Hint, names.Context));
+            case SolveOutcomeKind.KilledForMemory:
+                return UnprocessableEntity(ComputeLimits.MemoryLimitBody(names.Job, memoryLimitMB ?? 0,
+                    names.RunsSolver ? ComputeLimits.MemoryWatchDetail : ComputeLimits.JobMemoryWatchDetail, names.Hint, names.Context));
+            case SolveOutcomeKind.Unavailable:
+                // Thrown here, so SolverUnavailableFilter answers 503 exactly as for the same job in this process.
+                throw outcome.Unavailable!;
+            case SolveOutcomeKind.Failed:
+                // Thrown here, so an unexpected exception in the worker is a 500, as it is in this process.
+                throw new ComputeWorkerException(outcome.Detail ?? $"The {names.Job} failed in its worker process.");
+            default: // SolveOutcomeKind.Crashed: the worker died without answering.
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    SolveWorkerPool.WorkerFailedBody(names.Job, names.Report, names.Failed, outcome.Detail));
+        }
+    }
+
+    /// <summary>
+    /// The work of a compute endpoint other than solve, in a worker process (<see cref="ComputeWorker"/>): the same
+    /// *Core method the endpoint runs in this process, with the arguments the endpoint checked. The names in
+    /// <paramref name="job"/> are known (the endpoint checked them); any exception propagates, as in this process.
+    /// </summary>
+    internal static SolveOutcome RunJob(WorkerJob job, TimeSpan? limit) {
+        switch (job.Kind) {
+            case WorkerJobKind.Verify:
+                return VerifyCore(job.Verifier!, job.Instance, job.Solution!);
+            case WorkerJobKind.Reduce:
+                return ReduceCore(job.Reduction!, job.Instance, job.IncludePictures);
+            case WorkerJobKind.MapSolution:
+                return MapSolutionCore(job.Reduction!, job.Solution!, job.Instance);
+            case WorkerJobKind.MapSolutionBack:
+                return MapSolutionBackCore(job.Reduction!, job.Solution!, job.Instance, job.Steps);
+            case WorkerJobKind.Gadgets:
+                return GadgetsCore(job.Reduction!, job.Instance);
+            case WorkerJobKind.Visualize: {
+                    IVisualization vis = Visualization(job.Visualization!);
+                    ISolver chosen = string.IsNullOrEmpty(job.Solver) ? vis.solver : Solver(job.Solver);
+                    return VisualizeCore(vis, chosen, job.AsFrames, job.Instance, limit);
+                }
+            case WorkerJobKind.VisualizeReduction:
+                return VisualizeReductionCore(job.Reduction!.Split("-").ToList(), job.Solution!, job.Instance, job.IncludePictures);
+            default:
+                throw new InvalidOperationException($"The worker cannot run a job of kind {job.Kind}.");
+        }
+    }
 
     // Buckets every loaded type into its marker-interface dictionary in a single pass over
     // AppDomain.GetAssemblies().SelectMany(GetTypes()) instead of one full assembly scan per
@@ -263,29 +376,38 @@ public class ProblemProvider : ControllerBase {
     [HttpPost("verify")]
     [ComputeJob]
     public async Task<IActionResult> verify(string verifier, [FromBody] Verify verify) {
+        // Verifiers have no time checks of their own, so the backstop, or a worker's deadline, is the limit itself (see
+        // ComputeLimits).
+        TimeSpan? limit = ComputeLimit;
+        // An unknown verifier fails in this process, as it always has (it is a 500, not a 400 like an unknown solver).
+        if (WorkerPool is { } pool && Verifiers.ContainsKey(verifier.ToLower()))
+            return await InWorker(pool,
+                new WorkerJob(WorkerJobKind.Verify, verify.ProblemInstance) { Verifier = verifier, Solution = verify.Certificate },
+                limit, limit, verifier, () => VerifyNames(verifier));
+        var (finished, outcome) = await Backstop(() => VerifyCore(verifier, verify.ProblemInstance, verify.Certificate), limit);
+        if (!finished)
+            return TimeLimitError("verification", limit!.Value, ComputeLimits.BackstopDetail, VerifyHint, VerifyNames(verifier).Context);
+        return JobResult(outcome!, limit, null, () => VerifyNames(verifier));
+    }
+
+    /// <summary>The work of <see cref="verify"/>, in this process or in a worker: the verdict, or the 400 body of rejected input.</summary>
+    internal static SolveOutcome VerifyCore(string verifier, string instance, string certificate) {
         try {
-            // Verifiers have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
-            TimeSpan? limit = ComputeLimit;
-            var (finished, verdict) = await Backstop(
-                () => Verifier(verifier).verify(verify.ProblemInstance, verify.Certificate), limit);
-            if (!finished)
-                return TimeLimitError("verification", limit!.Value, ComputeLimits.BackstopDetail,
-                    "Try a smaller instance or a shorter certificate.", new Dictionary<string, object?> { ["verifier"] = verifier });
-            string result = JsonSerializer.Serialize(
+            bool verdict = Verifier(verifier).verify(instance, certificate);
+            return SolveOutcome.Answered(JsonSerializer.Serialize(
                 verdict.ToString(),
                 new JsonSerializerOptions { WriteIndented = true }
-            );
-            return Content(result, "application/json");
+            ));
         } catch (ProblemParseException ex) {
-            return BadRequest(ParseErrorBody("instance_parse_error", ex.ProblemName,
+            return SolveOutcome.Rejected(ParseErrorBody("instance_parse_error", ex.ProblemName,
                 LookupInstanceFormat(ex.ProblemName), ex.Received, ex.Message));
         } catch (CertificateParseException ex) {
-            return BadRequest(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
+            return SolveOutcome.Rejected(ParseErrorBody("certificate_parse_error", ex.Problem.problemName,
                 ex.Problem.certificateFormat, ex.Received, ex.Message));
         } catch (API.DummyClasses.NoVerifierException ex) {
-            return BadRequest(new { error = "no_verifier", received = verifier, detail = ex.Message });
+            return SolveOutcome.Rejected(new { error = "no_verifier", received = verifier, detail = ex.Message });
         } catch (ExactSearchLimitExceededException ex) {
-            return ExactSearchLimitError(ex);
+            return SolveOutcome.Rejected(ExactSearchLimitBody(ex));
         }
     }
 
@@ -381,7 +503,7 @@ public class ProblemProvider : ControllerBase {
         // With ComputeLimits:IsolateSolves on, the solve runs in a worker process of its own, which is killed when it
         // does not stop at the time limit or grows past the memory limit (#936). The worker runs SolveCore too, so it
         // answers exactly as the in-process path below.
-        if (HttpContext?.RequestServices.GetService<SolveWorkerPool>() is { Enabled: true } pool)
+        if (WorkerPool is { } pool)
             return SolveResult(solverType, limit, pool.MemoryLimitMB,
                 await pool.RunAsync(solver, problemInstance, limit, HttpContext.RequestAborted));
         // The solver stops itself at the limit (ISolver.Run: the recorder of a typed solver, the timerHasExpired flag of a
@@ -533,7 +655,7 @@ public class ProblemProvider : ControllerBase {
         return (IsEmptyVisualization(visual) ? null : visual, frames);
     }
 
-    private string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+    private static string getVisualize(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
         var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, unsolvedLast: true, timeLimit);
         List<API_JSON> list = new List<API_JSON>();
         if (initial != null)
@@ -548,7 +670,7 @@ public class ProblemProvider : ControllerBase {
         [property: System.Text.Json.Serialization.JsonPropertyName("payload")] API_JSON? Payload,
         [property: System.Text.Json.Serialization.JsonPropertyName("frames")] List<API_JSON> Frames);
 
-    private string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
+    private static string getVisualizeFrames(IVisualization visualization, List<Object> steps, string solution, string instance, bool stopped = false, TimeSpan? timeLimit = null) {
         var (initial, frames) = buildFrames(visualization, steps, solution, instance, stopped, timeLimit: timeLimit);
         var body = new VisualizeFramesResponse(Tags.First(visualization.visualizationType), initial, frames);
         return JsonSerializer.Serialize(body, VisualizeJsonOptions());
@@ -607,35 +729,49 @@ public class ProblemProvider : ControllerBase {
                 return BadRequest(new { error = "solver_mismatch", received = solver, visualization });
             chosen = Solver(solver);
         }
+        // A solver that runs past the time limit is stopped and its run comes back with TimedOut set (a typed one by
+        // its recorder, a legacy one by its timerHasExpired flag); the stopped run is drawn, not reported as an
+        // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit,
+        // or in a worker process into the deadline, where the worker is killed (#991).
+        TimeSpan? limit = SolveTimeLimit;
+        if (WorkerPool is { } pool)
+            return await InWorker(pool,
+                new WorkerJob(WorkerJobKind.Visualize, instance) {
+                    Visualization = visualization, Solver = solver, AsFrames = asFrames, TimeLimitTicks = limit?.Ticks,
+                },
+                limit, SolverBackstop(limit), chosen.GetType().Name, () => VisualizeNames(visualization, chosen.GetType()));
+        var (finished, outcome) = await Backstop(() => VisualizeCore(vis, chosen, asFrames, instance, limit), SolverBackstop(limit));
+        if (!finished)
+            return SolveTimeLimitError("visualization", chosen.GetType(), limit!.Value, ComputeLimits.BackstopDetail);
+        return JobResult(outcome!, limit, null, () => VisualizeNames(visualization, chosen.GetType()));
+    }
+
+    /// <summary>
+    /// The work of <see cref="visualize"/>, in this process or in a worker: <paramref name="chosen"/> runs with steps
+    /// (stopping itself at <paramref name="limit"/>) and <paramref name="vis"/> draws the run in the asked format, or the
+    /// 400 body of rejected input.
+    /// </summary>
+    internal static SolveOutcome VisualizeCore(IVisualization vis, ISolver chosen, bool asFrames, string instance, TimeSpan? limit) {
         try {
-            // A solver that runs past the time limit is stopped and its run comes back with TimedOut set (a typed one by
-            // its recorder, a legacy one by its timerHasExpired flag); the stopped run is drawn, not reported as an
-            // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit.
-            TimeSpan? limit = SolveTimeLimit;
-            var (finished, body) = await Backstop(() => {
-                var clock = System.Diagnostics.Stopwatch.StartNew();
-                var run = chosen.Run(instance, withSteps: true, limit);
-                // A picture type that builds its own frames serves them only for format=frames.
-                if (asFrames && vis is IFramesVisualization framesVis)
-                    return JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions);
-                // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what
-                // is left of the limit, so the whole request stays within it (#764).
-                TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
-                // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
-                // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
-                var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
-                var solution = run.Answer;
-                return asFrames
-                    ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
-                    : getVisualize(vis, steps, solution, instance, run.TimedOut, left);
-            }, SolverBackstop(limit));
-            if (!finished)
-                return SolveTimeLimitError("visualization", chosen.GetType(), limit!.Value, ComputeLimits.BackstopDetail);
-            return Content(body!, "application/json");
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var run = chosen.Run(instance, withSteps: true, limit);
+            // A picture type that builds its own frames serves them only for format=frames.
+            if (asFrames && vis is IFramesVisualization framesVis)
+                return SolveOutcome.Answered(JsonSerializer.Serialize(framesVis.BuildFrames(instance, run), FramesResponse.JsonOptions));
+            // A visualization that does slow work of its own while drawing the steps (the NFA run table) gets what
+            // is left of the limit, so the whole request stays within it (#764).
+            TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
+            // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
+            // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
+            var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
+            var solution = run.Answer;
+            return SolveOutcome.Answered(asFrames
+                ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
+                : getVisualize(vis, steps, solution, instance, run.TimedOut, left));
         } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
         } catch (Exception ex) when (IsExactSearchLimitError(ex)) {
-            return ExactSearchLimitError(ex);
+            return SolveOutcome.Rejected(ExactSearchLimitBody(ex));
         }
     }
 
@@ -657,30 +793,37 @@ public class ProblemProvider : ControllerBase {
             if (!Reductions.TryGetValue(r.ToLower(), out _))
                 return BadRequest(new { error = "unknown_reduction", received = r });
 
-        // Reductions have no time checks of their own, so the backstop is the limit itself (see ComputeLimits).
+        // Reductions have no time checks of their own, so the backstop, or a worker's deadline, is the limit itself
+        // (see ComputeLimits).
         TimeSpan? limit = ComputeLimit;
-        bool finished;
-        string? body;
-        try {
-            (finished, body) = await Backstop(() => {
-                IReduction? red = null;
-                foreach (string reductionname in reds) {
-                    red = Reduction(reductionname, instance);
-                    solution = MapSolutions(red, solution);
-                    instance = red.reductionTo.instance;
-                }
-                return red is null ? null : getVisualize(GuiView.Shown(red.visualization, includePictures), new List<Object>(), solution, instance);
-            }, limit);
-        } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
-        }
+        if (WorkerPool is { } pool)
+            return await InWorker(pool,
+                new WorkerJob(WorkerJobKind.VisualizeReduction, instance) { Reduction = reduction, Solution = solution, IncludePictures = includePictures },
+                limit, limit, reduction, () => ReductionNames(reduction));
+        var (finished, outcome) = await Backstop(() => VisualizeReductionCore(reds, solution, instance, includePictures), limit);
         if (!finished)
             return ReductionTimeLimitError(limit!.Value, reduction);
+        return JobResult(outcome!, limit, null, () => ReductionNames(reduction));
+    }
 
-        if (body is null)
-            return BadRequest(new { error = "no_reductions_provided" });
-
-        return Content(body, "application/json");
+    /// <summary>
+    /// The work of <see cref="visualizeReduction"/>, in this process or in a worker: the solution mapped through each
+    /// reduction of the chain and the last target drawn with it, or the 400 body of rejected input.
+    /// </summary>
+    internal static SolveOutcome VisualizeReductionCore(List<string> reds, string solution, string instance, bool includePictures) {
+        try {
+            IReduction? red = null;
+            foreach (string reductionname in reds) {
+                red = Reduction(reductionname, instance);
+                solution = MapSolutions(red, solution);
+                instance = red.reductionTo.instance;
+            }
+            if (red is null)
+                return SolveOutcome.Rejected(new { error = "no_reductions_provided" });
+            return SolveOutcome.Answered(getVisualize(GuiView.Shown(red.visualization, includePictures), new List<Object>(), solution, instance));
+        } catch (Exception ex) when (IsParseError(ex)) {
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
+        }
     }
 
     /// <summary>
@@ -697,17 +840,27 @@ public class ProblemProvider : ControllerBase {
     public async Task<IActionResult> reduce(string reduction, [FromBody] string instance, [FromQuery] bool includePictures = false) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
+        // The reduction runs in its constructor, and serializing it can run more (computed members), so both are
+        // inside the backstop, or the worker, whose limit is the limit itself: reductions have no time checks (see
+        // ComputeLimits).
+        TimeSpan? limit = ComputeLimit;
+        if (WorkerPool is { } pool)
+            return await InWorker(pool,
+                new WorkerJob(WorkerJobKind.Reduce, instance) { Reduction = reduction, IncludePictures = includePictures },
+                limit, limit, reduction, () => ReductionNames(reduction));
+        var (finished, outcome) = await Backstop(() => ReduceCore(reduction, instance, includePictures), limit);
+        if (!finished)
+            return ReductionTimeLimitError(limit!.Value, reduction);
+        return JobResult(outcome!, limit, null, () => ReductionNames(reduction));
+    }
+
+    /// <summary>The work of <see cref="reduce"/>, in this process or in a worker: the serialized reduction, or the 400 body of rejected input.</summary>
+    internal static SolveOutcome ReduceCore(string reduction, string instance, bool includePictures) {
         try {
-            // The reduction runs in its constructor, and serializing it can run more (computed members), so both are
-            // inside the backstop, which is the limit itself: reductions have no time checks (see ComputeLimits).
-            TimeSpan? limit = ComputeLimit;
-            var (finished, body) = await Backstop(
-                () => JsonSerializer.Serialize(Reduction(reduction, instance), GuiView.Options(ReduceJsonOptions, includePictures)), limit);
-            if (!finished)
-                return ReductionTimeLimitError(limit!.Value, reduction);
-            return Content(body!, "application/json");
+            return SolveOutcome.Answered(
+                JsonSerializer.Serialize(Reduction(reduction, instance), GuiView.Options(ReduceJsonOptions, includePictures)));
         } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
         }
     }
 
@@ -725,17 +878,25 @@ public class ProblemProvider : ControllerBase {
     public async Task<IActionResult> mapSolution(string reduction, string solution, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
+        TimeSpan? limit = ComputeLimit;
+        if (WorkerPool is { } pool)
+            return await InWorker(pool,
+                new WorkerJob(WorkerJobKind.MapSolution, instance) { Reduction = reduction, Solution = solution },
+                limit, limit, reduction, () => ReductionNames(reduction));
+        var (finished, outcome) = await Backstop(() => MapSolutionCore(reduction, solution, instance), limit);
+        if (!finished)
+            return ReductionTimeLimitError(limit!.Value, reduction);
+        return JobResult(outcome!, limit, null, () => ReductionNames(reduction));
+    }
+
+    /// <summary>The work of <see cref="mapSolution"/>, in this process or in a worker: the mapped solution, or the 400 body of rejected input.</summary>
+    internal static SolveOutcome MapSolutionCore(string reduction, string solution, string instance) {
         try {
-            TimeSpan? limit = ComputeLimit;
-            var (finished, mappedSolution) = await Backstop(
-                () => MapSolutions(Reduction(reduction, instance), solution), limit);
-            if (!finished)
-                return ReductionTimeLimitError(limit!.Value, reduction);
-            return Content(
-                JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }),
-                "application/json");
+            string mappedSolution = MapSolutions(Reduction(reduction, instance), solution);
+            return SolveOutcome.Answered(
+                JsonSerializer.Serialize(mappedSolution, new JsonSerializerOptions() { WriteIndented = true }));
         } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
         }
     }
 
@@ -756,20 +917,35 @@ public class ProblemProvider : ControllerBase {
     [HttpPost("mapSolutionBack")]
     [ComputeJob]
     [ProducesResponseType(400)]
-    public IActionResult mapSolutionBack(string reduction, string solution, [FromBody] string instance, bool steps = false) {
+    public async Task<IActionResult> mapSolutionBack(string reduction, string solution, [FromBody] string instance, bool steps = false) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
+        // In a worker the job gets the limit of every other reduction endpoint (#991). In this process it runs inline,
+        // with no limit, as it always has.
+        if (WorkerPool is { } pool) {
+            TimeSpan? limit = ComputeLimit;
+            return await InWorker(pool,
+                new WorkerJob(WorkerJobKind.MapSolutionBack, instance) { Reduction = reduction, Solution = solution, Steps = steps },
+                limit, limit, reduction, () => ReductionNames(reduction));
+        }
+        return JobResult(MapSolutionBackCore(reduction, solution, instance, steps), null, null, () => ReductionNames(reduction));
+    }
+
+    /// <summary>
+    /// The work of <see cref="mapSolutionBack"/>, in this process or in a worker: the source answer (with its steps when
+    /// <paramref name="steps"/>), or the 400 body of rejected input or of a reduction with no backward map.
+    /// </summary>
+    internal static SolveOutcome MapSolutionBackCore(string reduction, string solution, string instance, bool steps) {
         try {
             IReduction red = Reduction(reduction, instance);
             if (!red.hasBackwardMap())
-                return BadRequest(new { error = "no_backward_map", reduction });
+                return SolveOutcome.Rejected(new { error = "no_backward_map", reduction });
             SolveRun run = MapSolutionsBack(red, solution, steps);
             object body = steps ? new { answer = run.Answer, steps = run.Steps } : run.Answer;
-            return Content(
-                JsonSerializer.Serialize(body, new JsonSerializerOptions() { WriteIndented = true }),
-                "application/json");
+            return SolveOutcome.Answered(
+                JsonSerializer.Serialize(body, new JsonSerializerOptions() { WriteIndented = true }));
         } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
         }
     }
 
@@ -798,15 +974,23 @@ public class ProblemProvider : ControllerBase {
     public async Task<IActionResult> gadgets(string reduction, [FromBody] string instance) {
         if (!Reductions.TryGetValue(reduction.ToLower(), out _))
             return BadRequest(new { error = "unknown_reduction", received = reduction });
+        TimeSpan? limit = ComputeLimit;
+        if (WorkerPool is { } pool)
+            return await InWorker(pool, new WorkerJob(WorkerJobKind.Gadgets, instance) { Reduction = reduction },
+                limit, limit, reduction, () => ReductionNames(reduction));
+        var (finished, outcome) = await Backstop(() => GadgetsCore(reduction, instance), limit);
+        if (!finished)
+            return ReductionTimeLimitError(limit!.Value, reduction);
+        return JobResult(outcome!, limit, null, () => ReductionNames(reduction));
+    }
+
+    /// <summary>The work of <see cref="gadgets"/>, in this process or in a worker: the gadget map, or the 400 body of rejected input.</summary>
+    internal static SolveOutcome GadgetsCore(string reduction, string instance) {
         try {
-            TimeSpan? limit = ComputeLimit;
-            var (finished, body) = await Backstop(
-                () => JsonSerializer.Serialize(Reduction(reduction, instance).gadgets, new JsonSerializerOptions() { WriteIndented = true }), limit);
-            if (!finished)
-                return ReductionTimeLimitError(limit!.Value, reduction);
-            return Content(body!, "application/json");
+            return SolveOutcome.Answered(
+                JsonSerializer.Serialize(Reduction(reduction, instance).gadgets, new JsonSerializerOptions() { WriteIndented = true }));
         } catch (Exception ex) when (IsParseError(ex)) {
-            return ParseError(ex);
+            return SolveOutcome.Rejected(ParseErrorBodyOf(ex));
         }
     }
 }

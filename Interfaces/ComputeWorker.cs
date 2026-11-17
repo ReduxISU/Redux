@@ -5,19 +5,22 @@ using Microsoft.Extensions.Options;
 
 namespace API.Interfaces;
 
-/// <summary>What became of a solve, in this process or in a worker process (#936).</summary>
+/// <summary>
+/// What became of a compute job (a solve, or since #991 the work of any compute endpoint), in this process or in a
+/// worker process (#936).
+/// </summary>
 internal enum SolveOutcomeKind {
-    /// <summary>The solver answered (<see cref="SolveOutcome.Answer"/>).</summary>
+    /// <summary>The job answered (<see cref="SolveOutcome.Answer"/>).</summary>
     Answered,
-    /// <summary>The solver stopped itself at the time limit.</summary>
+    /// <summary>The solver stopped itself at the time limit (a solve only).</summary>
     Stopped,
     /// <summary>The input was rejected: a parse error or an exact-search limit, with the 400 <see cref="SolveOutcome.Body"/>.</summary>
     Rejected,
     /// <summary>The solver's outside service failed (<see cref="SolveOutcome.Unavailable"/>, HTTP 503).</summary>
     Unavailable,
-    /// <summary>The solver threw an unexpected exception (<see cref="SolveOutcome.Detail"/>), HTTP 500 as in this process.</summary>
+    /// <summary>The job threw an unexpected exception (<see cref="SolveOutcome.Detail"/>), HTTP 500 as in this process.</summary>
     Failed,
-    /// <summary>The solver asked for more memory than the worker's heap limit allows.</summary>
+    /// <summary>The job asked for more memory than the worker's heap limit allows.</summary>
     OutOfMemory,
     /// <summary>The worker did not stop at the time limit, so the server killed it.</summary>
     Killed,
@@ -28,11 +31,15 @@ internal enum SolveOutcomeKind {
 }
 
 /// <summary>
-/// The outcome of a solve: <see cref="ProblemProvider.SolveCore"/> makes the first three kinds in whichever process runs
-/// the solver, and <see cref="SolveWorkerPool"/> adds the ones only a worker process can have.
+/// The outcome of a compute job: <see cref="ProblemProvider.SolveCore"/> and <see cref="ProblemProvider.RunJob"/> make
+/// the first three kinds in whichever process runs the job, and <see cref="SolveWorkerPool"/> adds the ones only a
+/// worker process can have.
 /// </summary>
 internal sealed record SolveOutcome(SolveOutcomeKind Kind) {
-    /// <summary>The solver's answer, for <see cref="SolveOutcomeKind.Answered"/>.</summary>
+    /// <summary>
+    /// For <see cref="SolveOutcomeKind.Answered"/>: the solver's answer of a solve, or the finished response body of any
+    /// other job (<see cref="ProblemProvider.RunJob"/>), which the server sends as it is.
+    /// </summary>
     public string? Answer { get; init; }
     /// <summary>The 400 body, for <see cref="SolveOutcomeKind.Rejected"/> (an anonymous object here, JSON from a worker).</summary>
     public object? Body { get; init; }
@@ -47,17 +54,68 @@ internal sealed record SolveOutcome(SolveOutcomeKind Kind) {
 }
 
 /// <summary>
-/// An unexpected exception thrown by a solver in a worker process, thrown again in the server so the request ends with
-/// HTTP 500, as it does when the same solver throws in the server itself. The message is the worker's exception, in full.
+/// An unexpected exception thrown by a job in a worker process, thrown again in the server so the request ends with
+/// HTTP 500, as it does when the same code throws in the server itself. The message is the worker's exception, in full.
 /// </summary>
 internal sealed class ComputeWorkerException : Exception {
     public ComputeWorkerException(string detail) : base(detail) { }
 }
 
-/// <summary>A job sent to a worker process: the solver (a key of <see cref="ProblemProvider.Solvers"/>), the instance, and the time limit.</summary>
-internal sealed record WorkerJob(string Solver, string Instance, long? TimeLimitTicks);
+/// <summary>The compute endpoint whose work a <see cref="WorkerJob"/> runs (#936, #991).</summary>
+internal enum WorkerJobKind {
+    /// <summary><c>solve</c>: <see cref="WorkerJob.Solver"/> on the instance.</summary>
+    Solve,
+    /// <summary><c>verify</c>: <see cref="WorkerJob.Verifier"/> on the instance and the certificate (<see cref="WorkerJob.Solution"/>).</summary>
+    Verify,
+    /// <summary><c>reduce</c>: <see cref="WorkerJob.Reduction"/> of the instance.</summary>
+    Reduce,
+    /// <summary><c>mapSolution</c>: <see cref="WorkerJob.Solution"/> mapped through <see cref="WorkerJob.Reduction"/> of the instance.</summary>
+    MapSolution,
+    /// <summary><c>mapSolutionBack</c>: the target's <see cref="WorkerJob.Solution"/> mapped back, with <see cref="WorkerJob.Steps"/> or not.</summary>
+    MapSolutionBack,
+    /// <summary><c>gadgets</c>: the gadget map of <see cref="WorkerJob.Reduction"/> of the instance.</summary>
+    Gadgets,
+    /// <summary><c>visualize</c>: <see cref="WorkerJob.Visualization"/> of the instance, with <see cref="WorkerJob.Solver"/> or its own solver.</summary>
+    Visualize,
+    /// <summary><c>visualizeReduction</c>: the chain <see cref="WorkerJob.Reduction"/> (dash-separated) with <see cref="WorkerJob.Solution"/>.</summary>
+    VisualizeReduction,
+}
 
-/// <summary>The one reply of a worker process to its <see cref="WorkerJob"/>.</summary>
+/// <summary>
+/// A job sent to a worker process: which endpoint's work it is (<see cref="Kind"/>), the instance, and that endpoint's
+/// arguments, as the server checked them. Names are keys of the <see cref="ProblemProvider"/> registries (any case).
+/// </summary>
+internal sealed record WorkerJob(WorkerJobKind Kind, string Instance) {
+    /// <summary>The solver of a solve, or the solver asked for by a visualize (null or empty: the visualization's own).</summary>
+    public string? Solver { get; init; }
+    /// <summary>The verifier of a verify.</summary>
+    public string? Verifier { get; init; }
+    /// <summary>The reduction, or for a visualizeReduction the dash-separated chain of them.</summary>
+    public string? Reduction { get; init; }
+    /// <summary>The visualization of a visualize.</summary>
+    public string? Visualization { get; init; }
+    /// <summary>The certificate of a verify, or the solution of a mapSolution, mapSolutionBack or visualizeReduction.</summary>
+    public string? Solution { get; init; }
+    /// <summary>For a visualize: format=frames rather than the list format.</summary>
+    public bool AsFrames { get; init; }
+    /// <summary>For reduce and visualizeReduction: the includePictures query parameter.</summary>
+    public bool IncludePictures { get; init; }
+    /// <summary>For mapSolutionBack: the steps query parameter.</summary>
+    public bool Steps { get; init; }
+    /// <summary>The time limit the solver of a solve or a visualize stops itself at; null for none.</summary>
+    public long? TimeLimitTicks { get; init; }
+    /// <summary>For tests only (<see cref="SolveWorkerPool.TestFault"/>): makes the worker misbehave on purpose.</summary>
+    public string? TestFault { get; init; }
+
+    /// <summary>The job of a solve.</summary>
+    public static WorkerJob ForSolve(string solver, string instance, TimeSpan? limit) =>
+        new(WorkerJobKind.Solve, instance) { Solver = solver, TimeLimitTicks = limit?.Ticks };
+}
+
+/// <summary>
+/// The one reply of a worker process to its <see cref="WorkerJob"/>. <see cref="Answer"/> is the solver's answer for a
+/// solve, and the finished response body for every other kind of job.
+/// </summary>
 internal sealed record WorkerReply(SolveOutcomeKind Kind) {
     public string? Answer { get; init; }
     public JsonElement? Body { get; init; }
@@ -69,15 +127,18 @@ internal sealed record WorkerReply(SolveOutcomeKind Kind) {
 }
 
 /// <summary>
-/// The worker mode of the API binary (<c>dotnet API.dll --compute-worker</c>), which runs exactly one solve for
-/// <see cref="SolveWorkerPool"/> (#936). Program.cs checks for <see cref="Argument"/> before it builds the web host.
+/// The worker mode of the API binary (<c>dotnet API.dll --compute-worker</c>), which runs exactly one compute job (a
+/// solve, a verify, a reduction or a visualization) for <see cref="SolveWorkerPool"/> (#936, #991). Program.cs checks
+/// for <see cref="Argument"/> before it builds the web host.
 /// <para>
 /// The protocol is one JSON line each way on the standard streams. The worker loads the problem and solver registry,
 /// sets up what the solvers need (the quantum service settings, from the environment the server passes), and writes
-/// <see cref="ReadyLine"/>; the server keeps it waiting like that until a solve comes in. Then it reads one
-/// <see cref="WorkerJob"/>, runs <see cref="ProblemProvider.SolveCore"/> as the server would, writes one
-/// <see cref="WorkerReply"/>, and exits. Anything else a solver writes to the console goes to standard error, so
-/// standard output carries only the protocol.
+/// <see cref="ReadyLine"/>; the server keeps it waiting like that until a job comes in. Then it reads one
+/// <see cref="WorkerJob"/>, runs the code the endpoint runs in the server (<see cref="ProblemProvider.SolveCore"/> for a
+/// solve, <see cref="ProblemProvider.RunJob"/> for the others), writes one <see cref="WorkerReply"/>, and exits. For
+/// every endpoint but solve the reply carries the finished response body, so the server sends exactly the text the
+/// in-process path would; it can be large (the steps of a visualization) and travels as one line however long it is.
+/// Anything else the job writes to the console goes to standard error, so standard output carries only the protocol.
 /// </para>
 /// <para>
 /// The worker exits as soon as its standard input closes, so a worker whose server has gone away (crashed or killed)
@@ -105,14 +166,14 @@ internal static class ComputeWorker {
         var utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         var protocol = new StreamWriter(Console.OpenStandardOutput(), utf8) { AutoFlush = true };
         var input = new StreamReader(Console.OpenStandardInput(), utf8);
-        // Solvers may write to the console; keep standard output for the protocol.
+        // Jobs may write to the console; keep standard output for the protocol.
         Console.SetOut(Console.Error);
 
         // Pay the start-up costs now, before the job comes in: the registry scan, the quantum settings, and the
         // protocol's JSON code.
         _ = ProblemProvider.Solvers.Count;
         SetUpQuantumService();
-        _ = JsonSerializer.Serialize(JsonSerializer.Deserialize<WorkerJob>("{\"solver\":\"\",\"instance\":\"\"}", WireOptions), WireOptions);
+        _ = JsonSerializer.Serialize(JsonSerializer.Deserialize<WorkerJob>("{\"kind\":\"Solve\",\"instance\":\"\",\"solver\":\"\"}", WireOptions), WireOptions);
         _ = JsonSerializer.Serialize(new WorkerReply(SolveOutcomeKind.Answered) { Answer = "" }, WireOptions);
 
         protocol.WriteLine(ReadyLine);
@@ -137,7 +198,10 @@ internal static class ComputeWorker {
     internal static WorkerReply Execute(WorkerJob job) {
         TimeSpan? limit = job.TimeLimitTicks is { } ticks ? TimeSpan.FromTicks(ticks) : null;
         try {
-            var outcome = ProblemProvider.SolveCore(job.Solver, job.Instance, limit);
+            Misbehave(job.TestFault);
+            var outcome = job.Kind == WorkerJobKind.Solve
+                ? ProblemProvider.SolveCore(job.Solver ?? "", job.Instance, limit)
+                : ProblemProvider.RunJob(job, limit);
             return outcome.Kind switch {
                 SolveOutcomeKind.Answered => new WorkerReply(SolveOutcomeKind.Answered) { Answer = outcome.Answer },
                 SolveOutcomeKind.Rejected => new WorkerReply(SolveOutcomeKind.Rejected) {
@@ -153,10 +217,49 @@ internal static class ComputeWorker {
                 Detail = unavailable.Message,
             };
         } catch (Exception ex) when (IsOutOfMemory(ex)) {
-            // The heap limit (DOTNET_GCHeapHardLimit) stopped the solver; what it allocated is garbage by now.
+            // The heap limit (DOTNET_GCHeapHardLimit) stopped the job; what it allocated is garbage by now.
             return new WorkerReply(SolveOutcomeKind.OutOfMemory);
         } catch (Exception ex) {
             return new WorkerReply(SolveOutcomeKind.Failed) { Detail = ex.ToString() };
+        }
+    }
+
+    /// <summary>The <see cref="WorkerJob.TestFault"/> that never answers, like work that ignores the time limit.</summary>
+    internal const string HangFault = "hang";
+    /// <summary>The <see cref="WorkerJob.TestFault"/> that exits the process without answering, like a stack overflow.</summary>
+    internal const string CrashFault = "crash";
+    /// <summary>The <see cref="WorkerJob.TestFault"/> that allocates (and touches) memory until it is stopped.</summary>
+    internal const string AllocateFault = "allocate";
+    /// <summary>The <see cref="WorkerJob.TestFault"/> that throws an unexpected exception (<see cref="ThrowFaultMessage"/>).</summary>
+    internal const string ThrowFault = "throw";
+    /// <summary>The message of the exception <see cref="ThrowFault"/> throws.</summary>
+    internal const string ThrowFaultMessage = "A test fault threw in the worker.";
+
+    // For tests only: the faults a test reaches the kill, memory, crash and failure paths of every kind of job with,
+    // where no honest input does it reliably.
+    private static void Misbehave(string? fault) {
+        switch (fault) {
+            case null:
+                return;
+            case HangFault:
+                Thread.Sleep(Timeout.Infinite);
+                return;
+            case CrashFault:
+                Environment.Exit(3);
+                return;
+            case ThrowFault:
+                throw new InvalidOperationException(ThrowFaultMessage);
+            case AllocateFault:
+                var held = new List<byte[]>();
+                while (true) {
+                    var block = new byte[16 * 1024 * 1024];
+                    // Write every page, so the memory is really in the working set.
+                    for (int i = 0; i < block.Length; i += 4096)
+                        block[i] = 1;
+                    held.Add(block);
+                }
+            default:
+                throw new InvalidOperationException($"Unknown test fault \"{fault}\".");
         }
     }
 
