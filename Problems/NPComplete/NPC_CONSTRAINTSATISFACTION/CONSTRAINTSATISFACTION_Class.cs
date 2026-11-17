@@ -22,7 +22,7 @@ class CONSTRAINTSATISFACTION : IProblem<ConstraintSatisfactionIntelligent, Const
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Reece Foulkrod", "Gabriel Ory", "Ziming Wang" };
 
-    private const string DefaultInstance = "((x,y),({1,2},{1,2}),{\"x!=y\"})";
+    private const string DefaultInstance = "((x,z,y),({0.5,1.5},{1.5,2,2.5},{1.5,2}),{\"x+y>=3\",\"y!=z\"})";
     public string defaultInstance { get; } = DefaultInstance;
     public string instanceFormat { get; } = "Format: (X,D,C). X is a parenthesized list of distinct identifiers; D is a parenthesized list of nonempty sets of exactly representable System.Decimal values, one per variable in the same order; C is a set of double-quoted constraint expressions. Identifiers use letters, digits and underscores, starting with a letter or underscore. Example: " + DefaultInstance;
     public string certificateFormat { get; } = "A parenthesized list assigning every variable exactly once from its domain. Example: (x:1, y:2)";
