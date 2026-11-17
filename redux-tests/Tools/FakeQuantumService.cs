@@ -38,6 +38,10 @@ public sealed class FakeQuantumService : IDisposable {
     public static FakeQuantumService Answering(string body, HttpStatusCode status = HttpStatusCode.OK) =>
         new(new FakeHandler(_ => new HttpResponseMessage(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") }));
 
+    /// <summary>A service that answers every request with whatever <paramref name="respond"/> returns for it.</summary>
+    public static FakeQuantumService Responding(Func<HttpRequestMessage, HttpResponseMessage> respond) =>
+        new(new FakeHandler(respond));
+
     /// <summary>No service configured at all (the settings Program.cs fills at startup are missing).</summary>
     public static FakeQuantumService NotConfigured() {
         var scope = Down();
