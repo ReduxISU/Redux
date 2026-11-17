@@ -4,6 +4,7 @@ using API.Interfaces;
 using API.Problems.NPComplete.NPC_STEINERTREE;
 using API.Problems.NPComplete.NPC_TSP;
 using API.Problems.NPComplete.NPC_TSP.Solvers;
+using redux_tests.Fixtures;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -65,13 +66,17 @@ public class ComputePrecheck_Tests {
         Assert.Equal(measures.Count, instance.SizeMeasures().Count); // each part once
     }
 
+    // The families the precheck covers so far (#843): graph problems, and the formula problems of the SAT family.
+    private static readonly string[] FormulaProblems = { "sat", "sat3", "weightedmaxsat", "weightedmax3sat" };
+
     [Fact]
-    public void GraphProblems_AreTheProblemsThatReportMeasures() {
+    public void TheProblemsThatReportMeasures_AreTheCoveredFamilies() {
         var reporting = ProblemProvider.Problems
             .Where(p => !p.Value.IsAbstract && Activator.CreateInstance(p.Value) is IProblem i && i.SizeMeasures().Count > 0)
             .Select(p => p.Key).ToHashSet();
-        var graphs = GraphProblems().Select(row => row.Data).ToHashSet();
-        Assert.Subset(reporting, graphs);
+        var covered = GraphProblems().Select(row => row.Data).Concat(FormulaProblems).ToHashSet();
+        Assert.Subset(reporting, covered); // every covered problem reports its measures
+        Assert.Subset(covered, reporting); // and no other problem does yet
     }
 
     [Fact]
@@ -90,10 +95,34 @@ public class ComputePrecheck_Tests {
         Assert.Equal(SizeMeasure.Number("K", 6), measures["K"]);
     }
 
+    // The SAT family measures its formula Φ: literal occurrences |phi|, |variables| and |clauses|.
+    [Theory]
+    [InlineData("sat", "(x1 | x2 | x3 | x4) & (!x1 | !x2) & (!x3 | x4) & (!x4 | x2) & (!x2 | !x3)", 12, 4, 5)]
+    [InlineData("sat3", "(x1 | x2 | x3) & (!x1 | !x2 | !x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3)", 12, 3, 4)]
+    [InlineData("weightedmaxsat", "(((!x1 | x2) & (x3 | x4 | x1)),(1,2))", 5, 4, 2)]
+    [InlineData("weightedmax3sat", "(((!x1 | x2) & (x3 | x3 | x1)),(1,2))", 5, 3, 2)]
+    public void FormulaProblem_ReportsItsFormulasSizes(string problem, string instance, int phi, int variables, int clauses) {
+        var parsed = (IProblem)Activator.CreateInstance(ProblemProvider.Problems[problem], instance)!;
+        Assert.Equal(
+            [SizeMeasure.Count("phi", phi), SizeMeasure.Count("variables", variables), SizeMeasure.Count("clauses", clauses)],
+            parsed.SizeMeasures());
+    }
+
+    [Fact]
+    public void SatBruteForce_HopelessFormula_IsRefused_AndWalkSatIsNot() {
+        // 60 variables in 3-literal clauses: 2^60 * 180, about 2.1e20 steps.
+        string formula = string.Join(" & ", Enumerable.Range(0, 60).Select(i => $"(x{i} | !x{(i + 1) % 60} | x{(i + 7) % 60})"));
+        var estimate = ComputePrecheck.Refusal(ProblemProvider.Solvers["satbruteforcesolver"], formula, ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.Equal(Math.Pow(2, 60) * 180, estimate.Steps, 1e-9 * estimate.Steps);
+        Assert.Null(ComputePrecheck.Refusal(ProblemProvider.Solvers["walksat"], formula, ThirtySeconds, null));
+        Assert.Null(ComputePrecheck.Refusal(ProblemProvider.Solvers["schoning"], formula, ThirtySeconds, null));
+    }
+
     [Fact]
     public void ProblemWithoutMeasures_ReportsNone() {
-        var sat = (IProblem)Activator.CreateInstance(ProblemProvider.Problems["sat3"])!;
-        Assert.Empty(sat.SizeMeasures());
+        // The IProblem default: a problem that does not override SizeMeasures reports nothing.
+        Assert.Empty(((IProblem)new NODEFAULTSFIXTURE()).SizeMeasures());
     }
 
     // ── The Big-O names ─────────────────────────────────────────────────────────
@@ -148,16 +177,15 @@ public class ComputePrecheck_Tests {
         "PartitionBruteForce",
         "PrimeFactorSolver", "ShorsQuantumSolver",
         "PumpSchedulingCMSolver", "PumpSchedulingEMSolver",
-        "SATBruteForceSolver", "SATGroverSolver",
-        "PPZ", "Sat3BacktrackingSolver", "Schoning", "WalkSAT",
+        // SAT family: the quantum solver runs on the quantum service; the rest prune their search (Backtracking).
+        "SATGroverSolver", "Sat3BacktrackingSolver",
         "GreedySetCover", "HeuristicSolver", "SetCoverBruteForce",
         "SimonSolver",
         "SubsetSumBruteForce", "FastApproximation",
         "SudokuSolver",
         "ThreeDimensionalMatchingBruteForce",
         "UnstructuredGroverSolver", "UnstructuredSearchSolver",
-        "WeightedMax3SatBranchAndBoundSolver", "WeightedMax3SatBruteForceSolver", "WeightedMax3SatConditionalExpectationsSolver",
-        "WeightedMaxSatBranchAndBoundSolver", "WeightedMaxSatBruteForceSolver", "WeightedMaxSatConditionalExpectationsSolver",
+        "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
     };
 
     private static Dictionary<string, string> ActualSkipped() =>
@@ -190,7 +218,12 @@ public class ComputePrecheck_Tests {
     public void SkipReason_NamesTheMissingMeasure() {
         Assert.Equal("its timeComplexity uses a, which CLIQUE does not report",
             ComputePrecheck.SkipReason(ProblemProvider.Solvers["chibanishizeki"]));
-        Assert.Equal("SAT3 reports no size measures", ComputePrecheck.SkipReason(ProblemProvider.Solvers["walksat"]));
+        Assert.Equal("it runs on the external quantum service (SolverType.Quantum), not on the server's processor",
+            ComputePrecheck.SkipReason(ProblemProvider.Solvers["satgroversolver"]));
+        // Every "reports no size measures" reason names the solver's own problem.
+        foreach (var type in ProblemProvider.Solvers.Values)
+            if (ComputePrecheck.SkipReason(type) is { } reason && reason.EndsWith(" reports no size measures", StringComparison.Ordinal))
+                Assert.Equal($"{ProblemProvider.ProblemTypeOf(type, typeof(ISolver<>))!.Name} reports no size measures", reason);
         Assert.Equal("it prunes its search (SolverType.Backtracking), so its worst-case Big-O says little about its running time",
             ComputePrecheck.SkipReason(typeof(TSPBranchAndBound)));
         Assert.Null(ComputePrecheck.SkipReason(typeof(TSPBruteForce)));
@@ -273,8 +306,8 @@ public class ComputePrecheck_Tests {
 
     [Fact]
     public void SkippedSolver_HasNoEstimate() {
-        var walkSat = ProblemProvider.Solvers["walksat"];
-        Assert.Null(ComputePrecheck.Evaluate(walkSat, "(x1 | x2 | x3)", ThirtySeconds, null));
+        var grover = ProblemProvider.Solvers["satgroversolver"];
+        Assert.Null(ComputePrecheck.Evaluate(grover, "(x1 | x2 | x3)", ThirtySeconds, null));
     }
 
     [Fact]

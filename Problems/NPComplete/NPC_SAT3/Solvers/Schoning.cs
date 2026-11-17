@@ -26,7 +26,8 @@ class Schoning : ISolver<SAT3> {
     // worst-case guarantee of finding an assignment within its tries, which makes it a Heuristic (#842).
     public SolverType solverType { get; } = SolverType.Heuristic | SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("(4/3)^n", ", n = number of variables");
+    // Bounded by MaxTrials: min((4/3)^n, 1,000) trials of 3n steps, each an O(|phi|) verify and clause scan.
+    public MathematicalFunction timeComplexity { get; } = new("min(1000, (4/3)^|variables|) * |variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ; at most 1,000 trials");
 
     // Hard cap on trials so an unsatisfiable or large instance cannot run for ~2^31 trials.
     private const int MaxTrials = 1_000;
