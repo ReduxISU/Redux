@@ -28,7 +28,7 @@ class MaxCutQAOASolver : ISolver<MAXCUT> {
     // Each QAOA layer applies one ZZ rotation per edge and one X rotation per node, and the service uses
     // a fixed 2 layers. The number of circuit evaluations its classical optimizer (COBYLA) makes has no
     // fixed bound, so this is the size of one circuit, not the total work.
-    public MathematicalFunction timeComplexity { get; } = new("n + m", " gates per QAOA layer, n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("|N| + |E|", " gates per QAOA layer, |N| = number of nodes, |E| = number of edges");
 
     // --- Constructors ---
     public MaxCutQAOASolver() { }
