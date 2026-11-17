@@ -99,6 +99,15 @@ public class ProblemProvider : ControllerBase {
         return TimeLimitError(job, limit, detail, hint, context);
     }
 
+    /// <summary>
+    /// HTTP 422 with the <c>too_large</c> body of a solve or visualize the Big-O precheck refused (#843), with the hint
+    /// and context of the time-limit error: the solver, its problem and the problem's other solvers.
+    /// </summary>
+    private IActionResult TooLargeError(string job, Type solverType, ComputePrecheck.Estimate estimate) {
+        var (hint, context) = SolveLimitContext(solverType);
+        return UnprocessableEntity(ComputePrecheck.TooLargeBody(job, estimate, hint, context));
+    }
+
     /// <summary>HTTP 422 with the <c>memory_limit</c> body of a solve (#936); see <see cref="ComputeLimits.MemoryLimitBody"/>.</summary>
     private IActionResult SolveMemoryLimitError(Type solverType, int limitMB, string detail) {
         var (hint, context) = SolveLimitContext(solverType);
@@ -509,6 +518,10 @@ public class ProblemProvider : ControllerBase {
         if (!Solvers.TryGetValue(solver.ToLower(), out var solverType))
             return BadRequest(new { error = "unknown_solver", received = solver });
         TimeSpan? limit = ComputeLimit;
+        // The Big-O precheck (#843) refuses a solve whose estimate is hopelessly over the limit before it starts, here in
+        // the server and before any worker is used, so the request holds its job slot only while the instance is parsed.
+        if (ComputePrecheck.Refusal(solverType, problemInstance, limit, _configuration) is { } tooLarge)
+            return TooLargeError("solve", solverType, tooLarge);
         // With ComputeLimits:IsolateSolves on, the solve runs in a worker process of its own, which is killed when it
         // does not stop at the time limit or grows past the memory limit (#936). The worker runs SolveCore too, so it
         // answers exactly as the in-process path below.
@@ -743,6 +756,9 @@ public class ProblemProvider : ControllerBase {
         // error (#885). Only a solve or a drawing that does not stop runs into the backstop, which answers time_limit,
         // or in a worker process into the deadline, where the worker is killed (#991).
         TimeSpan? limit = SolveTimeLimit;
+        // The Big-O precheck (#843), against the visualize limit, as in solve.
+        if (ComputePrecheck.Refusal(chosen.GetType(), instance, limit, _configuration) is { } tooLarge)
+            return TooLargeError("visualization", chosen.GetType(), tooLarge);
         if (WorkerPool is { } pool)
             return await InWorker(pool,
                 new WorkerJob(WorkerJobKind.Visualize, instance) {
