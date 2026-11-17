@@ -56,6 +56,40 @@ public class QasmD3Scheduler_Tests {
         Assert.Contains(0.5, op.Params!);
     }
 
+    [Theory]
+    [InlineData("pi", Math.PI)]
+    [InlineData("-pi", -Math.PI)]
+    [InlineData("pi/2", Math.PI / 2)]
+    [InlineData("-pi/4", -Math.PI / 4)]
+    [InlineData("3*pi/4", 3 * Math.PI / 4)]
+    [InlineData("-0.5*pi", -0.5 * Math.PI)]
+    [InlineData("1e-3", 0.001)]
+    public void ParseQasm_ParametrizedGate_ParsesMultiplesOfPi(string param, double expected) {
+        var (_, _, ops) = QasmD3Scheduler.ParseQasm($"qreg q[1];\nrz({param}) q[0];\n");
+
+        var op = Assert.Single(ops);
+        Assert.Equal(expected, Assert.Single(op.Params!), 12);
+    }
+
+    [Fact]
+    public void ParseQasm_ParametrizedGate_IgnoresTheCurrentCulture() {
+        // A culture with a decimal comma read "0.5" as 5 (or not at all) before.
+        var saved = System.Globalization.CultureInfo.CurrentCulture;
+        try {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            var (_, _, ops) = QasmD3Scheduler.ParseQasm("qreg q[1];\nrz(0.5) q[0];\n");
+            Assert.Equal(0.5, Assert.Single(Assert.Single(ops).Params!));
+        } finally {
+            System.Globalization.CultureInfo.CurrentCulture = saved;
+        }
+    }
+
+    [Fact]
+    public void ParseQasm_UnparseableParam_IsLeftOut() {
+        var (_, _, ops) = QasmD3Scheduler.ParseQasm("qreg q[1];\nrz(theta) q[0];\n");
+        Assert.Null(Assert.Single(ops).Params);
+    }
+
     [Fact]
     public void ParseQasm_MultiTargetGate_ProducesBothTargets() {
         string qasm = "qreg q[2];\ncx q[0],q[1];\n";
