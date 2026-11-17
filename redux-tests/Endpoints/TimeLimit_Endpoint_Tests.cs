@@ -125,7 +125,7 @@ public class TimeLimit_Endpoint_Tests : IClassFixture<TinyComputeLimitAppFactory
     }
 }
 
-// With the default limit (10 s) a normal request is answered exactly as before the limit existed.
+// With the default limit (30 s) a normal request is answered exactly as before the limit existed.
 [Collection(TimingCollection.Name)]
 public class TimeLimit_NormalRequest_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
@@ -197,5 +197,48 @@ public class TimeLimit_NormalRequest_Tests : IClassFixture<AppFactory> {
         var (status, body) = await Post("/ProblemProvider/reduce?reduction=SipserReduceToCliqueStandard", instance);
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal(expected, body);
+    }
+}
+
+// The visualize limit: its own key when set, else the compute limit capped at 10 seconds, so pictures don't wait as long
+// as the other compute requests may.
+public class VisualizeTimeLimit_Tests {
+    private static IConfiguration Config(params (string Key, string Value)[] settings) =>
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(settings.Select(s => new KeyValuePair<string, string?>(s.Key, s.Value)))
+            .Build();
+
+    [Fact]
+    public void Defaults_ComputeIs30Seconds_VisualizeIsCappedAt10() {
+        Assert.Equal(TimeSpan.FromSeconds(30), ComputeLimits.TimeLimit(Config()));
+        Assert.Equal(TimeSpan.FromSeconds(10), ProblemProvider.VisualizeTimeLimit(Config()));
+        Assert.Equal(TimeSpan.FromSeconds(10), ProblemProvider.VisualizeTimeLimit(null));
+    }
+
+    [Fact]
+    public void AShorterComputeLimit_ShortensVisualizeToo() {
+        var config = Config((ComputeLimits.TimeLimitKey, "2"));
+        Assert.Equal(TimeSpan.FromSeconds(2), ProblemProvider.VisualizeTimeLimit(config));
+    }
+
+    [Fact]
+    public void ComputeLimitOff_VisualizeStillStopsAtTheCap() {
+        var config = Config((ComputeLimits.TimeLimitKey, "0"));
+        Assert.Null(ComputeLimits.TimeLimit(config));
+        Assert.Equal(TimeSpan.FromSeconds(10), ProblemProvider.VisualizeTimeLimit(config));
+    }
+
+    [Theory]
+    [InlineData("45", 45.0)]
+    [InlineData("0.05", 0.05)]
+    public void TheVisualizeKey_DecidesOnItsOwn(string visualize, double expectedSeconds) {
+        var config = Config((ComputeLimits.TimeLimitKey, "2"), (ProblemProvider.SolveTimeLimitKey, visualize));
+        Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), ProblemProvider.VisualizeTimeLimit(config));
+    }
+
+    [Fact]
+    public void TheVisualizeKeyAtZero_TurnsTheVisualizeLimitOff() {
+        var config = Config((ProblemProvider.SolveTimeLimitKey, "0"));
+        Assert.Null(ProblemProvider.VisualizeTimeLimit(config));
     }
 }
