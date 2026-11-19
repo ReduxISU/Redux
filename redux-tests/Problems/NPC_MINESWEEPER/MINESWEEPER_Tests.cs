@@ -159,39 +159,100 @@ public class MINESWEEPER_Tests {
 
     // Visualization tests
 
-    [Fact]
-    public void Visualization_CreatesCorrectGraph() {
-        var problem = new MINESWEEPER();
+    [Theory]
+    [InlineData("1,?,1;?,?,?;1,?,1", 3, 3)]
+    [InlineData("0,?,?;1,?,?", 2, 3)]
+    [InlineData("?", 1, 1)]
+    [InlineData("?;?;?", 3, 1)]
+    public void Visualization_PreservesBoardLayout(string input, int rows, int columns) {
         var visualization = new MinesweeperDefaultVisualization();
+        var board = visualization.visualize(new MINESWEEPER(input));
 
-        var graph = visualization.visualize(problem);
-
-        Assert.Equal(9, graph.nodes.Count);
-        Assert.Equal(20, graph.links.Count);
-        Assert.Contains(graph.nodes,
-            node => node.name == "(0,0):1");
-        Assert.Contains(graph.nodes,
-            node => node.name == "(1,1):?");
+        Assert.Equal(VisualizationType.DynamicTable, visualization.visualizationType);
+        Assert.Equal(columns, board.columns.Count);
+        Assert.Equal(rows, board.rows.Count);
+        Assert.Equal(columns, board.columns.Select(column => column.key).Distinct().Count());
+        Assert.Equal(rows, board.rows.Select(row => row.id).Distinct().Count());
+        Assert.All(board.rows, row => Assert.Equal(
+            board.columns.Select(column => column.key), row.cells.Keys));
     }
 
     [Fact]
-    public void SolvedVisualization_HighlightsMines() {
-        var problem = new MINESWEEPER();
+    public void Visualization_ShowsCluesAndCoveredCells() {
+        var board = new MinesweeperDefaultVisualization().visualize(
+            new MINESWEEPER("0,?;?,1"));
+
+        Assert.Equal("", board.rows[0].cells["c0"]);
+        Assert.Equal("1", board.rows[1].cells["c1"]);
+        Assert.Equal("■", board.rows[0].cells["c1"]);
+        Assert.Equal("■", board.rows[1].cells["c0"]);
+        Assert.Equal("Background", board.rows[0].cellColors!["c0"]);
+        Assert.Equal("ElementHighlight", board.rows[0].cellColors!["c1"]);
+        Assert.NotEqual(board.rows[0].cellColors!["c0"], board.rows[0].cellColors!["c1"]);
+    }
+
+    [Fact]
+    public void SolvedVisualization_RevealsMinesAndAdjacentCounts() {
+        var board = Assert.IsType<API.Interfaces.JSON_Objects.Tables.API_TableJSON>(
+            new MinesweeperDefaultVisualization().SolvedVisualization(
+                new MINESWEEPER(), MinesweeperVerifier.CertificateExample));
+
+        Assert.Equal("✹", board.rows[1].cells["c0"]);
+        Assert.Equal("✹", board.rows[1].cells["c2"]);
+        Assert.Equal("Solution", board.rows[1].cellColors!["c0"]);
+        Assert.Equal("2", board.rows[1].cells["c1"]);
+        Assert.Equal("2", board.rows[0].cells["c1"]);
+        Assert.Equal("2", board.rows[2].cells["c1"]);
+        Assert.Equal("1", board.rows[0].cells["c0"]);
+        Assert.NotEqual(board.rows[1].cellColors!["c0"], board.rows[0].cellColors!["c0"]);
+        Assert.DoesNotContain(board.rows.SelectMany(row => row.cells.Values), cell => cell == "■");
+    }
+
+    [Theory]
+    [InlineData("0,?", "0,0", "", "")]
+    [InlineData("?,?;?,?", "1,0;0,1", "✹", "2")]
+    [InlineData("?;?;?", "1;0;0", "✹", "1")]
+    [InlineData("?", "1", "✹", "✹")]
+    public void SolvedVisualization_HandlesEdgesAndBlankSafeCells(
+        string input, string solution, string first, string second) {
+        var board = Assert.IsType<API.Interfaces.JSON_Objects.Tables.API_TableJSON>(
+            new MinesweeperDefaultVisualization().SolvedVisualization(new MINESWEEPER(input), solution));
+
+        Assert.Equal(first, board.rows[0].cells["c0"]);
+        Assert.Equal(second, board.columns.Count > 1
+            ? board.rows[0].cells["c1"] : board.rows[Math.Min(1, board.rows.Count - 1)].cells["c0"]);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("{}")]
+    [InlineData(SolveRun.TimedOutAnswer)]
+    [InlineData("0,0,0;0,0,0;0,0,0")]
+    [InlineData("1,0,0;1,0,1;0,0,0")]
+    [InlineData("not a certificate")]
+    public void SolvedVisualization_InvalidSolutionKeepsBoardCovered(string solution) {
         var visualization = new MinesweeperDefaultVisualization();
+        var problem = new MINESWEEPER();
+        var original = visualization.visualize(problem);
+        var result = visualization.SolvedVisualization(problem, solution);
 
-        var graph = visualization.SolvedVisualization(
-            problem, MinesweeperVerifier.CertificateExample);
+        Assert.Equal(System.Text.Json.JsonSerializer.Serialize(original),
+            System.Text.Json.JsonSerializer.Serialize(result, result.GetType()));
+    }
 
-        var result = Assert.IsType<
-            API.Interfaces.JSON_Objects.Graphs.API_GraphJSON>(graph);
+    [Fact]
+    public void SolvedVisualization_AcceptsCertificateLineEndingsAndDoesNotModifyBoard() {
+        var problem = new MINESWEEPER();
+        var original = problem.grid.Select(row => row.ToArray()).ToArray();
+        var visualization = new MinesweeperDefaultVisualization();
+        var before = visualization.visualize(problem);
+        var board = Assert.IsType<API.Interfaces.JSON_Objects.Tables.API_TableJSON>(
+            visualization.SolvedVisualization(problem, " 0,0,0;\r\n1,0,1;\n0,0,0 "));
 
-        Assert.Equal("Solution",
-            result.nodes.Single(n => n.name == "(1,0):?").color);
-
-        Assert.Equal("Solution",
-            result.nodes.Single(n => n.name == "(1,2):?").color);
-
-        Assert.NotEqual("Solution",
-            result.nodes.Single(n => n.name == "(0,0):1").color);
+        Assert.Equal("✹", board.rows[1].cells["c0"]);
+        Assert.Equal("■", before.rows[1].cells["c0"]);
+        for (int r = 0; r < problem.Rows; r++)
+            Assert.Equal(original[r], problem.grid[r]);
     }
 }
