@@ -7,6 +7,7 @@
     <IsPackable>false</IsPackable>
     <!-- xunit.v3 runs the test assembly as a standalone process. -->
     <OutputType>Exe</OutputType>
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)..\coverage.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>
