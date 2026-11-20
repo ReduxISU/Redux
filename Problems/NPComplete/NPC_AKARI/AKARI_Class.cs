@@ -64,6 +64,7 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
     // wrong is a public correctness claim the API will serve to callers.
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.GamesAndPuzzles;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Properties ---
 
