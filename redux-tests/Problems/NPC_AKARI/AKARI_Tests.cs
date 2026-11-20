@@ -1,8 +1,11 @@
 using Xunit;
 using API.Interfaces;
+using API.Interfaces.JSON_Objects;
+using API.Interfaces.JSON_Objects.Tables;
 using API.Problems.NPComplete.NPC_AKARI;
 using API.Problems.NPComplete.NPC_AKARI.Solvers;
 using API.Problems.NPComplete.NPC_AKARI.Verifiers;
+using API.Problems.NPComplete.NPC_AKARI.Visualizations;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -754,6 +757,41 @@ public class AKARI_Tests {
         var p = new AKARI("((_,#,_),(_,_,1))");
         Assert.Equal($"(({AKARI.BULB_SYMBOL},{AKARI.WALL_SYMBOL},{AKARI.EMPTY_SYMBOL}),({AKARI.EMPTY_SYMBOL},{AKARI.EMPTY_SYMBOL},1))",
             p.Format(new[] { true, false, false, false }));
+    }
+
+    #endregion
+
+    #region Visualization
+
+    [Fact]
+    public void AKARI_Visualization_Draws_Board_As_Table() {
+        var table = new AkariVisualization().visualize(new AKARI("((_,1,#),(_,_,0))"));
+        Assert.Equal(3, table.columns.Count);
+        Assert.Equal(2, table.rows.Count);
+        Assert.Equal("1", table.rows[0].cells["1"]);
+        Assert.Equal("ClauseHighlight", table.rows[0].cellColors!["1"]);
+        Assert.Equal("ClauseHighlight", table.rows[0].cellColors!["2"]);
+        Assert.False(table.rows[0].cellColors!.ContainsKey("0"));
+    }
+
+    [Fact]
+    public void AKARI_SolvedVisualization_Marks_Bulbs_And_Lit_Cells() {
+        // One bulb in the middle of a 1x3 board lights the whole row.
+        var table = (API_TableJSON)new AkariVisualization().SolvedVisualization(new AKARI("((_,_,_))"), "((_,*,_))");
+        Assert.Equal("ElementHighlight", table.rows[0].cellColors!["1"]);
+        Assert.Equal("Sand", table.rows[0].cellColors!["0"]);
+        Assert.Equal("Sand", table.rows[0].cellColors!["2"]);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("{}")]
+    [InlineData("garbage")]
+    [InlineData("((_,*),(_,_))")]
+    public void AKARI_SolvedVisualization_Falls_Back_To_Board_On_Bad_Solution(string solution) {
+        var table = (API_TableJSON)new AkariVisualization().SolvedVisualization(new AKARI(), solution);
+        Assert.Equal(7, table.rows.Count);
+        Assert.DoesNotContain(table.rows.SelectMany(r => r.cellColors!.Values), v => v == "ElementHighlight");
     }
 
     #endregion
