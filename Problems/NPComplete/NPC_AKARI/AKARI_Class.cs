@@ -33,13 +33,15 @@ class AKARI : IProblem<AkariConstraintPropagation, AkariVerifier, AkariVisualiza
     public string sourceLink { get; } = "https://www.nikoli.co.jp/en/puzzles/akari/";
     public string sourceFile { get; } = SourceFile.Path();
     private static readonly string _defaultInstance = """
-    ((_,_,#,_,_,_,#),
-    (_,4,_,_,1,_,#),
-    (_,_,_,2,_,_,_),
-    (_,#,_,_,_,#,_),
-    (_,_,_,#,_,_,_),
-    (#,_,#,_,_,1,_),
-    (1,_,_,_,1,_,_))
+    (
+    (_,_,#,#,1,_,_),
+    (_,2,_,_,_,#,_),
+    (1,_,#,_,#,_,1),
+    (#,_,_,#,_,_,#),
+    (#,_,2,_,1,_,1),
+    (_,#,_,_,_,2,_),
+    (_,_,0,_,1,_,_)
+    )
     """;
     public string defaultInstance { get; } = _defaultInstance;
     // Short descriptive sentence with a concrete example. Consumed by
