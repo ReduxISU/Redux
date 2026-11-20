@@ -214,6 +214,9 @@ public sealed class SolveWorkerPool : IDisposable {
                 worker.Kill();
                 return new SolveOutcome(SolveOutcomeKind.Killed);
             }
+            // Its output can close before its exit is seen; give it a moment so the exit code is known.
+            if (!exited.IsCompleted)
+                await Task.WhenAny(exited, Task.Delay(TimeSpan.FromSeconds(2), CancellationToken.None)).ConfigureAwait(false);
             worker.Kill();
             string code = worker.Process.HasExited ? worker.Process.ExitCode.ToString() : "unknown";
             _logger.LogError("The worker process for a {Job} with {Subject} exited with code {Code} before it answered. Its last output: {Output}",

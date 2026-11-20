@@ -19,13 +19,17 @@ using System.Dynamic;
 [Tags("Problem Provider")]
 public class ProblemProvider : ControllerBase {
     /// <summary>
-    /// The older configuration key for the time budget of a solve that records steps for a picture (#885). The one
-    /// limit for every compute request is now <see cref="ComputeLimits.TimeLimitKey"/>; this key, when it is set
-    /// explicitly, still decides the visualize limit, so a deployment that set it keeps what it chose.
+    /// The configuration key for the time limit of the visualize endpoint, the solve that records steps for a picture
+    /// (#885). When it is set, it decides the visualize limit on its own. When it is not, visualize uses
+    /// <see cref="ComputeLimits.TimeLimitKey"/>'s limit capped at <see cref="MaxDefaultSolveTimeLimitSeconds"/>.
     /// </summary>
     public const string SolveTimeLimitKey = "Visualization:SolveTimeLimitSeconds";
-    /// <summary>The budget used when neither key is set.</summary>
-    public const double DefaultSolveTimeLimitSeconds = ComputeLimits.DefaultTimeLimitSeconds;
+    /// <summary>
+    /// The most a visualize waits when <see cref="SolveTimeLimitKey"/> is not set, however long the compute limit is.
+    /// Both frontends show "Loading..." until the picture comes back, and a visualize that reaches its limit still
+    /// answers, with the picture of the run so far, so a longer limit would only make people wait longer for it.
+    /// </summary>
+    public const double MaxDefaultSolveTimeLimitSeconds = 10;
 
     private readonly IConfiguration? _configuration;
 
@@ -34,16 +38,21 @@ public class ProblemProvider : ControllerBase {
         _configuration = configuration;
     }
 
+    /// <summary>The time budget for the visualize endpoint (see <see cref="VisualizeTimeLimit"/>).</summary>
+    private TimeSpan? SolveTimeLimit => VisualizeTimeLimit(_configuration);
+
     /// <summary>
-    /// The time budget for the visualize endpoint: <see cref="SolveTimeLimitKey"/> when it is set, else
-    /// <see cref="ComputeLimits.TimeLimitKey"/> (seconds, default <see cref="DefaultSolveTimeLimitSeconds"/>). Zero or
-    /// less means no limit. See <see cref="ISolver.Run"/> for how a solver is stopped.
+    /// The time budget for the visualize endpoint: <see cref="SolveTimeLimitKey"/> when it is set (seconds; zero or less
+    /// means no limit), else the compute limit (<see cref="ComputeLimits.TimeLimit"/>) or
+    /// <see cref="MaxDefaultSolveTimeLimitSeconds"/>, whichever is shorter. So a deployment that shortens the compute
+    /// limit shortens visualize too, and one that turns it off still has visualize stop at the cap. See
+    /// <see cref="ISolver.Run"/> for how a solver is stopped.
     /// </summary>
-    private TimeSpan? SolveTimeLimit {
-        get {
-            double? old = _configuration?.GetValue<double?>(SolveTimeLimitKey);
-            return old is { } seconds ? ComputeLimits.FromSeconds(seconds) : ComputeLimit;
-        }
+    internal static TimeSpan? VisualizeTimeLimit(IConfiguration? configuration) {
+        if (configuration?.GetValue<double?>(SolveTimeLimitKey) is { } seconds)
+            return ComputeLimits.FromSeconds(seconds);
+        TimeSpan cap = TimeSpan.FromSeconds(MaxDefaultSolveTimeLimitSeconds);
+        return ComputeLimits.TimeLimit(configuration) is { } compute && compute < cap ? compute : cap;
     }
 
     /// <summary>The time limit of every other compute request, from <see cref="ComputeLimits.TimeLimitKey"/>.</summary>
