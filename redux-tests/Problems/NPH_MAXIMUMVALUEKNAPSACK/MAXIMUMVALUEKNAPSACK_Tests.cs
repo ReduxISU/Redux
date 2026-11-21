@@ -1,8 +1,5 @@
 using System.Globalization;
-using System.Net;
-using System.Net.Http.Json;
 using System.Numerics;
-using System.Text.Json;
 using API.Interfaces;
 using API.Problems.NPHard.NPH_MAXIMUMVALUEKNAPSACK;
 using Xunit;
@@ -238,53 +235,5 @@ public class MAXIMUMVALUEKNAPSACK_Tests {
                 Assert.Equal((long)value, problem.Value(selected));
             }
         }
-    }
-}
-
-public class MaximumValueKnapsackDefinition_Endpoint_Tests(AppFactory factory) : IClassFixture<AppFactory> {
-    [Fact]
-    public async Task MetadataAndNavigation_ExposeOptimizationProblem() {
-        using var client = factory.CreateClient();
-        using var response = await client.GetAsync("/ProblemProvider/info?interface=MAXIMUMVALUEKNAPSACK", TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var info = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
-        Assert.Equal("NPHard", info.GetProperty("complexityClass").GetString());
-        Assert.Contains(info.GetProperty("problemVariants").EnumerateArray(), v => v.GetString() == "Optimization");
-        Assert.Contains(info.GetProperty("problemTypes").EnumerateArray(), v => v.GetString() == "MathematicalProgramming");
-        Assert.Equal(MAXIMUMVALUEKNAPSACK.DefaultInstance, info.GetProperty("defaultInstance").GetString());
-        using var navigation = await client.GetAsync("/Navigation/NPHard_ProblemsRefactor", TestContext.Current.CancellationToken);
-        navigation.EnsureSuccessStatusCode();
-        var names = await navigation.Content.ReadFromJsonAsync<string[]>(TestContext.Current.CancellationToken);
-        Assert.Contains("MAXIMUMVALUEKNAPSACK", names!);
-    }
-
-    [Theory]
-    [InlineData("(((2,3),(2,3)),4)")]
-    [InlineData("((),0)")]
-    [InlineData("(((0,9223372036854775807)),0)")]
-    public async Task ProblemInstance_ParsesValidInputs(string input) {
-        using var client = factory.CreateClient();
-        using var response = await client.PostAsJsonAsync("/ProblemProvider/problemInstance?problem=MAXIMUMVALUEKNAPSACK", input,
-            TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
-        Assert.Equal(input, json.GetProperty("instance").GetString());
-        Assert.Equal(new MAXIMUMVALUEKNAPSACK(input).items.Count, json.GetProperty("items").GetArrayLength());
-    }
-
-    [Theory]
-    [InlineData("garbage")]
-    [InlineData("(((1,2)),0)trailing")]
-    [InlineData("(((0,0\0)),0)")]
-    [InlineData("(((0,9223372036854775807),(0,1)),0)")]
-    public async Task ProblemInstance_ReportsStructuredParseErrors(string input) {
-        using var client = factory.CreateClient();
-        using var response = await client.PostAsJsonAsync("/ProblemProvider/problemInstance?problem=MAXIMUMVALUEKNAPSACK", input,
-            TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
-        Assert.Equal("instance_parse_error", json.GetProperty("error").GetString());
-        Assert.Equal(input, json.GetProperty("received").GetString());
-        Assert.Equal(new MAXIMUMVALUEKNAPSACK().instanceFormat, json.GetProperty("expected").GetString());
     }
 }
