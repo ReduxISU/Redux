@@ -37,6 +37,9 @@ class CIRCUITSAT : IProblem<CircuitSatBruteForceSolver, CircuitSatVerifier, Dumm
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.Logic;
+    // Declared, not derived (#616): the instance carries no bound and the answer is yes/no —
+    // does *some* input assignment make the output wire True.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
     public string instance { get; set; } = string.Empty;
 
     public string wikiName { get; } = "";

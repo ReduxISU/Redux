@@ -237,10 +237,10 @@ public class CIRCUITSAT_Tests {
     }
 
     [Fact]
-    public void CIRCUITSAT_Solver_Expired_Timer_Returns_Timeout_Immediately() {
+    public void CIRCUITSAT_Solver_Expired_Timer_Returns_TimedOutAnswer_Immediately() {
         CIRCUITSAT circuitSat = new CIRCUITSAT();
         CircuitSatBruteForceSolver solver = new CircuitSatBruteForceSolver { timerHasExpired = true };
-        Assert.Equal("timeout", solver.solve(circuitSat));
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(circuitSat));
     }
 
     // -------------------------------------------------------------------------

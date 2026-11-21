@@ -228,13 +228,17 @@ public class SAT_Tests {
 
     [Fact]
     public void SAT_To_CIRCUITSAT_Embeds_Default_Instance() {
-        // Default formula (!x3 | x4 | !x2 | x1 | x2) & (!x4 | !x1) & (x4 | x3 | !x1):
-        // 4 shared NOT gates (x1-x4 all appear negated), 4+1+2 OR gates for the three
-        // clauses, and 2 AND gates joining the clause outputs.
+        // Default formula (x1 | x2 | x3 | x4) & (!x1 | !x2) & (!x3 | x4) & (!x4 | x2) & (!x2 | !x3):
+        // one shared NOT gate per negated variable (all four), a binary OR tree per clause
+        // (3 gates for the 4-literal clause, 1 each for the four 2-literal ones), and an
+        // AND tree over the five clause outputs.
         var reduction = new SatToCircuitSatReduction();
         CIRCUITSAT circuit = reduction.reductionTo;
-        Assert.Equal(new[] { "x3", "x4", "x2", "x1" }, circuit.inputs);
-        Assert.Equal(13, circuit.gates.Count);
+        Assert.Equal(new[] { "x1", "x2", "x3", "x4" }, circuit.inputs);
+        Assert.Equal(4, circuit.gates.Count(g => g.Contains(",not,")));
+        Assert.Equal(3 + 1 + 1 + 1 + 1, circuit.gates.Count(g => g.Contains(",or,")));
+        Assert.Equal(4, circuit.gates.Count(g => g.Contains(",and,")));
+        Assert.Equal(15, circuit.gates.Count);
         Assert.NotNull(circuit.output);
         Assert.Contains(circuit.output, circuit.wires);
     }

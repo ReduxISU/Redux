@@ -729,13 +729,13 @@ public class SAT3_Tests {
 
     [Fact]
     public void SAT3_To_CIRCUITSAT_Embeds_Default_Instance() {
-        // Default formula (x1 | !x2 | x3) & (!x1 | x3 | x1) & (x2 | !x3 | !x1):
+        // Default formula (x1 | x2 | x3) & (!x1 | !x2 | !x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3):
         // one shared NOT gate per negated variable (x1, x2, x3), two OR gates per
-        // 3-literal clause, and two AND gates joining the three clause outputs.
+        // 3-literal clause, and three AND gates joining the four clause outputs.
         var reduction = new Sat3ToCircuitSatReduction();
         CIRCUITSAT circuit = reduction.reductionTo;
         Assert.Equal(new[] { "x1", "x2", "x3" }, circuit.inputs);
-        Assert.Equal(3 + 6 + 2, circuit.gates.Count);
+        Assert.Equal(3 + 8 + 3, circuit.gates.Count);
         Assert.NotNull(circuit.output);
         Assert.Contains(circuit.output, circuit.wires);
     }

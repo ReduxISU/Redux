@@ -6,7 +6,7 @@ namespace API.Problems.NPComplete.NPC_CIRCUITSAT.Verifiers;
 class CircuitSatVerifier : IVerifier<CIRCUITSAT> {
 
     // --- Fields ---
-    public string verifierName { get; } = "Default CircuitSAT Verifier";
+    public string verifierName { get; } = "CircuitSAT Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for CircuitSAT. It reads the certificate as an assignment to the circuit's input wires, evaluates the circuit gate by gate, and accepts exactly when the output wire is True.";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
