@@ -35,7 +35,7 @@ public class MAXIMUMVALUEKNAPSACK_Tests {
         Assert.Equal(typeof(MAXIMUMVALUEKNAPSACK), ProblemProvider.Problems["maximumvalueknapsack"]);
         // Plain IProblem supports an independently delivered problem definition.
         IProblem contract = problem;
-        Assert.IsType<API.DummyClasses.DummySolver>(contract.defaultSolver);
+        Assert.IsType<API.Problems.NPHard.NPH_MAXIMUMVALUEKNAPSACK.Solvers.MaximumValueKnapsackBruteForceSolver>(contract.defaultSolver);
         Assert.IsType<API.Problems.NPHard.NPH_MAXIMUMVALUEKNAPSACK.Verifiers.MaximumValueKnapsackSolutionVerifier>(contract.defaultVerifier);
     }
 
