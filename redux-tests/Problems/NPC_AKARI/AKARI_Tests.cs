@@ -10,9 +10,8 @@ using API.Problems.NPComplete.NPC_AKARI.Visualizations;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// Tests for AKARI: the problem class (metadata, cell encodings, instance parser, grid geometry), the verifier, and the
-// four solvers (brute force, backtracking, constraint propagation, simulated annealing). The visualization is not
-// covered here.
+// Tests for AKARI: the problem class (metadata, cell encodings, instance parser, grid geometry), the verifier, the
+// four solvers (brute force, backtracking, constraint propagation, simulated annealing), and the visualization.
 public class AKARI_Tests {
 
     private const int E = AKARI.EMPTY_CELL;
@@ -26,6 +25,9 @@ public class AKARI_Tests {
         Assert.Equal("Akari (Light Up Puzzle)", problem.problemName);
         Assert.Equal(ComplexityClass.NPComplete, problem.complexityClass);
         Assert.Equal(ProblemType.GamesAndPuzzles, problem.problemType);
+        Assert.Equal(ProblemVariant.Decision, problem.problemVariant);
+        Assert.NotEmpty(problem.formalDefinition);
+        Assert.NotEmpty(problem.problemLink);
         Assert.Contains("Carter Luker", problem.contributors);
         Assert.Contains("Danny Fawson", problem.contributors);
         Assert.NotNull(problem.defaultSolver);
@@ -84,13 +86,13 @@ public class AKARI_Tests {
     public void AKARI_DefaultInstance_ParsesToExpectedGrid() {
         var problem = new AKARI();
         int[][] expected = {
-            new[] { E, E, W, E, E, E, W },
-            new[] { E, 4, E, E, 1, E, W },
-            new[] { E, E, E, 2, E, E, E },
-            new[] { E, W, E, E, E, W, E },
-            new[] { E, E, E, W, E, E, E },
-            new[] { W, E, W, E, E, 1, E },
-            new[] { 1, E, E, E, 1, E, E },
+            new[] { E, E, W, W, 1, E, E },
+            new[] { E, 2, E, E, E, W, E },
+            new[] { 1, E, W, E, W, E, 1 },
+            new[] { W, E, E, W, E, E, W },
+            new[] { W, E, 2, E, 1, E, 1 },
+            new[] { E, W, E, E, E, 2, E },
+            new[] { E, E, 0, E, 1, E, E },
         };
         Assert.Equal(expected, problem.grid);
     }
@@ -227,8 +229,15 @@ public class AKARI_Tests {
     }
 
     [Fact]
-    public void AKARI_Parser_InvalidCell_InIndentedDefaultStyleInstance_ReportsVisibleColumn() {
-        // Mirrors the multi-line, indented layout of defaultInstance.
+    public void AKARI_Parser_InvalidCell_InDefaultStyleInstance_ReportsVisibleLocation() {
+        // Mirrors the multi-line layout of defaultInstance: the outer parentheses on their own lines, one row per line.
+        string input = "(\n(_,_,#),\n(_,4,b)\n)";
+        var ex = Assert.Throws<ProblemParseException>(() => new AKARI(input));
+        Assert.Equal("invalid cell character 'b' at row 2, cell 3 (line 3, column 6); allowed: _, #, 0-4", ex.Message);
+    }
+
+    [Fact]
+    public void AKARI_Parser_InvalidCell_InIndentedInstance_ReportsVisibleColumn() {
         string input = "((_,_,#),\n    (_,4,b))";
         var ex = Assert.Throws<ProblemParseException>(() => new AKARI(input));
         Assert.Equal("invalid cell character 'b' at row 2, cell 3 (line 2, column 10); allowed: _, #, 0-4", ex.Message);
@@ -412,7 +421,7 @@ public class AKARI_Tests {
     // small-instance theories below run against each solver named here.
     public static TheoryData<string> AllSolvers => new() { nameof(AkariBruteForce), nameof(AkariBacktracking), nameof(AkariConstraintPropagation), nameof(AkariAnnealing) };
 
-    // The two that can finish the default instance (35 white cells: 2^35 placements for brute force) and larger grids.
+    // The two that can finish the default instance (29 white cells: 2^29 placements for brute force) and larger grids.
     public static TheoryData<string> SearchSolvers => new() { nameof(AkariBacktracking), nameof(AkariConstraintPropagation) };
 
     private static ISolver<AKARI> SolverNamed(string name) => name switch {
@@ -625,7 +634,7 @@ public class AKARI_Tests {
 
     [Fact]
     public void AKARI_BruteForce_Stops_At_Time_Limit_On_DefaultInstance() {
-        // 2^35 candidates: far too many to finish, so the run must come back stopped by the limit instead of hanging.
+        // 2^29 candidates: far too many to finish, so the run must come back stopped by the limit instead of hanging.
         ISolver solver = new AkariBruteForce();
         var watch = System.Diagnostics.Stopwatch.StartNew();
         SolveRun run = solver.Run(new AKARI().instance, withSteps: false, TimeSpan.FromMilliseconds(200));
@@ -768,7 +777,8 @@ public class AKARI_Tests {
         var table = new AkariVisualization().visualize(new AKARI("((_,1,#),(_,_,0))"));
         Assert.Equal(3, table.columns.Count);
         Assert.Equal(2, table.rows.Count);
-        Assert.Equal("1", table.rows[0].cells["1"]);
+        // Compare the visible text only, so the test does not depend on how cells are sized.
+        Assert.Equal("1", table.rows[0].cells["1"].Trim(' ', '\n'));
         Assert.Equal("ClauseHighlight", table.rows[0].cellColors!["1"]);
         Assert.Equal("ClauseHighlight", table.rows[0].cellColors!["2"]);
         Assert.False(table.rows[0].cellColors!.ContainsKey("0"));
