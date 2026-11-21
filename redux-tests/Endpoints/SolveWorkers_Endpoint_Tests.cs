@@ -31,7 +31,8 @@ internal static class SilentQuantumService {
 }
 
 // The app with solves in worker processes (#936): a pool of two, a 1-second time limit, a 128 MB memory limit, and the
-// silent quantum service.
+// silent quantum service. The Big-O precheck (#843) is off, so the hard instances reach the worker whose limits these
+// tests check (SolveWorkersPrecheckAppFactory turns it back on).
 public class SolveWorkersAppFactory : AppFactory {
     public const double TimeLimitSeconds = 1;
     public const int MemoryMB = 128;
@@ -43,6 +44,7 @@ public class SolveWorkersAppFactory : AppFactory {
         [ComputeLimits.TimeLimitKey] = TimeLimitSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
         [ComputeLimits.SolveMemoryKey] = MemoryMB.ToString(),
         ["QuantumSolver:BaseURL"] = SilentQuantumService.Url.Value,
+        [ComputePrecheck.MarginKey] = "0",
     };
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) {

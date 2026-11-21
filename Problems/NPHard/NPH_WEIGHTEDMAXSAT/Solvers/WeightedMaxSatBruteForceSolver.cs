@@ -11,7 +11,7 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.BruteForce;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", n = variables, |Φ| = weighted formula size");
+    public MathematicalFunction timeComplexity { get; } = new("2^|variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ (the weighted formula size)");
     public MathematicalFunction spaceComplexity { get; } = new("n", ", n = variables");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 

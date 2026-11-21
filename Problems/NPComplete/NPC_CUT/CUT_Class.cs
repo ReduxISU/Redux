@@ -92,4 +92,7 @@ class CUT : IGraphProblem<CutBruteForce, CutVerifier, CutDefaultVisualization, U
 
         graph = new UtilCollectionGraph(cut["N"], cut["E"]);
     }
+
+    /// <summary>The sizes of the instance's parts, named as in its grammar, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("N", nodes.Count), SizeMeasure.Count("E", edges.Count), SizeMeasure.Number("K", K)];
 }

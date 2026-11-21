@@ -12,7 +12,7 @@ class WeightedMaxSatConditionalExpectationsSolver : ISolver<WEIGHTEDMAXSAT> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
-    public MathematicalFunction timeComplexity { get; } = new("n * |phi|", ", n = variables, |Φ| = weighted formula size; exact integer arithmetic");
+    public MathematicalFunction timeComplexity { get; } = new("|variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ (the weighted formula size); exact integer arithmetic");
     public MathematicalFunction spaceComplexity { get; } = new("n + |phi|", ", assignment and conditional-expectation bookkeeping");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 

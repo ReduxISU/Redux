@@ -11,7 +11,7 @@ class WeightedMaxSatBranchAndBoundSolver : ISolver<WEIGHTEDMAXSAT> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Backtracking;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", worst case; n = variables, |Φ| = weighted formula size");
+    public MathematicalFunction timeComplexity { get; } = new("2^|variables| * |phi|", ", worst case; |variables| = number of variables, |phi| = number of literal occurrences in Φ (the weighted formula size)");
     public MathematicalFunction spaceComplexity { get; } = new("n", ", recursion depth and assignment storage");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 

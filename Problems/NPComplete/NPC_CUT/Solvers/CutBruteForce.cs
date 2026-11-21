@@ -19,7 +19,8 @@ class CutBruteForce : ISolver<CUT> {
     // Declared, not derived. Enumerates subsets of size 1..K (K <= edges.Count, but K
     // can still be Theta(n)); each candidate costs O(n^2) to build (certificateToEdges)
     // plus O(m) to verify.
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
+    // Written with the K bound, so the Big-O precheck (#843) does not refuse a small K for what a large K costs.
+    public MathematicalFunction timeComplexity { get; } = new("min(2^|N|, (|N|+1)^K) * |N|^2 * |E|", ", |N| = number of nodes, |E| = number of edges, K = cut size");
 
     public CutBruteForce() {
 
