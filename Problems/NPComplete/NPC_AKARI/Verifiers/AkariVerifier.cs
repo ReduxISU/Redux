@@ -26,17 +26,7 @@ class AkariVerifier : IVerifier<AKARI> {
     public const string NoSolution = "{}";
 
     /// <summary>A solution of the default instance, quoted in <see cref="AKARI.certificateFormat"/>.</summary>
-    public const string CertificateExample = """
-        (
-        (_,*,#,#,1,_,*),
-        (*,2,_,_,*,#,_),
-        (1,_,#,*,#,*,1),
-        (#,_,*,#,*,_,#),
-        (#,*,2,_,1,_,1),
-        (_,#,_,*,_,2,*),
-        (*,_,0,_,1,*,_)
-        )
-        """;
+    public const string CertificateExample = "((_,*,#,#,1,_,*),(*,2,_,_,*,#,_),(1,_,#,*,#,*,1),(#,_,*,#,*,_,#),(#,*,2,_,1,_,1),(_,#,_,*,_,2,*),(*,_,0,_,1,*,_))";
 
     // --- Methods Including Constructors ---
     public AkariVerifier() {
