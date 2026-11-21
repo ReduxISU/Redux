@@ -34,11 +34,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n * (n \u002B m)",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "C(|N|, K) * K * (|N| \u002B |E|)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = cover size",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "K",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -186,11 +187,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "C(|N|, K) * K^2 * |E|",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "K",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -236,11 +238,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "C(|N|, K) * K^2 * |E|",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "K",
+            "E"
           ]
         },
         "spaceComplexity": null,
@@ -287,11 +290,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n * (n \u002B m)",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "C(|N|, K) * K * (|N| \u002B |E|)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = cover size",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "K",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -334,11 +338,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * n * (n \u002B m)",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "C(|N|, K) * K * (|N| \u002B |E|)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = cover size",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "K",
+            "E"
           ]
         },
         "spaceComplexity": null,

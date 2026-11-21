@@ -27,7 +27,7 @@ class VertexCoverBussKernelization : ISolver<VERTEXCOVER, NodeSet> {
     // Backtracking #842 suggested (#842).
     public SolverType solverType { get; } = SolverType.BruteForce | SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("K * (n + m) + 2^(2K) * m", ", K = target cover size, n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("K * (|N| + |E|) + 2^(2K) * |E|", ", K = target cover size, |N| = number of nodes, |E| = number of edges");
 
     // --- Methods Including Constructors ---
     public VertexCoverBussKernelization() {

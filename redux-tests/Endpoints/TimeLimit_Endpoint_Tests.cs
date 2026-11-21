@@ -10,14 +10,18 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
-// The app with a 1 ms limit on every compute request (#935).
+// The app with a 1 ms limit on every compute request (#935). The Big-O precheck (#843) is off: against a 1 ms budget it
+// would refuse the hard graph instances these tests send before the timer they test could stop them.
 public class TinyComputeLimitAppFactory : AppFactory {
     public const string Seconds = "0.001";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) {
         base.ConfigureWebHost(builder);
         builder.ConfigureAppConfiguration((_, config) =>
-            config.AddInMemoryCollection(new Dictionary<string, string?> { [ComputeLimits.TimeLimitKey] = Seconds }));
+            config.AddInMemoryCollection(new Dictionary<string, string?> {
+                [ComputeLimits.TimeLimitKey] = Seconds,
+                [ComputePrecheck.MarginKey] = "0",
+            }));
     }
 }
 
