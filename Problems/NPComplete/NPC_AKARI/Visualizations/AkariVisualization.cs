@@ -26,7 +26,9 @@ class AkariVisualization : IVisualization<AKARI, API_TableJSON> {
     private const string BulbColor = "ElementHighlight";
     private const string LitColor = "Sand";
     private const string BulbText = "\U0001F4A1";
-    private const string WallText = "";
+    private const string WallText = "\u00A0";
+    // Cells are made taller by padding their text with non-breaking-space lines above and below.
+    private const int PadLines = 1;
 
     // --- Methods Including Constructors ---
     public AkariVisualization() {
@@ -52,6 +54,13 @@ class AkariVisualization : IVisualization<AKARI, API_TableJSON> {
         } catch (FormatException) {
             return null;
         }
+    }
+
+    // Surrounds a cell's text with PadLines lines holding a non-breaking space, so every cell is the same height.
+    private static string Pad(string text) {
+        string above = string.Concat(Enumerable.Repeat("\u00A0\n", PadLines));
+        string below = string.Concat(Enumerable.Repeat("\n\u00A0", PadLines));
+        return above + text + below;
     }
 
     private static API_TableJSON Draw(AKARI instance, bool[]? bulbs) {
@@ -81,13 +90,13 @@ class AkariVisualization : IVisualization<AKARI, API_TableJSON> {
                 int cell = instance.grid[r][c];
                 int i = instance.WhiteIndex[r][c];
                 if (i < 0) {
-                    row.cells[key] = cell == AKARI.WALL ? WallText : cell.ToString();
+                    row.cells[key] = Pad(cell == AKARI.WALL ? WallText : cell.ToString());
                     row.cellColors[key] = WallColor;
                 } else if (bulbs != null && bulbs[i]) {
-                    row.cells[key] = BulbText;
+                    row.cells[key] = Pad(BulbText);
                     row.cellColors[key] = BulbColor;
                 } else {
-                    row.cells[key] = " ";
+                    row.cells[key] = Pad("\u00A0");
                     if (lit[i]) row.cellColors[key] = LitColor;
                 }
             }
