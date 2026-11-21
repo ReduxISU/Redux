@@ -49,6 +49,11 @@ class PARTITION : IProblem<PartitionBruteForce, PartitionVerifier, PartitionDefa
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's part N (held as S), for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("N", S.Count),
+    ];
+
     public PARTITION() : this(_defaultInstance) {
     }
     public PARTITION(string instance) {

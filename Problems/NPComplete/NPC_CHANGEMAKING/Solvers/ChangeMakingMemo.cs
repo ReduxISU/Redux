@@ -18,7 +18,7 @@ class ChangeMakingMemo : ISolver<CHANGEMAKING> {
     // same convention.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("m * X", ", m = |C|, X = target amount");
+    public MathematicalFunction timeComplexity { get; } = new("|C| * X", ", |C| = number of coin values, X = target amount");
     public MathematicalFunction spaceComplexity { get; } = new("X", ", X = target amount");
 
     // Most amounts held at once, in the memo and on the stack together: a dictionary entry costs about

@@ -27,7 +27,8 @@ class WalkSAT : ISolver<SAT3> {
     // worst-case guarantee of finding an assignment within its tries, which makes it a Heuristic (#842).
     public SolverType solverType { get; } = SolverType.Heuristic | SolverType.Stochastic;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("n * m", ", n = number of variables, m = number of clauses");
+    // Bounded by its caps: 100 tries of 300n flips, each an O(|phi|) clause scan plus break counts over the clauses.
+    public MathematicalFunction timeComplexity { get; } = new("|variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ; 100 tries of 300 * |variables| flips");
     // betweeen 0.5 and 0.6, empirically 0.57 proven best
     private readonly double _p = 0.57;
     private readonly int _maxTries = 100;

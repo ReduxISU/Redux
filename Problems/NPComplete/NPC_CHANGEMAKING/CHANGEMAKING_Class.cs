@@ -44,6 +44,13 @@ class CHANGEMAKING : IProblem<ChangeMakingDP, ChangeMakingVerifier, DummyVisuali
     public int K { get; set; }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): |C| coin values, the target X and the coin limit K.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("C", C.Count),
+        SizeMeasure.Number("X", X),
+        SizeMeasure.Number("K", K),
+    ];
+
     public CHANGEMAKING() : this(_defaultInstance) {
 
     }

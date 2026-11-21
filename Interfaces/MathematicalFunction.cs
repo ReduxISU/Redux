@@ -14,8 +14,10 @@ namespace API.Interfaces;
 /// syntax (NCalc is the expression-evaluation library this class evaluates through,
 /// entirely internally): <c>^</c> is exponentiation (NCalc's own <c>^</c> is bitwise
 /// XOR), <c>n!</c> is a postfix factorial, <c>|S|</c> is cardinality/absolute-value,
-/// adjacent tokens like <c>2n</c> or a bare <c>n log n</c> multiply implicitly, and
-/// <c>C(m, n)</c> is the binomial coefficient. <see cref="Evaluate(IReadOnlyDictionary{string, double})"/>
+/// adjacent tokens like <c>2n</c> or a bare <c>n log n</c> (also <c>|E| log |E|</c>) multiply implicitly,
+/// <c>C(m, n)</c> is the binomial coefficient, and <c>min(a, b)</c>/<c>max(a, b)</c> are the smaller/larger of two.
+/// A cardinality <c>|N|</c> reads the variable <c>N</c>: the Big-O precheck (#843) gives it the number of elements of
+/// the instance's part N (see <see cref="SizeMeasure"/>), so <c>|N|</c> is that count. <see cref="Evaluate(IReadOnlyDictionary{string, double})"/>
 /// rewrites all of that into NCalc's grammar internally; nothing about that rewrite is
 /// visible outside this class.
 /// </para>
@@ -99,7 +101,9 @@ public sealed class MathematicalFunction {
             expression.Functions["Factorial"] = args => {
                 double n = Convert.ToDouble(args.Evaluate(0));
                 double result = 1;
-                for (int i = 2; i <= (int)Math.Round(n); i++) result *= i;
+                // Stops once the product is infinite (past 170!), so a huge n answers at once instead of looping n
+                // times: the Big-O precheck (#843) evaluates factorials of instance sizes the server never ran.
+                for (double i = 2; i <= Math.Round(n) && !double.IsInfinity(result); i++) result *= i;
                 return result;
             };
             expression.Functions["Abs"] = args => Math.Abs(Convert.ToDouble(args.Evaluate(0)));
@@ -210,6 +214,9 @@ public sealed class MathematicalFunction {
         private static string CanonicalFunctionName(string name) => name.ToLowerInvariant() switch {
             "sqrt" => "Sqrt",
             "log" or "ln" => "Log",
+            // NCalc's own Min and Max, so "min(K, |N|)" reads as written.
+            "min" => "Min",
+            "max" => "Max",
             _ => name,
         };
 
@@ -379,8 +386,9 @@ public sealed class MathematicalFunction {
                     tk.Expect(")");
                     return new CallNode { Name = token.Text, Args = args };
                 }
-                if (BareFunctionNames.Contains(token.Text) && tk.PeekStartsPrimary()) {
-                    // Bare "log n" / "ln n" — no parens, single implicit argument.
+                if (BareFunctionNames.Contains(token.Text) && (tk.PeekStartsPrimary() || tk.PeekIsOp("|"))) {
+                    // Bare "log n" / "ln n" — no parens, single implicit argument. A '|' after a bare log can only open
+                    // its argument, so "log |E|" works too.
                     var arg = ParsePostfix(tk);
                     return new CallNode { Name = token.Text, Args = new List<Node> { arg } };
                 }
