@@ -63,6 +63,7 @@ class NodeSetBruteForce : ISolver<NODESET> {
             }
             long reps = factorial(nodeSet.nodes.Count) / (factorial(i + 1) * factorial(nodeSet.nodes.Count - i - 1));
             for (int k = 0; k < reps; k++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 string certificate = indexListToCertificate(combination, nodeSet.nodes);
                 if (nodeSet.defaultVerifier.verify(nodeSet, certificate)) {
                     return certificate;

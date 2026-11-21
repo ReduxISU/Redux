@@ -12,10 +12,11 @@ namespace API.Tests.Problems.NPC_GRAPHCOLORING;
 
 public class GRAPHCOLORING_Tests {
 
-    // Test 1: Default Redux instance
+    // Test 1: The friendship graph (Redux's default before #938). Greedy colouring is a heuristic and needs a
+    // fourth colour on the current default, the triangular prism, so this keeps a graph it colours with 3.
     [Fact]
-    public void GreedySolver_DefaultInstance_ReturnsValidCertificate() {
-        GRAPHCOLORING problem = new GRAPHCOLORING();
+    public void GreedySolver_FriendshipGraph_ReturnsValidCertificate() {
+        GRAPHCOLORING problem = new GRAPHCOLORING("(({a,b,c,d,e,f,g,h,i},{{a,b},{b,c},{a,c},{d,a},{d,e},{a,e},{a,f},{f,g},{g,a},{a,h},{h,i},{i,a}}),3)");
         GraphColoringGreedy solver = new GraphColoringGreedy();
         GraphColoringVerifier verifier = new GraphColoringVerifier();
         string certificate = solver.solve(problem);

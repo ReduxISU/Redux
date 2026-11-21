@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace API.Tools;
 
@@ -125,7 +127,7 @@ internal static class QasmD3Scheduler {
                         // Best effort parse: numeric parameters (for your D3 label rendering)
                         var parsed = new List<double>();
                         foreach (var p in parts) {
-                            if (double.TryParse(p, out double val))
+                            if (TryParseParam(p, out double val))
                                 parsed.Add(val);
                         }
                         if (parsed.Count > 0)
@@ -207,6 +209,24 @@ internal static class QasmD3Scheduler {
                 slot += 1;
             }
         }
+    }
+
+    // A plain number ("0.5", "-1e-3"), read the same in every culture, or one of the multiples of pi that
+    // Qiskit's QASM export writes for exact angles: "pi", "-pi", "pi/2", "3*pi/4", "-0.5*pi".
+    private static readonly Regex PiMultiple = new(@"^(-)?(?:(\d+(?:\.\d+)?)\*)?pi(?:/(\d+(?:\.\d+)?))?$");
+
+    internal static bool TryParseParam(string text, out double value) {
+        string s = text.Replace(" ", "", StringComparison.Ordinal);
+        if (double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+            return true;
+
+        Match m = PiMultiple.Match(s);
+        if (!m.Success)
+            return false;
+        double factor = m.Groups[2].Success ? double.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture) : 1;
+        double divisor = m.Groups[3].Success ? double.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture) : 1;
+        value = (m.Groups[1].Success ? -1 : 1) * factor * Math.PI / divisor;
+        return divisor != 0;
     }
 
     internal static string NormalizeQubit(string qasmRef) {

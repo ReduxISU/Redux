@@ -37,6 +37,8 @@ class SIMON : IProblem<SimonSolver, SimonVerifier, DummyVisualization> {
     // ComplexityClass.BQP.
     public ComplexityClass complexityClass { get; } = ComplexityClass.BQP;
     public ProblemType problemType { get; } = ProblemType.Miscellaneous;
+    // Variant (#616): Judgement call: finds the hidden period, a promise function problem with nothing to optimize.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     private int[] _funcValues = new int[2] { 0, 1 };
 

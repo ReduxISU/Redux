@@ -57,6 +57,8 @@ class STRONGLYCONNECTEDCOMPONENTS
     // for filing reasons.
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.GraphTheory;
+    // Variant (#616): Judgement call: the partition is unique ("maximal" is structural, not an objective).
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     public KosarajuSolver defaultSolver { get; } = new KosarajuSolver();
 

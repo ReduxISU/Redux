@@ -133,7 +133,8 @@ public class ParseError_Endpoint_Tests : IClassFixture<AppFactory> {
             Type? problemType = type.GetInterfaces()
                 .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IVerifier<>))
                 ?.GetGenericArguments()[0];
-            if (problemType == null) continue;
+            // DummyVerifier stands in for any problem (IVerifier<IProblem>), so it has no default instance.
+            if (problemType == null || problemType.IsInterface) continue;
             string defaultInstance = ((IProblem)Activator.CreateInstance(problemType)!).defaultInstance;
             foreach (string garbage in GarbageInstances)
                 yield return new object[] { type.Name, defaultInstance, garbage };

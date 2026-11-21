@@ -2,6 +2,11 @@ using Xunit;
 using API.Problems.NPComplete.NPC_EXACTCOVER;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Solvers;
 using API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
+using API.Problems.NPComplete.NPC_EXACTCOVER.ReduceTo.NPC_CHANGEMAKING;
+using API.Problems.NPComplete.NPC_CHANGEMAKING;
+using API.Problems.NPComplete.NPC_CHANGEMAKING.Solvers;
+using API.Problems.NPComplete.NPC_CHANGEMAKING.Verifiers;
+using API.Interfaces;
 
 namespace redux_tests;
 
@@ -248,5 +253,90 @@ public class EXACTCOVER_Tests {
         EXACTCOVER problem = new EXACTCOVER(UncoverableInstance);
         string certificate = new ExactCoverBruteForce().solve(problem);
         Assert.Equal("{}", certificate);
+    }
+
+    // -------------------------------------------------------------------------
+    // Kozen-Zaks reduction to Change-Making
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void EXACTCOVER_KozenZaks_Produces_Expected_Default_Instance() {
+        // p = 8; {1,4,7} = 1 + 8^3 + 8^6, ..., and X = 8^0 + ... + 8^6 = 299593, K = |U| = 7.
+        var reduction = new KozenZaksExactCoverToChangeMaking();
+        Assert.Equal("({262657,513,266752,36928,294984,262152},299593,7)", reduction.reductionTo.instance);
+    }
+
+    [Theory]
+    [InlineData("({1,2,3},{{1},{2,3},{1,2}})", "({1,20,5},21,3)")]  // p = 4
+    [InlineData("({a,b},{{a,b},{},{b}})", "({4,3},4,2)")]              // the empty set gets no coin
+    [InlineData("({},{{}})", "({1},1,1)")]                             // empty universe: a fixed yes-instance
+    public void EXACTCOVER_KozenZaks_Produces_Expected_Instance(string instance, string expected) {
+        var reduction = new KozenZaksExactCoverToChangeMaking(instance);
+        Assert.Equal(expected, reduction.reductionTo.instance);
+    }
+
+    [Theory]
+    [InlineData("({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})", true)]
+    [InlineData("({1,2,3},{{1},{2,3},{1,2}})", true)]
+    [InlineData("({1,2,3},{{1,2},{2,3}})", false)]
+    // Four copies of the coin for {1} make X = 1 + 3, so only K = |U| = 2 keeps the answer "no".
+    [InlineData("({1,2},{{1}})", false)]
+    [InlineData("({1,2,3,4},{{1,2},{2,3},{3,4},{1,4}})", true)]
+    [InlineData("({1,2,3,4},{{1,2,3},{2,3,4},{1,3}})", false)]
+    public void EXACTCOVER_KozenZaks_Preserves_Answer(string instance, bool hasCover) {
+        var reduction = new KozenZaksExactCoverToChangeMaking(instance);
+        string change = new ChangeMakingDP().solve(reduction.reductionTo);
+        Assert.Equal(hasCover, change != "{}");
+        Assert.Equal(hasCover, new ExactCoverBruteForce().solve(reduction.reductionFrom) != "{}");
+    }
+
+    [Fact]
+    public void EXACTCOVER_KozenZaks_MapSolutions_Gives_Verifiable_Change() {
+        var reduction = new KozenZaksExactCoverToChangeMaking();
+        string change = reduction.mapSolutions("{{1,4},{3,5,6},{2,7}}");
+        Assert.Equal("{(513,1),(36928,1),(262152,1)}", change);
+        Assert.True(new ChangeMakingVerifier().verify(reduction.reductionTo, change));
+    }
+
+    [Theory]
+    [InlineData("({1,2,3,4,5,6,7},{{1,4,7},{1,4},{4,5,7},{3,5,6},{2,3,6,7},{2,7}})")]
+    [InlineData("({1,2,3},{{1},{2,3},{1,2}})")]
+    [InlineData("({1,2,3,4},{{1,2},{2,3},{3,4},{1,4}})")]
+    public void EXACTCOVER_KozenZaks_MapBack_Of_Solved_Change_Is_An_Exact_Cover(string instance) {
+        var reduction = new KozenZaksExactCoverToChangeMaking(instance);
+        string change = new ChangeMakingDP().solve(reduction.reductionTo);
+        string cover = ((IReduction)reduction).mapSolutionBack(change)!;
+        Assert.True(new ExactCoverVerifier().verify(reduction.reductionFrom, cover),
+            $"mapped {change} back to {cover}, which is not an exact cover of {instance}");
+    }
+
+    [Fact]
+    public void EXACTCOVER_KozenZaks_MapBack_Names_The_Sets() {
+        var reduction = new KozenZaksExactCoverToChangeMaking();
+        Assert.Equal("{{1,4},{3,5,6},{2,7}}",
+            ((IReduction)reduction).mapSolutionBack("{(513,1),(36928,1),(262152,1)}"));
+    }
+
+    [Fact]
+    public void EXACTCOVER_KozenZaks_Accepts_Nine_Elements() {
+        // p = 10: X = 111111111 still fits in an int.
+        var reduction = new KozenZaksExactCoverToChangeMaking("({1,2,3,4,5,6,7,8,9},{{1,2,3},{4,5,6},{7,8,9}})");
+        Assert.Equal(111111111, reduction.reductionTo.X);
+        Assert.Equal(9, reduction.reductionTo.K);
+    }
+
+    [Fact]
+    public void EXACTCOVER_KozenZaks_Rejects_Universe_Too_Large_For_Int() {
+        // p = 11: X = (11^10 - 1) / 10 is about 2.6e9.
+        Assert.Throws<ReductionInputException>(() =>
+            new KozenZaksExactCoverToChangeMaking("({1,2,3,4,5,6,7,8,9,10},{{1,2,3,4,5},{6,7,8,9,10}})"));
+    }
+
+    [Theory]
+    [InlineData("{{1,2}}")]       // not a set of S
+    [InlineData("{1,4}")]         // elements, not a set of sets
+    public void EXACTCOVER_KozenZaks_MapSolutions_Rejects_Bad_Input(string cover) {
+        var reduction = new KozenZaksExactCoverToChangeMaking();
+        Assert.Throws<ReductionInputException>(() => reduction.mapSolutions(cover));
     }
 }

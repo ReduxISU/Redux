@@ -11,6 +11,7 @@ namespace redux_tests;
 // Same "declared, not derived" pattern and same ratchet-pair structure as
 // SolverType_Tests.cs / ReductionCost_Tests.cs — see those files' headers for the
 // general rationale.
+[Trait("Category", "Metadata")]
 public class ReductionType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 
@@ -284,6 +285,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
         public IProblem reductionTo => null!;
         public IProblem reduce() => throw new NotImplementedException();
         public string mapSolutions(string problemFromSolution) => "";
+        public string? complexity => null;
         public ReductionCost cost { get; init; } = ReductionCost.Unclassified;
         public ReductionComplexityBucket complexityBucket { get; init; } = ReductionComplexityBucket.Unclassified;
     }
@@ -334,12 +336,12 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
 
     [Fact]
     public void CharacterizationReport_DumpsPerReductionMetadata() {
-        var reductionTypeByClassName = ReductionTypeCatalog.ReductionTypeByClassName.Value;
+        var reductionTypesByClassName = ReductionTypeCatalog.ReductionTypesByClassName.Value;
         var complexityBucketByClassName = ReductionTypeCatalog.ComplexityBucketByClassName.Value;
         var complexityByClassName = ReductionTypeCatalog.ComplexityByClassName.Value;
         var costByClassName = ReductionCostCatalog.ByClassName.Value;
 
-        var allClassNames = reductionTypeByClassName.Keys
+        var allClassNames = reductionTypesByClassName.Keys
             .Union(complexityBucketByClassName.Keys, StringComparer.OrdinalIgnoreCase)
             .Union(complexityByClassName.Keys, StringComparer.OrdinalIgnoreCase)
             .Union(costByClassName.Keys, StringComparer.OrdinalIgnoreCase)
@@ -351,7 +353,7 @@ public class ReductionType_Tests : IClassFixture<AppFactory> {
         _output.WriteLine("");
 
         foreach (var className in allClassNames) {
-            string reductionType = reductionTypeByClassName.TryGetValue(className, out var rt) ? rt : "<not instantiated>";
+            string reductionType = reductionTypesByClassName.TryGetValue(className, out var rt) ? string.Join(" | ", rt) : "<not instantiated>";
             string complexityBucket = complexityBucketByClassName.TryGetValue(className, out var cb) ? cb : "<not instantiated>";
             string complexity = complexityByClassName.TryGetValue(className, out var cx)
                 ? (string.IsNullOrEmpty(cx) ? "<empty>" : cx)

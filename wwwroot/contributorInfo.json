@@ -557,5 +557,14 @@
     "githubUsername": "KurniawanSatria",
     "reduxStats": { "prsMerged": 0, "reviews": 0 },
     "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
+  },
+  "Jay": {
+    "email": "",
+    "education": "",
+    "major": "",
+    "bio": "Fixed two Redux_GUI search-bar bugs: solver dropdown labels now resolve within the current problem's options (#421), and the selected problem's tags hide while typing a search (#425).",
+    "githubUsername": "jay23606",
+    "reduxStats": { "prsMerged": 0, "reviews": 0 },
+    "reduxGuiStats": { "prsMerged": 0, "reviews": 0 }
   }
 }

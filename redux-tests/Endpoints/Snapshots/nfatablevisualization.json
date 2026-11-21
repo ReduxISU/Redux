@@ -1,0 +1,434 @@
+[
+  {
+    "kind": "table",
+    "title": "Run 1 of 6 \u2014 Accepted",
+    "columns": [
+      {
+        "key": "step",
+        "label": "Step"
+      },
+      {
+        "key": "symbol",
+        "label": "Symbol"
+      },
+      {
+        "key": "fromState",
+        "label": "From State"
+      },
+      {
+        "key": "toState",
+        "label": "To State"
+      },
+      {
+        "key": "accepting",
+        "label": "Accepting"
+      }
+    ],
+    "rows": [
+      {
+        "id": "0",
+        "color": null,
+        "cells": {
+          "step": "0",
+          "symbol": "-",
+          "fromState": "-",
+          "toState": "1",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "1",
+        "color": null,
+        "cells": {
+          "step": "1",
+          "symbol": "\u03B5",
+          "fromState": "1",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "2",
+        "color": null,
+        "cells": {
+          "step": "2",
+          "symbol": "\u03B5",
+          "fromState": "2",
+          "toState": "3",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "3",
+        "color": "Solution",
+        "cells": {
+          "step": "3",
+          "symbol": "a",
+          "fromState": "3",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": {
+          "toState": "ElementHighlight"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": "Run 2 of 6 \u2014 Accepted",
+    "columns": [
+      {
+        "key": "step",
+        "label": "Step"
+      },
+      {
+        "key": "symbol",
+        "label": "Symbol"
+      },
+      {
+        "key": "fromState",
+        "label": "From State"
+      },
+      {
+        "key": "toState",
+        "label": "To State"
+      },
+      {
+        "key": "accepting",
+        "label": "Accepting"
+      }
+    ],
+    "rows": [
+      {
+        "id": "0",
+        "color": null,
+        "cells": {
+          "step": "0",
+          "symbol": "-",
+          "fromState": "-",
+          "toState": "1",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "1",
+        "color": null,
+        "cells": {
+          "step": "1",
+          "symbol": "\u03B5",
+          "fromState": "1",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "2",
+        "color": "Solution",
+        "cells": {
+          "step": "2",
+          "symbol": "a",
+          "fromState": "2",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": {
+          "toState": "ElementHighlight"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": "Run 3 of 6 \u2014 Accepted",
+    "columns": [
+      {
+        "key": "step",
+        "label": "Step"
+      },
+      {
+        "key": "symbol",
+        "label": "Symbol"
+      },
+      {
+        "key": "fromState",
+        "label": "From State"
+      },
+      {
+        "key": "toState",
+        "label": "To State"
+      },
+      {
+        "key": "accepting",
+        "label": "Accepting"
+      }
+    ],
+    "rows": [
+      {
+        "id": "0",
+        "color": null,
+        "cells": {
+          "step": "0",
+          "symbol": "-",
+          "fromState": "-",
+          "toState": "1",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "1",
+        "color": "Solution",
+        "cells": {
+          "step": "1",
+          "symbol": "a",
+          "fromState": "1",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": {
+          "toState": "ElementHighlight"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": "Run 4 of 6 \u2014 Rejected",
+    "columns": [
+      {
+        "key": "step",
+        "label": "Step"
+      },
+      {
+        "key": "symbol",
+        "label": "Symbol"
+      },
+      {
+        "key": "fromState",
+        "label": "From State"
+      },
+      {
+        "key": "toState",
+        "label": "To State"
+      },
+      {
+        "key": "accepting",
+        "label": "Accepting"
+      }
+    ],
+    "rows": [
+      {
+        "id": "0",
+        "color": null,
+        "cells": {
+          "step": "0",
+          "symbol": "-",
+          "fromState": "-",
+          "toState": "1",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "1",
+        "color": null,
+        "cells": {
+          "step": "1",
+          "symbol": "\u03B5",
+          "fromState": "1",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "2",
+        "color": null,
+        "cells": {
+          "step": "2",
+          "symbol": "\u03B5",
+          "fromState": "2",
+          "toState": "3",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "3",
+        "color": null,
+        "cells": {
+          "step": "3",
+          "symbol": "a",
+          "fromState": "3",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "4",
+        "color": null,
+        "cells": {
+          "step": "4",
+          "symbol": "\u03B5",
+          "fromState": "2",
+          "toState": "3",
+          "accepting": "\u274C"
+        },
+        "cellColors": {
+          "toState": "ElementHighlight"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": "Run 5 of 6 \u2014 Rejected",
+    "columns": [
+      {
+        "key": "step",
+        "label": "Step"
+      },
+      {
+        "key": "symbol",
+        "label": "Symbol"
+      },
+      {
+        "key": "fromState",
+        "label": "From State"
+      },
+      {
+        "key": "toState",
+        "label": "To State"
+      },
+      {
+        "key": "accepting",
+        "label": "Accepting"
+      }
+    ],
+    "rows": [
+      {
+        "id": "0",
+        "color": null,
+        "cells": {
+          "step": "0",
+          "symbol": "-",
+          "fromState": "-",
+          "toState": "1",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "1",
+        "color": null,
+        "cells": {
+          "step": "1",
+          "symbol": "\u03B5",
+          "fromState": "1",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "2",
+        "color": null,
+        "cells": {
+          "step": "2",
+          "symbol": "a",
+          "fromState": "2",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "3",
+        "color": null,
+        "cells": {
+          "step": "3",
+          "symbol": "\u03B5",
+          "fromState": "2",
+          "toState": "3",
+          "accepting": "\u274C"
+        },
+        "cellColors": {
+          "toState": "ElementHighlight"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "table",
+    "title": "Run 6 of 6 \u2014 Rejected",
+    "columns": [
+      {
+        "key": "step",
+        "label": "Step"
+      },
+      {
+        "key": "symbol",
+        "label": "Symbol"
+      },
+      {
+        "key": "fromState",
+        "label": "From State"
+      },
+      {
+        "key": "toState",
+        "label": "To State"
+      },
+      {
+        "key": "accepting",
+        "label": "Accepting"
+      }
+    ],
+    "rows": [
+      {
+        "id": "0",
+        "color": null,
+        "cells": {
+          "step": "0",
+          "symbol": "-",
+          "fromState": "-",
+          "toState": "1",
+          "accepting": "\u274C"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "1",
+        "color": null,
+        "cells": {
+          "step": "1",
+          "symbol": "a",
+          "fromState": "1",
+          "toState": "2",
+          "accepting": "\u2705"
+        },
+        "cellColors": null
+      },
+      {
+        "id": "2",
+        "color": null,
+        "cells": {
+          "step": "2",
+          "symbol": "\u03B5",
+          "fromState": "2",
+          "toState": "3",
+          "accepting": "\u274C"
+        },
+        "cellColors": {
+          "toState": "ElementHighlight"
+        }
+      }
+    ]
+  }
+]

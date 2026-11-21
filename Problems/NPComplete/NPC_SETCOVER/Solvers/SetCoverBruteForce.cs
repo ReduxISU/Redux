@@ -68,6 +68,7 @@ class SetCoverBruteForce : ISolver<SETCOVER> {
             }
             BigInteger reps = factorial(setCover.subsets.Count) / (factorial(j) * factorial(setCover.subsets.Count - j));
             for (BigInteger i = 0; i < reps; i++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 string certificate = indexListToCertificate(combination, setCover.subsets);
                 if (setCover.defaultVerifier.verify(setCover, certificate)) {
                     return certificate;

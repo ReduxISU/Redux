@@ -27,8 +27,9 @@ class MinCutStoerWagner : ISolver<MINCUT> {
         Dictionary<string, int> nodeIndex = BuildNodeIndex(problem.nodes);
         int[,] w = BuildAdjacencyMatrix(n, nodeIndex, problem.edges);
 
-        if (timerHasExpired) return "{}";
-        var (_, minSide) = RunStoerWagner(n, w);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        var (_, minSide) = RunStoerWagner(n, w, () => timerHasExpired);
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
         List<string> cutEdgeParts = new();
         HashSet<string> seen = new();
@@ -46,7 +47,7 @@ class MinCutStoerWagner : ISolver<MINCUT> {
     }
 
     // Runs Stoer-Wagner and returns (minCutWeight, one side of the min cut as original node indices).
-    internal static (int weight, HashSet<int> side) RunStoerWagner(int n, int[,] wInput) {
+    internal static (int weight, HashSet<int> side) RunStoerWagner(int n, int[,] wInput, Func<bool>? stop = null) {
         int[,] w = (int[,])wInput.Clone();
         List<HashSet<int>> merged = Enumerable.Range(0, n).Select(i => new HashSet<int> { i }).ToList();
         bool[] active = Enumerable.Repeat(true, n).ToArray();
@@ -55,6 +56,7 @@ class MinCutStoerWagner : ISolver<MINCUT> {
         HashSet<int> bestSide = new();
 
         for (int phase = 0; phase < n - 1; phase++) {
+            if (stop != null && stop()) break; // #935: stop at the time limit; the caller reports it
             int[] key = new int[n];
             bool[] inA = new bool[n];
             int lastAdded = -1, secondLastAdded = -1;

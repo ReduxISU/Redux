@@ -68,6 +68,7 @@ class SteinerTreeBruteForce : ISolver<STEINERTREE> {
 
             long reps = factorial(steiner.edges.Count) / (factorial(i + 1) * factorial(steiner.edges.Count - i - 1));
             for (int k = 0; k < reps; k++) {
+                if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
                 string certificate = indexListToCertificate(combination, steiner.edges);
                 if (steiner.defaultVerifier.verify(steiner, certificate)) {
                     return certificate;

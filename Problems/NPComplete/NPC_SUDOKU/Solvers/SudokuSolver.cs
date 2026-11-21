@@ -43,9 +43,6 @@ class SudokuSolver : ISolver<SUDOKU> {
     }*/
 
     public string solve(SUDOKU problem) {
-        //if (timerHasExpired)
-        //    return "timeout";
-
         // The grid is the solver's only input; all dimensions are derived from it.
         return SolveInternal(problem.grid);
     }
@@ -154,6 +151,9 @@ class SudokuSolver : ISolver<SUDOKU> {
     private bool SolveHelper(int[][] grid, HashSet<int>[] rows, HashSet<int>[] cols, HashSet<int>[] blocks,
                               int row, int col, bool getAllSolutions, List<int[][]> solutions) {
         int gridSize = grid.Length;
+        // #935: at the time limit, unwind as if solved; SolveInternal then reports the stop.
+        if (timerHasExpired)
+            return true;
         // Base case: all rows processed
         if (row == gridSize) {
             if (getAllSolutions) {
@@ -222,6 +222,8 @@ class SudokuSolver : ISolver<SUDOKU> {
         }
 
         SolveHelper(solution, rows, cols, blocks, 0, 0, false, new List<int[][]>());
+        if (timerHasExpired)
+            return SolveRun.TimedOutAnswer;
 
         // If solution contains any 0s, the problem is unsolveable
         for (int r = 0; r < solution.Length; r++) {

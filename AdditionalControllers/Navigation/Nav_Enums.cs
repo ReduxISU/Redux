@@ -3,7 +3,7 @@ using System.Text.Json;
 using API.Interfaces;
 
 // Closed-vocabulary catalog endpoints for the taxonomy enums the GUI's facet filters are
-// built from: ComplexityClass, ProblemType, ReductionType, ReductionCost, SolverType,
+// built from: ComplexityClass, ProblemType, ProblemVariant, ReductionType, ReductionCost, SolverType,
 // SolverComplexityBucket. Same shape as VisualizationTypeCatalog/VisualizationTypesController
 // (Nav_Visualizations.cs) -- Enum.GetNames, sorted, returned as a bare string array -- so the
 // frontend's facet option lists can be built from the real enum instead of a hand-typed copy
@@ -57,6 +57,27 @@ public class ProblemTypesController : ControllerBase {
     public IActionResult Get() {
         var options = new JsonSerializerOptions { WriteIndented = true };
         var values = Enum.GetNames(typeof(ProblemType)).OrderBy(n => n, StringComparer.Ordinal).ToArray();
+        return Content(JsonSerializer.Serialize(values, options), "application/json");
+    }
+}
+
+// Get the closed vocabulary of ProblemVariant wire values (#616).
+[ApiController]
+[Route("Navigation/[controller]")]
+[Tags("- Navigation (Enums)")]
+#pragma warning disable CS1591
+
+public class ProblemVariantsController : ControllerBase {
+#pragma warning restore CS1591
+
+    ///<summary>Returns every ProblemVariant wire value, sorted. The closed vocabulary of a Decision/Optimization facet filter.</summary>
+    ///<response code="200">Returns a sorted string array of ProblemVariant member names</response>
+
+    [ProducesResponseType(typeof(string[]), 200)]
+    [HttpGet]
+    public IActionResult Get() {
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        var values = Enum.GetNames(typeof(ProblemVariant)).OrderBy(n => n, StringComparer.Ordinal).ToArray();
         return Content(JsonSerializer.Serialize(values, options), "application/json");
     }
 }

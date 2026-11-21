@@ -5,10 +5,10 @@ namespace API.Problems.NPComplete.NPC_EXACTCOVER.Verifiers;
 class ExactCoverVerifier : IVerifier<EXACTCOVER> {
 
     public const string CertificateGrammar = "{T | T subset S, union of T = X, T pairwise disjoint}";
-    public const string CertificateExample = "{{2,3},{4,1}}";
+    public const string CertificateExample = "{{1,4},{3,5,6},{2,7}}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Exact Cover Verifier";
+    public string verifierName { get; } = "Exact Cover Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Exact Cover";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

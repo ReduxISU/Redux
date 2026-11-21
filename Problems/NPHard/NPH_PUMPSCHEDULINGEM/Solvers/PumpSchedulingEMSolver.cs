@@ -52,7 +52,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
         // No schedule fits the tank limits and the budget: report "no solution" ("{}", the repo's
         // standard convention, see #605) rather than inventing an over-budget schedule.
         if (schedMasks == null)
-            return timerHasExpired ? "timeout" : NoSolution;
+            return timerHasExpired ? SolveRun.TimedOutAnswer : NoSolution;
 
         double totalCost = ComputeTotalCost(problem, schedMasks);
 
@@ -95,6 +95,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
             double demand = problem.DemandGph[h];
 
             for (int b = 0; b < stateB; b++) {
+                if (timerHasExpired) return 0.0; // #935: an hour can take long with many pumps
                 double levelNow = ToLevel(b);
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     double cur = dp[b, prevMask];
@@ -183,6 +184,7 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
             double demand = problem.DemandGph[h];
 
             for (int b = 0; b < stateB; b++) {
+                if (timerHasExpired) return null;
                 double levelNow = ToLevel(b);
                 for (int prevMask = 0; prevMask < nMasks; prevMask++) {
                     var front = dp[b, prevMask];

@@ -38,6 +38,8 @@ class UNSTRUCTUREDSEARCH : IProblem<UnstructuredSearchSolver, UnstructuredSearch
     // input instead of an oracle it is trivially in P. See ComplexityClass.BQP.
     public ComplexityClass complexityClass { get; } = ComplexityClass.BQP;
     public ProblemType problemType { get; } = ProblemType.Miscellaneous;
+    // Variant (#616): Judgement call: "is there a marked item", answered with a witness; nothing to optimize.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     private string _circuit = "";
 

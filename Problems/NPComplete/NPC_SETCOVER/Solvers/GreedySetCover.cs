@@ -36,6 +36,7 @@ class GreedySetCover : ISolver<SETCOVER> {
         List<int> chosenIndices = new List<int>();
 
         while (covered.Count < universal.Count) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
 
             int bestIndex = -1;
             int bestNewCount = 0;

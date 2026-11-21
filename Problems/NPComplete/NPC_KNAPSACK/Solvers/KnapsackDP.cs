@@ -30,7 +30,7 @@ class KnapsackDP : ISolver<KNAPSACK> {
         int[,] dp = new int[n + 1, capacity + 1];
 
         for (int i = 1; i <= n; i++) {
-            if (timerHasExpired) return "{}";
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             int weight = int.Parse(itemValues[i - 1][0].ToString());
             int value = int.Parse(itemValues[i - 1][1].ToString());

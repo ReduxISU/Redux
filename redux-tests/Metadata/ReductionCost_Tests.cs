@@ -20,6 +20,7 @@ namespace redux_tests;
 // attributes pinned on the ReductionCost enum type (Interfaces/ReductionCost.cs) are the
 // actual fix for that path; the facts below are the regression guard for it. Must never go
 // back to failing.
+[Trait("Category", "Metadata")]
 public class ReductionCost_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

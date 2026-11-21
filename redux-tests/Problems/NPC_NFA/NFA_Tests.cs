@@ -1,5 +1,7 @@
 using Xunit;
 using API.Problems.P.P_NFA;
+using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Problems.P.P_NFA.Solvers;
 using API.Problems.P.P_NFA.Verifiers;
 using System.Collections.Generic;
@@ -277,25 +279,27 @@ public class NFA_Tests {
     // Solver — GetSteps / GetPathRuns / GetTableSteps
     // -------------------------------------------------------------------------
 
+    private static List<SolverStep<ActiveStates>> Steps(string instance) =>
+        ((ISolver)new NFASolver()).Run(instance, withSteps: true).Steps.Cast<SolverStep<ActiveStates>>().ToList();
+
     [Fact]
-    public void NFA_GetSteps_Returns_First_Accepting_Run_States() {
-        // Simple single-run NFA: s →a→ t (accept). GetSteps should return that run's states.
-        string instance = "(({s,t},{a},{(s,a,t)},s,{t}),a)";
-        NFA nfa = new NFA(instance);
-        NFASolver solver = new NFASolver();
-        var steps = solver.GetSteps(nfa);
-        Assert.Equal(new List<object> { "s", "t" }, steps);
+    public void NFA_Steps_Try_Move_Then_Accept_And_Finish() {
+        // Simple single-run NFA: s →a→ t (accept).
+        var steps = Steps("(({s,t},{a},{(s,a,t)},s,{t}),a)");
+        Assert.Equal(new[] { StepEvent.Try, StepEvent.Try, StepEvent.Accept, StepEvent.Backtrack, StepEvent.Done },
+            steps.Select(s => s.Event));
+        Assert.Equal("Read 'a': move from s to t.", steps[1].Caption);
+        Assert.Equal(new ActiveStates(["t"], 1), steps[^1].Partial);
+        Assert.True(steps[^1].Ok);
     }
 
     [Fact]
-    public void NFA_GetSteps_Falls_Back_To_First_Rejected_Run_When_No_Accepting_Run() {
-        // No accepting run exists for input "b"; GetSteps still returns the dead-end
-        // run's states rather than an empty list.
-        string instance = "(({s,t},{a,b},{(s,a,t)},s,{t}),b)";
-        NFA nfa = new NFA(instance);
-        NFASolver solver = new NFASolver();
-        var steps = solver.GetSteps(nfa);
-        Assert.Equal(new List<object> { "s" }, steps);
+    public void NFA_Steps_Reject_Dead_End_When_No_Accepting_Run() {
+        // No accepting run exists for input "b": the only state has no move on it.
+        var steps = Steps("(({s,t},{a,b},{(s,a,t)},s,{t}),b)");
+        Assert.Equal(new[] { StepEvent.Try, StepEvent.Reject, StepEvent.Done }, steps.Select(s => s.Event));
+        Assert.Equal(new ActiveStates([], 1), steps[^1].Partial);
+        Assert.False(steps[^1].Ok);
     }
 
     [Fact]

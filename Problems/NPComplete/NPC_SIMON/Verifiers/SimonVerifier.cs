@@ -7,7 +7,7 @@ class SimonVerifier : IVerifier<SIMON> {
     public const string CertificateExample = "010";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Simon's Problem Verifier";
+    public string verifierName { get; } = "Simon's Problem Solution Verifier";
     public string verifierDefinition { get; } = "Classifcal Verifier for Simon's Problem";
     public string source { get; } = "Simon, Daniel R. (1997-10-01). \"On the Power of Quantum Computation\". SIAM Journal on Computing. 26 (5): 1474–1483. doi:10.1137/S0097539796298637. ISSN 0097-5397";
     public string sourceFile { get; } = SourceFile.Path();

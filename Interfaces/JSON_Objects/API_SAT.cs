@@ -1,7 +1,6 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.Xml;
 using API.Interfaces.JSON_Objects;
-using API.Problems.NPComplete.NPC_CLIQUE.Inherited;
 using API.Problems.NPComplete.NPC_SAT3;
 using API.Problems.NPComplete.NPC_SAT;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -14,6 +13,9 @@ class API_SAT : API_JSON {
     public string kind { get; } = "sat";
 
     public List<Clause> clauses { get; set; }
+    public API_SAT(List<Clause> _clauses) {
+        clauses = _clauses;
+    }
     public API_SAT(SAT3 instance) {
         clauses = instance.clauses.Select((c, i) => new Clause(c, i.ToString())).ToList();
     }
@@ -25,10 +27,13 @@ class API_SAT : API_JSON {
     public class Clause {
         public string id { get; set; }
         public List<Literal> literals { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public long? weight { get; set; }
 
-        public Clause(List<string> _literals, string _id) {
+        public Clause(List<string> _literals, string _id, long? _weight = null) {
             id = _id;
             literals = _literals.Select((s, i) => new Literal(s, id.ToString() + "-" + i.ToString())).ToList();
+            weight = _weight;
         }
     }
 

@@ -9,7 +9,7 @@ class SetCoverVerifier : IVerifier<SETCOVER> {
     public const string CertificateExample = "{{1,2,3},{4,5}}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Set Cover Verifier";
+    public string verifierName { get; } = "Set Cover Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for Set Cover";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

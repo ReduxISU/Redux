@@ -8,6 +8,7 @@ namespace redux_tests;
 #pragma warning disable CS1591
 
 // Guards for the ProblemType vocabulary — same convention as ComplexityClass_Tests.cs.
+[Trait("Category", "Metadata")]
 public class ProblemType_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

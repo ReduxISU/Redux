@@ -16,8 +16,8 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     // Declared, not derived. Unpruned exhaustive enumeration over permutations -- factorial worst case.
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
-    // Declared, not derived. GenerateCombinations eagerly materializes all p! permutations
-    // of the job indices (p = number of jobs) before solve() iterates and verifies each
+    // Declared, not derived. GenerateCombinations lazily yields all p! permutations
+    // of the job indices (p = number of jobs) as solve() iterates and verifies each
     // (verify is O(p)).
     public MathematicalFunction timeComplexity { get; } = new("p! * p", ", p = number of jobs");
 
@@ -25,24 +25,22 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     public JobSeqBruteForce() {
 
     }
-    public static List<List<int>> GenerateCombinations(int x) {
+    // #935: lazy (same order as before), so solve() can stop at the time limit without first building all p! permutations.
+    public static IEnumerable<List<int>> GenerateCombinations(int x) {
         List<int> currentCombination = new List<int>();
         for (int i = 0; i < x; i++) {
             currentCombination.Add(i);
         }
 
-        List<List<int>> combinations = new List<List<int>>();
-        combinations.Add(new List<int>(currentCombination));
+        yield return new List<int>(currentCombination);
 
         while (true) {
             if (GetNextCombination(currentCombination)) {
-                combinations.Add(new List<int>(currentCombination));
+                yield return new List<int>(currentCombination);
             } else {
                 break; // All combinations have been generated
             }
         }
-
-        return combinations;
     }
 
     private static bool GetNextCombination(List<int> combination) {
@@ -80,6 +78,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     }
     public string solve(JOBSEQ jobseq) {
         foreach (List<int> permutation in GenerateCombinations(jobseq.T.Count())) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer;
             if (jobseq.defaultVerifier.verify(jobseq, permutation)) {
                 return permToCertificate(permutation);
             }

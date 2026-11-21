@@ -52,7 +52,7 @@ dotnet test Redux.slnx -c Release --filter "Category=Performance"
 ```
 
 - The Release build checks formatting and treats compiler warnings as errors, so run `dotnet format Redux.slnx` first.
-- Add tests for what you add. Details and what to do when a check fails: [building-and-testing guide](Documentation/guides/building-and-testing.md) and [troubleshooting](Documentation/guides/troubleshooting.md).
+- Add tests for any solver, verifier, visualization or reduction you add. A problem class on its own doesn't need tests of its own. Details and what to do when a check fails: [building-and-testing guide](Documentation/guides/building-and-testing.md) and [troubleshooting](Documentation/guides/troubleshooting.md).
 
 ### 5. Submit a Pull Request (PR)
 Open the PR against the `CSharpAPI` branch of `ReduxISU/Redux`. Include:

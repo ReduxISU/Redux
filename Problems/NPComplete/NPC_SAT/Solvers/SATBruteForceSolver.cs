@@ -5,8 +5,7 @@ using API.Problems.NPComplete.NPC_SAT;
 namespace API.Problems.NPComplete.NPC_SAT.Solvers;
 #pragma warning disable CS1591
 
-// TODO: use generic `ISolver<SAT>` for type safety
-public class SATBruteForceSolver : ISolver {
+public class SATBruteForceSolver : ISolver<SAT> {
 
 
     #region Fields
@@ -17,9 +16,7 @@ public class SATBruteForceSolver : ISolver {
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public bool timerHasExpired { get; set; }
-    // Declared, not derived. Unpruned exhaustive enumeration. Implements non-generic ISolver directly
-    // (not ISolver<T>) -- included here so SolverTypeCatalog's `is ISolver` check (not `is ISolver<T>`)
-    // does not silently skip it.
+    // Declared, not derived. Unpruned exhaustive enumeration.
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates all 2^n truth assignments (n = distinct literals);
@@ -36,6 +33,9 @@ public class SATBruteForceSolver : ISolver {
     }
     #endregion
 
+    // The generic entry point; the visualize endpoint uses ISolver<SAT> to tell which problem this solver runs on.
+    string ISolver<SAT>.solve(SAT problem) => solve(problem.instance);
+
 
     #region Methods
 
@@ -50,7 +50,7 @@ public class SATBruteForceSolver : ISolver {
 
         while (true) {
             if (timerHasExpired)
-                return "timeout";
+                return SolveRun.TimedOutAnswer;
 
             for (int i = 0; i < variables.Count; i++) {
                 assignment[variables[i]] = values[i];

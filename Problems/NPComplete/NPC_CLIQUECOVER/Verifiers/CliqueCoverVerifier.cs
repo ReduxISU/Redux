@@ -8,7 +8,7 @@ class CliqueCoverVerifier : IVerifier<CLIQUECOVER> {
     public const string CertificateExample = "{1,2,3},{4,5},{6,7,8}";
 
     // --- Fields ---
-    public string verifierName { get; } = "Default Clique Cover Verifier";
+    public string verifierName { get; } = "Clique Cover Solution Verifier";
     public string verifierDefinition { get; } = "This is a verifier for the NP-Complete Clique Cover problem";
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();

@@ -10,8 +10,19 @@ public class PRIMEFACTOR_tests {
     [Fact]
     public void DEUTSCH_Default_Instantiation() {
         var problem = new PRIMEFACTOR();
-        Assert.Equal("12", problem.instance);
-        Assert.Equal("12", problem.defaultInstance);
+        Assert.Equal("15", problem.instance);
+        Assert.Equal("15", problem.defaultInstance);
+    }
+
+    [Fact]
+    public void PRIMEFACTOR_Default_Instance_Is_Odd_Composite_So_Shors_Runs_Quantum_Step() {
+        // An even default (12) lets Shor's algorithm return 2 classically before any quantum work (#703).
+        // 15 is odd, composite and not a prime power, so it must reach the quantum order finding.
+        int n = int.Parse(new PRIMEFACTOR().defaultInstance);
+        Assert.Equal(1, n % 2);
+        Assert.NotEqual(1, n);
+        Assert.Contains(Enumerable.Range(2, n - 2), d => n % d == 0);
+        Assert.Equal("(3,5)", new PrimeFactorSolver().solve(new PRIMEFACTOR()));
     }
 
     [Fact]

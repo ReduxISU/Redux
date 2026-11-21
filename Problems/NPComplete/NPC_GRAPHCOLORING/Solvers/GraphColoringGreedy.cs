@@ -58,6 +58,7 @@ class GraphColoringGreedy : ISolver<GRAPHCOLORING> {
         // For each vertex assign smallest color not used by neighbors
         Dictionary<string, int> colorAssignment = new Dictionary<string, int>();
         foreach (string node in nodes) {
+            if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             HashSet<int> usedColors = new HashSet<int>();
             foreach (string neighbor in adjacency[node])
                 if (colorAssignment.ContainsKey(neighbor))

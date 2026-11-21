@@ -28,7 +28,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     // q₀ = Start State //
     // F = Set of Accept State(s) //
     public const string InstanceGrammar = "{((N,A,E,S,F),I) | N is set, A is set, E is N cross A cross N, S is string, F is set, I is string}";
-    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),a)";
+    private static readonly string _defaultInstance = "(({1,2,3},{a,b},{(1,a,2),(1,b,3),(2,a,2),(2,b,2),(3,a,2),(3,b,3)},1,{2}),bba)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instance { get; set; } = string.Empty;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
@@ -43,6 +43,7 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     // in the input string, given the DFA).
     public ComplexityClass complexityClass { get; } = ComplexityClass.P;
     public ProblemType problemType { get; } = ProblemType.AutomataAndLanguages;
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // Edge Structures //
     public record DFAEdge(string From, char Symbol, string To);

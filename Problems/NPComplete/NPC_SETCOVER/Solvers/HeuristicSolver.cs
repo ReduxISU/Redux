@@ -67,6 +67,7 @@ class HeuristicSolver : ISolver<SETCOVER> {
 
         Console.WriteLine(stopwatch.ElapsedMilliseconds);
 
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
         if (selectedSets.Any()) {
             return solutionToCertificate(selectedSets, setCover);
         }
@@ -75,6 +76,7 @@ class HeuristicSolver : ISolver<SETCOVER> {
     }
 
     private void iterate(Dictionary<string, List<string>> Y, ref Dictionary<string, List<string>> X, ref Stack<string> solution, ref bool foundSolution, int K) {
+        if (timerHasExpired) return; // #935: stop at the time limit; solve() reports it
         if (solution.Count() > K) return;
         if (!X.Keys.Any()) foundSolution = true;
         if (foundSolution == true) return;
@@ -84,7 +86,7 @@ class HeuristicSolver : ISolver<SETCOVER> {
                 solution.Push(row);
                 Stack<List<string>> columns = select(Y, ref X, row);
                 iterate(Y, ref X, ref solution, ref foundSolution, K);
-                if (foundSolution == true) return;
+                if (foundSolution == true || timerHasExpired) return;
                 deselect(Y, ref X, row, ref columns);
                 solution.Pop();
             }

@@ -55,14 +55,14 @@ Rules that matter:
 | Namespace | `API.Problems.NPComplete.NPC_<PROBLEM>.Verifiers` | `API.Problems.NPComplete.NPC_SUBSETSUM.Verifiers` |
 | Class name | Unique across the whole project (see below) | `SubsetSumVerifier` |
 | Implements | `IVerifier<PROBLEM>` | `IVerifier<SUBSETSUM>` |
-| `verifierName` | Exactly `Default <Problem Name> Verifier`, where `<Problem Name>` is the problem's `problemName` text | `"Default Subset Sum Verifier"` |
+| `verifierName` | Exactly `<Problem Name> Solution Verifier` for validity/feasibility checks, or `<Problem Name> Optimality Verifier` when the verifier also proves optimality; names must be unique per problem ignoring case | `"Subset Sum Solution Verifier"` |
 
 **How Redux finds your verifier.** At startup, `ProblemProvider` ([AdditionalControllers/ProblemProvider.cs](../../AdditionalControllers/ProblemProvider.cs)) scans every class in the project. Any class that implements `IVerifier` is registered under its **lowercased class name**. Because of that:
 
 - Your class name must be unique. Two classes with the same name (ignoring upper/lower case) crash startup.
 - You do not edit any list. Creating the class is enough.
 - The list of verifiers for a problem, at `GET /Navigation/Problem_VerifiersRefactor?chosenProblem=SUBSETSUM` ([Nav_Verifiers.cs](../../AdditionalControllers/Navigation/Nav_Verifiers.cs)), is built from the type argument of `IVerifier<PROBLEM>`. Pick it carefully.
-- Being **listed** is different from being the **default**. Every verifier class for the problem shows up in that list. The one the problem class names in its `defaultVerifier` property is the default. To make your verifier the default, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra verifier, leave `defaultVerifier` alone.
+- Being **listed** is different from being the **default**. Every verifier class for the problem shows up in that list. The default is the one marked `[DefaultFor(typeof(PROBLEM))]` ([Interfaces/DefaultFor.cs](../../Interfaces/DefaultFor.cs)), at most one per problem. Older problems on `IProblem<Solver, Verifier, Visualization>` name it in the problem class's `defaultVerifier` instead; to change one of those, edit the problem class (for Subset Sum: [SUBSETSUM_Class.cs](../../Problems/NPComplete/NPC_SUBSETSUM/SUBSETSUM_Class.cs)). To add an extra verifier, add no attribute and leave `defaultVerifier` alone. A problem with no default verifier gets `DummyVerifier`, and the verify endpoint answers 400 `no_verifier` for it.
 
 The API endpoint you get for free: `POST /ProblemProvider/verify?verifier=<ClassName>`, with a JSON body like `{"ProblemInstance": "...", "Certificate": "..."}`. Once the API is running (it normally listens on port 27000), try the worked example:
 
@@ -85,18 +85,18 @@ You can also read any verifier's metadata with `GET /ProblemProvider/info?interf
 You have two options. Both give you the same file.
 
 - **Copy it by hand.** The template is [ProblemTemplate/Templates/Verifiers/ProblemVerifier.txt](../../ProblemTemplate/Templates/Verifiers/ProblemVerifier.txt). Copy it to your new folder, rename it `<ClassName>.cs`, and replace the placeholders `{PROBLEM}`, `{VERIFIER}`, and `{VERIFIER_PASCAL_CASE}`.
-- **Download it from a running API.** Start the API, then call `GET /ProblemTemplate/verifier?problemName=SUBSETSUM&verifierName=My Subset Sum Verifier`. The two query parameters are `problemName` (the problem's class name, for example `SUBSETSUM`) and `verifierName` (the display name; the class name is made from it by removing spaces and odd characters). It returns a zip containing `NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` and a README. The code for this is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
+- **Download it from a running API.** Start the API, then call `GET /ProblemTemplate/verifier?problemName=SUBSETSUM&verifierName=Subset Sum Optimality Verifier`. The two query parameters are `problemName` (the problem's class name, for example `SUBSETSUM`) and `verifierName` (the display name; the class name is made from it by removing spaces and odd characters). It returns a zip containing `NPC_SUBSETSUM/Verifiers/SubsetSumOptimalityVerifier.cs` and a README. The code for this is in [ProblemTemplate/ProblemTemplate.cs](../../ProblemTemplate/ProblemTemplate.cs).
 
 **Where each file in the zip goes.** Paths are from the repo root (the folder that contains `Redux.slnx`):
 
 | The file in the zip | Where it goes in the repo | What it is, and what to do with it |
 | --- | --- | --- |
-| `NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/MySubsetSumVerifier.cs` | Your verifier. Throws `NotImplementedException` until you write it. The zip always uses the `NPC_` prefix: for a problem under `Problems/NPHard/` or `Problems/P/`, use that problem's own folder (`NPH_` or `P_`) and fix the namespace. |
+| `NPC_SUBSETSUM/Verifiers/SubsetSumOptimalityVerifier.cs` | `Problems/NPComplete/NPC_SUBSETSUM/Verifiers/SubsetSumOptimalityVerifier.cs` | Your optimality verifier. Throws `NotImplementedException` until you write it. The zip always uses the `NPC_` prefix: for a problem under `Problems/NPHard/` or `Problems/P/`, use that problem's own folder (`NPH_` or `P_`) and fix the namespace. |
 | `README.md` | Nowhere. It is not copied into the repo. | Reference only: a description of every member you fill in. Read it, then leave it in the zip. |
 
 The tests for your verifier go in the problem's test file (see "Tests you write yourself" below).
 
-A test requires the `verifierName` to be exactly `Default <Problem Name> Verifier` for **every** verifier, even a second one for the same problem (see section 5). The full-problem download (`GET /ProblemTemplate`) already generates that name. For the standalone verifier download, pass it as `verifierName` yourself (for example `Default Subset Sum Verifier`), or edit it afterwards.
+A test requires each `verifierName` to be exactly `<Problem Name> Solution Verifier` or `<Problem Name> Optimality Verifier` (see section 5). The full-problem download (`GET /ProblemTemplate`) generates the solution form. For the standalone verifier download, pass the appropriate display name yourself; the example above uses `Subset Sum Optimality Verifier`, which remains distinct from `Subset Sum Solution Verifier`. Display names must be unique within a problem, ignoring case. The problem's `defaultVerifier` property selects the default independently of its display name.
 
 **The template's `verify` ends with a `NotImplementedException`.** That is on purpose: a verifier you forgot to finish fails loudly instead of saying "yes" to everything. Replace it with your real check.
 
@@ -106,7 +106,7 @@ Every verifier implements the members in [Interfaces/VerifierInterface.cs](../..
 
 | Member | What it is for | Worked example value |
 | --- | --- | --- |
-| `verifierName` | The name people see in the GUI. A test checks it is exactly `Default <Problem Name> Verifier` (see section 5). | `"Default Subset Sum Verifier"` |
+| `verifierName` | The name people see in the GUI. A test checks it is exactly `<Problem Name> Solution Verifier` or `<Problem Name> Optimality Verifier` (see section 5). | `"Subset Sum Solution Verifier"` |
 | `verifierDefinition` | One sentence on what the verifier checks. | `"This is a verifier for Subset Sum"` |
 | `source` | A citation for where the checking rule comes from. May be empty when it is just the problem's own definition. | `""` |
 | `sourceFile` | The repo-relative path of this class's source file. The template sets it to `SourceFile.Path()`; leave that line as it is, because the compiler fills in the path. | `SourceFile.Path()` |
@@ -114,7 +114,7 @@ Every verifier implements the members in [Interfaces/VerifierInterface.cs](../..
 | `certificate` | A string property the interface requires. Existing verifiers keep it as an empty string and never use it. | `""` |
 | `verify(PROBLEM, string)` | **The actual check.** Returns `true` or `false`, or throws for malformed input. | see Step 3 |
 
-The template also adds `sourceLink` (set to `"TODO"`) and an optional `complexity` note. They are not part of the interface, but the template includes them, so fill them in or delete them.
+The template also adds `sourceLink` (set to `"TODO"`) and an optional `complexity` note. `sourceLink` is an optional interface member that defaults to `""`; `complexity` is not part of the interface. Fill them in or delete them.
 
 Two more things you need:
 
@@ -189,7 +189,7 @@ You do not have to register your verifier with these tests. They find it automat
 
 | Test file | What it checks about your verifier |
 | --- | --- |
-| [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) (`VerifierName_Equals_ProblemName_Plus_Verifier`) | Your class implements `IVerifier<T>`, the problem `T` builds with its default instance, your class builds with no arguments, and `verifierName` is exactly `Default <Problem Name> Verifier`. This applies to **every** verifier, including extra ones. |
+| [NamingConvention_Tests.cs](../../redux-tests/Metadata/NamingConvention_Tests.cs) (`VerifierName_MatchesProblemNameAndVerifierKind`, `VerifierNames_AreUniqueWithinEachProblem_IgnoringCase`) | Your class implements `IVerifier<T>`, the problem `T` builds with its default instance, your class builds with no arguments, its `verifierName` uses the solution or optimality form, and verifier display names are unique within that problem ignoring case. |
 | [ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs) (`Verify_GarbageCertificate_IsNever500`, `Verify_GarbageInstance_IsNever500`) | Sending garbage (`""`, `{{{`, `not an instance`, `{a,b}:::`) as the certificate, or as the instance, to `POST /ProblemProvider/verify` never produces an HTTP 500. A clean `true`, `false`, or 400 is fine. A raw crash is not. |
 | [ProblemInstantiation_Tests.cs](../../redux-tests/Metadata/ProblemInstantiation_Tests.cs) | Your problem class builds with its default instance (your verifier hangs off it). |
 
@@ -291,10 +291,10 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Verifie
 - [ ] The file is at `Problems/NPComplete/NPC_<PROBLEM>/Verifiers/<ClassName>.cs`, and the namespace matches the folder.
 - [ ] The class name is unique in the whole project.
 - [ ] The class implements `IVerifier<PROBLEM>` and has a public constructor with no arguments.
-- [ ] `verifierName` is `Default <Problem Name> Verifier`; `verifierDefinition`, `source`, and `contributors` are filled in (no `"TODO"` left).
+- [ ] `verifierName` is `<Problem Name> Solution Verifier` or `<Problem Name> Optimality Verifier`, accurately reflects its behavior, and is unique within the problem ignoring case; `verifierDefinition`, `source`, and `contributors` are filled in (no `"TODO"` left).
 - [ ] The template's `NotImplementedException` is gone. `verify` really checks the certificate against the instance.
 - [ ] A malformed certificate throws `CertificateParseException`. A well-formed wrong one returns `false`.
-- [ ] If this is the problem's default verifier, the problem class's `defaultVerifier` points to it.
+- [ ] If this is the problem's default verifier, it is marked `[DefaultFor(typeof(PROBLEM))]` (or, for an older `IProblem<...>` problem, the problem class's `defaultVerifier` points to it).
 - [ ] You added tests for valid, invalid, malformed, and empty certificates.
 - [ ] `dotnet format Redux.slnx` was run, and build and tests pass.
 - [ ] You read the rbs report on your PR (see [building-and-testing.md](building-and-testing.md)).
@@ -306,7 +306,7 @@ dotnet test Redux.slnx -c Release --filter "FullyQualifiedName~SUBSETSUM_Verifie
 - **Returning `false` for garbage.** Malformed input should throw `CertificateParseException` so the caller gets a 400 and the format hint. A wrong-but-readable answer is the only case for `false`.
 - **Throwing for a wrong answer.** The opposite mistake: a readable certificate that does not solve the problem is `false`, not an exception.
 - **Ignoring the instance.** `verify` must compare the certificate to the problem's data. Check that your test fails when you change the instance.
-- **A `verifierName` that is not `Default <Problem Name> Verifier`.** A naming test fails with a message naming your class and the exact text it expected. This applies to extra verifiers too, so give an extra verifier a different class name but expect the same `verifierName` shape.
+- **A `verifierName` outside the two supported forms.** Use `<Problem Name> Solution Verifier` for a validity/feasibility check or `<Problem Name> Optimality Verifier` when it proves optimality. Extra verifiers need distinct display names within the problem, ignoring case; `defaultVerifier` still determines which one is the default.
 - **Reusing a class name.** Class names are keys, ignoring case. A duplicate crashes the registry for everyone.
 - **Folder and namespace do not match**, or the file sits under the wrong problem.
 - **A constructor that needs arguments.** Redux and the tests build verifiers with no arguments.

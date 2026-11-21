@@ -15,10 +15,11 @@ public class ContributorProfileController : ControllerBase {
 
     /// <summary>Pull up everything we know about a contributor — their personal info plus every problem, solver, and reduction they've touched</summary>
     /// <param name="contributorName">Just pass in their full name, e.g. "Himanshu Jha"</param>
+    /// <param name="includePictures">True to also count the opt-in visualizations (IOptInVisualization). Default false: what Redux_GUI reads.</param>
     /// <response code="200">Got it — here's their full profile</response>
     [ProducesResponseType(typeof(ContributorPortfolio), 200)]
     [HttpGet("{contributorName}")]
-    public IActionResult GetContributorProfile(string contributorName) {
+    public IActionResult GetContributorProfile(string contributorName, [FromQuery] bool includePictures = false) {
         try {
             // Grab their bio, email, GitHub, etc. from contributorInfo.json
             var contributorInfo = GetContributorInfo(contributorName);
@@ -36,7 +37,7 @@ public class ContributorProfileController : ControllerBase {
             var allVerifiers = GetAllVerifiers(contributorName);
 
             // Reflect over every registered visualization and check its declared contributors
-            var allVisualizations = GetAllVisualizations(contributorName);
+            var allVisualizations = GetAllVisualizations(contributorName, includePictures);
 
             // Bundle everything together into one tidy portfolio object
             var portfolio = new ContributorPortfolio {
@@ -226,13 +227,15 @@ public class ContributorProfileController : ControllerBase {
         return verifiers.Distinct();
     }
 
-    private IEnumerable<string> GetAllVisualizations(string contributorName) {
+    // Leaves out the opt-in visualizations (IOptInVisualization) unless includePictures is set, like the other listings.
+    private IEnumerable<string> GetAllVisualizations(string contributorName, bool includePictures) {
         var visualizations = new List<string>();
 
         // Reflection-derived registry (ProblemProvider.Visualizers), same pattern as
         // Problems/Solvers/Reductions — skip a visualization that can't be
         // default-constructed instead of failing the whole lookup.
         foreach (var type in ProblemProvider.Visualizers.Values) {
+            if (!OptInVisualizations.Listed(type, includePictures)) continue;
             try {
                 if (Activator.CreateInstance(type) is IVisualization instance &&
                     instance.contributors.Any(c => c.Equals(contributorName, StringComparison.OrdinalIgnoreCase))) {

@@ -10,6 +10,7 @@ namespace redux_tests;
 // allInfo endpoint (InfoJson, :56-60) silently swallows exactly this class of failure
 // today via a bare try/catch, so a problem whose default constructor throws simply
 // vanishes from every reflection-based endpoint with no signal to anyone.
+[Trait("Category", "Metadata")]
 public class ProblemInstantiation_Tests {
     [Fact]
     public void EveryTopLevelProblem_IsDefaultConstructible() {

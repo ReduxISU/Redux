@@ -21,7 +21,7 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     public string source { get; } = "";
     public string sourceFile { get; } = SourceFile.Path();
     public const string InstanceGrammar = "{((N,E),K) | N is set, E subset {(e, w) | e is N unorderedcross N, w is int}, K is int}";
-    private static string _defaultInstance { get; } = "(({New York,Chicago,Denver,Los Angeles,Miami},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),8000)";
+    private static string _defaultInstance { get; } = "(({New York,Los Angeles,Chicago,Miami,Denver},{({New York,Chicago},790),({New York,Denver},1770),({New York,Los Angeles},2450),({New York,Miami},1280),({Chicago,Denver},1000),({Chicago,Los Angeles},2015),({Chicago,Miami},1370),({Denver,Los Angeles},1015),({Denver,Miami},2060),({Los Angeles,Miami},2745)}),7000)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = $"Format: {InstanceGrammar} Example: {_defaultInstance}";
     public string certificateFormat { get; } =
@@ -39,6 +39,8 @@ class TSP : IGraphProblem<TSPBruteForce, TSPVerifier, TSPDefaultVisualization, U
     // Declared, not derived. TSP (decision version) is NP-complete (Karp, 1972).
     public ComplexityClass complexityClass { get; } = ComplexityClass.NPComplete;
     public ProblemType problemType { get; } = ProblemType.NetworkDesign;
+    // Variant (#616): K is a bound the verifier checks (tour weight <= K), so Decision; TSPBranchAndBound searches for the optimum, but the class has no optimization form.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     public string wikiName { get; } = "";
 

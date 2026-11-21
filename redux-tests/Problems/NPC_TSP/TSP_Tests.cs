@@ -104,11 +104,11 @@ public class TSP_Tests {
     }
 
     [Fact]
-    public void TSP_BranchAndBound_Timer_Expired_Returns_Timeout() {
+    public void TSP_BranchAndBound_Timer_Expired_Returns_TimedOutAnswer() {
         TSP tsp = new TSP("(({A,B,C},{({A,B},10),({B,C},20),({A,C},30)}),100)");
         TSPBranchAndBound solver = new TSPBranchAndBound() { timerHasExpired = true };
         string result = solver.solve(tsp);
-        Assert.Equal("timeout", result);
+        Assert.Equal(API.Interfaces.SolveRun.TimedOutAnswer, result);
     }
 
     [Theory]
