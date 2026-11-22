@@ -180,7 +180,7 @@ public class ComputePrecheck_Tests {
         // Graph solvers that prune their search (SolverType.Backtracking): their worst-case Big-O says little about how
         // long they run, so the precheck leaves them to the timer.
         "CarraghanPardalos", "DominatingSetForcedVertex", "DominatingSetNaiveInclusionExclusion",
-        "TSPBranchAndBound", "VertexCoverBoundedSearchTree",
+        "TSPBranchAndBound", "VertexCoverBoundedSearchTree", "WeightedMaxCliqueBranchAndBoundSolver",
         "ConvexHullSolver",
         "DeutschClassicalSolver", "DeutschQuantumSolver",
         "DeutschJozsaClassicalSolver", "DeutschJozsaQuantumSolver",
