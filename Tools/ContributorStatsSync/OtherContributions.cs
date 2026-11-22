@@ -41,7 +41,7 @@ internal static partial class Program {
     //   3. CI and build tooling: .github/**, Tools/**, .devcontainer/**, *.sh, *.ps1, *.csproj,
     //      *.slnx, *.sln, Dockerfile*, docker-compose*, eslint.config.*, rbs.toml, mise.toml,
     //      package.json, biome.json
-    //   4. Documentation: *.md, docs/**
+    //   4. Documentation: *.md, docs/**, Documentation/** (Redux's guides folder, images and all)
     //   5. Everything else: the repo's own code area (see CodeAreaOf)
     internal const string ProblemWorkArea = "Problem work";
 
@@ -75,7 +75,8 @@ internal static partial class Program {
         }
 
         if (fileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("docs/", StringComparison.OrdinalIgnoreCase)) {
+            || path.StartsWith("docs/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("Documentation/", StringComparison.OrdinalIgnoreCase)) {
             return DocsArea;
         }
 
@@ -103,8 +104,8 @@ internal static partial class Program {
     // changes code files (Redux_GUI #421: two of each) is code work that came with its tests, not
     // test work. Returns null
     // when the PR is skipped: problem work, or nothing left to count once ignored files are
-    // dropped (e.g. a PR that only edits contributorInfo.json). GitHub's files(first: 100) is all
-    // the scan fetches, which is plenty to see where a PR's weight is.
+    // dropped (e.g. a PR that only edits contributorInfo.json). The scan pages through every
+    // changed file (AllFilePathsAsync), so a PR past 100 files is sorted by all of them.
     internal static string? AreaOfPullRequest(string repo, IEnumerable<string> paths) {
         var counts = paths.Select(path => AreaOfFile(repo, path)).OfType<string>()
             .GroupBy(area => area).ToDictionary(group => group.Key, group => group.Count());

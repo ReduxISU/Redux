@@ -383,7 +383,10 @@ internal static partial class Program {
                 merged
                 mergedAt
                 author { login }
-                files(first: 100) { nodes { path } }
+                files(first: 100) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes { path }
+                }
                 reviews(first: 100) {
                   pageInfo { hasNextPage endCursor }
                   nodes { author { login } }
@@ -407,6 +410,35 @@ internal static partial class Program {
         }
         """;
 
+    private const string MoreFilesQuery = """
+        query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $number) {
+              files(first: 100, after: $cursor) {
+                pageInfo { hasNextPage endCursor }
+                nodes { path }
+              }
+            }
+          }
+        }
+        """;
+
+    // Every changed file of a PR: the first page (from the PR query), then each further page that
+    // nextPage fetches from the cursor before it, until GitHub says there are no more. A PR past
+    // 100 files (Redux #945 has 158) would otherwise be sorted by its first 100 only. files is null
+    // on the rare PR whose diff GitHub can't load; that, or a null later page, ends the list.
+    internal static async Task<List<string>> AllFilePathsAsync(JsonNode? files, Func<string?, Task<JsonNode?>> nextPage) {
+        var paths = new List<string>();
+        while (files is not null) {
+            paths.AddRange(files["nodes"]?.AsArray().Select(file => file!["path"]!.GetValue<string>()) ?? []);
+            if (files["pageInfo"]?["hasNextPage"]?.GetValue<bool>() != true) {
+                break;
+            }
+            files = await nextPage(files["pageInfo"]!["endCursor"]?.GetValue<string>());
+        }
+        return paths;
+    }
+
     // One pass over every PR of the repo. A PR counts as "reviewed" by a login once, no matter how
     // many reviews that login left on it -- same as the Search API's reviewed-by: qualifier, which
     // returns PRs rather than individual reviews.
@@ -429,10 +461,13 @@ internal static partial class Program {
                 if (author is not null && pr["merged"]!.GetValue<bool>()) {
                     scan.PrsMerged[author] = scan.PrsMerged.GetValueOrDefault(author) + 1;
 
-                    // Only the first 100 changed files are fetched: plenty to see where a PR's
-                    // weight is. files is null on the rare PR whose diff GitHub can't load.
-                    var paths = pr["files"]?["nodes"]?.AsArray()
-                        .Select(file => file!["path"]!.GetValue<string>()) ?? [];
+                    var paths = await AllFilePathsAsync(pr["files"], async filesCursor =>
+                        (await PostGraphQlAsync(http, MoreFilesQuery, new JsonObject {
+                            ["owner"] = Owner,
+                            ["repo"] = repo,
+                            ["number"] = number,
+                            ["cursor"] = filesCursor,
+                        }))["repository"]?["pullRequest"]?["files"]);
                     var area = AreaOfPullRequest(repo, paths);
                     if (area is not null) {
                         scan.Merged.Add(new MergedPullRequest(repo, number, pr["title"]!.GetValue<string>(),

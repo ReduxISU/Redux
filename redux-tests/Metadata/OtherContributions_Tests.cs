@@ -36,6 +36,9 @@ public class OtherContributions_Tests {
     [InlineData("Redux", ".devcontainer/devcontainer.json", Tool.CiArea)]
     [InlineData("Redux", "README.md", Tool.DocsArea)]
     [InlineData("Redux", "docs/visualization-guide.html", Tool.DocsArea)]
+    [InlineData("Redux", "Documentation/guides/adding-a-solver.md", Tool.DocsArea)]
+    [InlineData("Redux", "Documentation/images/reduction-graph.png", Tool.DocsArea)]
+    [InlineData("Redux", "Documentation/glossary.json", Tool.DocsArea)]
     [InlineData("Redux_Frontend", "src/notes/README.md", Tool.DocsArea)]
     [InlineData("Redux", "AdditionalControllers/Navigation/ContributerProfile.cs", Tool.ReduxCodeArea)]
     [InlineData("Redux", "Interfaces/IProblem.cs", Tool.ReduxCodeArea)]
@@ -75,6 +78,44 @@ public class OtherContributions_Tests {
     public void AreaOfPullRequest_TieOrderAfterCodeIsTestsCiDocs() {
         Assert.Equal(Tool.TestsArea, Tool.AreaOfPullRequest("Redux", ["redux-tests/A.cs", ".github/x.yml", "README.md"]));
         Assert.Equal(Tool.CiArea, Tool.AreaOfPullRequest("Redux", [".github/x.yml", "README.md"]));
+    }
+
+    // A files page as GitHub's GraphQL API returns it: the paths, and whether another page follows.
+    private static JsonNode FilesPage(IEnumerable<string> paths, string? nextCursor) => new JsonObject {
+        ["pageInfo"] = new JsonObject { ["hasNextPage"] = nextCursor is not null, ["endCursor"] = nextCursor },
+        ["nodes"] = new JsonArray(paths.Select(path => (JsonNode)new JsonObject { ["path"] = path }).ToArray()),
+    };
+
+    [Fact]
+    public async Task AllFilePaths_PagesPastTheFirst100_AndTheRestCanChangeTheArea() {
+        // #1019 review: a PR of 158 files (like Redux #945) whose first 100 are mostly docs but whose whole is
+        // mostly API code. The first page alone says Documentation; every page says Redux API and core code.
+        var first = Enumerable.Range(0, 60).Select(i => $"Documentation/guides/g{i}.md")
+            .Concat(Enumerable.Range(0, 40).Select(i => $"Interfaces/A{i}.cs")).ToList();
+        var second = Enumerable.Range(40, 58).Select(i => $"Interfaces/A{i}.cs").ToList();
+        var cursors = new List<string?>();
+        var paths = await Tool.AllFilePathsAsync(FilesPage(first, "c1"), cursor => {
+            cursors.Add(cursor);
+            return Task.FromResult<JsonNode?>(cursor == "c1" ? FilesPage(second, null) : null);
+        });
+
+        Assert.Equal(["c1"], cursors);
+        Assert.Equal(158, paths.Count);
+        Assert.Equal(Tool.DocsArea, Tool.AreaOfPullRequest("Redux", first));
+        Assert.Equal(Tool.ReduxCodeArea, Tool.AreaOfPullRequest("Redux", paths));
+    }
+
+    [Fact]
+    public async Task AllFilePaths_OnePage_FetchesNoMore() {
+        var paths = await Tool.AllFilePathsAsync(FilesPage(["README.md"], null),
+            _ => throw new InvalidOperationException("no second page"));
+        Assert.Equal(["README.md"], paths);
+    }
+
+    [Fact]
+    public async Task AllFilePaths_NullFiles_IsEmpty() {
+        // GitHub returns files: null for a PR whose diff it can't load.
+        Assert.Empty(await Tool.AllFilePathsAsync(null, _ => throw new InvalidOperationException("no page")));
     }
 
     [Fact]
