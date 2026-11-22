@@ -245,7 +245,7 @@ public class ComputePrecheck_Tests {
         // Solvers that prune their search (SolverType.Backtracking): their worst-case Big-O says little about how long
         // they run, so the precheck leaves them to the timer.
         "CarraghanPardalos", "DominatingSetForcedVertex", "DominatingSetNaiveInclusionExclusion",
-        "TSPBranchAndBound", "VertexCoverBoundedSearchTree",
+        "TSPBranchAndBound", "VertexCoverBoundedSearchTree", "WeightedMaxCliqueBranchAndBoundSolver",
         "DancingLinks", "ExactCoverRecursive", "HeuristicSolver", "IntegerLinearProgrammingSolver", "NQueensBacktracking",
         "Sat3BacktrackingSolver",
         // Quantum solvers: their work runs on the external quantum service, not the server's processor.
