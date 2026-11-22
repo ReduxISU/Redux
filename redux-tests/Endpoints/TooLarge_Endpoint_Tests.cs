@@ -99,6 +99,26 @@ public class TooLarge_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(HttpStatusCode.OK, status);
     }
 
+    // 60 variables in 60 three-literal clauses of weight 1: 2^60 * 180 steps by brute force, which the precheck alone
+    // would refuse with 422, but the exact solvers' own 20-variable limit answers first, the same for all of them.
+    internal static string SixtyVariableWeightedFormula() {
+        string clauses = string.Join(" & ", Enumerable.Range(0, 60).Select(i => $"(x{i} | !x{(i + 1) % 60} | x{(i + 7) % 60})"));
+        return $"(({clauses}),({string.Join(",", Enumerable.Repeat(1, 60))}))";
+    }
+
+    [Theory]
+    [InlineData("WeightedMaxSatBruteForceSolver")]
+    [InlineData("WeightedMaxSatBranchAndBoundSolver")]
+    [InlineData("WeightedMax3SatBruteForceSolver")]
+    [InlineData("WeightedMax3SatBranchAndBoundSolver")]
+    public async Task Solve_ExactWeightedMaxSat_PastItsLimit_Answers400ExactSearchLimit(string solver) {
+        var (status, body, _) = await TooLargeChecks.Post(_client, $"/ProblemProvider/solve?solver={solver}", SixtyVariableWeightedFormula());
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        Assert.Equal("exact_search_limit_exceeded", body.GetProperty("error").GetString());
+        Assert.Equal(60, body.GetProperty("variableCount").GetInt32());
+        Assert.Equal(20, body.GetProperty("maxVariables").GetInt32());
+    }
+
     [Fact]
     public async Task Solve_UnparsableInstance_StillAnswers400() {
         var (status, body, _) = await TooLargeChecks.Post(_client, "/ProblemProvider/solve?solver=TSPBruteForce", "not a graph");

@@ -2,6 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Solvers;
 
+[ExactSearchLimit("at most 20 variables")] // WeightedMaxSatExactSearchLimit.MaxVariables
 class WeightedMaxSatBranchAndBoundSolver : ISolver<WEIGHTEDMAXSAT> {
     // --- Fields ---
     public string solverName { get; } = "Weighted Max-SAT Exact Branch and Bound";

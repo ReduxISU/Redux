@@ -74,6 +74,17 @@ internal class ExactSearchLimitExceededException : Exception {
     }
 }
 
+/// <summary>
+/// Marks a solver that refuses instances past a fixed size of its own with <see cref="ExactSearchLimitExceededException"/>
+/// (HTTP 400 <c>exact_search_limit_exceeded</c>). The Big-O precheck (#843) leaves such a solver to that limit, so every
+/// solver that shares it answers an instance past it the same way, whichever of them prunes its search.
+/// </summary>
+/// <param name="limit">The limit in words, e.g. "at most 20 variables".</param>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+internal sealed class ExactSearchLimitAttribute(string limit) : Attribute {
+    public string Limit { get; } = limit;
+}
+
 // Shared chokepoints that turn failures while parsing caller-supplied input into the parse
 // exceptions above, so the controller answers with a structured 400 instead of a raw 500 (#577).
 // Only the parse/construction step is guarded: the algorithm that runs afterwards (solve, reduce,
