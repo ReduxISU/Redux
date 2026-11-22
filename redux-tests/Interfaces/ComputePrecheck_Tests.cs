@@ -121,6 +121,26 @@ public class ComputePrecheck_Tests {
     }
 
     [Fact]
+    public void WalkSat_CountsItsTriesAndFlips() {
+        // 100 tries of 300 * |variables| flips, each a pass over the formula: 30,000 * 4 * 12 steps on a 4-variable
+        // formula with 12 literal occurrences (#1029 review).
+        var walkSat = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["walksat"])!;
+        Assert.Equal(30_000 * 4 * 12, walkSat.timeComplexity!.Evaluate(("variables", 4), ("phi", 12)));
+    }
+
+    [Theory]
+    [InlineData("weightedmaxsatbruteforcesolver")]
+    [InlineData("weightedmaxsatbranchandboundsolver")]
+    [InlineData("weightedmax3satbruteforcesolver")]
+    [InlineData("weightedmax3satbranchandboundsolver")]
+    public void ExactWeightedMaxSat_IsLeftToItsOwnLimit(string solver) {
+        Type type = ProblemProvider.Solvers[solver];
+        var limit = (ExactSearchLimitAttribute)Attribute.GetCustomAttribute(type, typeof(ExactSearchLimitAttribute))!;
+        Assert.Equal($"at most {API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.WeightedMaxSatExactSearchLimit.MaxVariables} variables", limit.Limit);
+        Assert.Contains("exact-search limit (at most 20 variables)", ComputePrecheck.SkipReason(type));
+    }
+
+    [Fact]
     public void ProblemWithoutMeasures_ReportsNone() {
         // The IProblem default: a problem that does not override SizeMeasures reports nothing.
         Assert.Empty(((IProblem)new NODEFAULTSFIXTURE()).SizeMeasures());
@@ -187,7 +207,9 @@ public class ComputePrecheck_Tests {
         "SudokuSolver",
         "ThreeDimensionalMatchingBruteForce",
         "UnstructuredGroverSolver", "UnstructuredSearchSolver",
+        // Weighted Max-SAT's exact solvers enforce their own 20-variable limit (ExactSearchLimit), which answers first.
         "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
+        "WeightedMax3SatBruteForceSolver", "WeightedMaxSatBruteForceSolver",
     };
 
     private static Dictionary<string, string> ActualSkipped() =>
