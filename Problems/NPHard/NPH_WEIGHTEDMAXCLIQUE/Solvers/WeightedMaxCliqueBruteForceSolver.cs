@@ -11,7 +11,7 @@ internal sealed class WeightedMaxCliqueBruteForceSolver : ISolver<WEIGHTEDMAXCLI
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Corbin Hay" };
     public SolverType solverType { get; } = SolverType.BruteForce;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2", ", n = vertices; exhaustive subset checks");
+    public MathematicalFunction timeComplexity { get; } = new("2^|N| * |N|^2", ", |N| = number of nodes; exhaustive subset checks");
     public MathematicalFunction spaceComplexity { get; } = new("n + m", ", n = vertices, m = edges; adjacency index and subset storage");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     private volatile bool _timerHasExpired;

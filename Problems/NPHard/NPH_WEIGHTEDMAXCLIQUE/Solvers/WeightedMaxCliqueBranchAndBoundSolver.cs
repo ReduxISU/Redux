@@ -10,7 +10,7 @@ internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMA
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Corbin Hay" };
     public SolverType solverType { get; } = SolverType.Backtracking;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2", ", n = vertices; conservative worst-case bound including candidate work; exponential despite pruning");
+    public MathematicalFunction timeComplexity { get; } = new("2^|N| * |N|^2", ", |N| = number of nodes; conservative worst-case bound including candidate work; exponential despite pruning");
     public MathematicalFunction spaceComplexity { get; } = new("n^2", ", n = vertices; adjacency index and recursive candidate lists");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     private volatile bool _timerHasExpired;

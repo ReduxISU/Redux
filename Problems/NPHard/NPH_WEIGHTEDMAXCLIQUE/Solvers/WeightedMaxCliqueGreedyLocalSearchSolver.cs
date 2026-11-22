@@ -12,7 +12,7 @@ internal sealed class WeightedMaxCliqueGreedyLocalSearchSolver : ISolver<WEIGHTE
     public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = { "Corbin Hay" };
     public SolverType solverType { get; } = SolverType.Greedy | SolverType.Heuristic;
-    public MathematicalFunction timeComplexity { get; } = new("n^3", ", n = vertices; at most 32 starts and 32 improvement rounds per start");
+    public MathematicalFunction timeComplexity { get; } = new("|N|^3", ", |N| = number of nodes; at most 32 starts and 32 improvement rounds per start");
     public MathematicalFunction spaceComplexity { get; } = new("n + m", ", n = vertices, m = edges; adjacency index and clique storage");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     private volatile bool _timerHasExpired;
