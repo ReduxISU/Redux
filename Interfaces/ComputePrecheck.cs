@@ -52,10 +52,12 @@ static class ComputePrecheck {
     /// <item>MaxCutSolver, O(2^|N| * (|N| + |E|)), random graphs: 16 in 0.49 s (9.2e6), 18 in 1.9 s (1.3e7), 20 in
     /// 8.3 s (1.6e7).</item>
     /// </list>
+    /// These Big-Os had a bare |E| factor when measured; it is now |E| + 1 (an edge-free graph still costs a step per
+    /// candidate), which changes the rates above by less than 1%.
     /// The rates spread over two orders of magnitude, because a Big-O drops constant factors. The default is the fastest
     /// rate seen, rounded up (1e9), so the budget errs toward running a job: with the <see cref="DefaultMargin"/> of 100,
     /// a 30-second solve is refused above 3e12 steps. Brute-force TSP on 15 nodes
-    /// (15! * 15 * 105, about 2.1e15 steps) is refused; on 12 nodes (about 3.8e11 steps, hours at the measured rate)
+    /// (15! * 15 * 106, about 2.1e15 steps) is refused; on 12 nodes (about 3.8e11 steps, hours at the measured rate)
     /// it is left to the timer.
     /// </summary>
     public const double DefaultStepsPerSecond = 1e9;

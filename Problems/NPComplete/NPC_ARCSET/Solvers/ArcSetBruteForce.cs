@@ -23,7 +23,7 @@ class ArcSetBruteForce : ISolver<ARCSET> {
     // the edge count m rather than the node count n). Each candidate costs O(n^2 * m) to
     // verify (ArcSetVerifier's isACyclical reachability fixpoint).
     // Written with the K bound, so the Big-O precheck (#843) does not refuse a small K for what a large K costs.
-    public MathematicalFunction timeComplexity { get; } = new("min(2^|E|, (|E|+1)^K) * |N|^2 * |E|", ", |N| = number of nodes, |E| = number of edges, K = most arcs removed");
+    public MathematicalFunction timeComplexity { get; } = new("min(2^|E|, (|E|+1)^K) * |N|^2 * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges, K = most arcs removed");
 
     public string[] contributors { get; } = { "Alex Diviney", "Caleb Eardley", "Russell Phillips" };
 

@@ -111,14 +111,29 @@ public sealed class MathematicalFunction {
             // so contributors write bare "log n" rather than picking one.
             expression.Functions["Log"] = args => Math.Log(Convert.ToDouble(args.Evaluate(0)));
             expression.Functions["Sqrt"] = args => Math.Sqrt(Convert.ToDouble(args.Evaluate(0)));
-            // Binomial coefficient — "choose", used as e.g. "C(m, n)".
-            expression.Functions["C"] = args => {
-                double n = Convert.ToDouble(args.Evaluate(0));
-                double k = Convert.ToDouble(args.Evaluate(1));
-                double result = 1;
-                for (int i = 0; i < (int)Math.Round(k); i++) result = result * (n - i) / (i + 1);
-                return result;
-            };
+            // Binomial coefficient — "choose", used as e.g. "C(m, n)" — of counts, so both arguments are rounded to
+            // whole numbers, as in the factorial.
+            expression.Functions["C"] = args => Binomial(Convert.ToDouble(args.Evaluate(0)), Convert.ToDouble(args.Evaluate(1)));
+        }
+
+        /// <summary>
+        /// C(n, k), the ways to choose k of n things, with n and k rounded to whole numbers. The Big-O precheck (#843)
+        /// evaluates it on instance values the server never checked (a graph's K need not be at most its node count),
+        /// so it answers at once whatever the size: 0 when k is below 0 or above n, NaN when n is below 0 (not a count),
+        /// and otherwise at most about 1,100 steps, because it takes the smaller of k and n - k (C(n, k) = C(n, n - k))
+        /// and stops once the product is infinite (C(n, k) is at least 2^k when k is at most n / 2).
+        /// </summary>
+        private static double Binomial(double n, double k) {
+            if (double.IsNaN(n) || double.IsNaN(k)) return double.NaN;
+            n = Math.Round(n);
+            k = Math.Round(k);
+            if (n < 0) return double.NaN;
+            if (k < 0 || k > n) return 0;
+            if (double.IsPositiveInfinity(n)) return k == 0 ? 1 : double.PositiveInfinity;
+            k = Math.Min(k, n - k);
+            double result = 1;
+            for (double i = 0; i < k && !double.IsInfinity(result); i++) result = result * (n - i) / (i + 1);
+            return result;
         }
 
         public static Parsed Parse(string bigOExpression) {

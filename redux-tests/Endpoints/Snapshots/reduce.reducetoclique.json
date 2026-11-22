@@ -35,7 +35,7 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "C(|N|, K) * K^2 * |E|",
+        "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
         "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
         "VariableNames": [
           "N",
@@ -203,7 +203,7 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "C(|N|, K) * K^2 * |E|",
+        "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
         "Description": ", |N| = number of nodes, |E| = number of edges, K = independent-set size",
         "VariableNames": [
           "N",
@@ -250,7 +250,7 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "C(|N|, K) * K^2 * |E|",
+          "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
           "Description": ", |N| = number of nodes, |E| = number of edges, K = independent-set size",
           "VariableNames": [
             "N",
@@ -303,7 +303,7 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "C(|N|, K) * K^2 * |E|",
+        "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
         "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
         "VariableNames": [
           "N",
@@ -354,7 +354,7 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "C(|N|, K) * K^2 * |E|",
+          "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
           "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
           "VariableNames": [
             "N",
