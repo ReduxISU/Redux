@@ -39,13 +39,13 @@ internal static class TooLargeChecks {
         string message = body.GetProperty("message").GetString()!;
         Assert.StartsWith("The Traveling Salesperson Brute Force solver would need about 2.1 × 10^15 steps for this instance", message);
         Assert.EndsWith($"so the {job} was not started.", message);
-        Assert.StartsWith("The solver's declared running time, O(|N|! * |N| * |E|), comes to about 2.1 × 10^15 steps at |N| = 15, |E| = 105.",
+        Assert.StartsWith("The solver's declared running time, O(|N|! * |N| * (|E| + 1)), comes to about 2.1 × 10^15 steps at |N| = 15, |E| = 105.",
             body.GetProperty("detail").GetString());
         Assert.Equal(limitSeconds, body.GetProperty("limitSeconds").GetDouble());
         Assert.True(body.GetProperty("estimatedSteps").GetDouble() > body.GetProperty("refuseAboveSteps").GetDouble());
         Assert.Equal(body.GetProperty("stepsInLimit").GetDouble() * ComputePrecheck.DefaultMargin,
             body.GetProperty("refuseAboveSteps").GetDouble(), 1e-6);
-        Assert.Equal("|N|! * |N| * |E|", body.GetProperty("timeComplexity").GetString());
+        Assert.Equal("|N|! * |N| * (|E| + 1)", body.GetProperty("timeComplexity").GetString());
         Assert.Equal(15, body.GetProperty("measures").GetProperty("|N|").GetDouble());
         Assert.Equal(105, body.GetProperty("measures").GetProperty("|E|").GetDouble());
         Assert.Equal("TSPBruteForce", body.GetProperty("solver").GetString());

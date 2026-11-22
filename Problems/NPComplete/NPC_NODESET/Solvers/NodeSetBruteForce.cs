@@ -21,7 +21,7 @@ class NodeSetBruteForce : ISolver<NODESET> {
     // candidate costs O(K*m) to build the removed-edge set (toEdges) plus O(n^2 * m) to
     // check acyclicity via the reachability fixpoint in isACyclical.
     // Written with the K bound, so the Big-O precheck (#843) does not refuse a small K for what a large K costs.
-    public MathematicalFunction timeComplexity { get; } = new("min(2^|N|, (|N|+1)^K) * |N|^2 * |E|", ", |N| = number of nodes, |E| = number of edges, K = most nodes removed");
+    public MathematicalFunction timeComplexity { get; } = new("min(2^|N|, (|N|+1)^K) * |N|^2 * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges, K = most nodes removed");
 
     public NodeSetBruteForce() {
 

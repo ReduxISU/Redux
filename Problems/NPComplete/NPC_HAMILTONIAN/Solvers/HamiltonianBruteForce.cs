@@ -25,7 +25,7 @@ class HamiltonianBruteForce : ISolver<HAMILTONIAN> {
     // graph (the worst case) it never trips, so all n! permutations are still generated. Each yielded
     // permutation costs O(n) to build (CombinationToCertificate), and HamiltonianVerifier walks it in
     // O(n) steps, each doing two O(m) List<>.Contains edge lookups -- O(n*m) per verify call.
-    public MathematicalFunction timeComplexity { get; } = new("|N|! * |N| * |E|", ", |N| = number of nodes, |E| = number of edges");
+    public MathematicalFunction timeComplexity { get; } = new("|N|! * |N| * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges");
 
     // --- Methods Including Constructors ---
     public HamiltonianBruteForce() { }
