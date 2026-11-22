@@ -4,6 +4,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CHANGEMAKING.Solvers;
 
+[ExactSearchLimit("a target amount of at most 10,000,000")] // MaxAmount
 class ChangeMakingDP : ISolver<CHANGEMAKING> {
 
     // --- Fields ---

@@ -3,6 +3,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPComplete.NPC_CHANGEMAKING.Solvers;
 
+[ExactSearchLimit("at most 2,000,000 amounts remembered")] // MaxAmounts
 class ChangeMakingMemo : ISolver<CHANGEMAKING> {
 
     // --- Fields ---
