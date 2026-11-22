@@ -20,6 +20,9 @@ class PPZ : ISolver<SAT3> {
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Stochastic;
+    // The bucket is the algorithm's: PPZ needs about 2^(2n/3) trials to find a satisfying assignment with high
+    // probability. The 10,000-trial cap below keeps this implementation's running time polynomial (see
+    // timeComplexity), at the cost of possibly missing an assignment past about 20 variables.
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Bounded by MaxTrials: min(2^(2n/3), 10,000) trials, each setting n variables with an O(|phi|) forced-value scan.
     public MathematicalFunction timeComplexity { get; } = new("min(10000, 2^(2*|variables|/3)) * |variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ; at most 10,000 trials");

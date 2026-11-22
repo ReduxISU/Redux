@@ -39,13 +39,13 @@ internal static class TooLargeChecks {
         string message = body.GetProperty("message").GetString()!;
         Assert.StartsWith("The Traveling Salesperson Brute Force solver would need about 2.1 × 10^15 steps for this instance", message);
         Assert.EndsWith($"so the {job} was not started.", message);
-        Assert.StartsWith("The solver's declared running time, O(|N|! * |N| * |E|), comes to about 2.1 × 10^15 steps at |N| = 15, |E| = 105.",
+        Assert.StartsWith("The solver's declared running time, O(|N|! * |N| * (|E| + 1)), comes to about 2.1 × 10^15 steps at |N| = 15, |E| = 105.",
             body.GetProperty("detail").GetString());
         Assert.Equal(limitSeconds, body.GetProperty("limitSeconds").GetDouble());
         Assert.True(body.GetProperty("estimatedSteps").GetDouble() > body.GetProperty("refuseAboveSteps").GetDouble());
         Assert.Equal(body.GetProperty("stepsInLimit").GetDouble() * ComputePrecheck.DefaultMargin,
             body.GetProperty("refuseAboveSteps").GetDouble(), 1e-6);
-        Assert.Equal("|N|! * |N| * |E|", body.GetProperty("timeComplexity").GetString());
+        Assert.Equal("|N|! * |N| * (|E| + 1)", body.GetProperty("timeComplexity").GetString());
         Assert.Equal(15, body.GetProperty("measures").GetProperty("|N|").GetDouble());
         Assert.Equal(105, body.GetProperty("measures").GetProperty("|E|").GetDouble());
         Assert.Equal("TSPBruteForce", body.GetProperty("solver").GetString());
@@ -97,6 +97,26 @@ public class TooLarge_Endpoint_Tests : IClassFixture<AppFactory> {
     public async Task Solve_HopelessInstance_WithAFastSolver_IsSolved() {
         var (status, _, _) = await TooLargeChecks.Post(_client, "/ProblemProvider/solve?solver=TSPGreedy", PrecheckInputs.HopelessTsp);
         Assert.Equal(HttpStatusCode.OK, status);
+    }
+
+    // 60 variables in 60 three-literal clauses of weight 1: 2^60 * 180 steps by brute force, which the precheck alone
+    // would refuse with 422, but the exact solvers' own 20-variable limit answers first, the same for all of them.
+    internal static string SixtyVariableWeightedFormula() {
+        string clauses = string.Join(" & ", Enumerable.Range(0, 60).Select(i => $"(x{i} | !x{(i + 1) % 60} | x{(i + 7) % 60})"));
+        return $"(({clauses}),({string.Join(",", Enumerable.Repeat(1, 60))}))";
+    }
+
+    [Theory]
+    [InlineData("WeightedMaxSatBruteForceSolver")]
+    [InlineData("WeightedMaxSatBranchAndBoundSolver")]
+    [InlineData("WeightedMax3SatBruteForceSolver")]
+    [InlineData("WeightedMax3SatBranchAndBoundSolver")]
+    public async Task Solve_ExactWeightedMaxSat_PastItsLimit_Answers400ExactSearchLimit(string solver) {
+        var (status, body, _) = await TooLargeChecks.Post(_client, $"/ProblemProvider/solve?solver={solver}", SixtyVariableWeightedFormula());
+        Assert.Equal(HttpStatusCode.BadRequest, status);
+        Assert.Equal("exact_search_limit_exceeded", body.GetProperty("error").GetString());
+        Assert.Equal(60, body.GetProperty("variableCount").GetInt32());
+        Assert.Equal(20, body.GetProperty("maxVariables").GetInt32());
     }
 
     [Fact]

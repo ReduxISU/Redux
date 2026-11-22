@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 using API.Problems.NPComplete.NPC_EDITDISTANCE;
 using API.Problems.NPComplete.NPC_KNAPSACK;
 using API.Problems.NPComplete.NPC_SETCOVER;
@@ -166,6 +167,50 @@ public class ComputePrecheck_Tests {
             ThirtySeconds, null));
     }
 
+    [Theory]
+    [InlineData(60)]
+    [InlineData(59)]
+    [InlineData(45)]
+    public void SetCoverBruteForce_KNearTheSubsetCount_CountsEveryCoverSizeTried(int k) {
+        // K close to |S| = 60: the solver still tries every cover of 1 to K subsets, nearly 2^60 of them. C(60, K)
+        // alone is tiny there (C(60, 60) = 1), which let a hopeless solve through (#1030 review).
+        string subsets = string.Join(",", Enumerable.Range(1, 60).Select(i => $"{{{i}}}"));
+        string universe = string.Join(",", Enumerable.Range(1, 60));
+        var estimate = ComputePrecheck.Refusal(ProblemProvider.Solvers["setcoverbruteforce"], $"({{{universe}}},{{{subsets}}},{k})",
+            ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.True(estimate.Steps >= Math.Pow(2, 59), $"estimated {estimate.Steps}");
+    }
+
+    [Theory]
+    [InlineData(60, 1, 60)]       // covers of 1 subset: 60 of them
+    [InlineData(60, 2, 2 * 1770)] // at most 2 * C(60, 2) = 3,540 (60 + 1,770 tried)
+    [InlineData(10, 10, 1024)]    // every size: 2^10
+    public void SetCoverBruteForce_CoverCountBound(int s, int k, double covers) {
+        var solver = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["setcoverbruteforce"])!;
+        Assert.Equal(covers * k * 1, solver.timeComplexity!.Evaluate(("S", s), ("K", k), ("U", 1)));
+    }
+
+    [Fact]
+    public void WalkSat_CountsItsTriesAndFlips() {
+        // 100 tries of 300 * |variables| flips, each a pass over the formula: 30,000 * 4 * 12 steps on a 4-variable
+        // formula with 12 literal occurrences (#1029 review).
+        var walkSat = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["walksat"])!;
+        Assert.Equal(30_000 * 4 * 12, walkSat.timeComplexity!.Evaluate(("variables", 4), ("phi", 12)));
+    }
+
+    [Theory]
+    [InlineData("weightedmaxsatbruteforcesolver")]
+    [InlineData("weightedmaxsatbranchandboundsolver")]
+    [InlineData("weightedmax3satbruteforcesolver")]
+    [InlineData("weightedmax3satbranchandboundsolver")]
+    public void ExactWeightedMaxSat_IsLeftToItsOwnLimit(string solver) {
+        Type type = ProblemProvider.Solvers[solver];
+        var limit = (ExactSearchLimitAttribute)Attribute.GetCustomAttribute(type, typeof(ExactSearchLimitAttribute))!;
+        Assert.Equal($"at most {API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.WeightedMaxSatExactSearchLimit.MaxVariables} variables", limit.Limit);
+        Assert.Contains("exact-search limit (at most 20 variables)", ComputePrecheck.SkipReason(type));
+    }
+
     [Fact]
     public void ProblemWithoutMeasures_ReportsNone() {
         // The IProblem default: a problem that does not override SizeMeasures reports nothing.
@@ -202,7 +247,7 @@ public class ComputePrecheck_Tests {
         "CarraghanPardalos", "DominatingSetForcedVertex", "DominatingSetNaiveInclusionExclusion",
         "TSPBranchAndBound", "VertexCoverBoundedSearchTree",
         "DancingLinks", "ExactCoverRecursive", "HeuristicSolver", "IntegerLinearProgrammingSolver", "NQueensBacktracking",
-        "Sat3BacktrackingSolver", "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
+        "Sat3BacktrackingSolver",
         // Quantum solvers: their work runs on the external quantum service, not the server's processor.
         "BernsteinVaziraniQuantumSolver", "DeutschQuantumSolver", "DeutschJozsaQuantumSolver", "MaxCutQAOASolver",
         "SATGroverSolver",
@@ -221,6 +266,11 @@ public class ComputePrecheck_Tests {
         // refuse them all; SUDOKU reports no measures.
         "SudokuSolver",
         "DummySolver", // the placeholder solver of IProblem
+        // Exact solvers with their own size limit (ExactSearchLimit), refused with HTTP 400 exact_search_limit_exceeded
+        // before the Big-O could matter.
+        "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
+        "WeightedMax3SatBruteForceSolver", "WeightedMaxSatBruteForceSolver",
+        "ChangeMakingDP", "ChangeMakingMemo",
     };
 
     private static Dictionary<string, string> ActualSkipped() =>
@@ -271,7 +321,7 @@ public class ComputePrecheck_Tests {
         var estimate = ComputePrecheck.Evaluate(typeof(TSPBruteForce), PrecheckInputs.HopelessTsp, ThirtySeconds, null);
         Assert.NotNull(estimate);
         double factorial = Enumerable.Range(1, 15).Aggregate(1.0, (a, b) => a * b);
-        Assert.Equal(factorial * 15 * 105, estimate.Steps, 1e-9 * estimate.Steps);
+        Assert.Equal(factorial * 15 * 106, estimate.Steps, 1e-9 * estimate.Steps);
         Assert.Equal([SizeMeasure.Count("N", 15), SizeMeasure.Count("E", 105)], estimate.Measures);
         Assert.Equal(ComputePrecheck.DefaultStepsPerSecond * 30, estimate.StepsInLimit);
         Assert.Equal(ComputePrecheck.DefaultStepsPerSecond * 30 * ComputePrecheck.DefaultMargin, estimate.RefuseAbove);
@@ -290,13 +340,13 @@ public class ComputePrecheck_Tests {
     [Fact]
     public void HopelessInstance_IsRefused_AndAFastSolverIsNot() {
         Assert.NotNull(ComputePrecheck.Refusal(typeof(TSPBruteForce), PrecheckInputs.HopelessTsp, ThirtySeconds, null));
-        // The greedy solver's |N|^3 * |E| is about 350,000 steps on the same instance.
+        // The greedy solver's |N|^3 * (|E| + 1) is about 350,000 steps on the same instance.
         Assert.Null(ComputePrecheck.Refusal(typeof(TSPGreedy), PrecheckInputs.HopelessTsp, ThirtySeconds, null));
     }
 
     [Fact]
     public void ShorterLimit_RefusesSooner() {
-        // TSP brute force on 12 nodes: 12! * 12 * 66, about 3.8e11 steps: run within 30 seconds, refused within 0.01.
+        // TSP brute force on 12 nodes: 12! * 12 * 67, about 3.8e11 steps: run within 30 seconds, refused within 0.01.
         string twelve = PrecheckInputs.CompleteTsp(12);
         Assert.Null(ComputePrecheck.Refusal(typeof(TSPBruteForce), twelve, ThirtySeconds, null));
         Assert.NotNull(ComputePrecheck.Refusal(typeof(TSPBruteForce), twelve, TimeSpan.FromMilliseconds(10), null));
@@ -319,13 +369,13 @@ public class ComputePrecheck_Tests {
 
     [Fact]
     public void ConfiguredRateAndMargin_SetTheBudget() {
-        var config = Config((ComputePrecheck.StepsPerSecondKey, "1000"), (ComputePrecheck.MarginKey, "2"));
+        var config = Config((ComputePrecheck.StepsPerSecondKey, "1100"), (ComputePrecheck.MarginKey, "2"));
         var estimate = ComputePrecheck.Evaluate(typeof(TSPBruteForce), new TSP().instance, TimeSpan.FromSeconds(3), config);
         Assert.NotNull(estimate);
-        Assert.Equal(3000, estimate.StepsInLimit);
-        Assert.Equal(6000, estimate.RefuseAbove);
-        // The default instance: 5! * 5 * 10 = 6,000 steps, not over the line.
-        Assert.Equal(6000, estimate.Steps);
+        Assert.Equal(3300, estimate.StepsInLimit);
+        Assert.Equal(6600, estimate.RefuseAbove);
+        // The default instance: 5! * 5 * (10 + 1) = 6,600 steps, not over the line.
+        Assert.Equal(6600, estimate.Steps);
         Assert.False(estimate.TooLarge);
     }
 
@@ -383,10 +433,10 @@ public class ComputePrecheck_Tests {
             $"about {ComputePrecheck.Approximately(ComputePrecheck.DefaultStepsPerSecond * 30)} fit in the 30-second time " +
             "limit, so the solve was not started.",
             body["message"]);
-        Assert.StartsWith("The solver's declared running time, O(|N|! * |N| * |E|), comes to about 2.1 × 10^15 steps at |N| = 15, |E| = 105.",
+        Assert.StartsWith("The solver's declared running time, O(|N|! * |N| * (|E| + 1)), comes to about 2.1 × 10^15 steps at |N| = 15, |E| = 105.",
             (string)body["detail"]!);
         Assert.Equal(30.0, body["limitSeconds"]);
-        Assert.Equal("|N|! * |N| * |E|", body["timeComplexity"]);
+        Assert.Equal("|N|! * |N| * (|E| + 1)", body["timeComplexity"]);
         Assert.Equal(new Dictionary<string, double> { ["|N|"] = 15, ["|E|"] = 105 }, body["measures"]);
         Assert.Equal("Try a smaller instance.", body["hint"]);
     }
@@ -443,5 +493,67 @@ public class ComputePrecheck_Tests {
         Assert.True(double.IsPositiveInfinity(new MathematicalFunction("n!").Evaluate(("n", 1e12))));
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
         Assert.Equal(120, new MathematicalFunction("n!").Evaluate(("n", 5)));
+    }
+
+    [Theory]
+    [InlineData(5, 2, 10)]
+    [InlineData(5, 3, 10)]
+    [InlineData(5, 0, 1)]
+    [InlineData(5, 5, 1)]
+    [InlineData(60, 58, 1770)]
+    [InlineData(5, 6, 0)]
+    [InlineData(5, -1, 0)]
+    public void Binomial_IsTheWaysToChoose(double n, double k, double expected) {
+        Assert.Equal(expected, new MathematicalFunction("C(n, k)").Evaluate(("n", n), ("k", k)), 1e-6);
+    }
+
+    [Theory]
+    [InlineData(6, 2e9)]       // K far past |N|: none of the ways exist
+    [InlineData(1e9, 1e9 - 3)] // K just under a huge |N|: C(n, n - 3) is C(n, 3)
+    [InlineData(1e12, 5e11)]   // K at half of a huge |N|: past double's range
+    public void HugeBinomial_IsAnsweredAtOnce(double n, double k) {
+        // The precheck evaluates C(|N|, K) in the server on an instance's own K, which nothing bounds by |N|.
+        var sw = Stopwatch.StartNew();
+        double value = new MathematicalFunction("C(n, k)").Evaluate(("n", n), ("k", k));
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(1), $"took {sw.Elapsed}");
+        if (k > n) Assert.Equal(0, value);
+        else if (k == n - 3) Assert.Equal(n * (n - 1) * (n - 2) / 6, value, n * n * n * 1e-12);
+        else Assert.True(double.IsPositiveInfinity(value));
+    }
+
+    [Fact]
+    public void HugeK_InAGraphInstance_IsEvaluatedAtOnce() {
+        var sw = Stopwatch.StartNew();
+        var estimate = ComputePrecheck.Evaluate(typeof(CliqueBruteForce), $"(({PrecheckInputs.Nodes(6)},{{}}),2000000000)", ThirtySeconds, null);
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(1), $"took {sw.Elapsed}");
+        Assert.NotNull(estimate);
+        Assert.Equal(0, estimate.Steps); // C(6, 2e9) = 0: no clique that large to try
+        Assert.False(estimate.TooLarge);
+    }
+
+    [Fact]
+    public void GraphWithoutEdges_StillCostsItsSearch() {
+        // Clique brute force on 60 nodes, no edges and K = 30 still tries every 30-node subset: C(60, 30) * 30^2,
+        // about 1.1e20 steps. A bare |E| factor made that 0.
+        var estimate = ComputePrecheck.Evaluate(typeof(CliqueBruteForce), $"(({PrecheckInputs.Nodes(60)},{{}}),30)", ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.True(estimate.Steps > 1e20, $"estimated {estimate.Steps}");
+        Assert.True(estimate.TooLarge);
+    }
+
+    [Fact]
+    public void NoGraphBigO_IsZeroForAGraphWithoutEdges() {
+        // Every checked exponential graph solver's Big-O on 20 nodes, no edges and K = 10 (and |R|, the terminals, = 2) is above 0:
+        // an edge-free graph still costs its search (#1027 review).
+        var values = new Dictionary<string, double> { ["N"] = 20, ["E"] = 0, ["K"] = 10, ["R"] = 2 };
+        foreach (var (name, type) in ProblemProvider.Solvers) {
+            if (ComputePrecheck.SkipReason(type) != null) continue;
+            var solver = (ISolver)Activator.CreateInstance(type)!;
+            if (solver.complexityBucket != SolverComplexityBucket.Exponential) continue; // a fast solver on no edges is ~0
+            var function = solver.timeComplexity!;
+            if (!function.VariableNames.Contains("E") || function.VariableNames.Any(v => !values.ContainsKey(v))) continue;
+            double steps = function.Evaluate(function.VariableNames.Select(v => (v, values[v])).ToArray());
+            Assert.True(steps > 0 || double.IsNaN(steps), $"{name}: {function} is {steps} with no edges");
+        }
     }
 }

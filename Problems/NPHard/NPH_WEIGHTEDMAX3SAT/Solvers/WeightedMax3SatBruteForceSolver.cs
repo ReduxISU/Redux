@@ -4,6 +4,7 @@ using API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Solvers;
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAX3SAT.Solvers;
 
 [DefaultFor(typeof(WEIGHTEDMAX3SAT))]
+[ExactSearchLimit("at most 20 variables")] // WeightedMaxSatExactSearchLimit.MaxVariables
 class WeightedMax3SatBruteForceSolver : ISolver<WEIGHTEDMAX3SAT> {
     // --- Fields ---
     public string solverName { get; } = "Weighted Max-3SAT Exact Brute Force";

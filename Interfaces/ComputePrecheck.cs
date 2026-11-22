@@ -18,7 +18,7 @@ namespace API.Interfaces;
 /// <para>
 /// A solver is skipped (left to the timer) when it declares no Big-O, when its problem reports no measures, when its
 /// Big-O uses a name its problem does not report, when it runs on the quantum service (<see cref="SolverType.Quantum"/>),
-/// or when it prunes its search (<see cref="SolverType.Backtracking"/>), whose worst case its pruning exists to avoid
+/// when it enforces its own exact-search limit (<see cref="ExactSearchLimitAttribute"/>), or when it prunes its search (<see cref="SolverType.Backtracking"/>), whose worst case its pruning exists to avoid
 /// (<see cref="SkipReason"/>). So a solver is checked only once its Big-O
 /// is written in the names of its problem's grammar.
 /// </para>
@@ -52,10 +52,12 @@ static class ComputePrecheck {
     /// <item>MaxCutSolver, O(2^|N| * (|N| + |E|)), random graphs: 16 in 0.49 s (9.2e6), 18 in 1.9 s (1.3e7), 20 in
     /// 8.3 s (1.6e7).</item>
     /// </list>
+    /// These Big-Os had a bare |E| factor when measured; it is now |E| + 1 (an edge-free graph still costs a step per
+    /// candidate), which changes the rates above by less than 1%.
     /// The rates spread over two orders of magnitude, because a Big-O drops constant factors. The default is the fastest
     /// rate seen, rounded up (1e9), so the budget errs toward running a job: with the <see cref="DefaultMargin"/> of 100,
     /// a 30-second solve is refused above 3e12 steps. Brute-force TSP on 15 nodes
-    /// (15! * 15 * 105, about 2.1e15 steps) is refused; on 12 nodes (about 3.8e11 steps, hours at the measured rate)
+    /// (15! * 15 * 106, about 2.1e15 steps) is refused; on 12 nodes (about 3.8e11 steps, hours at the measured rate)
     /// it is left to the timer.
     /// </summary>
     public const double DefaultStepsPerSecond = 1e9;
@@ -133,6 +135,13 @@ static class ComputePrecheck {
         if (missing.Count > 0)
             return new SolverPlan(problemType, function,
                 $"its timeComplexity uses {string.Join(", ", missing)}, which {problemType.Name} does not report");
+        // A solver with its own exact-search limit answers past it with HTTP 400 exact_search_limit_exceeded, from inside
+        // the solve. The limit is far below what the precheck refuses (Weighted Max-SAT brute force at its 20 variables
+        // is about 10^6 * |phi| steps), so the precheck could only ever answer 422 where the limit answers 400: leaving
+        // the solver to its limit keeps one answer for every solver that shares it (#1029 review).
+        if (type.GetCustomAttributes(typeof(ExactSearchLimitAttribute), false) is [ExactSearchLimitAttribute exact, ..])
+            return new SolverPlan(problemType, function,
+                $"it enforces its own exact-search limit ({exact.Limit}), refused with HTTP 400 exact_search_limit_exceeded");
         // A solver that prunes its search declares the worst case, which its pruning exists to avoid: TSPBranchAndBound
         // solved a 15-node complete graph in 0.17 s, where its O(|N|^2 * |N|!) is 2.9e14 steps, about 10,000
         // times what fits in 30 seconds at DefaultStepsPerSecond. Its Big-O says too little about its real running time to refuse on.

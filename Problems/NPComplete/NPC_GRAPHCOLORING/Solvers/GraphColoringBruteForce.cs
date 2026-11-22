@@ -26,7 +26,7 @@ class GraphColoringBruteForce : ISolver<GRAPHCOLORING> {
     // edge lookup each). numColors is capped at nodes.Count (see the K > nodes.Count guard in solve()),
     // so worst case is Theta((n+1)^n) -- asymptotically worse than n!, i.e. worse than the existing
     // SolverComplexityBucket.Factorial tier; Exponential is kept only because no stronger bucket exists.
-    public MathematicalFunction timeComplexity { get; } = new("(min(K, |N|)+1)^|N| * |N|^2 * |E|", ", |N| = number of nodes, |E| = number of edges, K = number of colors");
+    public MathematicalFunction timeComplexity { get; } = new("(min(K, |N|)+1)^|N| * |N|^2 * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges, K = number of colors");
 
     // --- Methods Including Constructors ---
     public GraphColoringBruteForce() {
