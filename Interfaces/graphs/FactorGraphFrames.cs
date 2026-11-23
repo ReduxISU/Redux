@@ -222,9 +222,13 @@ static class FactorGraphFrames {
 /// <summary>
 /// A visualization that draws a CNF problem (SAT, 3SAT) as its factor graph (<see cref="FactorGraphFrames"/>). It declares
 /// only the clauses (<see cref="Describe"/>, as for the clause graph); the frames hook then comes for free. Implement members
-/// explicitly so nothing new appears in /info, and declare <c>Type? IVisualization.StepShape =&gt; typeof(Assignment)</c>.
+/// explicitly so nothing new appears in /info. Its steps are
+/// <see cref="Assignment"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IFactorGraphVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="Assignment"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(Assignment);
+
     GroupedGraphSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as an assignment. The default accepts <c>(x1:True,x2:False)</c>.</summary>

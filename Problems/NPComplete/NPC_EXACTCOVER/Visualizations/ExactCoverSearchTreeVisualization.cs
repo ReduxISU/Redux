@@ -29,7 +29,5 @@ class ExactCoverSearchTreeVisualization : IVisualization<EXACTCOVER>, ISearchTre
     public API_JSON SolvedVisualization(EXACTCOVER instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(ChosenSets);
-
     SearchTreeSpec ISearchTreeVisualization<EXACTCOVER, ChosenSets>.Describe(EXACTCOVER problem) => new("Exact Cover");
 }

@@ -365,10 +365,13 @@ static class SearchTreeFrames {
 /// <summary>
 /// A second visualization that draws a backtracking or branch-and-bound solver's run as the Search Tree picture. The class
 /// declares only the problem's name (<see cref="Describe"/>); the frames hook then comes for free. Implement members
-/// explicitly so nothing new appears in /info. The class must also declare <c>Type? IVisualization.StepShape =&gt;
-/// typeof(TPartial)</c>, the shape of the solver's steps; the tree is read from their <see cref="SolverStep{TPartial}.Tree"/>.
+/// explicitly so nothing new appears in /info. Its steps are <typeparamref name="TPartial"/>,
+/// the shape of the solver's steps (<see cref="IVisualization.StepShape"/> is declared here); the tree is read from their <see cref="SolverStep{TPartial}.Tree"/>.
 /// </summary>
 interface ISearchTreeVisualization<TProblem, TPartial> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <typeparamref name="TPartial"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(TPartial);
+
     SearchTreeSpec Describe(TProblem problem);
 
     /// <summary>

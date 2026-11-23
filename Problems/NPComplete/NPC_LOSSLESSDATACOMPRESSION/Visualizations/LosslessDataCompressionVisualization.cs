@@ -25,7 +25,6 @@ class LosslessDataCompressionVisualization : IVisualization<LOSSLESSDATACOMPRESS
     public ISolver solver { get; } = new LosslessDataCompressionSolver();
 
     // The Code Tree picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(HuffmanForest);
     CodeTreeSpec ICodeTreeVisualization<LOSSLESSDATACOMPRESSION>.Describe(LOSSLESSDATACOMPRESSION problem) => Spec(problem);
     HuffmanForest ICodeTreeVisualization<LOSSLESSDATACOMPRESSION>.ParseAnswer(LOSSLESSDATACOMPRESSION problem, string answer) =>
         CodeTreeFrames.ParseCodes(Spec(problem), answer);

@@ -46,8 +46,6 @@ class IntProgrammingFormulaVisualization : IVisualization<INTPROGRAMMING01, API_
     public API_JSON SolvedVisualization(INTPROGRAMMING01 problem, string solution) => _listFormat.SolvedVisualization(problem, solution);
 
     // --- Formula picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Assignment);
-
     private static int Variables(INTPROGRAMMING01 problem) => problem.C.Count == 0 ? 0 : problem.C[0].Count;
 
     internal static string Row(int i) => "r" + i.ToString(CultureInfo.InvariantCulture);

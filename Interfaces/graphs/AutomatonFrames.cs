@@ -522,9 +522,13 @@ static class AutomatonFrames {
 /// <summary>
 /// A visualization for an automaton problem drawn as the Automaton picture (DFA, NFA). The visualization declares only
 /// what the problem is (<see cref="Describe"/>); the frames hook then comes for free. Implement members explicitly so
-/// nothing new appears in /info. The class must also declare <c>Type? IVisualization.StepShape =&gt; typeof(ActiveStates)</c>.
+/// nothing new appears in /info. Its steps are
+/// <see cref="ActiveStates"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IAutomatonVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="ActiveStates"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(ActiveStates);
+
     AutomatonSpec Describe(TProblem problem);
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) =>

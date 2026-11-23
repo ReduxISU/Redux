@@ -63,8 +63,6 @@ class HamiltonianDefaultVisualization : IVisualization<HAMILTONIAN, API_GraphJSO
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Tour);
-
     GraphTourSpec IGraphTourVisualization<HAMILTONIAN>.Describe(HAMILTONIAN problem) =>
         new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.Key, e.Value)).ToList(), false, null, TourRule.HamiltonianCycle);
 }

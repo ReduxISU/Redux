@@ -42,8 +42,6 @@ class PrimeFactorFormulaVisualization : IVisualization<PRIMEFACTOR, API_QUANTUMC
     public API_JSON SolvedVisualization(PRIMEFACTOR instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Formula picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(QuantumProgress);
-
     internal const string Group = "e0";
     internal const string I = "v:i";
     internal const string Rest = "v:rest";

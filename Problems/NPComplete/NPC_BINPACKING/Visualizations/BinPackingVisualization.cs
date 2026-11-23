@@ -22,7 +22,6 @@ class BinPackingVisualization : IVisualization<BINPACKING, API_SET>, IPackingVis
     public ISolver solver { get; } = new BinPackingBruteForce();
 
     // The Packing picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(Placement);
     PackingSpec IPackingVisualization<BINPACKING>.Describe(BINPACKING problem) => Spec(problem);
     Placement IPackingVisualization<BINPACKING>.ParseAnswer(BINPACKING problem, string answer) => ParseAnswer(problem, answer);
 

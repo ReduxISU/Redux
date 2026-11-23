@@ -58,8 +58,6 @@ class MinimumTSPDefaultVisualization : IVisualization<MINIMUMTSP, API_GraphJSON>
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Tour);
-
     // Traveling Salesperson's tour picture, weighted, with no K.
     GraphTourSpec IGraphTourVisualization<MINIMUMTSP>.Describe(MINIMUMTSP problem) =>
         new(problem.nodes, problem.listedEdges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, null, TourRule.MinimumTravelingSalesperson);

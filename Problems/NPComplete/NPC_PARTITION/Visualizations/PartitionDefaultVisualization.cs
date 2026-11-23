@@ -21,7 +21,6 @@ class PartitionDefaultVisualization : IVisualization<PARTITION, API_SET>, IPacki
 
     // The Packing picture (format=frames only; /info keeps SetD3). Implemented explicitly so it is not part of /info.
     // The list format gets none of the typed steps (it never drew steps), so it is unchanged.
-    Type? IVisualization.StepShape => typeof(Placement);
     PackingSpec IPackingVisualization<PARTITION>.Describe(PARTITION problem) => Spec(problem);
     Placement IPackingVisualization<PARTITION>.ParseAnswer(PARTITION problem, string answer) =>
         PackingFrames.FromGroups(problem.S.Select(PackingFrames.Key).ToList(), PackingFrames.Groups(answer, nested: true));

@@ -58,8 +58,6 @@ class MinCutVisualization : IVisualization<MINCUT, API_GraphJSON>, IGraphCutVisu
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Groups);
-
     GraphEdgeSpec IGraphCutVisualization<MINCUT>.Describe(MINCUT problem) =>
         new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.MinCut);
 }

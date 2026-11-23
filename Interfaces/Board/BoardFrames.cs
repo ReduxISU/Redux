@@ -253,10 +253,13 @@ static class BoardFrames {
 /// <summary>
 /// A visualization for a puzzle drawn as the Board picture. The visualization declares only what the board is
 /// (<see cref="Describe"/>) and how to read an answer as a board (<see cref="ParseAnswer"/>); the frames hook then comes for
-/// free. Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(BoardCells)</c>.
+/// free. Implement members explicitly so nothing new appears in /info.
+/// Its steps are <see cref="BoardCells"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IBoardVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="BoardCells"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(BoardCells);
+
     BoardSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a board (used only when the run's steps cannot be drawn).</summary>

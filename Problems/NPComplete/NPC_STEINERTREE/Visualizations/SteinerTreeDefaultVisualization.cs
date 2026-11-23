@@ -51,8 +51,6 @@ class SteinerTreeDefaultVisualization : IVisualization<STEINERTREE, API_GraphJSO
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(EdgeSet);
-
     GraphEdgeSpec IGraphEdgesVisualization<STEINERTREE>.Describe(STEINERTREE problem) =>
         new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.Key, e.Value)).ToList(), EdgeRule.SteinerTree) { Terminals = problem.terminals, K = problem.K };
 }

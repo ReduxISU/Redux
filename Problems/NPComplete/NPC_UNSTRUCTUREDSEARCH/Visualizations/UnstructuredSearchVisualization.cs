@@ -23,7 +23,6 @@ class UnstructuredSearchVisualization : IVisualization<UNSTRUCTUREDSEARCH, API_Q
     public ISolver solver { get; } = new UnstructuredSearchSolver();
 
     // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(QuantumProgress);
     QuantumCircuitSpec IQuantumCircuitVisualization<UNSTRUCTUREDSEARCH>.Describe(UNSTRUCTUREDSEARCH problem) => QuantumCircuits.UnstructuredSearch(problem.funcValues);
 
     // --- Methods Including Constructors ---

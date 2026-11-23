@@ -30,7 +30,5 @@ class CliqueSearchTreeVisualization : IVisualization<CLIQUE>, ISearchTreeVisuali
     public API_JSON SolvedVisualization(CLIQUE instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     SearchTreeSpec ISearchTreeVisualization<CLIQUE, NodeSet>.Describe(CLIQUE problem) => new("Clique");
 }

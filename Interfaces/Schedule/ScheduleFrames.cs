@@ -567,10 +567,13 @@ static class ScheduleFrames {
 /// <summary>
 /// A visualization for Job Sequencing drawn as the Schedule picture. The visualization declares only what the instance is
 /// (<see cref="Describe"/>) and how to read an answer as a <see cref="JobOrder"/> (<see cref="ParseAnswer"/>); the frames hook
-/// then comes for free. Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(JobOrder)</c>.
+/// then comes for free. Implement members explicitly so nothing new appears in /info. Its steps are
+/// <see cref="JobOrder"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IJobScheduleVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="JobOrder"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(JobOrder);
+
     JobScheduleSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a job order (used only when the run's steps cannot be drawn).</summary>
@@ -590,10 +593,13 @@ interface IJobScheduleVisualization<TProblem> : IFramesVisualization where TProb
 /// <summary>
 /// A visualization for a Pump Scheduling problem drawn as the Schedule picture. The visualization declares only what the
 /// instance is (<see cref="Describe"/>) and how to read an answer as a <see cref="PumpPlan"/> (<see cref="ParseAnswer"/>); the
-/// frames hook then comes for free. Implement members explicitly so nothing new appears in /info. The class must also
-/// declare <c>Type? IVisualization.StepShape =&gt; typeof(PumpPlan)</c>.
+/// frames hook then comes for free. Implement members explicitly so nothing new appears in /info. Its steps
+/// are <see cref="PumpPlan"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IPumpScheduleVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="PumpPlan"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(PumpPlan);
+
     PumpScheduleSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a plan (used only when the run's steps cannot be drawn).</summary>

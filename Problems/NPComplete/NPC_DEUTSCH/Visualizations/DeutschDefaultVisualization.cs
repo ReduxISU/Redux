@@ -22,7 +22,6 @@ class DeutschDefaultVisualization : IVisualization<DEUTSCH, API_QUANTUMCIRCUIT>,
     public ISolver solver { get; } = new DeutschClassicalSolver();
 
     // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(QuantumProgress);
     QuantumCircuitSpec IQuantumCircuitVisualization<DEUTSCH>.Describe(DEUTSCH problem) => QuantumCircuits.Deutsch(problem.funcValues);
 
     // --- Methods Including Constructors ---

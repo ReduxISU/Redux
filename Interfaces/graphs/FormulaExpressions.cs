@@ -224,14 +224,17 @@ static class FormulaExprFrames {
 /// A visualization that draws a problem as a payload-driven Formula (#929): an equation, stacked constraint rows, or any
 /// layout of <see cref="FormulaLayouts"/>. It declares what the problem's formula is (<see cref="Describe"/>), how one solver
 /// step colors it (<see cref="Draw"/>) and the Done frame of an answer when the solver recorded none (<see cref="Solved"/>);
-/// the frames hook comes for free. Implement members explicitly so nothing new appears in /info, and declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(TStep)</c>.
+/// the frames hook comes for free. Implement members explicitly so nothing new appears in /info. Its steps are
+/// <typeparamref name="TStep"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// <para>
 /// It is an <see cref="IOptInVisualization"/>: listed only for clients that ask with <c>includePictures=true</c>, since
 /// Redux_GUI cannot draw it yet. Such views are extra visualizations; a problem's default stays what it was.
 /// </para>
 /// </summary>
 interface IFormulaExprVisualization<TProblem, TStep> : IFramesVisualization, IOptInVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <typeparamref name="TStep"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(TStep);
+
     FormulaPayload Describe(TProblem problem);
 
     /// <summary>The frame of one recorded step; <paramref name="endsRun"/>: it is an Accept the run ends on.</summary>

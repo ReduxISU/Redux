@@ -29,7 +29,5 @@ class VertexCoverSearchTreeVisualization : IVisualization<VERTEXCOVER>, ISearchT
     public API_JSON SolvedVisualization(VERTEXCOVER instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     SearchTreeSpec ISearchTreeVisualization<VERTEXCOVER, NodeSet>.Describe(VERTEXCOVER problem) => new("Vertex Cover");
 }

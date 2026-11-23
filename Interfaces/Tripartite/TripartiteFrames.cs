@@ -305,10 +305,13 @@ static class TripartiteFrames {
 /// <summary>
 /// A visualization for 3-Dimensional Matching drawn as the Tripartite Matching picture. The visualization declares only what
 /// the instance is (<see cref="Describe"/>) and how to read an answer as chosen triples (<see cref="ParseAnswer"/>); the frames
-/// hook then comes for free. Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(ChosenTriples)</c>.
+/// hook then comes for free. Implement members explicitly so nothing new appears in /info. Its steps are
+/// <see cref="ChosenTriples"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface ITripartiteVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="ChosenTriples"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(ChosenTriples);
+
     TripartiteSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as chosen triples (used only when the run's steps cannot be drawn).</summary>

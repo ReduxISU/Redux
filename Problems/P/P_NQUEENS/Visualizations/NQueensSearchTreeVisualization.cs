@@ -30,7 +30,5 @@ class NQueensSearchTreeVisualization : IVisualization<NQUEENS>, ISearchTreeVisua
     public API_JSON SolvedVisualization(NQUEENS instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(BoardCells);
-
     SearchTreeSpec ISearchTreeVisualization<NQUEENS, BoardCells>.Describe(NQUEENS problem) => new("N-Queens");
 }

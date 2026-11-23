@@ -207,10 +207,13 @@ static class GeometryFrames {
 /// <summary>
 /// A visualization for a problem drawn as the Geometry picture. The visualization declares only what the instance is
 /// (<see cref="Describe"/>) and how to read an answer as a hull (<see cref="ParseAnswer"/>); the frames hook then comes for
-/// free. Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(HullBuild)</c>.
+/// free. Implement members explicitly so nothing new appears in /info.
+/// Its steps are <see cref="HullBuild"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IGeometryVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="HullBuild"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(HullBuild);
+
     GeometrySpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a hull (used only when the run's steps cannot be drawn).</summary>

@@ -27,7 +27,6 @@ class ConvexHullVisualization : IVisualization<CONVEXHULL, API_TableJSON>, IGeom
     public ISolver solver { get; } = new ConvexHullSolver();
 
     // The Geometry picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(HullBuild);
     GeometrySpec IGeometryVisualization<CONVEXHULL>.Describe(CONVEXHULL problem) => Spec(problem);
     HullBuild IGeometryVisualization<CONVEXHULL>.ParseAnswer(CONVEXHULL problem, string answer) => ParseHull(problem, answer);
 

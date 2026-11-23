@@ -22,7 +22,6 @@ class DM3Visualization : IVisualization<DM3, API_TableJSON>, ITripartiteVisualiz
     public ISolver solver { get; } = new ThreeDimensionalMatchingBruteForce();
 
     // The Tripartite Matching picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(ChosenTriples);
     TripartiteSpec ITripartiteVisualization<DM3>.Describe(DM3 problem) => Spec(problem);
     ChosenTriples ITripartiteVisualization<DM3>.ParseAnswer(DM3 problem, string answer) => TripartiteFrames.ParseMatching(Spec(problem), answer);
 

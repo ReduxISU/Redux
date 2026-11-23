@@ -291,9 +291,13 @@ static class QuantumCircuitFrames {
 /// <summary>
 /// A visualization for a problem drawn as the Quantum Circuit picture. The visualization declares only the instance's
 /// circuit (<see cref="Describe"/>); the frames hook then comes for free. Implement members explicitly so nothing new
-/// appears in /info. The class must also declare <c>Type? IVisualization.StepShape =&gt; typeof(QuantumProgress)</c>.
+/// appears in /info. Its steps are <see cref="QuantumProgress"/>
+/// (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IQuantumCircuitVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="QuantumProgress"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(QuantumProgress);
+
     QuantumCircuitSpec Describe(TProblem problem);
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {

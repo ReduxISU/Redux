@@ -448,11 +448,15 @@ static class GroupedGraphFrames {
 /// <summary>
 /// A visualization for a CNF problem (SAT, 3SAT). The visualization declares only what the problem is
 /// (<see cref="Describe"/>: its clauses); the frames hook then comes for free. Implement members explicitly so nothing new
-/// appears in /info. The class must also declare <c>Type? IVisualization.StepShape =&gt; typeof(Assignment)</c>. A solver's
+/// appears in /info. Its steps are <see cref="Assignment"/>
+/// (<see cref="IVisualization.StepShape"/> is declared here). A solver's
 /// steps carry the assignment so far (<see cref="Assignment"/>: variable name to <c>True</c>/<c>False</c>); only the solved
 /// frame of a solver that records no steps has to be rebuilt from the answer string.
 /// </summary>
 interface IGroupedGraphVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="Assignment"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(Assignment);
+
     GroupedGraphSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as an assignment. The default accepts <c>(x1:True,x2:False)</c>.</summary>

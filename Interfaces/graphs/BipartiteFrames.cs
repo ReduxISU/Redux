@@ -343,12 +343,21 @@ static class BipartiteFrames {
     /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
     /// step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and its
-    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read.
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read. Given <paramref name="declaredBy"/> (the
+    /// visualization whose frames these are), its declared <see cref="IVisualization.StepShape"/> must be the shape the spec's
+    /// pick draws, or this throws: the endpoints decide which runs a picture can draw by the declared shape and this reads the
+    /// steps by the pick, so the two can never quietly disagree.
     /// </summary>
-    public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer) {
+    public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer,
+                                       IVisualization? declaredBy = null) {
         var frames = new List<object>();
         bool lastIsDone = false;
-        var steps = run.StepsFor(StepShape(spec.Pick)).Select(step => step switch {
+        Type shape = StepShape(spec.Pick);
+        if (declaredBy != null && declaredBy.StepShape != shape)
+            throw new InvalidOperationException(
+                $"{declaredBy.GetType().Name} declares StepShape {declaredBy.StepShape?.Name ?? "null"}, but its Describe picks " +
+                $"{PickSideName(spec.Pick)}, which draws {shape.Name} steps. Make the two agree (see BipartiteFrames.StepShape).");
+        var steps = run.StepsFor(shape).Select(step => step switch {
             SolverStep<ChosenSets> s => ((object)s.Partial, s.Event, s.Focus, s.Caption, s.Ok),
             SolverStep<NodeSet> s => (s.Partial, s.Event, s.Focus, s.Caption, s.Ok),
             _ => throw new InvalidOperationException($"A Bipartite picture cannot draw a step of type {step.GetType().Name}."),
@@ -380,6 +389,13 @@ static class BipartiteFrames {
 /// one that picks elements (<see cref="BipartiteFrames.StepShape"/>).
 /// </summary>
 interface IBipartiteVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>
+    /// The steps this picture draws, which depend on what <see cref="Describe"/> picks (<see cref="BipartiteFrames.StepShape"/>).
+    /// Abstract again here, so a visualization that forgets it does not compile (CS0535) instead of quietly drawing only the
+    /// answer; the builder checks it against the pick.
+    /// </summary>
+    abstract Type? IVisualization.StepShape { get; }
+
     BipartiteSpec Describe(TProblem problem);
 
     /// <summary>
@@ -395,6 +411,6 @@ interface IBipartiteVisualization<TProblem> : IFramesVisualization where TProble
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }, this);
     }
 }

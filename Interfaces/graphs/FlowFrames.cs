@@ -374,9 +374,13 @@ static class FlowFrames {
 /// <summary>
 /// A visualization for a flow problem drawn as the Flow Network picture. The visualization declares only what the problem
 /// is (<see cref="Describe"/>); the frames hook then comes for free. Implement members explicitly so nothing new appears in
-/// /info. The class must also declare <c>Type? IVisualization.StepShape =&gt; typeof(NetworkFlow)</c>.
+/// /info. Its steps are <see cref="NetworkFlow"/>
+/// (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IFlowVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="NetworkFlow"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(NetworkFlow);
+
     FlowSpec Describe(TProblem problem);
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {

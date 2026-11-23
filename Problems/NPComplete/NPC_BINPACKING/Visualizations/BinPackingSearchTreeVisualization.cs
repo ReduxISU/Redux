@@ -29,7 +29,5 @@ class BinPackingSearchTreeVisualization : IVisualization<BINPACKING>, ISearchTre
     public API_JSON SolvedVisualization(BINPACKING instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Placement);
-
     SearchTreeSpec ISearchTreeVisualization<BINPACKING, Placement>.Describe(BINPACKING problem) => new("Bin Packing");
 }

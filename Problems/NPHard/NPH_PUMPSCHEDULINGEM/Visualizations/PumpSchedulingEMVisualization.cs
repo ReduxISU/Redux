@@ -64,7 +64,6 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty
     public ISolver solver { get; } = new PumpSchedulingEMSolver();
 
     // The Schedule picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(PumpPlan);
     PumpScheduleSpec IPumpScheduleVisualization<PUMPSCHEDULINGEM>.Describe(PUMPSCHEDULINGEM problem) => Spec(problem);
     PumpPlan IPumpScheduleVisualization<PUMPSCHEDULINGEM>.ParseAnswer(PUMPSCHEDULINGEM problem, string answer) =>
         ScheduleFrames.ParsePumpPlan(problem.Pumps.Count, answer, withBudget: true);

@@ -29,7 +29,5 @@ class HamiltonianSearchTreeVisualization : IVisualization<HAMILTONIAN>, ISearchT
     public API_JSON SolvedVisualization(HAMILTONIAN instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Tour);
-
     SearchTreeSpec ISearchTreeVisualization<HAMILTONIAN, Tour>.Describe(HAMILTONIAN problem) => new("Hamiltonian");
 }

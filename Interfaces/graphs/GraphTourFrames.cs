@@ -225,12 +225,15 @@ static class GraphTourFrames {
 /// <summary>
 /// A visualization for a graph problem whose answer is a tour or path in visiting order (Hamiltonian Cycle, Directed
 /// Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson). The visualization declares only what the problem is (<see cref="Describe"/>);
-/// the frames hook then comes for free. Implement members explicitly so nothing new appears in /info. The class must also
-/// declare <c>Type? IVisualization.StepShape =&gt; typeof(Tour)</c>. A solver's steps carry the path so far
+/// the frames hook then comes for free. Implement members explicitly so nothing new appears in /info. Its steps
+/// are <see cref="Tour"/> (<see cref="IVisualization.StepShape"/> is declared here). A solver's steps carry the path so far
 /// (<see cref="Tour"/>: node ids in order); only the solved frame of a solver that records no steps has to be rebuilt
 /// from the answer string.
 /// </summary>
 interface IGraphTourVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="Tour"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(Tour);
+
     GraphTourSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a tour. The default accepts <c>{1,2,4,5,3,1}</c>, with or without braces.</summary>

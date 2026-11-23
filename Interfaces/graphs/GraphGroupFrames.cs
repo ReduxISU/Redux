@@ -234,12 +234,15 @@ static class GraphGroupFrames {
 /// <summary>
 /// A visualization for a graph problem whose answer splits the nodes into groups (Graph Coloring, Clique Cover). The
 /// visualization declares only what the problem is (<see cref="Describe"/>); the frames hook then comes for free.
-/// Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(Groups)</c>. A solver's steps carry the grouping so far
+/// Implement members explicitly so nothing new appears in /info. Its steps are
+/// <see cref="Groups"/> (<see cref="IVisualization.StepShape"/> is declared here). A solver's steps carry the grouping so far
 /// (<see cref="Groups"/>: node id to group index); only the solved frame of a solver that records no steps has to be
 /// rebuilt from the answer string.
 /// </summary>
 interface IGraphGroupsVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="Groups"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(Groups);
+
     GraphGroupSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as groups. The default accepts <c>{{a,d},{b},{c}}</c>: the n-th class is group n.</summary>

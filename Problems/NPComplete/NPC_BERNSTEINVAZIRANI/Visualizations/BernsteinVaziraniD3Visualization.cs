@@ -25,7 +25,6 @@ class BernsteinVaziraniD3Visualization : IVisualization<BERNSTEINVAZIRANI, API_Q
     public ISolver solver { get; } = new BernsteinVaziraniClassicalSolver();
 
     // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(QuantumProgress);
     QuantumCircuitSpec IQuantumCircuitVisualization<BERNSTEINVAZIRANI>.Describe(BERNSTEINVAZIRANI problem) => QuantumCircuits.BernsteinVazirani(problem.funcValues);
 
     public BernsteinVaziraniD3Visualization() { }

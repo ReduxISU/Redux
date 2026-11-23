@@ -21,7 +21,6 @@ class SimonVisualization : IVisualization<SIMON, API_QUANTUMCIRCUIT>, IQuantumCi
     public ISolver solver { get; } = new SimonSolver();
 
     // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(QuantumProgress);
     QuantumCircuitSpec IQuantumCircuitVisualization<SIMON>.Describe(SIMON problem) => QuantumCircuits.Simon(problem.funcValues);
 
     // --- Methods Including Constructors ---

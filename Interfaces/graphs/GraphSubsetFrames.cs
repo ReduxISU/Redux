@@ -439,9 +439,13 @@ static class GraphSubsetFrames {
 /// A visualization for a subset-of-nodes graph problem. The visualization declares only what the problem
 /// is (<see cref="Describe"/>) and, if its answers are not a plain brace-delimited node list, how to read one
 /// (<see cref="ParseAnswer"/>); the frames hook then comes for free. Implement members explicitly so nothing
-/// new appears in /info. The class must also declare <c>Type? IVisualization.StepShape =&gt; typeof(NodeSet)</c>.
+/// new appears in /info. Its steps are <see cref="NodeSet"/>
+/// (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IGraphSubsetVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="NodeSet"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(NodeSet);
+
     GraphSubsetSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a node set. The default accepts <c>{a,b,c}</c>, with or without braces.</summary>

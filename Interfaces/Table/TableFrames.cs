@@ -389,10 +389,13 @@ static class TableFrames {
 /// A visualization drawn as the Table picture. The visualization declares what the table is (<see cref="Describe"/>), how
 /// each recorded step looks (<see cref="Draw"/>) and the instance with nothing worked out (<see cref="Blank"/>, the base
 /// picture the payload carries); the frames hook then comes for free. Implement members explicitly so nothing new appears
-/// in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(TPartial)</c>.
+/// in /info. Its steps are
+/// <typeparamref name="TPartial"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface ITableVisualization<TProblem, TPartial> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <typeparamref name="TPartial"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(TPartial);
+
     TableSpec Describe(TProblem problem);
 
     /// <summary>One draft per step, in order. <paramref name="incremental"/> is <see cref="SolveRun.Incremental"/>. A run

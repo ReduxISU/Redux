@@ -28,9 +28,6 @@ class SPSPTableVisualization : IVisualization<SPSP>, ITableVisualization<SPSP, D
     public ISolver solver { get; } = new SPSPSolver();
 
     // The run's steps are typed (Distances) since #667; the list format's tables are made from them (#734).
-    // Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(Distances);
-
     // The list methods were already given the typed steps (they need some to draw their tables), so they keep getting them.
     bool IFramesVisualization.ListReadsTypedSteps() => true;
 
