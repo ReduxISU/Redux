@@ -565,10 +565,14 @@ public class ReductionView_Graph_Tests : IClassFixture<AppFactory> {
     }
 }
 
-// The Reduction View of the graph reductions with a 50 ms solve budget: Graph Coloring's default graph (9 nodes, 3 colors)
-// gives SAT 27 variables and Clique Cover 3^9 ways to split the nodes, far past what their brute forces finish (Exact
-// Cover's solvers prune too well to be stopped on it), so the solve phase ends with its stopped frame and the map phase says
-// there is nothing to map back.
+// The Reduction View of the graph reductions with a 50 ms solve budget, on a graph that is not 3-colorable: a K4 and ten
+// isolated nodes (14 nodes, 3 colors). SAT gets 42 variables and no satisfying assignment, and Clique Cover 3^14 ways to split
+// the nodes with none a cover, so both brute forces try everything, far past the budget (Exact Cover's solvers prune too well
+// to be stopped on it), and the solve phase ends with its stopped frame and the map phase says there is nothing to map back.
+// Graph Coloring's default graph (6 nodes since #938) is too small: Clique Cover finds a cover after 409 tries, inside the
+// budget on a machine that is not busy.
+// Timed (a 50 ms budget), so in the timing collection with the other wall-clock tests (#837).
+[Collection(TimingCollection.Name)]
 public class ReductionView_Graph_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
@@ -579,8 +583,8 @@ public class ReductionView_Graph_TimeLimit_Tests : IClassFixture<TinyBudgetAppFa
     [Theory]
     [InlineData(ReductionView_Graph_Tests.ColoringToSat, "SAT")]
     [InlineData(ReductionView_Graph_Tests.ColoringToCliqueCover, "Clique Cover")]
-    public async Task DefaultGraph_StoppedSolve_EndsWithTheStoppedFrame_AndSkipsTheMap(string reduction, string target) {
-        string instance = new API.Problems.NPComplete.NPC_GRAPHCOLORING.GRAPHCOLORING().defaultInstance;
+    public async Task UncolorableGraph_StoppedSolve_EndsWithTheStoppedFrame_AndSkipsTheMap(string reduction, string target) {
+        string instance = "(({a,b,c,d,e,f,g,h,i,j,k,l,m,n},{{a,b},{a,c},{a,d},{b,c},{b,d},{c,d}}),3)";
         var content = new StringContent(JsonSerializer.Serialize(instance), Encoding.UTF8, "application/json");
         var response = await _client.PostAsync($"/ProblemProvider/reductionView?reduction={reduction}", content, TestContext.Current.CancellationToken);
         string body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -591,7 +595,11 @@ public class ReductionView_Graph_TimeLimit_Tests : IClassFixture<TinyBudgetAppFa
         Assert.Equal("Accept", build[^1].GetProperty("event").GetString());
         Assert.False(build[^1].TryGetProperty("ok", out _));
         var solve = frames.Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
-        Assert.Equal("Reject", solve[^1].GetProperty("event").GetString());
+        // The last solve frames are named when this fails, so a run that finished inside the budget can be told from one
+        // whose stopped frame went missing.
+        Assert.True(solve[^1].GetProperty("event").GetString() == "Reject",
+            $"The solve phase ended on {solve[^1].GetProperty("event").GetString()}, not the stopped frame; its last frames: " +
+            string.Join(" | ", solve.TakeLast(3).Select(f => $"{f.GetProperty("event").GetString()}: {f.GetProperty("caption").GetString()}")));
         Assert.False(solve[^1].TryGetProperty("ok", out _));
         Assert.StartsWith("Stopped after 0.05 s and ", solve[^1].GetProperty("caption").GetString());
         // The stopped frame is blank: nothing is drawn as an answer.

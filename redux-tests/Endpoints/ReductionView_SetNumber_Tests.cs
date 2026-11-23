@@ -559,6 +559,8 @@ public class ReductionView_SetNumber_Tests : IClassFixture<AppFactory> {
 // The Reduction View of the set and number reductions with a 50 ms solve budget, on instances whose brute force tries far more
 // than it can in that time: 2^28 subsets of 28 numbers (Subset Sum, Knapsack, Partition) and 2^22 ways to cut 23 nodes. The solve
 // phase ends with its stopped frame, and the map phase says there is nothing to map back.
+// Timed (a 50 ms budget), so in the timing collection with the other wall-clock tests (#837).
+[Collection(TimingCollection.Name)]
 public class ReductionView_SetNumber_TimeLimit_Tests : IClassFixture<TinyBudgetAppFactory> {
     private readonly HttpClient _client;
 
@@ -596,7 +598,11 @@ public class ReductionView_SetNumber_TimeLimit_Tests : IClassFixture<TinyBudgetA
         Assert.Equal("Accept", build.GetProperty("event").GetString());
         Assert.False(build.TryGetProperty("ok", out _));
         var solve = frames.Where(f => f.GetProperty("phase").GetString() == "solve").ToList();
-        Assert.Equal("Reject", solve[^1].GetProperty("event").GetString());
+        // The last solve frames are named when this fails, so a run that finished inside the budget can be told from one
+        // whose stopped frame went missing.
+        Assert.True(solve[^1].GetProperty("event").GetString() == "Reject",
+            $"The solve phase ended on {solve[^1].GetProperty("event").GetString()}, not the stopped frame; its last frames: " +
+            string.Join(" | ", solve.TakeLast(3).Select(f => $"{f.GetProperty("event").GetString()}: {f.GetProperty("caption").GetString()}")));
         Assert.False(solve[^1].TryGetProperty("ok", out _));
         Assert.StartsWith("Stopped after 0.05 s and ", solve[^1].GetProperty("caption").GetString());
         // The stopped frame is blank: nothing is drawn as an answer.
