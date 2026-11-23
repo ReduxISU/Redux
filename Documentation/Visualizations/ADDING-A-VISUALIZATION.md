@@ -61,7 +61,7 @@ Some marks are **annotations, not states**: the ×2 badge for "covered twice", o
 | --- | --- |
 | Which picture type the problem uses (the interface you implement) | The payload, with ids and a deterministic layout hint |
 | `Describe`: how the problem's fields fill the spec | Every state, from the steps, the rule and the verifier |
-| `StepShape`: the answer shape your picture draws | Matching steps to the picture; a solver with another shape still gets the payload and the solved frame |
+| `StepShape` (only for Bipartite, Nested Set and Layered, whose shape depends on the spec; every other interface declares it) | Matching steps to the picture; a solver with another shape still gets the payload and the solved frame |
 | In a solver: one `rec.…` call per decision, with a caption | Capping long runs, stopping at the time limit, the closing Done |
 | Endpoint tests for the JSON | Responsive layout, dark mode, the key, hover and tap (frontends) |
 
@@ -84,20 +84,17 @@ If none fits, open an issue under the tracker (#655) with a sketch before writin
 
 ### 4.2 Implement the picture's interface
 
-Each picture type has one interface, `I<Type>Visualization<TProblem>`. Your visualization class keeps its legacy members (`visualize`, `visualizationType`, …) and adds two things:
+Each picture type has one interface, `I<Type>Visualization<TProblem>`. Your visualization class keeps its legacy members (`visualize`, `visualizationType`, …) and adds `Describe`: your problem as the picture's spec.
 
-- `Type? IVisualization.StepShape`: the answer shape your picture draws.
-- `Describe`: your problem as the picture's spec.
+The interface already declares `Type? IVisualization.StepShape`, the answer shape the picture draws. Only the Bipartite, Nested Set and Layered interfaces leave it to you, since their shape depends on the spec (what it picks, or its rule); they make it abstract, so forgetting it is a compile error.
 
-Implement both **explicitly**, so nothing new appears in `/info`. The interface's default `BuildFrames` does the rest. This is Clique's, in full:
+Implement everything **explicitly**, so nothing new appears in `/info`. The interface's default `BuildFrames` does the rest. This is Clique's, in full:
 
 ```csharp
 class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON>, IGraphSubsetVisualization<CLIQUE> {
     // ... the legacy members, unchanged ...
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     GraphSubsetSpec IGraphSubsetVisualization<CLIQUE>.Describe(CLIQUE clique) =>
         new(clique.nodes, clique.edges, clique.K, SubsetRule.Clique);
 }
@@ -259,8 +256,6 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON>, IAutomatonVisualiza
     public ISolver solver { get; } = new DFASolver();
     // ... the other legacy members ...
 
-    Type? IVisualization.StepShape => typeof(ActiveStates);
-
     AutomatonSpec IAutomatonVisualization<DFA>.Describe(DFA problem) => Spec(problem);
 
     // The list format drew typed steps before the picture existed, so it keeps getting them.
@@ -353,7 +348,7 @@ NFA uses the same `ActiveStates`. `NFASolver` is a depth-first search that recor
 ## 8. Checklist for a pull request
 
 - [ ] The problem uses a picture type from [PICTURE-TYPES.md](PICTURE-TYPES.md), and that type is Approved.
-- [ ] The visualization only implements `StepShape` and `Describe` (and `ParseAnswer` if needed), explicitly; no colors, coordinates or highlight loops.
+- [ ] The visualization only implements `Describe` (and `ParseAnswer` if needed, and `StepShape` for Bipartite, Nested Set and Layered), explicitly; no colors, coordinates or highlight loops.
 - [ ] Each solver with steps implements `ISolver<T, TPartial>`, records decisions inside the real algorithm, ends with `Done`, and captions every step.
 - [ ] Solvers that build answers piece by piece implement `IIncrementalSolver`, and their focus names only the piece under test.
 - [ ] `SolverReplay_Tests` passes, and the picture's endpoint tests cover the problem.

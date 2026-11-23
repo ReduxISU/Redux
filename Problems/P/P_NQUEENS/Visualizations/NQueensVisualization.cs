@@ -23,7 +23,6 @@ class NQueensVisualization : IVisualization<NQUEENS, API_TableJSON>, IBoardVisua
     public ISolver solver { get; } = new NQueensBacktracking();
 
     // The Board picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(BoardCells);
     BoardSpec IBoardVisualization<NQUEENS>.Describe(NQUEENS problem) => Spec(problem);
     BoardCells IBoardVisualization<NQUEENS>.ParseAnswer(NQUEENS problem, string answer) =>
         new(Queens(problem, answer).Select((col, row) => new KeyValuePair<string, string>(BoardFrames.CellId(row, col), "Q")), []);

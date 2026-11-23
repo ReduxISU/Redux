@@ -22,7 +22,6 @@ class SubsetSumVisualization : IVisualization<SUBSETSUM, API_SET>, IPackingVisua
     public ISolver solver { get; } = new SubsetSumBruteForce();
 
     // The Packing picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(Placement);
     PackingSpec IPackingVisualization<SUBSETSUM>.Describe(SUBSETSUM problem) => Spec(problem);
     Placement IPackingVisualization<SUBSETSUM>.ParseAnswer(SUBSETSUM problem, string answer) =>
         PackingFrames.FromGroups(problem.S.Select(PackingFrames.Key).ToList(), PackingFrames.Groups(answer, nested: false));

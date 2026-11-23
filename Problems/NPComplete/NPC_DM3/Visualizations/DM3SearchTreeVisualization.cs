@@ -29,7 +29,5 @@ class DM3SearchTreeVisualization : IVisualization<DM3>, ISearchTreeVisualization
     public API_JSON SolvedVisualization(DM3 instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(ChosenTriples);
-
     SearchTreeSpec ISearchTreeVisualization<DM3, ChosenTriples>.Describe(DM3 problem) => new("3-Dimensional Matching");
 }

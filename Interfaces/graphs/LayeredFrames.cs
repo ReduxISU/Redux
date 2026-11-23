@@ -31,6 +31,21 @@ sealed record LayeredSpec(IReadOnlyList<string> Nodes, IReadOnlyList<LayeredEdge
     public int? K { get; init; }
     public string? Source { get; init; }
     public string? Target { get; init; }
+
+    /// <summary>
+    /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, node
+    /// or edge end, a K below zero, or a rule that is not a <see cref="LayeredRule"/>. The builder calls it; it changes nothing
+    /// for a valid spec.
+    /// </summary>
+    public void Validate(string? describedBy = null) {
+        var problems = new List<string>();
+        SpecCheck.NoNulls(problems, "Nodes", Nodes);
+        if (Edges == null) problems.Add("Edges is null");
+        else if (Edges.Any(e => e is null || e.From is null || e.To is null)) problems.Add("an edge is null or has a null end");
+        SpecCheck.NotNegative(problems, "K", K);
+        SpecCheck.Defined(problems, "Rule", Rule);
+        SpecCheck.ThrowIfAny(nameof(LayeredSpec), describedBy, problems);
+    }
 }
 
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
@@ -705,13 +720,23 @@ static class LayeredFrames {
     /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
     /// step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and its
-    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read.
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read. Given <paramref name="declaredBy"/> (the
+    /// visualization whose frames these are), its declared <see cref="IVisualization.StepShape"/> must be the shape the spec's
+    /// rule draws, or this throws: the endpoints decide which runs a picture can draw by the declared shape and this reads the
+    /// steps by the rule, so the two can never quietly disagree.
     /// </summary>
-    public static FramesResponse Build(LayeredSpec spec, SolveRun run, Func<string, object> parseAnswer, Func<string, bool> verifyAnswer) {
+    public static FramesResponse Build(LayeredSpec spec, SolveRun run, Func<string, object> parseAnswer, Func<string, bool> verifyAnswer,
+                                       IVisualization? declaredBy = null) {
+        spec.Validate(declaredBy?.GetType().Name);
         var m = new Model(spec);
         var frames = new List<object>();
         StepEvent? last = null;
-        var steps = run.StepsFor(StepShape(spec.Rule)).Select(Read).ToList();
+        Type shape = StepShape(spec.Rule);
+        if (declaredBy != null && declaredBy.StepShape != shape)
+            throw new InvalidOperationException(
+                $"{declaredBy.GetType().Name} declares StepShape {declaredBy.StepShape?.Name ?? "null"}, but its Describe has the rule " +
+                $"{spec.Rule}, which draws {shape.Name} steps. Make the two agree (see LayeredFrames.StepShape).");
+        var steps = run.StepsFor(shape).Select(Read).ToList();
         for (int i = 0; i < steps.Count; i++) {
             var (partial, ev, focus, caption, ok) = steps[i];
             bool endsRun = i + 1 < steps.Count && GraphSubsetFrames.EndsRun(ev, steps[i + 1].Event, steps[i + 1].Ok);
@@ -756,6 +781,13 @@ static class LayeredFrames {
 /// <see cref="LayeredFrames.StepShape"/> of its rule.
 /// </summary>
 interface ILayeredVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>
+    /// The steps this picture draws, which depend on the rule <see cref="Describe"/> gives (<see cref="LayeredFrames.StepShape"/>).
+    /// Abstract again here, so a visualization that forgets it does not compile (CS0535) instead of quietly drawing only the
+    /// answer; the builder checks it against the rule.
+    /// </summary>
+    abstract Type? IVisualization.StepShape { get; }
+
     LayeredSpec Describe(TProblem problem);
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
@@ -766,6 +798,6 @@ interface ILayeredVisualization<TProblem> : IFramesVisualization where TProblem 
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }, this);
     }
 }

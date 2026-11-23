@@ -77,10 +77,11 @@ static class NestedSetFrames {
     /// <summary>
     /// The whole response: the Bipartite Graph's frames of the same run (<see cref="BipartiteFrames.Build"/>: a frame per kept
     /// step, then a solved frame built from the answer unless the last step already is the Done step, or a blank stopped frame),
-    /// each without its edges, and this picture's payload.
+    /// each without its edges, and this picture's payload. <paramref name="declaredBy"/> is checked as there.
     /// </summary>
-    public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer) {
-        var graph = BipartiteFrames.Build(spec, run, parseAnswer, verifyAnswer);
+    public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer,
+                                       IVisualization? declaredBy = null) {
+        var graph = BipartiteFrames.Build(spec, run, parseAnswer, verifyAnswer, declaredBy);
         var frames = graph.Frames.Select(f => (object)NestedSetFrame.Of((BipartiteFrame)f)).ToList();
         return new FramesResponse(nameof(VisualizationType.NestedSet), Payload(spec), frames);
     }
@@ -95,6 +96,13 @@ static class NestedSetFrames {
 /// listed only for clients that ask with <c>includePictures=true</c>, since Redux_GUI cannot draw it yet (#929).
 /// </summary>
 interface INestedSetVisualization<TProblem> : IFramesVisualization, IOptInVisualization where TProblem : IProblem {
+    /// <summary>
+    /// The steps this picture draws, which depend on what <see cref="Describe"/> picks (<see cref="BipartiteFrames.StepShape"/>).
+    /// Abstract again here, so a visualization that forgets it does not compile (CS0535) instead of quietly drawing only the
+    /// answer; the builder checks it against the pick.
+    /// </summary>
+    abstract Type? IVisualization.StepShape { get; }
+
     BipartiteSpec Describe(TProblem problem);
 
     /// <summary>
@@ -110,6 +118,6 @@ interface INestedSetVisualization<TProblem> : IFramesVisualization, IOptInVisual
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }, this);
     }
 }

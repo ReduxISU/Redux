@@ -25,7 +25,6 @@ class DeutschJozsaD3Visualization : IVisualization<DEUTSCHJOZSA, API_QUANTUMCIRC
     public ISolver solver { get; } = new DeutschJozsaClassicalSolver();
 
     // The Quantum Circuit picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(QuantumProgress);
     QuantumCircuitSpec IQuantumCircuitVisualization<DEUTSCHJOZSA>.Describe(DEUTSCHJOZSA problem) => QuantumCircuits.DeutschJozsa(problem.w);
     public DeutschJozsaD3Visualization() { }
 

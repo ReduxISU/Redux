@@ -24,7 +24,6 @@ class IntProgrammingVisualization : IVisualization<INTPROGRAMMING01, API_TableJS
     public ISolver solver { get; } = new IntegerProgrammingBruteForce();
 
     // The Table picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(Assignment);
     TableSpec ITableVisualization<INTPROGRAMMING01, Assignment>.Describe(INTPROGRAMMING01 problem) => Spec(problem);
     IReadOnlyList<TableDraft> ITableVisualization<INTPROGRAMMING01, Assignment>.Draw(INTPROGRAMMING01 problem, IReadOnlyList<SolverStep<Assignment>> steps, bool incremental) =>
         GraphSubsetFrames.WithEndsRun(steps).Select(p => Draft(problem, ValuesOf(problem, p.Step.Partial), p.Step.Event, p.Step.Ok, incremental, p.Step.Focus, p.EndsRun)).ToList();

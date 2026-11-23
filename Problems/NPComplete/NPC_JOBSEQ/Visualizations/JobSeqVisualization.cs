@@ -23,13 +23,12 @@ class JobSeqVisualization : IVisualization<JOBSEQ, API_TableJSON>, IJobScheduleV
     public ISolver solver { get; } = new JobSeqBruteForce();
 
     // The Schedule picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(JobOrder);
     JobScheduleSpec IJobScheduleVisualization<JOBSEQ>.Describe(JOBSEQ problem) => Spec(problem);
     JobOrder IJobScheduleVisualization<JOBSEQ>.ParseAnswer(JOBSEQ problem, string answer) => ScheduleFrames.ParseJobOrder(problem.T.Count, answer);
 
     /// <summary>The instance as the Schedule picture describes it: its jobs in instance order, and K.</summary>
     internal static JobScheduleSpec Spec(JOBSEQ problem) =>
-        new(Enumerable.Range(0, problem.T.Count).Select(i => new ScheduleJob(problem.T[i], problem.D[i], problem.P[i])).ToList(), problem.K);
+        new(Enumerable.Range(0, problem.T.Count).Select(i => new ScheduleJob(Time: problem.T[i], Deadline: problem.D[i], Penalty: problem.P[i])).ToList(), K: problem.K);
 
     public JobSeqVisualization() { }
 

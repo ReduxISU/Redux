@@ -22,14 +22,13 @@ class DM3Visualization : IVisualization<DM3, API_TableJSON>, ITripartiteVisualiz
     public ISolver solver { get; } = new ThreeDimensionalMatchingBruteForce();
 
     // The Tripartite Matching picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(ChosenTriples);
     TripartiteSpec ITripartiteVisualization<DM3>.Describe(DM3 problem) => Spec(problem);
     ChosenTriples ITripartiteVisualization<DM3>.ParseAnswer(DM3 problem, string answer) => TripartiteFrames.ParseMatching(Spec(problem), answer);
 
     /// <summary>The instance as the Tripartite Matching picture describes it: X, Y and Z, and M's triples as positions in them.</summary>
     internal static TripartiteSpec Spec(DM3 problem) =>
-        new(problem.X, problem.Y, problem.Z,
-            problem.M.Select(t => new TripartiteTriple(problem.X.IndexOf(t[0]), problem.Y.IndexOf(t[1]), problem.Z.IndexOf(t[2]))).ToList());
+        new(X: problem.X, Y: problem.Y, Z: problem.Z,
+            Triples: problem.M.Select(t => new TripartiteTriple(X: problem.X.IndexOf(t[0]), Y: problem.Y.IndexOf(t[1]), Z: problem.Z.IndexOf(t[2]))).ToList());
 
     public DM3Visualization() { }
 

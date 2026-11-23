@@ -29,7 +29,5 @@ class SetCoverSearchTreeVisualization : IVisualization<SETCOVER>, ISearchTreeVis
     public API_JSON SolvedVisualization(SETCOVER instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(ChosenSets);
-
     SearchTreeSpec ISearchTreeVisualization<SETCOVER, ChosenSets>.Describe(SETCOVER problem) => new("Set Cover");
 }

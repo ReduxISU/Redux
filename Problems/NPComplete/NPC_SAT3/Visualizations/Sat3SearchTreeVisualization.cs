@@ -27,7 +27,5 @@ class Sat3SearchTreeVisualization : IVisualization<SAT3>, ISearchTreeVisualizati
     public API_JSON SolvedVisualization(SAT3 instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Assignment);
-
     SearchTreeSpec ISearchTreeVisualization<SAT3, Assignment>.Describe(SAT3 problem) => new("3SAT");
 }

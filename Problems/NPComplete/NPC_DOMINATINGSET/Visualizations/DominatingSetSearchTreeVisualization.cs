@@ -31,7 +31,5 @@ class DominatingSetSearchTreeVisualization : IVisualization<DOMINATINGSET>, ISea
     public API_JSON SolvedVisualization(DOMINATINGSET instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     SearchTreeSpec ISearchTreeVisualization<DOMINATINGSET, NodeSet>.Describe(DOMINATINGSET problem) => new("Dominating Set");
 }

@@ -27,8 +27,6 @@ class Sat3FactorGraphVisualization : IVisualization<SAT3>, IFactorGraphVisualiza
     public API_JSON SolvedVisualization(SAT3 instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Factor graph picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Assignment);
-
     GroupedGraphSpec IFactorGraphVisualization<SAT3>.Describe(SAT3 problem) =>
         GroupedGraphSpec.FromLiterals(problem.clauses);
 }

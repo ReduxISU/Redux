@@ -29,7 +29,5 @@ class GraphColoringSearchTreeVisualization : IVisualization<GRAPHCOLORING>, ISea
     public API_JSON SolvedVisualization(GRAPHCOLORING instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Groups);
-
     SearchTreeSpec ISearchTreeVisualization<GRAPHCOLORING, Groups>.Describe(GRAPHCOLORING problem) => new("Graph Coloring");
 }

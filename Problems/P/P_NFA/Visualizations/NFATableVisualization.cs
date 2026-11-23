@@ -25,9 +25,6 @@ class NFATableVisualization : IVisualization<NFA, API_empty>, ITableVisualizatio
     public VisualizationType visualizationType => VisualizationType.DynamicTable;
     public ISolver solver { get; } = new NFASolver();
 
-    // Implemented explicitly so it is not a public member (and so not part of /info).
-    Type? IVisualization.StepShape => typeof(ActiveStates);
-
     // The list format only draws tables when it is given steps (see StepsVisualization), which it was before the Table
     // picture existed, so it keeps getting them.
     bool IFramesVisualization.ListReadsTypedSteps() => true;

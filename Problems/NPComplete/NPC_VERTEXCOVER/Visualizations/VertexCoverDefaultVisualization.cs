@@ -40,8 +40,6 @@ class VertexCoverDefaultVisualization : IVisualization<VERTEXCOVER, API_GraphJSO
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     GraphSubsetSpec IGraphSubsetVisualization<VERTEXCOVER>.Describe(VERTEXCOVER vertexcover) =>
-        new(vertexcover.nodes, vertexcover.edges, vertexcover.K, SubsetRule.VertexCover);
+        new(Nodes: vertexcover.nodes, Edges: vertexcover.edges, K: vertexcover.K, Rule: SubsetRule.VertexCover);
 }

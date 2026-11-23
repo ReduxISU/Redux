@@ -368,10 +368,13 @@ static class PackingFrames {
 /// <summary>
 /// A visualization for a packing problem drawn as the Packing picture. The visualization declares only what the problem is
 /// (<see cref="Describe"/>) and how to read an answer as a <see cref="Placement"/> (<see cref="ParseAnswer"/>); the frames
-/// hook then comes for free. Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(Placement)</c>.
+/// hook then comes for free. Implement members explicitly so nothing new appears in /info. Its steps are
+/// <see cref="Placement"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IPackingVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="Placement"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(Placement);
+
     PackingSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a placement (used only when the run's steps cannot be drawn).</summary>

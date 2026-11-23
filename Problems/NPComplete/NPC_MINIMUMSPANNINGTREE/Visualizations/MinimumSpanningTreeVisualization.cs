@@ -57,8 +57,6 @@ class MinimumSpanningTreeVisualization : IVisualization<MINIMUMSPANNINGTREE, API
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(EdgeSet);
-
     GraphEdgeSpec IGraphEdgesVisualization<MINIMUMSPANNINGTREE>.Describe(MINIMUMSPANNINGTREE problem) =>
         new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.SpanningTree);
 }

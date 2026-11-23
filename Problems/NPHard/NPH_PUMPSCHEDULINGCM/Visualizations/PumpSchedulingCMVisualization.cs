@@ -56,7 +56,6 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty
     public ISolver solver { get; } = new PumpSchedulingCMSolver();
 
     // The Schedule picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(PumpPlan);
     PumpScheduleSpec IPumpScheduleVisualization<PUMPSCHEDULINGCM>.Describe(PUMPSCHEDULINGCM problem) => Spec(problem);
     PumpPlan IPumpScheduleVisualization<PUMPSCHEDULINGCM>.ParseAnswer(PUMPSCHEDULINGCM problem, string answer) =>
         ScheduleFrames.ParsePumpPlan(problem.Pumps.Count, answer, withBudget: false);
@@ -64,9 +63,9 @@ class PumpSchedulingCMVisualization : IVisualization<PUMPSCHEDULINGCM, API_empty
     /// <summary>The instance as the Schedule picture describes it: the tank (no minimum), the day's demand and tariffs, and the
     /// pumps in instance order.</summary>
     internal static PumpScheduleSpec Spec(PUMPSCHEDULINGCM problem) =>
-        new(ScheduleRule.CostMinimization, problem.TankCapacity, problem.TankCurrentLevel, 0, problem.DemandGph, problem.PeakHours,
-            problem.OnPeakCostPerKwh, problem.OffPeakCostPerKwh,
-            problem.Pumps.Select(p => new SchedulePump(p.Name, p.FlowRateGph, p.PowerKw, p.StartupCostDollars)).ToList());
+        new(Rule: ScheduleRule.CostMinimization, Capacity: problem.TankCapacity, Level: problem.TankCurrentLevel, Minimum: 0,
+            Demand: problem.DemandGph, PeakHours: problem.PeakHours, OnPeak: problem.OnPeakCostPerKwh, OffPeak: problem.OffPeakCostPerKwh,
+            Pumps: problem.Pumps.Select(p => new SchedulePump(Name: p.Name, Flow: p.FlowRateGph, Power: p.PowerKw, StartupCost: p.StartupCostDollars)).ToList());
 
     public API_empty visualize(PUMPSCHEDULINGCM problem) => new API_empty();
 

@@ -269,10 +269,13 @@ static class CodeTreeFrames {
 /// <summary>
 /// A visualization for a problem drawn as the Code Tree picture. The visualization declares only what the instance is
 /// (<see cref="Describe"/>) and how to read an answer as codes (<see cref="ParseAnswer"/>); the frames hook then comes for
-/// free. Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(HuffmanForest)</c>.
+/// free. Implement members explicitly so nothing new appears in /info.
+/// Its steps are <see cref="HuffmanForest"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface ICodeTreeVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="HuffmanForest"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(HuffmanForest);
+
     CodeTreeSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as codes (used only when the run's steps cannot be drawn).</summary>

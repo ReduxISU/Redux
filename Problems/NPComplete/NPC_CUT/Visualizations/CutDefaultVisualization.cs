@@ -64,8 +64,6 @@ class CutDefaultVisualization : IVisualization<CUT, API_GraphJSON>, IGraphCutVis
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Groups);
-
     GraphEdgeSpec IGraphCutVisualization<CUT>.Describe(CUT problem) =>
         new(problem.nodes, problem.edges.Select(e => new GraphEdgeInput(e.Key, e.Value)).ToList(), EdgeRule.Cut) { K = problem.K };
 }

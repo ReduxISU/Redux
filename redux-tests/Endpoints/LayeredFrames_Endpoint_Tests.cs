@@ -71,7 +71,9 @@ public class LayeredFrames_Endpoint_Tests : IClassFixture<AppFactory> {
         var response = await _client.GetAsync($"/ProblemProvider/info?interface={name}", TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(ReadSnapshot($"info.{name}.json"), body.Replace("\r\n", "\n"));
+        // A definition written as a multi-line @"..." string holds the checkout's line endings (CRLF on Windows, LF on Linux),
+        // which the JSON escapes as \r\n or \n: both sides read as LF, as in Reduction_Output_Snapshot_Tests.
+        Assert.Equal(ReadSnapshot($"info.{name}.json").Replace(@"\r\n", @"\n"), body.Replace("\r\n", "\n").Replace(@"\r\n", @"\n"));
         Assert.DoesNotContain("ListReadsTypedSteps", body);
         Assert.DoesNotContain("ListedEdges", body);
         Assert.DoesNotContain("LayeredGraph", InfoJson.WithoutPictureType(body));

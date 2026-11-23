@@ -28,8 +28,6 @@ class Sat3FormulaVisualization : IVisualization<SAT3>, IFormulaVisualization<SAT
     public API_JSON SolvedVisualization(SAT3 instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Formula picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Assignment);
-
     GroupedGraphSpec IFormulaVisualization<SAT3>.Describe(SAT3 problem) =>
         GroupedGraphSpec.FromLiterals(problem.clauses);
 }

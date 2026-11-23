@@ -19,19 +19,16 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON>, IAutomatonVisualiza
     public VisualizationType visualizationType { get; } = VisualizationType.GraphLaTeX;
     public ISolver solver { get; } = new DFASolver();
 
-    // Implemented explicitly so it is not a public member (and so not part of /info).
-    Type? IVisualization.StepShape => typeof(ActiveStates);
-
     // The Automaton picture (format=frames only; /info keeps GraphLaTeX). The list format below already drew the typed
     // steps before the picture existed, so it keeps getting them.
     AutomatonSpec IAutomatonVisualization<DFA>.Describe(DFA problem) => Spec(problem);
     bool IFramesVisualization.ListReadsTypedSteps() => true;
 
     /// <summary>The DFA as the Automaton picture describes it.</summary>
-    internal static AutomatonSpec Spec(DFA problem) => new(AutomatonKind.Dfa,
-        problem.nodes, problem.alphabet.Select(c => c.ToString()).ToList(),
-        problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
-        problem.startState, problem.acceptStates, problem.inputString);
+    internal static AutomatonSpec Spec(DFA problem) => new(Kind: AutomatonKind.Dfa,
+        States: problem.nodes, Alphabet: problem.alphabet.Select(c => c.ToString()).ToList(),
+        Transitions: problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
+        Start: problem.startState, Accepting: problem.acceptStates, Input: problem.inputString);
 
     // --- Methods Including Constructors ---
     public DFAVisualization() { }

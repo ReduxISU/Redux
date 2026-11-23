@@ -41,8 +41,6 @@ class SubsetSumFormulaVisualization : IVisualization<SUBSETSUM, API_SET>, IFormu
     public API_JSON SolvedVisualization(SUBSETSUM problem, string solution) => _listFormat.SolvedVisualization(problem, solution);
 
     // --- Formula picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Placement);
-
     internal const string Group = "e0";
     internal static string Item(int i) => "s" + i.ToString(CultureInfo.InvariantCulture);
     internal static string Var(int i) => "v:x" + (i + 1).ToString(CultureInfo.InvariantCulture);

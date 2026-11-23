@@ -22,18 +22,16 @@ class NFAVisualization : IVisualization<NFA, API_GraphJSON>, IAutomatonVisualiza
     // Implemented explicitly so it is not a public member (and so not part of /info).
     // This visualization draws no step frames, but it declares the shape its solver records so that
     // the steps are not dropped as a mismatch.
-    Type? IVisualization.StepShape => typeof(ActiveStates);
-
     // The Automaton picture (format=frames only; /info keeps GraphLaTeX), with the NFA's runs for the path picker. The
     // list format keeps getting the typed steps it got before the picture existed (it draws none of them).
     AutomatonSpec IAutomatonVisualization<NFA>.Describe(NFA problem) => Spec(problem);
     bool IFramesVisualization.ListReadsTypedSteps() => true;
 
     /// <summary>The NFA as the Automaton picture describes it (ε-transitions have the symbol "ε").</summary>
-    internal static AutomatonSpec Spec(NFA problem) => new(AutomatonKind.Nfa,
-        problem.nodes, problem.alphabet.Select(c => c.ToString()).ToList(),
-        problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
-        problem.startState, problem.acceptStates, problem.inputString);
+    internal static AutomatonSpec Spec(NFA problem) => new(Kind: AutomatonKind.Nfa,
+        States: problem.nodes, Alphabet: problem.alphabet.Select(c => c.ToString()).ToList(),
+        Transitions: problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
+        Start: problem.startState, Accepting: problem.acceptStates, Input: problem.inputString);
 
     // --- Methods Including Constructors ---
     public NFAVisualization() { }

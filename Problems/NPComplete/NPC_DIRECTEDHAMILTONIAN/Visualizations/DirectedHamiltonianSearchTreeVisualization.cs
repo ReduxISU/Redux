@@ -29,7 +29,5 @@ class DirectedHamiltonianSearchTreeVisualization : IVisualization<DIRECTEDHAMILT
     public API_JSON SolvedVisualization(DIRECTEDHAMILTONIAN instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Tour);
-
     SearchTreeSpec ISearchTreeVisualization<DIRECTEDHAMILTONIAN, Tour>.Describe(DIRECTEDHAMILTONIAN problem) => new("Directed Hamiltonian");
 }

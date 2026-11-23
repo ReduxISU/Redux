@@ -28,7 +28,5 @@ class SudokuSearchTreeVisualization : IVisualization<SUDOKU>, ISearchTreeVisuali
     public API_JSON SolvedVisualization(SUDOKU instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(BoardCells);
-
     SearchTreeSpec ISearchTreeVisualization<SUDOKU, BoardCells>.Describe(SUDOKU problem) => new("Sudoku");
 }

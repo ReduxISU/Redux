@@ -67,8 +67,6 @@ class GraphColoringDefaultVisualization : IVisualization<GRAPHCOLORING, API_Grap
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Groups);
-
     GraphGroupSpec IGraphGroupsVisualization<GRAPHCOLORING>.Describe(GRAPHCOLORING problem) =>
-        new(problem.nodes, problem.edges, problem.K, GroupRule.Coloring);
+        new(Nodes: problem.nodes, Edges: problem.edges, K: problem.K, Rule: GroupRule.Coloring);
 }

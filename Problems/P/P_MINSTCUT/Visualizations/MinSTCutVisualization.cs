@@ -18,12 +18,11 @@ class MinSTCutVisualization : IVisualization<MINSTCUT, API_GraphJSON>, IFlowVisu
 
     // The Flow Network picture (format=frames only; /info keeps GraphD3). Implemented explicitly so it is not part of /info.
     // The list format gets none of the typed steps (it never drew steps), so it is unchanged.
-    Type? IVisualization.StepShape => typeof(NetworkFlow);
     FlowSpec IFlowVisualization<MINSTCUT>.Describe(MINSTCUT problem) => Spec(problem);
 
     /// <summary>The instance as the Flow Network picture describes it.</summary>
     internal static FlowSpec Spec(MINSTCUT problem) =>
-        new(problem.nodes, problem.edges.Select(e => new FlowEdgeInput(e.from, e.to, e.weight)).ToList(), problem.sourceNode, problem.targetNode);
+        new(Nodes: problem.nodes, Edges: problem.edges.Select(e => new FlowEdgeInput(e.from, e.to, e.weight)).ToList(), Source: problem.sourceNode, Sink: problem.targetNode);
 
     public MinSTCutVisualization() { }
 

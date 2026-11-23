@@ -68,8 +68,6 @@ class WeightedCutDefaultVisualization : IVisualization<WEIGHTEDCUT, API_GraphJSO
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Groups);
-
     GraphEdgeSpec IGraphCutVisualization<WEIGHTEDCUT>.Describe(WEIGHTEDCUT problem) =>
         new(problem.nodes, problem.listedEdges.Select(e => new GraphEdgeInput(e.source, e.destination, e.weight)).ToList(), EdgeRule.WeightedCut) { K = problem.K };
 }

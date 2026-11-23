@@ -95,7 +95,7 @@ The payload (sent once) is `{ kind: "graph", subtype: "undirected" | "directed",
 
 To add a problem to a shape:
 
-1. Implement the interface on the default visualization, **explicitly**, so nothing new appears in `/info`, and declare the step shape: `Type? IVisualization.StepShape => typeof(EdgeSet);` (or `NodeSet`, `Groups` for the cut and groups shapes, `Tour` for the tour shape).
+1. Implement the interface on the default visualization, **explicitly**, so nothing new appears in `/info`. The interface already declares the step shape (`EdgeSet`, or `NodeSet`, `Groups` for the cut and groups shapes, `Tour` for the tour shape), so you don't.
 2. Return the spec from `Describe`: nodes, edges (with `GraphEdgeInput(a, b, weight)` where the problem has weights), the rule, and `K` or `Terminals` if it has them. Loops are dropped and the lightest of parallel edges is drawn. The tour shape takes `GraphTourEdge(from, to, weight)` and `Directed` instead, and draws the first of repeated edges.
 3. If the solver's answer string is not the usual form, override `ParseAnswer`. The edge shapes read `{{a,b},...}` and `{({a,b},w),...}` by default, the cut shape recovers a split from a list of cut edges (Max Cut's answer is the S side itself, so it overrides), and the groups shape reads the classes of `{{a,d},{b},{c}}` (the n-th class is group n). The answer string is only used for the last frame when the steps do not end in a `Done` step: a solver that records no steps, or one that returns without calling `Done` (as the converted solvers do when `timerHasExpired`). A solver that records steps normally ends with a `Done` step carrying its own partial answer. A run stopped by the step time limit (`SolveRun.TimedOut`) is different: its answer string is never read, and it ends with a `Done` frame with `ok: false`, the stopped caption, and every element `Background` (the cut and groups shapes keep an empty `groups`, the tour shape an empty `order`).
 4. Make the solver implement `ISolver<T, EdgeSet>` (or `Groups`) and record decisions with captions in the problem's words ("Edge 2-5 joins two trees, so add it (weight 3)."). Pass lambdas, so nothing is built when recording is off, and keep the answer identical. Cut solvers record the *split* and let the base draw the crossing edges. Groups solvers record the grouping so far (a brute force records each candidate, leaving out nodes it gave no group; a greedy records one node per step) and use `GraphGroupFrames.Why` and `Classes` for captions. Tour solvers record the path so far: a backtracking search uses `Try` (start), `Accept` (walk an edge), `Reject` (no such edge: put the node tried at the end of the partial so the missing edge is drawn) and `Backtrack`; a permutation solver records one step per complete permutation and lets the recorder's cap of 150 hide the rest; a best-first search says "queued" for a branch it has not followed yet. Use `GraphTourFrames.Arrows` for captions.
@@ -128,7 +128,7 @@ A run that did not finish ends with a `Done` frame with `ok: false`, nothing ass
 
 To add a problem:
 
-1. Implement `IGroupedGraphVisualization<T>` on the default visualization, **explicitly**, so nothing new appears in `/info`, and declare `Type? IVisualization.StepShape => typeof(Assignment);`. Attach it to the problem as its `defaultVisualization` (SAT was once wired to `DummyVisualization`, which cannot visualize anything).
+1. Implement `IGroupedGraphVisualization<T>` on the default visualization, **explicitly**, so nothing new appears in `/info`. The interface already declares the step shape (`Assignment`). Attach it to the problem as its `defaultVisualization` (SAT was once wired to `DummyVisualization`, which cannot visualize anything).
 2. Make the solver record `Assignment` steps (variable name to `"True"`/`"False"`) with captions in the problem's words: a backtracking search uses `Try` (a value for the next variable), `Accept` (no clause is falsified), `Reject` (a clause has no true literal left) and `Backtrack`; a brute force records one step per candidate and lets the recorder's cap of 150 hide the rest. Focus is `CnfPieces.VariableId(name)` for the variable being tried and `ClauseId(i)` for a clause that failed. `GroupedGraphFrames.FirstFalsifiedClause` finds a failed clause, and `CnfPieces.ClauseText` and `Assigned` build captions; call them inside the recorder lambdas so nothing is built when recording is off. A solver that is not generic (like the SAT brute force, which would otherwise join the navigation lists) can record typed steps by overriding `ISolver.Run` and returning `typeof(Assignment)` as the shape.
 3. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer on seeded formulas (satisfiable and not) before touching code (`Endpoints/Snapshots/`, `GroupedGraphFrames_Endpoint_Tests`, `SatSolvers_Tests`, `GroupedGraphFrames_Tests`).
 
@@ -154,7 +154,7 @@ States: a picked node and its edges are `Solution` in a step that keeps the pick
 
 To add a problem:
 
-1. Implement `IBipartiteVisualization<T>` on the default visualization, **explicitly**, so nothing new appears in `/info`, and declare the step shape: `Type? IVisualization.StepShape => typeof(ChosenSets);` for an answer that picks sets, `typeof(NodeSet)` for one that picks elements (`BipartiteFrames.StepShape`).
+1. Implement `IBipartiteVisualization<T>` on the default visualization, **explicitly**, so nothing new appears in `/info`, and declare the step shape: `Type? IVisualization.StepShape => typeof(ChosenSets);` for an answer that picks sets, `typeof(NodeSet)` for one that picks elements (`BipartiteFrames.StepShape`). The interface leaves it abstract, so forgetting it is a compile error, and the builder throws if it does not match what `Describe` picks.
 2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets the solvers build captions from the same description.
 3. Make each solver implement `ISolver<T, ChosenSets>` (set ids, `S1`, `S2`, ...) or `ISolver<T, NodeSet>` (element names), and mark the ones that build an answer piece by piece with `IIncrementalSolver`. A brute force records each candidate as a `Reject` (or the winning `Accept`) with `BipartiteFrames.Why` in the caption ("Try {S1,S2}: 5 isn't covered."); a greedy records each pick as an `Accept` and a final `Reject` for a cover that is incomplete or over K; a backtracking search (Algorithm X) records `Accept` for a set it takes, `Reject` for an element no set can cover (focus: the element) or a budget it exceeds (focus: the set), and `Backtrack` for a set it undoes. Always end with `Done`, whose `ok` is the verifier's verdict on the answer (`{}` is the empty collection).
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer on seeded instances before touching code (`Endpoints/Snapshots/`, `BipartiteFrames_Endpoint_Tests`, `BipartiteSolvers_Tests`, `BipartiteFrames_Tests`).
@@ -199,7 +199,7 @@ Every run ends with `Done`, whose `ok` says whether the machine accepts.
 
 To add an automaton problem:
 
-1. Implement `IAutomatonVisualization<T>` on its visualization, **explicitly**, so nothing new appears in `/info`, and declare `Type? IVisualization.StepShape => typeof(ActiveStates);`.
+1. Implement `IAutomatonVisualization<T>` on its visualization, **explicitly**, so nothing new appears in `/info`. The interface already declares the step shape (`ActiveStates`).
 2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets tests build the same description.
 3. If the list format already drew the typed steps before the picture existed, also return `true` from `IFramesVisualization.ListReadsTypedSteps()`, so the list keeps getting them. It is a method, not a property, so it never shows in `/info`.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/automaton_*.tsv`, `AutomatonFrames_Endpoint_Tests`, `AutomatonSolvers_Tests`, `AutomatonFrames_Tests`).
@@ -253,7 +253,7 @@ The solvers and their steps (partials hold node names; focus holds picture ids):
 
 To add a directed-graph problem:
 
-1. Implement `ILayeredVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape` as `LayeredFrames.StepShape` of its rule.
+1. Implement `ILayeredVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape` as `LayeredFrames.StepShape` of its rule. The interface leaves it abstract, so forgetting it is a compile error, and the builder throws if it does not match the rule `Describe` gives.
 2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets solvers (for captions such as `LayeredFrames.SurvivingCycle`) and tests build the same description.
 3. If the list format draws steps of its own, return `true` from `IFramesVisualization.ListReadsTypedSteps()` so it is still called, and have it make its legacy steps itself (as `SSSPVisualization.StepsVisualization` does). A table that makes its own steps declares the typed `StepShape` for the same reason.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/layered_*.tsv`, `LayeredFrames_Endpoint_Tests`, `LayeredSolvers_Tests`, `LayeredFrames_Tests`).
@@ -295,7 +295,7 @@ The solver and its steps (`NetworkFlow`: units keyed by edge id, the legs, the v
 
 To add a flow problem or another max-flow solver:
 
-1. Implement `IFlowVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(NetworkFlow)`.
+1. Implement `IFlowVisualization<T>` on its visualization, **explicitly**. The interface already declares the step shape (`NetworkFlow`).
 2. Return the spec from `Describe`. A static `Spec(problem)` next to it lets tests build the same description.
 3. Record a `NetworkFlow` per augmenting path, with its legs, and the S side in `Done`. Ford-Fulkerson with a depth-first search fits the same steps.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solver answers before touching code (`Endpoints/Snapshots/flow_*.tsv`, `FlowFrames_Endpoint_Tests`, `FlowSolvers_Tests`, `FlowFrames_Tests`).
@@ -358,7 +358,7 @@ Subset Sum, Knapsack and Bin Packing have their own visualizations for the pictu
 
 To add a packing problem or another packing solver:
 
-1. Implement `IPackingVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(Placement)`.
+1. Implement `IPackingVisualization<T>` on its visualization, **explicitly**. The interface already declares the step shape (`Placement`).
 2. Return the spec from `Describe`, and read an answer string as a placement in `ParseAnswer` (`PackingFrames.Groups` and `FromGroups` do the usual shapes; equal numbers fill items in order). A static `Spec(problem)` next to it lets tests build the same description.
 3. Record a `Placement` per decision, by position: keep track of which item went where, not just the numbers. Declare `IIncrementalSolver` when the solver commits items one at a time.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/packing_*.tsv`, `PackingFrames_Endpoint_Tests`, `PackingSolvers_Tests`, `PackingFrames_Tests`).
@@ -453,7 +453,7 @@ Their list format and /info are unchanged. `ListReadsTypedSteps()` returns true,
 
 To add a table:
 
-1. Implement `ITableVisualization<TProblem, TPartial>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(TPartial)`.
+1. Implement `ITableVisualization<TProblem, TPartial>` on its visualization, **explicitly**. The interface already declares the step shape (`TPartial`).
 2. Return the spec from `Describe`. In `Draw`, turn each step into a `TableDraft` and return one draft per step:
    - add its rows (`AddRow`);
    - mark rows and cells (`MarkRow`, `MarkCell`, `MarkChanged`);
@@ -510,7 +510,7 @@ The solvers and their steps (`BoardCells`: `values`, every square that holds som
 
 To add a grid puzzle or another board solver:
 
-1. Implement `IBoardVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(BoardCells)`.
+1. Implement `IBoardVisualization<T>` on its visualization, **explicitly**. The interface already declares the step shape (`BoardCells`).
 2. Return the spec from `Describe`, and read an answer string as a board in `ParseAnswer`. A static `Spec(problem)` next to it lets tests build the same description.
 3. Record a `BoardCells` per decision with the whole board, clues included, and the squares the step ruled out as conflicts. Build it only inside the recorder's lambdas, and pass the focus as a lambda too, so solving without steps costs nothing. Declare `IIncrementalSolver` when the solver fills squares one at a time.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/board_*.tsv`, `BoardFrames_Endpoint_Tests`, `BoardSolvers_Tests`, `BoardFrames_Tests`).
@@ -576,7 +576,7 @@ The pump solvers' table works in whole gallons, so with fractional flows or dema
 
 To add a scheduling problem or solver:
 
-1. Implement `IJobScheduleVisualization<T>` or `IPumpScheduleVisualization<T>` on its visualization, **explicitly**, and declare `Type? IVisualization.StepShape => typeof(JobOrder)` (or `typeof(PumpPlan)`).
+1. Implement `IJobScheduleVisualization<T>` or `IPumpScheduleVisualization<T>` on its visualization, **explicitly**. The interface already declares the step shape (`JobOrder`, or `PumpPlan`).
 2. Return the spec from `Describe`, and read an answer string in `ParseAnswer` (`ScheduleFrames.ParseJobOrder` and `ParsePumpPlan` read today's certificates). A static `Spec(problem)` next to it lets the solver and the tests build the same description.
 3. Record a `JobOrder` or `PumpPlan` per decision. Build it only inside the recorder's lambdas, so solving without steps costs nothing; `ScheduleFrames.ReplayCaption` and `ForwardCaption` write the pump captions. Declare `IIncrementalSolver` when the solver commits its answer piece by piece.
 4. Prove nothing changed for old clients: snapshot the list-format output, `/info` and what the solvers answer before touching code (`Endpoints/Snapshots/schedule_*.tsv`, `ScheduleFrames_Endpoint_Tests`, `ScheduleSolvers_Tests`, `ScheduleFrames_Tests`).
@@ -860,7 +860,7 @@ Not covered, because nothing in Redux branches for it: Knapsack (`KnapsackBruteF
 To add a search tree to another solver:
 
 1. Give every node an id from a counter (the root is 0) and keep, for each state you may come back to, its `SearchNode`. Build the patches only inside the recorder's lambdas, and keep the steps otherwise exactly as they were. A depth-first search can let `DepthFirstTree` keep the ids (see adding-a-solver, step 3). Declare `ISearchTreeSolver` on the solver, so the picture draws it.
-2. Add a visualization class next to the problem's own picture that implements `ISearchTreeVisualization<TProblem, TPartial>` (`TPartial` is the solver's step shape), declares `Type? IVisualization.StepShape => typeof(TPartial)`, and passes `visualize` and `SolvedVisualization` to the problem's picture.
+2. Add a visualization class next to the problem's own picture that implements `ISearchTreeVisualization<TProblem, TPartial>` (`TPartial` is the solver's step shape, which the interface declares as its `StepShape`), and passes `visualize` and `SolvedVisualization` to the problem's picture.
 3. Snapshot the solver's steps before touching it (`Endpoints/Snapshots/searchtree_*_steps.tsv`: a hash of each step's JSON) and test that the steps without `tree` still hash the same, the tree links themselves (`SearchTree*_Tests`), and the endpoint output with `SearchTreeJson` (`SearchTree*_Endpoint_Tests`).
 
 ## 3. How Redux finds your visualization
@@ -1141,8 +1141,11 @@ You do not have to register your visualization with these tests. They find it th
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs): `Visualize_GarbageInstance_IsNever500` | Sending garbage instance strings to `/visualize` for your class never produces a server error (HTTP 500). Bad input should give a friendly 400. |
 | [Endpoints/ProblemTemplate_Endpoint_Tests.cs](../../redux-tests/Endpoints/ProblemTemplate_Endpoint_Tests.cs) | The visualization template download still works and leaves no `{PLACEHOLDER}` behind. Only matters if you edit the template. |
 | [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) and [Batch_Endpoint_Tests.cs](../../redux-tests/Endpoints/Batch_Endpoint_Tests.cs) | The lists of visualizations per problem work. They check a few known problems, not yours. |
+| [Pictures/StepShape_Tests.cs](../../redux-tests/Pictures/StepShape_Tests.cs) (frames pictures only) | Your picture declares a step shape, its builder draws steps of that shape, and some solver of your problem records it. A picture no solver records yet goes on `NoRecordingSolver`, with the reason. |
+| [Pictures/VerifierAgreement_Tests.cs](../../redux-tests/Pictures/VerifierAgreement_Tests.cs) (frames pictures only) | On real runs of every solver your picture draws, its last frame agrees with your problem's verifier: a right answer is not drawn as wrong, and a wrong one is not drawn as right. What each picture type must show is in [VerdictRules.cs](../../redux-tests/Pictures/VerdictRules.cs). |
+| [Pictures/PictureDoctor_Tests.cs](../../redux-tests/Pictures/PictureDoctor_Tests.cs) (frames pictures only) | All of the above for one picture at a time, in plain words. See [section 10](#10-when-a-picture-looks-wrong). |
 
-Those tests only prove the basics. They do **not** check that your picture is correct. That is your job.
+Those tests only prove the basics. For a frames picture they catch a picture that calls a right answer wrong, but not every wrong colour along the way. Checking that your picture is correct is still your job.
 
 > Do not add your class to `UnimplementedAllowlist` to make a failure go away. Pick a real type instead. If no type fits, you are in case (b).
 
@@ -1277,3 +1280,34 @@ Case (b), also:
 - **A `SolvedVisualization` that crashes on an empty solution.** The endpoint calls it with whatever the solver returned, which may be empty.
 - **Editing `UnimplementedAllowlist`** to turn a failure green. Fix the cause.
 - **Writing a controller.** Not needed. Reflection exposes your class.
+
+## 10. When a picture looks wrong
+
+This is for frames pictures (the ones in section 2 marked `format=frames`).
+
+### Ask the picture doctor first
+
+The picture doctor checks one picture and tells you, in plain words, what to fix and where. Name your visualization class:
+
+```bash
+REDUX_DOCTOR=SetCoverDefaultVisualization dotnet test redux-tests --filter "FullyQualifiedName~PictureDoctor"
+```
+
+(In PowerShell: `$env:REDUX_DOCTOR = "SetCoverDefaultVisualization"`, then the same `dotnet test` line.) Without `REDUX_DOCTOR` it checks every picture, as the normal test run does. It checks four things, in order:
+
+1. The picture declares a step shape.
+2. Some solver of the problem records that shape.
+3. `Describe` gives a valid spec for the problem's default instance.
+4. On real runs, the last frame agrees with the problem's verifier.
+
+### Symptom, likely cause, where to look
+
+| Symptom | Likely cause | Where to look |
+| --- | --- | --- |
+| The picture shows only the answer, never the solver's steps. | The run's step shape is not the one the picture draws. Either the solver records another shape, or records none (it does not implement `ISolver<TProblem, TPartial>`). | The solver's class line, and the picture interface's `StepShape`. `visualizeRun` lists the reason as `shape_mismatch`. Doctor checks 1 and 2. |
+| A build error CS0535 about `IVisualization.StepShape`. | A Bipartite, Nested Set or Layered picture must say its step shape, because it depends on the spec. | Add `Type? IVisualization.StepShape => typeof(...)`, matching `BipartiteFrames.StepShape` or `LayeredFrames.StepShape`. |
+| "declares StepShape X, but its Describe picks ..." | The declared shape and the spec disagree (for example `NodeSet` declared, but `Describe` picks sets). | Make the two agree in your visualization class. |
+| "...Describe gave a ...Spec that cannot be drawn: ..." | `Describe` passed a field in the wrong place, a null, or a K below zero. | Your `Describe`. Name the arguments (`Universe: ..., Sets: ..., K: ...`) so a swap is easy to see. |
+| A right answer is drawn with red (Rejected) pieces, or a wrong one in green (Solution). | `Describe` gives the wrong rule, K or list, so the picture judges the answer by the wrong problem. | Your `Describe`. Doctor check 4 names the run, the instance and the pieces. |
+| One piece has a colour you cannot explain (Bipartite pictures). | One of the picture's state rules applies that you did not expect. | Build the trace: `BipartiteTrace.Of("<visualization>", instance, typeof(<solver>))` in a test gives each piece's state and the name of the rule that set it, frame by frame. The rules and their order are in [BipartiteStates.cs](../../Interfaces/graphs/BipartiteStates.cs). |
+| Every picture of a problem is wrong in the same way. | The problem parses its instance differently from what `Describe` expects, or the verifier disagrees with the solver. | The problem's class and its default verifier. |

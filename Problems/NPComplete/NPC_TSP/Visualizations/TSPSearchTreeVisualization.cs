@@ -28,7 +28,5 @@ class TSPSearchTreeVisualization : IVisualization<TSP>, ISearchTreeVisualization
     public API_JSON SolvedVisualization(TSP instance, string solution) => _listFormat.SolvedVisualization(instance, solution);
 
     // --- Search Tree picture (format=frames only) ---
-    Type? IVisualization.StepShape => typeof(Tour);
-
     SearchTreeSpec ISearchTreeVisualization<TSP, Tour>.Describe(TSP problem) => new("Traveling Salesperson");
 }

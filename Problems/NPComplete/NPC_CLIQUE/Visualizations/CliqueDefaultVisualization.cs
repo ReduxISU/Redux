@@ -48,8 +48,6 @@ class CliqueDefaultVisualization : IVisualization<CLIQUE, API_GraphJSON>, IGraph
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     GraphSubsetSpec IGraphSubsetVisualization<CLIQUE>.Describe(CLIQUE clique) =>
-        new(clique.nodes, clique.edges, clique.K, SubsetRule.Clique);
+        new(Nodes: clique.nodes, Edges: clique.edges, K: clique.K, Rule: SubsetRule.Clique);
 }

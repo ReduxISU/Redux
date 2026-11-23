@@ -22,7 +22,6 @@ class KnapsackVisualization : IVisualization<KNAPSACK, API_SET>, IPackingVisuali
     public ISolver solver { get; } = new KnapsackBruteForce();
 
     // The Packing picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(Placement);
     PackingSpec IPackingVisualization<KNAPSACK>.Describe(KNAPSACK problem) => Spec(problem);
     Placement IPackingVisualization<KNAPSACK>.ParseAnswer(KNAPSACK problem, string answer) =>
         PackingFrames.FromGroups(problem.items.ToList().Select(PackingFrames.Key).ToList(), PackingFrames.Groups(answer, nested: false));

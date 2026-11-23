@@ -67,8 +67,6 @@ class CliqueCoverDefaultVisualization : IVisualization<CLIQUECOVER, API_GraphJSO
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Groups);
-
     GraphGroupSpec IGraphGroupsVisualization<CLIQUECOVER>.Describe(CLIQUECOVER problem) =>
-        new(problem.nodes, problem.edges, problem.K, GroupRule.CliqueCover);
+        new(Nodes: problem.nodes, Edges: problem.edges, K: problem.K, Rule: GroupRule.CliqueCover);
 }

@@ -29,12 +29,13 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT, Groups> {
     public WeightedCutBruteForce() {
 
     }
-    private long factorial(long x) {
-        long y = 1;
-        for (long i = 1; i <= x; i++) {
-            y *= i;
-        }
-        return y;
+    // The number of ways to choose k of n, as n/1 * (n-1)/2 * ...: each partial product is itself a binomial, so it divides
+    // exactly. Written so in place of n! / (k! (n-k)!), whose factorials overflow a long past 20 nodes and gave a wrong count
+    // (24 nodes: 13 sides checked, then "none" reported).
+    private static long Binomial(long n, long k) {
+        long r = 1;
+        for (long j = 1; j <= k; j++) r = checked(r * (n - k + j)) / j;
+        return r;
     }
     private string indexListToCertificate(List<int> indecies, List<string> nodes) {
         // Console.WriteLine("indecies: ", indecies.ToString());
@@ -124,7 +125,7 @@ class WeightedCutBruteForce : ISolver<WEIGHTEDCUT, Groups> {
             for (int j = 0; j <= i; j++) {
                 combination.Add(j);
             }
-            long reps = factorial(cut.nodes.Count) / (factorial(i + 1) * factorial(cut.nodes.Count - i - 1));
+            long reps = Binomial(cut.nodes.Count, i + 1);
             for (int k = 0; k < reps; k++) {
                 if (timerHasExpired) return SolveRun.TimedOutAnswer; // stop at the time limit
                 string certificate = indexListToCertificate(combination, cut.nodes);

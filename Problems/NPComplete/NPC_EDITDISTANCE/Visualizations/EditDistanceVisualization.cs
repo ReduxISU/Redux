@@ -23,7 +23,6 @@ class EditDistanceVisualization : IVisualization<EDITDISTANCE, API_TableJSON>, I
     public ISolver solver { get; } = new EditDistanceDPSolver();
 
     // The Table picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(TableCells);
     TableSpec ITableVisualization<EDITDISTANCE, TableCells>.Describe(EDITDISTANCE problem) => Spec(problem);
     IReadOnlyList<TableDraft> ITableVisualization<EDITDISTANCE, TableCells>.Draw(EDITDISTANCE problem, IReadOnlyList<SolverStep<TableCells>> steps, bool incremental) =>
         Drafts(problem, steps);

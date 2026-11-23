@@ -49,8 +49,6 @@ class SatDefaultVisualization : IVisualization<SAT, API_SAT>, IGroupedGraphVisua
     }
 
     // --- Grouped Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(Assignment);
-
     GroupedGraphSpec IGroupedGraphVisualization<SAT>.Describe(SAT problem) =>
         GroupedGraphSpec.FromLiterals(problem.clauses);
 }

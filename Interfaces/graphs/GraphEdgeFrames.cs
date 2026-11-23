@@ -307,10 +307,13 @@ static class GraphEdgeFrames {
 /// <summary>
 /// A visualization for a graph problem whose answer is a set of edges (Minimum Spanning Tree, Steiner Tree). The
 /// visualization declares only what the problem is (<see cref="Describe"/>); the frames hook then comes for free.
-/// Implement members explicitly so nothing new appears in /info. The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(EdgeSet)</c>.
+/// Implement members explicitly so nothing new appears in /info. Its steps are
+/// <see cref="EdgeSet"/> (<see cref="IVisualization.StepShape"/> is declared here).
 /// </summary>
 interface IGraphEdgesVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="EdgeSet"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(EdgeSet);
+
     GraphEdgeSpec Describe(TProblem problem);
 
     /// <summary>Reads a solver's answer string as a set of edges. The default accepts <c>{{a,b},{c,d}}</c> and <c>{({a,b},w),...}</c>.</summary>
@@ -329,12 +332,15 @@ interface IGraphEdgesVisualization<TProblem> : IFramesVisualization where TProbl
 
 /// <summary>
 /// A visualization for a graph problem whose answer is a split of the nodes in two, drawn by the edges that cross it
-/// (Cut, Weighted Cut, Max Cut, Minimum Cut). The class must also declare
-/// <c>Type? IVisualization.StepShape =&gt; typeof(Groups)</c>. A solver's steps carry the split (<see cref="Groups"/>:
+/// (Cut, Weighted Cut, Max Cut, Minimum Cut). Its steps are
+/// <see cref="Groups"/> (<see cref="IVisualization.StepShape"/> is declared here). A solver's steps carry the split (<see cref="Groups"/>:
 /// 0 for the S side, 1 for the T side); only the solved frame of a solver that records no steps has to be rebuilt from
 /// the answer string.
 /// </summary>
 interface IGraphCutVisualization<TProblem> : IFramesVisualization where TProblem : IProblem {
+    /// <summary>The steps this picture draws: <see cref="Groups"/>. Declared here once, so a visualization of this type need not.</summary>
+    Type? IVisualization.StepShape => typeof(Groups);
+
     GraphEdgeSpec Describe(TProblem problem);
 
     /// <summary>

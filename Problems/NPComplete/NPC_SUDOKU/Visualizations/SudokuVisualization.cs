@@ -27,7 +27,6 @@ class SudokuVisualization : IVisualization<SUDOKU, API_TableJSON>, IBoardVisuali
     public ISolver solver { get; } = new SudokuSolver();
 
     // The Board picture (format=frames only). Implemented explicitly so it is not part of /info.
-    Type? IVisualization.StepShape => typeof(BoardCells);
     BoardSpec IBoardVisualization<SUDOKU>.Describe(SUDOKU problem) => Spec(problem);
     BoardCells IBoardVisualization<SUDOKU>.ParseAnswer(SUDOKU problem, string answer) => ParseGrid(answer);
 

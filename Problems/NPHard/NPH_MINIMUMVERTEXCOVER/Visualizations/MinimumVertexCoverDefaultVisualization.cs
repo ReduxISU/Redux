@@ -40,8 +40,6 @@ class MinimumVertexCoverDefaultVisualization : IVisualization<MINIMUMVERTEXCOVER
     }
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
-    Type? IVisualization.StepShape => typeof(NodeSet);
-
     GraphSubsetSpec IGraphSubsetVisualization<MINIMUMVERTEXCOVER>.Describe(MINIMUMVERTEXCOVER vertexcover) =>
-        new(vertexcover.nodes, vertexcover.edges, null, SubsetRule.MinVertexCover);
+        new(Nodes: vertexcover.nodes, Edges: vertexcover.edges, K: null, Rule: SubsetRule.MinVertexCover);
 }
