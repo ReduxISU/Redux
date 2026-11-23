@@ -28,7 +28,32 @@ sealed record BipartiteSpec(
     IReadOnlyList<IReadOnlyList<string>> Sets,
     int? K,
     BipartitePick Pick,
-    BipartiteRule Rule);
+    BipartiteRule Rule) {
+    /// <summary>
+    /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, name
+    /// or set; a set member that is not in the universe (every set problem's grammar makes each set a subset of U, so this
+    /// means Describe passed the wrong lists); a K below zero; a pick or rule that is not one of its enum's values. The
+    /// builder calls it; it changes nothing for a valid spec.
+    /// </summary>
+    public void Validate(string? describedBy = null) {
+        var problems = new List<string>();
+        SpecCheck.NoNulls(problems, "Universe", Universe);
+        SpecCheck.NoNulls(problems, "Sets", Sets);
+        if (Universe != null && Sets != null && !Sets.Any(s => s is null)) {
+            var universe = new HashSet<string>(Universe.Where(u => u != null), StringComparer.Ordinal);
+            for (int i = 0; i < Sets.Count; i++) {
+                SpecCheck.NoNulls(problems, $"set {SetPieces.SetId(i)}", Sets[i]);
+                var outside = Sets[i].Where(m => m != null && !universe.Contains(m)).Distinct(StringComparer.Ordinal).ToList();
+                if (outside.Count > 0)
+                    problems.Add($"set {SetPieces.SetId(i)} holds {string.Join(", ", outside.Take(5))}, which {(outside.Count == 1 ? "is" : "are")} not in the universe");
+            }
+        }
+        SpecCheck.NotNegative(problems, "K", K);
+        SpecCheck.Defined(problems, "Pick", Pick);
+        SpecCheck.Defined(problems, "Rule", Rule);
+        SpecCheck.ThrowIfAny(nameof(BipartiteSpec), describedBy, problems);
+    }
+}
 
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
 
@@ -350,6 +375,7 @@ static class BipartiteFrames {
     /// </summary>
     public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer,
                                        IVisualization? declaredBy = null) {
+        spec.Validate(declaredBy?.GetType().Name);
         var frames = new List<object>();
         bool lastIsDone = false;
         Type shape = StepShape(spec.Pick);

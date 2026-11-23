@@ -13,7 +13,22 @@ enum GroupRule { Coloring, CliqueCover }
 /// <param name="Edges">Undirected edges as given (either endpoint order); duplicates and loops are tolerated.</param>
 /// <param name="K">The instance's K: the number of colors, or the most cliques the cover may use.</param>
 /// <param name="Rule">How a grouping is judged.</param>
-sealed record GraphGroupSpec(IReadOnlyList<string> Nodes, IReadOnlyList<KeyValuePair<string, string>> Edges, int K, GroupRule Rule);
+sealed record GraphGroupSpec(IReadOnlyList<string> Nodes, IReadOnlyList<KeyValuePair<string, string>> Edges, int K, GroupRule Rule) {
+    /// <summary>
+    /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, node
+    /// or edge end, a K below zero, or a rule that is not a <see cref="GroupRule"/>. The builder calls it; it changes nothing
+    /// for a valid spec.
+    /// </summary>
+    public void Validate(string? describedBy = null) {
+        var problems = new List<string>();
+        SpecCheck.NoNulls(problems, "Nodes", Nodes);
+        if (Edges == null) problems.Add("Edges is null");
+        else if (Edges.Any(e => e.Key is null || e.Value is null)) problems.Add("an edge has a null end");
+        SpecCheck.NotNegative(problems, "K", K);
+        SpecCheck.Defined(problems, "Rule", Rule);
+        SpecCheck.ThrowIfAny(nameof(GraphGroupSpec), describedBy, problems);
+    }
+}
 
 /// <summary>What is wrong with a candidate grouping, and the nodes that show it.</summary>
 sealed record GroupFailure(string Reason, string[] Focus);
@@ -208,9 +223,12 @@ static class GraphGroupFrames {
     /// <summary>
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer unless the last
     /// step already is the Done step. A run stopped by its time limit ends with a blank Done frame (see
-    /// <see cref="GraphSubsetFrames.StoppedFrame"/>) with empty <c>groups</c> instead, and its answer string is never read.
+    /// <see cref="GraphSubsetFrames.StoppedFrame"/>) with empty <c>groups</c> instead, and its answer string is never read. The
+    /// spec is checked first (<see cref="GraphGroupSpec.Validate"/>, naming <paramref name="describedBy"/> in its error).
     /// </summary>
-    public static FramesResponse Build(GraphGroupSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer) {
+    public static FramesResponse Build(GraphGroupSpec spec, SolveRun run, Func<string, Groups> parseAnswer, Func<string, bool> verifyAnswer,
+                                       string? describedBy = null) {
+        spec.Validate(describedBy);
         var frames = new List<object>();
         SolverStep<Groups>? last = null;
         foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Groups>(run)) {
@@ -255,6 +273,6 @@ interface IGraphGroupsVisualization<TProblem> : IFramesVisualization where TProb
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }, GetType().Name);
     }
 }

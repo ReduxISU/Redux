@@ -27,7 +27,31 @@ sealed record AutomatonSpec(
     IReadOnlyList<AutomatonTransition> Transitions,
     string Start,
     IReadOnlyList<string> Accepting,
-    string Input);
+    string Input) {
+    /// <summary>
+    /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, name
+    /// or transition, a kind that is not an <see cref="AutomatonKind"/>, or a transition between states the machine does not
+    /// have (the DFA and NFA grammars make every transition N × A × N, so this means Describe passed the wrong lists). The
+    /// builder calls it; it changes nothing for a valid spec.
+    /// </summary>
+    public void Validate(string? describedBy = null) {
+        var problems = new List<string>();
+        SpecCheck.Defined(problems, "Kind", Kind);
+        SpecCheck.NoNulls(problems, "States", States);
+        SpecCheck.NoNulls(problems, "Alphabet", Alphabet);
+        SpecCheck.NoNulls(problems, "Transitions", Transitions);
+        SpecCheck.NoNulls(problems, "Accepting", Accepting);
+        if (Start is null) problems.Add("Start is null");
+        if (Input is null) problems.Add("Input is null");
+        if (States != null && Transitions != null && !Transitions.Any(t => t is null)) {
+            var states = new HashSet<string>(States.Where(s => s != null), StringComparer.Ordinal);
+            var stray = Transitions.SelectMany(t => new[] { t.From, t.To }).Where(s => s is null || !states.Contains(s))
+                .Distinct(StringComparer.Ordinal).Take(5).ToList();
+            if (stray.Count > 0) problems.Add($"transitions use {string.Join(", ", stray.Select(s => s ?? "null"))}, which {(stray.Count == 1 ? "is" : "are")} not in States");
+        }
+        SpecCheck.ThrowIfAny(nameof(AutomatonSpec), describedBy, problems);
+    }
+}
 
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
 
@@ -490,9 +514,11 @@ static class AutomatonFrames {
     /// <summary>
     /// The whole response: the payload, a frame per kept step, then a Done frame (the machine run on the input) unless the
     /// last step already is the Done step. A run stopped by its time limit ends with <see cref="StoppedFrame"/> instead, and
-    /// its answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read.
+    /// its answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read. The spec is checked first
+    /// (<see cref="AutomatonSpec.Validate"/>, naming <paramref name="describedBy"/> in its error).
     /// </summary>
-    public static FramesResponse Build(AutomatonSpec spec, SolveRun run) {
+    public static FramesResponse Build(AutomatonSpec spec, SolveRun run, string? describedBy = null) {
+        spec.Validate(describedBy);
         var m = new Model(spec);
         var frames = new List<object>();
         SolverStep<ActiveStates>? last = null;
@@ -532,5 +558,5 @@ interface IAutomatonVisualization<TProblem> : IFramesVisualization where TProble
     AutomatonSpec Describe(TProblem problem);
 
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) =>
-        AutomatonFrames.Build(Describe(ParseGuard.CreateProblem<TProblem>(instance)), run);
+        AutomatonFrames.Build(Describe(ParseGuard.CreateProblem<TProblem>(instance)), run, GetType().Name);
 }

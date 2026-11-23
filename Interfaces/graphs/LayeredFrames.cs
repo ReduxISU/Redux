@@ -31,6 +31,21 @@ sealed record LayeredSpec(IReadOnlyList<string> Nodes, IReadOnlyList<LayeredEdge
     public int? K { get; init; }
     public string? Source { get; init; }
     public string? Target { get; init; }
+
+    /// <summary>
+    /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, node
+    /// or edge end, a K below zero, or a rule that is not a <see cref="LayeredRule"/>. The builder calls it; it changes nothing
+    /// for a valid spec.
+    /// </summary>
+    public void Validate(string? describedBy = null) {
+        var problems = new List<string>();
+        SpecCheck.NoNulls(problems, "Nodes", Nodes);
+        if (Edges == null) problems.Add("Edges is null");
+        else if (Edges.Any(e => e is null || e.From is null || e.To is null)) problems.Add("an edge is null or has a null end");
+        SpecCheck.NotNegative(problems, "K", K);
+        SpecCheck.Defined(problems, "Rule", Rule);
+        SpecCheck.ThrowIfAny(nameof(LayeredSpec), describedBy, problems);
+    }
 }
 
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
@@ -712,6 +727,7 @@ static class LayeredFrames {
     /// </summary>
     public static FramesResponse Build(LayeredSpec spec, SolveRun run, Func<string, object> parseAnswer, Func<string, bool> verifyAnswer,
                                        IVisualization? declaredBy = null) {
+        spec.Validate(declaredBy?.GetType().Name);
         var m = new Model(spec);
         var frames = new List<object>();
         StepEvent? last = null;

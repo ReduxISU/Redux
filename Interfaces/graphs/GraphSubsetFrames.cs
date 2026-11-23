@@ -18,7 +18,22 @@ sealed record GraphSubsetSpec(
     IReadOnlyList<string> Nodes,
     IReadOnlyList<KeyValuePair<string, string>> Edges,
     int? K,
-    SubsetRule Rule);
+    SubsetRule Rule) {
+    /// <summary>
+    /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, node
+    /// or edge end, a K below zero, or a rule that is not a <see cref="SubsetRule"/>. An edge to a node that is not listed is
+    /// allowed (it is drawn as a phantom). The builder calls it; it changes nothing for a valid spec.
+    /// </summary>
+    public void Validate(string? describedBy = null) {
+        var problems = new List<string>();
+        SpecCheck.NoNulls(problems, "Nodes", Nodes);
+        if (Edges == null) problems.Add("Edges is null");
+        else if (Edges.Any(e => e.Key is null || e.Value is null)) problems.Add("an edge has a null end");
+        SpecCheck.NotNegative(problems, "K", K);
+        SpecCheck.Defined(problems, "Rule", Rule);
+        SpecCheck.ThrowIfAny(nameof(GraphSubsetSpec), describedBy, problems);
+    }
+}
 
 // --- JSON shapes (explicit names so the contract does not depend on serializer naming options) ---
 
@@ -412,9 +427,12 @@ static class GraphSubsetFrames {
     /// The whole response: the payload, a frame per kept step, then a solved frame built from the answer
     /// unless the last step already is the Done step. A run stopped by its time limit has no answer: its Done step
     /// (or, when its steps cannot be drawn, an added Done frame) is drawn as <see cref="StoppedFrame"/>, and its
-    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read as nodes.
+    /// answer string (<see cref="SolveRun.TimedOutAnswer"/>) is never read as nodes. The spec is checked first
+    /// (<see cref="GraphSubsetSpec.Validate"/>, naming <paramref name="describedBy"/> in its error).
     /// </summary>
-    public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer) {
+    public static FramesResponse Build(GraphSubsetSpec spec, SolveRun run, Func<string, NodeSet> parseAnswer, Func<string, bool> verifyAnswer,
+                                       string? describedBy = null) {
+        spec.Validate(describedBy);
         var frames = new List<object>();
         SolverStep<NodeSet>? last = null;
         foreach (var (step, endsRun, index) in DrawnSteps<NodeSet>(run)) {
@@ -459,6 +477,6 @@ interface IGraphSubsetVisualization<TProblem> : IFramesVisualization where TProb
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "{}") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            }, GetType().Name);
     }
 }
