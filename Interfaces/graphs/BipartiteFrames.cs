@@ -128,6 +128,7 @@ sealed record BipartiteFrame(
 /// <c>ElementHighlight</c>; in a Reject step of an incremental run it is what failed, so <c>Rejected</c>
 /// (<see cref="GraphSubsetFrames.FocusMark"/>). A pick in the focus marks its edges too. When several states apply to one
 /// element the order is <c>Rejected &gt; ElementHighlight &gt; Solution &gt; Committed &gt; Covered &gt; Blocked &gt; Background</c>.
+/// These rules and their order are one table, <see cref="BipartiteStates"/>, which also names the rule behind each state.
 /// </para>
 /// </summary>
 static class BipartiteFrames {
@@ -159,9 +160,6 @@ static class BipartiteFrames {
         public readonly List<string> Picks = new();
         public readonly List<string> Constraints = new();
         public readonly Dictionary<string, List<string>> Hits = new(StringComparer.Ordinal);
-        public readonly Dictionary<string, List<string>> EdgesOf = new(StringComparer.Ordinal);
-        public readonly HashSet<string> NodeIds = new(StringComparer.Ordinal);
-        public readonly HashSet<string> EdgeIds = new(StringComparer.Ordinal);
         /// <summary>What a caption calls each node: an element's name, a set's id.</summary>
         public readonly Dictionary<string, string> Names = new(StringComparer.Ordinal);
 
@@ -181,17 +179,12 @@ static class BipartiteFrames {
             for (int i = 0; i < elementIds.Count; i++) Names[elementIds[i]] = ElementNames[i];
             foreach (var id in setIds) Names[id] = id;
             foreach (var id in elementIds.Concat(setIds)) {
-                NodeIds.Add(id);
                 Hits[id] = new List<string>();
-                EdgesOf[id] = new List<string>();
             }
             for (int i = 0; i < SetMembers.Count; i++)
                 foreach (var name in SetMembers[i]) {
                     string element = SetPieces.ElementId(name), set = setIds[i], edge = SetPieces.EdgeId(element, set);
                     Edges.Add((edge, element, set));
-                    EdgeIds.Add(edge);
-                    EdgesOf[element].Add(edge);
-                    EdgesOf[set].Add(edge);
                     Hits[set].Add(element);
                     Hits[element].Add(set);
                 }
@@ -218,53 +211,49 @@ static class BipartiteFrames {
     /// from an incremental run (<see cref="SolveRun.Incremental"/>); <c>endsRun</c> whether it is an Accept that ends the run
     /// (<see cref="GraphSubsetFrames.EndsRun"/>).
     /// </summary>
-    public static BipartiteFrame Frame(BipartiteSpec spec, IEnumerable<string> picked, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
+    public static BipartiteFrame Frame(BipartiteSpec spec, IEnumerable<string> picked, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) =>
+        Traced(spec, picked, ev, focus, caption, ok, incremental, endsRun).Frame;
+
+    /// <summary>
+    /// <see cref="Frame"/>, with the rule behind every piece's state: for each node and edge id, its state and the name of the
+    /// <see cref="BipartiteStates"/> rule that gave it (Background pieces included, as <see cref="BipartiteStates.NoRule"/>).
+    /// A developer's tool for explaining a colour (the tests' <c>BipartiteTrace</c>); the frame is the same either way.
+    /// </summary>
+    internal static (BipartiteFrame Frame, IReadOnlyDictionary<string, (PictureState State, string Rule)> Why) Traced(
+        BipartiteSpec spec, IEnumerable<string> picked, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
         var m = new Model(spec);
         var picks = new HashSet<string>(m.Picks, StringComparer.Ordinal);
         var chosen = new HashSet<string>(picked.Where(picks.Contains), StringComparer.Ordinal);
         var count = m.Constraints.ToDictionary(c => c, _ => 0, StringComparer.Ordinal);
         foreach (var p in chosen)
             foreach (var c in m.Hits[p]) count[c]++;
+        var inFocus = new HashSet<string>(focus, StringComparer.Ordinal);
 
+        // Every piece's facts, then one table lookup each (BipartiteStates holds the rules and their precedence).
+        var step = new BipartiteStepFacts(spec.Rule, ev, incremental, endsRun, ok == true, chosen.Count);
+        var why = new Dictionary<string, (PictureState State, string Rule)>(StringComparer.Ordinal);
         var nodes = new Dictionary<string, PictureState>(StringComparer.Ordinal);
         var edges = new Dictionary<string, PictureState>(StringComparer.Ordinal);
-        var pickedState = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
-        foreach (var p in chosen) {
-            GraphSubsetFrames.Raise(nodes, p, pickedState);
-            foreach (var e in m.EdgesOf[p]) GraphSubsetFrames.Raise(edges, e, pickedState);
+        void Set(Dictionary<string, PictureState> into, string id, BipartitePieceFacts piece) {
+            var (state, rule) = BipartiteStates.Of(piece, step);
+            why[id] = (state, rule);
+            if (state != PictureState.Background) into[id] = state;
         }
-
-        bool exact = spec.Rule == BipartiteRule.ExactlyOnce;
-        // A complete candidate is judged; one still being built, or an empty pick (no answer), is not failed yet.
-        bool judged = chosen.Count > 0 && (ev == StepEvent.Done || (!incremental && ev is StepEvent.Try or StepEvent.Reject));
-        foreach (var c in m.Constraints) {
-            int n = count[c];
-            if (exact && n > 1) GraphSubsetFrames.Raise(nodes, c, PictureState.Rejected);
-            else if (n > 0) GraphSubsetFrames.Raise(nodes, c, PictureState.Covered);
-            else if (judged) GraphSubsetFrames.Raise(nodes, c, PictureState.Rejected);
-        }
-
-        // Under exactly-once, a pick that would double up on a covered constraint is blocked, unless a whole candidate is
-        // only being tried (then nothing is taken, so nothing is blocked).
-        if (exact && pickedState != PictureState.ElementHighlight)
-            foreach (var p in m.Picks)
-                if (!chosen.Contains(p) && m.Hits[p].Any(c => count[c] > 0)) GraphSubsetFrames.Raise(nodes, p, PictureState.Blocked);
-
-        var focusMark = incremental ? GraphSubsetFrames.FocusMark(ev) : PictureState.ElementHighlight;
-        foreach (var id in focus) {
-            if (m.NodeIds.Contains(id)) {
-                GraphSubsetFrames.Raise(nodes, id, focusMark);
-                if (picks.Contains(id))
-                    foreach (var e in m.EdgesOf[id]) GraphSubsetFrames.Raise(edges, e, focusMark);
-            } else if (m.EdgeIds.Contains(id)) {
-                GraphSubsetFrames.Raise(edges, id, focusMark);
-            }
+        foreach (var p in m.Picks)
+            Set(nodes, p, new(BipartitePieceKind.Pick, Chosen: chosen.Contains(p), TouchesCovered: m.Hits[p].Any(c => count[c] > 0), InFocus: inFocus.Contains(p)));
+        foreach (var c in m.Constraints)
+            Set(nodes, c, new(BipartitePieceKind.Constraint, Hits: count[c], InFocus: inFocus.Contains(c)));
+        foreach (var (id, element, set) in m.Edges) {
+            // An edge belongs to the pick at one of its ends: its set when the answer picks sets, else its element.
+            string pick = spec.Pick == BipartitePick.Sets ? set : element;
+            Set(edges, id, new(BipartitePieceKind.Edge, Chosen: chosen.Contains(pick), InFocus: inFocus.Contains(id) || inFocus.Contains(pick)));
         }
 
         var hits = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var (c, n) in count)
             if (n > 0) hits[c] = n;
-        return new BipartiteFrame(ev, caption, focus, GraphSubsetFrames.ToRefs(nodes), GraphSubsetFrames.ToRefs(edges), hits) { Ok = ok };
+        var frame = new BipartiteFrame(ev, caption, focus, GraphSubsetFrames.ToRefs(nodes), GraphSubsetFrames.ToRefs(edges), hits) { Ok = ok };
+        return (frame, why);
     }
 
     /// <summary>
@@ -374,8 +363,26 @@ static class BipartiteFrames {
     /// steps by the pick, so the two can never quietly disagree.
     /// </summary>
     public static FramesResponse Build(BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer,
-                                       IVisualization? declaredBy = null) {
+                                       IVisualization? declaredBy = null) =>
+        BuildTraced(spec, run, parseAnswer, verifyAnswer, declaredBy).Response;
+
+    /// <summary>
+    /// <see cref="Build"/>, with the rule behind every piece's state in every frame (<see cref="Traced"/>; a stopped frame has
+    /// none). A developer's tool for explaining a colour; the response is the same either way.
+    /// </summary>
+    internal static (FramesResponse Response, List<IReadOnlyDictionary<string, (PictureState State, string Rule)>> Why) BuildTraced(
+        BipartiteSpec spec, SolveRun run, Func<string, string[]?> parseAnswer, Func<string, bool> verifyAnswer, IVisualization? declaredBy = null) {
         spec.Validate(declaredBy?.GetType().Name);
+        var why = new List<IReadOnlyDictionary<string, (PictureState State, string Rule)>>();
+        BipartiteFrame Draw(IEnumerable<string> picked, StepEvent ev, string[] focus, string caption, bool? ok, bool incremental = false, bool endsRun = false) {
+            var (frame, rules) = Traced(spec, picked, ev, focus, caption, ok, incremental, endsRun);
+            why.Add(rules);
+            return frame;
+        }
+        BipartiteFrame Stopped(string caption) {
+            why.Add(new Dictionary<string, (PictureState, string)>(StringComparer.Ordinal));
+            return StoppedFrame(caption);
+        }
         var frames = new List<object>();
         bool lastIsDone = false;
         Type shape = StepShape(spec.Pick);
@@ -392,18 +399,18 @@ static class BipartiteFrames {
             var (partial, ev, focus, caption, ok) = steps[i];
             bool endsRun = i + 1 < steps.Count && GraphSubsetFrames.EndsRun(ev, steps[i + 1].Event, steps[i + 1].Ok);
             frames.Add((run.TimedOut && ev == StepEvent.Done
-                ? StoppedFrame(caption)
-                : Frame(spec, PickIds(partial), ev, focus, caption, ok, run.Incremental, endsRun)) with { Step = i });
+                ? Stopped(caption)
+                : Draw(PickIds(partial), ev, focus, caption, ok, run.Incremental, endsRun)) with { Step = i });
             lastIsDone = ev == StepEvent.Done;
         }
         if (run.TimedOut) {
-            if (!lastIsDone) frames.Add(StoppedFrame(GraphSubsetFrames.StoppedCaption));
+            if (!lastIsDone) frames.Add(Stopped(GraphSubsetFrames.StoppedCaption));
         } else if (!lastIsDone) {
             string[]? picks = parseAnswer(run.Answer);
             bool ok = verifyAnswer(run.Answer);
-            frames.Add(Frame(spec, picks ?? [], StepEvent.Done, [], AnswerCaption(spec, picks, ok), ok));
+            frames.Add(Draw(picks ?? [], StepEvent.Done, [], AnswerCaption(spec, picks, ok), ok));
         }
-        return new FramesResponse(nameof(VisualizationType.BipartiteGraph), Payload(spec), frames);
+        return (new FramesResponse(nameof(VisualizationType.BipartiteGraph), Payload(spec), frames), why);
     }
 }
 
