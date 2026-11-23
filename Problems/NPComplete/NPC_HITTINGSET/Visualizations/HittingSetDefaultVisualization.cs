@@ -39,7 +39,7 @@ class HittingSetDefaultVisualization : IVisualization<HITTINGSET, API_SET>, IBip
     /// Solvers use it for captions.
     /// </summary>
     internal static BipartiteSpec Spec(HITTINGSET hittingSet) =>
-        new(hittingSet.universalSet.ToList().Select(item => item.ToString()).ToList(),
-            hittingSet.subSets.ToList().Select(set => (IReadOnlyList<string>)set.ToList().Select(item => item.ToString()).ToList()).ToList(),
-            null, BipartitePick.Elements, BipartiteRule.ExactlyOnce);
+        new(Universe: hittingSet.universalSet.ToList().Select(item => item.ToString()).ToList(),
+            Sets: hittingSet.subSets.ToList().Select(set => (IReadOnlyList<string>)set.ToList().Select(item => item.ToString()).ToList()).ToList(),
+            K: null, Pick: BipartitePick.Elements, Rule: BipartiteRule.ExactlyOnce);
 }

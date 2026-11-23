@@ -25,10 +25,10 @@ class DFAVisualization : IVisualization<DFA, API_GraphJSON>, IAutomatonVisualiza
     bool IFramesVisualization.ListReadsTypedSteps() => true;
 
     /// <summary>The DFA as the Automaton picture describes it.</summary>
-    internal static AutomatonSpec Spec(DFA problem) => new(AutomatonKind.Dfa,
-        problem.nodes, problem.alphabet.Select(c => c.ToString()).ToList(),
-        problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
-        problem.startState, problem.acceptStates, problem.inputString);
+    internal static AutomatonSpec Spec(DFA problem) => new(Kind: AutomatonKind.Dfa,
+        States: problem.nodes, Alphabet: problem.alphabet.Select(c => c.ToString()).ToList(),
+        Transitions: problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
+        Start: problem.startState, Accepting: problem.acceptStates, Input: problem.inputString);
 
     // --- Methods Including Constructors ---
     public DFAVisualization() { }

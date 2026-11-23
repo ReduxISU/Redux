@@ -59,5 +59,6 @@ class TSPDefaultVisualization : IVisualization<TSP, API_GraphJSON>, IGraphTourVi
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
     GraphTourSpec IGraphTourVisualization<TSP>.Describe(TSP problem) =>
-        new(problem.nodes, problem.listedEdges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), false, problem.K, TourRule.TravelingSalesperson);
+        new(Nodes: problem.nodes, Edges: problem.listedEdges.Select(e => new GraphTourEdge(e.source, e.target, e.weight)).ToList(), Directed: false, K: problem.K,
+            Rule: TourRule.TravelingSalesperson);
 }

@@ -45,5 +45,5 @@ class DominatingSetDefaultVisualization : IVisualization<DOMINATINGSET, API_Grap
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
     GraphSubsetSpec IGraphSubsetVisualization<DOMINATINGSET>.Describe(DOMINATINGSET dominatingSet) =>
-        new(dominatingSet.nodes, dominatingSet.edges, dominatingSet.K, SubsetRule.DominatingSet);
+        new(Nodes: dominatingSet.nodes, Edges: dominatingSet.edges, K: dominatingSet.K, Rule: SubsetRule.DominatingSet);
 }

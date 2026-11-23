@@ -71,9 +71,9 @@ class PumpSchedulingEMVisualization : IVisualization<PUMPSCHEDULINGEM, API_empty
     /// <summary>The instance as the Schedule picture describes it: the tank with its minimum, the day's demand and tariffs, the
     /// pumps in instance order, and the budget as the instance writes it (0: 1.5 times the cheapest schedule).</summary>
     internal static PumpScheduleSpec Spec(PUMPSCHEDULINGEM problem) =>
-        new(ScheduleRule.EmergencyResilience, problem.TankCapacity, problem.TankCurrentLevel, problem.TankMinLevel, problem.DemandGph,
-            problem.PeakHours, problem.OnPeakCostPerKwh, problem.OffPeakCostPerKwh,
-            problem.Pumps.Select(p => new SchedulePump(p.Name, p.FlowRateGph, p.PowerKw, p.StartupCostDollars)).ToList()) {
+        new(Rule: ScheduleRule.EmergencyResilience, Capacity: problem.TankCapacity, Level: problem.TankCurrentLevel, Minimum: problem.TankMinLevel,
+            Demand: problem.DemandGph, PeakHours: problem.PeakHours, OnPeak: problem.OnPeakCostPerKwh, OffPeak: problem.OffPeakCostPerKwh,
+            Pumps: problem.Pumps.Select(p => new SchedulePump(Name: p.Name, Flow: p.FlowRateGph, Power: p.PowerKw, StartupCost: p.StartupCostDollars)).ToList()) {
             Budget = problem.BudgetLimitDollars,
         };
 

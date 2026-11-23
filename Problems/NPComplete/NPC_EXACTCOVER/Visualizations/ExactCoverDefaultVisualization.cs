@@ -62,5 +62,5 @@ class ExactCoverDefaultVisualization : IVisualization<EXACTCOVER, API_SET>, IBip
 
     /// <summary>Exact Cover as a Bipartite Graph: pick sets, every element exactly once. Solvers use it for captions.</summary>
     internal static BipartiteSpec Spec(EXACTCOVER exactCover) =>
-        new(exactCover.X, exactCover.S, null, BipartitePick.Sets, BipartiteRule.ExactlyOnce);
+        new(Universe: exactCover.X, Sets: exactCover.S, K: null, Pick: BipartitePick.Sets, Rule: BipartiteRule.ExactlyOnce);
 }

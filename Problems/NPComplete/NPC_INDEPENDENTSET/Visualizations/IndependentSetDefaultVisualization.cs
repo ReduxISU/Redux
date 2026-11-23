@@ -42,5 +42,5 @@ class IndependentSetDefaultVisualization : IVisualization<INDEPENDENTSET, API_Gr
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
     GraphSubsetSpec IGraphSubsetVisualization<INDEPENDENTSET>.Describe(INDEPENDENTSET independentSet) =>
-        new(independentSet.nodes, independentSet.edges, independentSet.K, SubsetRule.IndependentSet);
+        new(Nodes: independentSet.nodes, Edges: independentSet.edges, K: independentSet.K, Rule: SubsetRule.IndependentSet);
 }

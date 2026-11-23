@@ -28,10 +28,10 @@ class NFAVisualization : IVisualization<NFA, API_GraphJSON>, IAutomatonVisualiza
     bool IFramesVisualization.ListReadsTypedSteps() => true;
 
     /// <summary>The NFA as the Automaton picture describes it (ε-transitions have the symbol "ε").</summary>
-    internal static AutomatonSpec Spec(NFA problem) => new(AutomatonKind.Nfa,
-        problem.nodes, problem.alphabet.Select(c => c.ToString()).ToList(),
-        problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
-        problem.startState, problem.acceptStates, problem.inputString);
+    internal static AutomatonSpec Spec(NFA problem) => new(Kind: AutomatonKind.Nfa,
+        States: problem.nodes, Alphabet: problem.alphabet.Select(c => c.ToString()).ToList(),
+        Transitions: problem.edges.Select(e => new AutomatonTransition(e.From, e.Symbol.ToString(), e.To)).ToList(),
+        Start: problem.startState, Accepting: problem.acceptStates, Input: problem.inputString);
 
     // --- Methods Including Constructors ---
     public NFAVisualization() { }

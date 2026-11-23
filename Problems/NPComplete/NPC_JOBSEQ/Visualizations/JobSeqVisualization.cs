@@ -28,7 +28,7 @@ class JobSeqVisualization : IVisualization<JOBSEQ, API_TableJSON>, IJobScheduleV
 
     /// <summary>The instance as the Schedule picture describes it: its jobs in instance order, and K.</summary>
     internal static JobScheduleSpec Spec(JOBSEQ problem) =>
-        new(Enumerable.Range(0, problem.T.Count).Select(i => new ScheduleJob(problem.T[i], problem.D[i], problem.P[i])).ToList(), problem.K);
+        new(Enumerable.Range(0, problem.T.Count).Select(i => new ScheduleJob(Time: problem.T[i], Deadline: problem.D[i], Penalty: problem.P[i])).ToList(), K: problem.K);
 
     public JobSeqVisualization() { }
 

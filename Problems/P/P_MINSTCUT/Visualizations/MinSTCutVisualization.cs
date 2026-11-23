@@ -22,7 +22,7 @@ class MinSTCutVisualization : IVisualization<MINSTCUT, API_GraphJSON>, IFlowVisu
 
     /// <summary>The instance as the Flow Network picture describes it.</summary>
     internal static FlowSpec Spec(MINSTCUT problem) =>
-        new(problem.nodes, problem.edges.Select(e => new FlowEdgeInput(e.from, e.to, e.weight)).ToList(), problem.sourceNode, problem.targetNode);
+        new(Nodes: problem.nodes, Edges: problem.edges.Select(e => new FlowEdgeInput(e.from, e.to, e.weight)).ToList(), Source: problem.sourceNode, Sink: problem.targetNode);
 
     public MinSTCutVisualization() { }
 

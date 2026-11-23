@@ -36,5 +36,5 @@ class SetCoverDefaultVisualization : IVisualization<SETCOVER, API_SET>, IBiparti
 
     /// <summary>Set Cover as a Bipartite Graph: pick sets, every element at least once, at most K sets. Solvers use it for captions.</summary>
     internal static BipartiteSpec Spec(SETCOVER setCover) =>
-        new(setCover.universal, setCover.subsets, setCover.K, BipartitePick.Sets, BipartiteRule.AtLeastOnce);
+        new(Universe: setCover.universal, Sets: setCover.subsets, K: setCover.K, Pick: BipartitePick.Sets, Rule: BipartiteRule.AtLeastOnce);
 }

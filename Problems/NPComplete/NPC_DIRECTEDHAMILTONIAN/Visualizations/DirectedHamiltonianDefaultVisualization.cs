@@ -57,5 +57,5 @@ class DirectedHamiltonianDefaultVisualization : IVisualization<DIRECTEDHAMILTONI
 
     // --- Graph picture (format=frames only; the list-format methods above are unchanged) ---
     GraphTourSpec IGraphTourVisualization<DIRECTEDHAMILTONIAN>.Describe(DIRECTEDHAMILTONIAN problem) =>
-        new(problem.nodes, problem.edges.Select(e => new GraphTourEdge(e.Key, e.Value)).ToList(), true, null, TourRule.HamiltonianCycle);
+        new(Nodes: problem.nodes, Edges: problem.edges.Select(e => new GraphTourEdge(e.Key, e.Value)).ToList(), Directed: true, K: null, Rule: TourRule.HamiltonianCycle);
 }
