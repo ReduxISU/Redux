@@ -1141,8 +1141,11 @@ You do not have to register your visualization with these tests. They find it th
 | [Endpoints/ParseError_Endpoint_Tests.cs](../../redux-tests/Endpoints/ParseError_Endpoint_Tests.cs): `Visualize_GarbageInstance_IsNever500` | Sending garbage instance strings to `/visualize` for your class never produces a server error (HTTP 500). Bad input should give a friendly 400. |
 | [Endpoints/ProblemTemplate_Endpoint_Tests.cs](../../redux-tests/Endpoints/ProblemTemplate_Endpoint_Tests.cs) | The visualization template download still works and leaves no `{PLACEHOLDER}` behind. Only matters if you edit the template. |
 | [Endpoints/Navigation_Endpoint_Tests.cs](../../redux-tests/Endpoints/Navigation_Endpoint_Tests.cs) and [Batch_Endpoint_Tests.cs](../../redux-tests/Endpoints/Batch_Endpoint_Tests.cs) | The lists of visualizations per problem work. They check a few known problems, not yours. |
+| [Pictures/StepShape_Tests.cs](../../redux-tests/Pictures/StepShape_Tests.cs) (frames pictures only) | Your picture declares a step shape, its builder draws steps of that shape, and some solver of your problem records it. A picture no solver records yet goes on `NoRecordingSolver`, with the reason. |
+| [Pictures/VerifierAgreement_Tests.cs](../../redux-tests/Pictures/VerifierAgreement_Tests.cs) (frames pictures only) | On real runs of every solver your picture draws, its last frame agrees with your problem's verifier: a right answer is not drawn as wrong, and a wrong one is not drawn as right. What each picture type must show is in [VerdictRules.cs](../../redux-tests/Pictures/VerdictRules.cs). |
+| [Pictures/PictureDoctor_Tests.cs](../../redux-tests/Pictures/PictureDoctor_Tests.cs) (frames pictures only) | All of the above for one picture at a time, in plain words. See [section 10](#10-when-a-picture-looks-wrong). |
 
-Those tests only prove the basics. They do **not** check that your picture is correct. That is your job.
+Those tests only prove the basics. For a frames picture they catch a picture that calls a right answer wrong, but not every wrong colour along the way. Checking that your picture is correct is still your job.
 
 > Do not add your class to `UnimplementedAllowlist` to make a failure go away. Pick a real type instead. If no type fits, you are in case (b).
 
@@ -1277,3 +1280,34 @@ Case (b), also:
 - **A `SolvedVisualization` that crashes on an empty solution.** The endpoint calls it with whatever the solver returned, which may be empty.
 - **Editing `UnimplementedAllowlist`** to turn a failure green. Fix the cause.
 - **Writing a controller.** Not needed. Reflection exposes your class.
+
+## 10. When a picture looks wrong
+
+This is for frames pictures (the ones in section 2 marked `format=frames`).
+
+### Ask the picture doctor first
+
+The picture doctor checks one picture and tells you, in plain words, what to fix and where. Name your visualization class:
+
+```bash
+REDUX_DOCTOR=SetCoverDefaultVisualization dotnet test redux-tests --filter "FullyQualifiedName~PictureDoctor"
+```
+
+(In PowerShell: `$env:REDUX_DOCTOR = "SetCoverDefaultVisualization"`, then the same `dotnet test` line.) Without `REDUX_DOCTOR` it checks every picture, as the normal test run does. It checks four things, in order:
+
+1. The picture declares a step shape.
+2. Some solver of the problem records that shape.
+3. `Describe` gives a valid spec for the problem's default instance.
+4. On real runs, the last frame agrees with the problem's verifier.
+
+### Symptom, likely cause, where to look
+
+| Symptom | Likely cause | Where to look |
+| --- | --- | --- |
+| The picture shows only the answer, never the solver's steps. | The run's step shape is not the one the picture draws. Either the solver records another shape, or records none (it does not implement `ISolver<TProblem, TPartial>`). | The solver's class line, and the picture interface's `StepShape`. `visualizeRun` lists the reason as `shape_mismatch`. Doctor checks 1 and 2. |
+| A build error CS0535 about `IVisualization.StepShape`. | A Bipartite, Nested Set or Layered picture must say its step shape, because it depends on the spec. | Add `Type? IVisualization.StepShape => typeof(...)`, matching `BipartiteFrames.StepShape` or `LayeredFrames.StepShape`. |
+| "declares StepShape X, but its Describe picks ..." | The declared shape and the spec disagree (for example `NodeSet` declared, but `Describe` picks sets). | Make the two agree in your visualization class. |
+| "...Describe gave a ...Spec that cannot be drawn: ..." | `Describe` passed a field in the wrong place, a null, or a K below zero. | Your `Describe`. Name the arguments (`Universe: ..., Sets: ..., K: ...`) so a swap is easy to see. |
+| A right answer is drawn with red (Rejected) pieces, or a wrong one in green (Solution). | `Describe` gives the wrong rule, K or list, so the picture judges the answer by the wrong problem. | Your `Describe`. Doctor check 4 names the run, the instance and the pieces. |
+| One piece has a colour you cannot explain (Bipartite pictures). | One of the picture's state rules applies that you did not expect. | Build the trace: `BipartiteTrace.Of("<visualization>", instance, typeof(<solver>))` in a test gives each piece's state and the name of the rule that set it, frame by frame. The rules and their order are in [BipartiteStates.cs](../../Interfaces/graphs/BipartiteStates.cs). |
+| Every picture of a problem is wrong in the same way. | The problem parses its instance differently from what `Describe` expects, or the verifier disagrees with the solver. | The problem's class and its default verifier. |

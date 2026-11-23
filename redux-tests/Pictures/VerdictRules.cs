@@ -148,7 +148,7 @@ internal static class VerdictRules {
         var ids = run.FinalStates.Keys.Where(k => k.EndsWith(":" + state, StringComparison.Ordinal)).Select(k => k[..k.IndexOf(':')]).ToList();
         var named = ids.SelectMany(member => run.StatesIn(member).Where(kv => kv.Value == state).Select(kv => kv.Key)).Take(6).ToList();
         int total = run.Count(state);
-        return named.Count == 0 ? $"{total} pieces" : string.Join(", ", named) + (total > named.Count ? $" (and {total - named.Count} more)" : "");
+        return named.Count == 0 ? $"{total} pieces" : "pieces " + string.Join(", ", named) + (total > named.Count ? $" (and {total - named.Count} more)" : "");
     }
 
     private static string List(List<string> ids, Dictionary<string, string> states) =>
