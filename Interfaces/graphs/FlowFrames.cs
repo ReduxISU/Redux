@@ -215,36 +215,42 @@ static class FlowFrames {
         /// reach. Used only to draw an answer whose steps cannot be drawn.
         /// </summary>
         public (Dictionary<string, int> Flow, HashSet<string> Reach) MaxFlow() {
-            var flow = Edges.ToDictionary(e => e.Id, _ => 0, StringComparer.Ordinal);
-            // A residual move: along an edge (room = capacity - flow) or against it (room = flow).
-            IEnumerable<(Edge Edge, bool Forward, string To, int Room)> Moves(string x) {
-                foreach (var e in Edges) {
-                    if (e.A == x && e.Capacity - flow[e.Id] > 0) yield return (e, true, e.B, e.Capacity - flow[e.Id]);
-                    if (e.B == x && flow[e.Id] > 0) yield return (e, false, e.A, flow[e.Id]);
-                }
-            }
-            HashSet<string> Search(Dictionary<string, (Edge Edge, bool Forward, string From)> prev) {
-                var reach = new HashSet<string>(StringComparer.Ordinal) { Spec.Source };
-                var queue = new Queue<string>([Spec.Source]);
+            // One return, after the loop: a Release build instrumented for coverage (rbs's unit-test) turned the earlier
+            // while (true) loop, which returned only from inside, into an invalid program (InvalidProgramException).
+            var flow = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var e in Edges) flow[e.Id] = 0;
+            var reach = new HashSet<string>(StringComparer.Ordinal);
+            bool augmented = true;
+            while (augmented) {
+                // A breadth-first search of the residual graph from the source. Each edge gives a move along it
+                // (room = capacity - flow) and one against it (room = flow), tried in edge order.
+                var prev = new Dictionary<string, (Edge Edge, bool Forward, string From)>(StringComparer.Ordinal);
+                reach = new HashSet<string>(StringComparer.Ordinal) { Spec.Source };
+                var queue = new Queue<string>();
+                queue.Enqueue(Spec.Source);
                 while (queue.Count > 0) {
                     string x = queue.Dequeue();
-                    foreach (var (edge, forward, to, _) in Moves(x))
-                        if (reach.Add(to)) {
-                            prev[to] = (edge, forward, x);
-                            queue.Enqueue(to);
+                    foreach (var e in Edges) {
+                        if (e.A == x && e.Capacity - flow[e.Id] > 0 && reach.Add(e.B)) {
+                            prev[e.B] = (e, true, x);
+                            queue.Enqueue(e.B);
                         }
+                        if (e.B == x && flow[e.Id] > 0 && reach.Add(e.A)) {
+                            prev[e.A] = (e, false, x);
+                            queue.Enqueue(e.A);
+                        }
+                    }
                 }
-                return reach;
-            }
-            while (true) {
-                var prev = new Dictionary<string, (Edge Edge, bool Forward, string From)>(StringComparer.Ordinal);
-                var reach = Search(prev);
-                if (!reach.Contains(Spec.Sink) || Spec.Sink == Spec.Source) return (flow, reach);
+                augmented = reach.Contains(Spec.Sink) && Spec.Sink != Spec.Source;
+                if (!augmented) break;
+                // The augmenting path, sink to source, and the most it can carry.
                 var legs = new List<(Edge Edge, bool Forward)>();
                 for (string x = Spec.Sink; x != Spec.Source; x = prev[x].From) legs.Add((prev[x].Edge, prev[x].Forward));
-                int push = legs.Min(l => l.Forward ? l.Edge.Capacity - flow[l.Edge.Id] : flow[l.Edge.Id]);
+                int push = int.MaxValue;
+                foreach (var (edge, forward) in legs) push = Math.Min(push, forward ? edge.Capacity - flow[edge.Id] : flow[edge.Id]);
                 foreach (var (edge, forward) in legs) flow[edge.Id] += forward ? push : -push;
             }
+            return (flow, reach);
         }
     }
 
