@@ -9,8 +9,7 @@ class HamiltonianCycleToUnrestrictedLongestPath : IReduction<HAMILTONIAN, UNREST
     public string reductionDefinition { get; } =
         "Splits one vertex into two copies, attaches a leaf to each copy, and asks for a path through every output vertex.";
     public string source { get; } = "Vertex-splitting construction with a proof in both directions.";
-    public string sourceFile { get; } =
-        "Problems/NPComplete/NPC_UNRESTRICTEDLONGESTPATH/ReduceTo/NPC_HAMILTONIAN/HamiltonianCycleToUnrestrictedLongestPath.cs";
+    public string sourceFile { get; } = SourceFile.Path();
     public string[] contributors { get; } = Array.Empty<string>();
     public ReductionCost cost { get; } = ReductionCost.Linear;
     public ReductionType reductionType { get; } = ReductionType.LocalReplacement;
