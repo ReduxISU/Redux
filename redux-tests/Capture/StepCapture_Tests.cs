@@ -190,7 +190,7 @@ public class StepCapture_Tests {
 
     // ---- Instances ----
 
-    private static List<string> Instances(Type solverType, Type problemType, IEnumerable<Type> problemSolvers, List<(string Key, string Instance)> snapshots, out int unparsed) {
+    internal static List<string> Instances(Type solverType, Type problemType, IEnumerable<Type> problemSolvers, List<(string Key, string Instance)> snapshots, out int unparsed) {
         var problem = (IProblem)Activator.CreateInstance(problemType)!;
         string problemKey = problemType.Name.ToLowerInvariant();
         string solverKey = solverType.Name.ToLowerInvariant();
@@ -227,7 +227,7 @@ public class StepCapture_Tests {
 
     // Every (key, instance) row of the snapshot tables: the first column names a solver, a problem or a visualization, the
     // second is the instance (JSON-quoted in some tables).
-    private static List<(string Key, string Instance)> SnapshotInstances() {
+    internal static List<(string Key, string Instance)> SnapshotInstances() {
         string folder = Path.Combine(AppContext.BaseDirectory, "Endpoints", "Snapshots");
         var rows = new List<(string, string)>();
         foreach (string file in Directory.GetFiles(folder, "*.tsv").OrderBy(f => f, StringComparer.Ordinal)) {
