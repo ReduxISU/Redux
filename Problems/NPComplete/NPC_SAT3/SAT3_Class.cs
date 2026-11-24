@@ -100,4 +100,7 @@ class SAT3 : IProblem<Sat3BacktrackingSolver, SAT3Verifier, Sat3DefaultVisualiza
     public List<string> getLiterals(string phiInput) {
         return parseInstance(phiInput).LiteralStrings();
     }
+
+    /// <summary>The sizes of the formula Φ, for the Big-O precheck (#843); see <see cref="CnfFormula.SizeMeasures"/>.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => formula.SizeMeasures();
 }

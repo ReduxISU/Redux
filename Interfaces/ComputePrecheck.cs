@@ -17,8 +17,9 @@ namespace API.Interfaces;
 /// </para>
 /// <para>
 /// A solver is skipped (left to the timer) when it declares no Big-O, when its problem reports no measures, when its
-/// Big-O uses a name its problem does not report, or when it prunes its search (<see cref="SolverType.Backtracking"/>),
-/// whose worst case its pruning exists to avoid (<see cref="SkipReason"/>). So a solver is checked only once its Big-O
+/// Big-O uses a name its problem does not report, when it runs on the quantum service (<see cref="SolverType.Quantum"/>),
+/// when it enforces its own exact-search limit (<see cref="ExactSearchLimitAttribute"/>), or when it prunes its search (<see cref="SolverType.Backtracking"/>), whose worst case its pruning exists to avoid
+/// (<see cref="SkipReason"/>). So a solver is checked only once its Big-O
 /// is written in the names of its problem's grammar.
 /// </para>
 /// <para>
@@ -134,9 +135,21 @@ static class ComputePrecheck {
         if (missing.Count > 0)
             return new SolverPlan(problemType, function,
                 $"its timeComplexity uses {string.Join(", ", missing)}, which {problemType.Name} does not report");
+        // A solver with its own exact-search limit answers past it with HTTP 400 exact_search_limit_exceeded, from inside
+        // the solve. The limit is far below what the precheck refuses (Weighted Max-SAT brute force at its 20 variables
+        // is about 10^6 * |phi| steps), so the precheck could only ever answer 422 where the limit answers 400: leaving
+        // the solver to its limit keeps one answer for every solver that shares it (#1029 review).
+        if (type.GetCustomAttributes(typeof(ExactSearchLimitAttribute), false) is [ExactSearchLimitAttribute exact, ..])
+            return new SolverPlan(problemType, function,
+                $"it enforces its own exact-search limit ({exact.Limit}), refused with HTTP 400 exact_search_limit_exceeded");
         // A solver that prunes its search declares the worst case, which its pruning exists to avoid: TSPBranchAndBound
         // solved a 15-node complete graph in 0.17 s, where its O(|N|^2 * |N|!) is 2.9e14 steps, about 10,000
         // times what fits in 30 seconds at DefaultStepsPerSecond. Its Big-O says too little about its real running time to refuse on.
+        // A quantum solver's work runs on the external quantum service, under that service's own limits, not on the
+        // server's processor, so the server's steps a second say nothing about it.
+        if (SolverTypeOf(type).HasFlag(SolverType.Quantum))
+            return new SolverPlan(problemType, function,
+                "it runs on the external quantum service (SolverType.Quantum), not on the server's processor");
         if (SolverTypeOf(type).HasFlag(SolverType.Backtracking))
             return new SolverPlan(problemType, function,
                 "it prunes its search (SolverType.Backtracking), so its worst-case Big-O says little about its running time");

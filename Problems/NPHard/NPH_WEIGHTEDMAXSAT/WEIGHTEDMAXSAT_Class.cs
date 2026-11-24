@@ -39,6 +39,12 @@ class WEIGHTEDMAXSAT : IProblem<WeightedMaxSatBruteForceSolver, WeightedMaxSatSo
     internal IReadOnlyList<string> variables { get; }
     internal CnfFormula formula { get; }
 
+    /// <summary>
+    /// The sizes of the formula Φ, for the Big-O precheck (#843); see <see cref="CnfFormula.SizeMeasures"/>. W has one
+    /// weight per clause, so its count is <c>|clauses|</c>.
+    /// </summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => formula.SizeMeasures();
+
     // --- Methods Including Constructors ---
     public WEIGHTEDMAXSAT() : this(_defaultInstance) { }
 
