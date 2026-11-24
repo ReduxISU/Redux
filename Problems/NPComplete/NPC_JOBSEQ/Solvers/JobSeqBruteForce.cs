@@ -19,7 +19,7 @@ class JobSeqBruteForce : ISolver<JOBSEQ> {
     // Declared, not derived. GenerateCombinations lazily yields all p! permutations
     // of the job indices (p = number of jobs) as solve() iterates and verifies each
     // (verify is O(p)).
-    public MathematicalFunction timeComplexity { get; } = new("p! * p", ", p = number of jobs");
+    public MathematicalFunction timeComplexity { get; } = new("|T|! * |T|", ", |T| = number of jobs");
 
     // --- Methods Including Constructors ---
     public JobSeqBruteForce() {

@@ -77,6 +77,15 @@ class DFA : IGraphProblem<DFASolver, DFAVerifier, DFAVisualization, WeightedDire
     public string inputString { get => _inputString; set => _inputString = value; }
 
     // ----- Constructors ----- //
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the states N, alphabet A, transitions E, accept states F and the input length |I|.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("N", nodes.Count),
+        SizeMeasure.Count("A", alphabet.Count),
+        SizeMeasure.Count("E", edges.Count),
+        SizeMeasure.Count("F", acceptStates.Count),
+        SizeMeasure.Count("I", inputString.Length),
+    ];
+
     public DFA() : this(_defaultInstance) { }
 
     public DFA(string instance) {

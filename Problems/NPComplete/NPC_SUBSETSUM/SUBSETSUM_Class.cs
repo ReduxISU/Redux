@@ -57,6 +57,12 @@ class SUBSETSUM : IProblem<SubsetSumBruteForce, SubsetSumVerifier, DummyVisualiz
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): |S| integers and the target T.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("S", S.Count),
+        SizeMeasure.Number("T", T),
+    ];
+
     public SUBSETSUM() : this(_defaultInstance) {
 
     }

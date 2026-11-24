@@ -54,6 +54,14 @@ interface IProblem {
 
     string[] contributors { get; }
 
+    /// <summary>
+    /// The sizes of this instance's parts, named as in the problem's instance grammar (see <see cref="SizeMeasure"/>),
+    /// which the Big-O precheck evaluates a solver's <see cref="ISolver.timeComplexity"/> on (#843). The default reports
+    /// none, so every solver of the problem is left to the time limit. A method, not a property, so /info and every
+    /// other JSON written from a problem stay as they are.
+    /// </summary>
+    IReadOnlyList<SizeMeasure> SizeMeasures() => [];
+
     // A problem that implements IProblem<T, U, V> names its defaults itself. One that implements
     // plain IProblem gets them from [DefaultFor] on the solver/verifier/visualization classes, or a
     // placeholder for a kind with none, so a new problem compiles before those classes exist (#919).

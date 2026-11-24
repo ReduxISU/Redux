@@ -53,4 +53,7 @@ class MINCUT : IGraphProblem<MinCutStoerWagner, MinCutVerifier, MinCutVisualizat
         }).ToList();
         graph = new UtilCollectionGraph(parser["N"], parser["E"]);
     }
+
+    /// <summary>The sizes of the instance's parts, named as in its grammar, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("N", nodes.Count), SizeMeasure.Count("E", edges.Count)];
 }

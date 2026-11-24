@@ -102,7 +102,8 @@ public class ComputeJobLimiter_Tests {
     }
 }
 
-// The app with room for one compute job at a time and a 2-second time limit (#936).
+// The app with room for one compute job at a time and a 2-second time limit (#936). The Big-O precheck (#843) is off:
+// the blocking solve is hopeless at 2 seconds on purpose, so that it holds the slot until the timer stops it.
 public class OneComputeJobAppFactory : AppFactory {
     public const double TimeLimitSeconds = 2;
 
@@ -112,6 +113,7 @@ public class OneComputeJobAppFactory : AppFactory {
             config.AddInMemoryCollection(new Dictionary<string, string?> {
                 [ComputeJobLimiter.MaxJobsKey] = "1",
                 [ComputeLimits.TimeLimitKey] = TimeLimitSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                [ComputePrecheck.MarginKey] = "0",
             }));
     }
 }
