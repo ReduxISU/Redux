@@ -60,6 +60,11 @@ class NQUEENS : IProblem<NQueensConstructive, NQueensVerifier, DummyVisualizatio
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
 
     // --- Constructors ---
+    /// <summary>The board size n of the formal definition, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Number("n", n),
+    ];
+
     public NQUEENS() : this(_defaultInstance) { }
 
     public NQUEENS(string input) {

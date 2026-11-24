@@ -4,6 +4,7 @@ using SPADE;
 
 namespace API.Problems.NPComplete.NPC_CHANGEMAKING.Solvers;
 
+[ExactSearchLimit("a target amount of at most 10,000,000")] // MaxAmount
 class ChangeMakingDP : ISolver<CHANGEMAKING> {
 
     // --- Fields ---
@@ -18,7 +19,7 @@ class ChangeMakingDP : ISolver<CHANGEMAKING> {
     // O(m * X) is pseudo-polynomial: polynomial in the value of X, exponential in its bit length.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("m * X", ", m = |C|, X = target amount");
+    public MathematicalFunction timeComplexity { get; } = new("|C| * X", ", |C| = number of coin values, X = target amount");
     public MathematicalFunction spaceComplexity { get; } = new("X", ", X = target amount");
 
     // Largest X whose tables are allocated: two int arrays of X + 1 entries, about 80 MB at this size.

@@ -62,6 +62,12 @@ class EXACTCOVER : IProblem<ExactCoverBruteForce, ExactCoverVerifier, ExactCover
     }
     // --- Methods Including Constructors ---
 
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the universe U (held as X) and the subsets S.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("U", X.Count),
+        SizeMeasure.Count("S", S.Count),
+    ];
+
     public EXACTCOVER() : this(_defaultInstance) {
     }
     public EXACTCOVER(string input) {

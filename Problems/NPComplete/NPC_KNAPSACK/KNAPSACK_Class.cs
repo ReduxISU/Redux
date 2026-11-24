@@ -67,6 +67,13 @@ class KNAPSACK : IProblem<KnapsackBruteForce, KnapsackVerifier, DummyVisualizati
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): |i| items, the capacity w and the target value v.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("i", items.ToList().Count),
+        SizeMeasure.Number("w", W),
+        SizeMeasure.Number("v", V),
+    ];
+
     public KNAPSACK() : this(_defaultInstance) {
 
     }
