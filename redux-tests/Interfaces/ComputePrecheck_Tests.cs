@@ -181,6 +181,7 @@ public class ComputePrecheck_Tests {
         // long they run, so the precheck leaves them to the timer.
         "CarraghanPardalos", "DominatingSetForcedVertex", "DominatingSetNaiveInclusionExclusion",
         "TSPBranchAndBound", "VertexCoverBoundedSearchTree", "WeightedMaxCliqueBranchAndBoundSolver",
+        "CircuitSatBruteForceSolver",
         "ConvexHullSolver",
         "DeutschClassicalSolver", "DeutschQuantumSolver",
         "DeutschJozsaClassicalSolver", "DeutschJozsaQuantumSolver",
@@ -194,6 +195,8 @@ public class ComputePrecheck_Tests {
         "JobSeqBruteForce",
         "KnapsackBruteForce", "KnapsackDP",
         "LosslessDataCompressionSolver",
+        "MaximumValueKnapsackBranchAndBoundSolver", "MaximumValueKnapsackBruteForceSolver",
+        "MaximumValueKnapsackModifiedGreedySolver",
         "MaxCutQAOASolver", // runs on the quantum service (SolverType.Quantum)
         "NQueensBacktracking", "NQueensConstructive",
         "PartitionBruteForce",
