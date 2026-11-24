@@ -22,6 +22,7 @@ public class MAXIMUMVALUEKNAPSACK_Tests {
         Assert.Equal(ProblemType.MathematicalProgramming, problem.problemType);
         Assert.Contains(MAXIMUMVALUEKNAPSACK.InstanceGrammar, problem.instanceFormat);
         Assert.Contains(problem.defaultInstance, problem.instanceFormat);
+        Assert.Contains("Single item: (((10,60)),50)", problem.instanceFormat);
         Assert.Contains("({2,3},220)", problem.certificateFormat);
         Assert.Contains("({},0)", problem.certificateFormat);
         Assert.EndsWith("NPH_MAXIMUMVALUEKNAPSACK/MAXIMUMVALUEKNAPSACK_Class.cs", problem.sourceFile.Replace('\\', '/'));
@@ -38,6 +39,7 @@ public class MAXIMUMVALUEKNAPSACK_Tests {
 
     [Theory]
     [InlineData("((),0)", 0, 0, 0)]
+    [InlineData("(((10,60)),50)", 1, 50, 60)]
     [InlineData("((),9223372036854775807)", 0, long.MaxValue, 0)]
     [InlineData("(((0,0)),0)", 1, 0, 0)]
     [InlineData("(((0,7),(0,0),(5,0)),0)", 3, 0, 7)]

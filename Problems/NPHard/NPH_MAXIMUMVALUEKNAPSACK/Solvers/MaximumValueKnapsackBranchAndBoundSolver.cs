@@ -5,7 +5,7 @@ namespace API.Problems.NPHard.NPH_MAXIMUMVALUEKNAPSACK.Solvers;
 
 internal sealed class MaximumValueKnapsackBranchAndBoundSolver : ISolver<MAXIMUMVALUEKNAPSACK> {
     public string solverName { get; } = "Maximum-Value 0-1 Knapsack Exact Branch and Bound";
-    public string solverDefinition { get; } = "Uses explicit-stack, include-first depth-first search in descending exact value/weight density, breaking density ties by original item index. Prunes with an upward-rounded fractional-knapsack upper bound calculated with BigInteger. Maintains a feasible greedy incumbent and returns an optimum only on completion. There is no 20-item limit; worst-case search remains exponential. Positive-value zero-weight items are always included and zero-value or individually overweight items are omitted. Tied incumbents are retained deterministically.";
+    public string solverDefinition { get; } = "Uses explicit-stack, include-first depth-first search in descending exact value/weight density, breaking density ties by original item index. Prunes with a fractional-knapsack upper bound calculated with BigInteger and rounded down for integer objectives. Maintains a feasible greedy incumbent and returns an optimum only on completion. There is no 20-item limit; worst-case search remains exponential. Positive-value zero-weight items are always included and zero-value or individually overweight items are omitted. Tied incumbents are retained deterministically.";
     public string source { get; } = "Fractional-knapsack relaxation and branch-and-bound search for 0-1 knapsack; Kellerer, Pferschy, and Pisinger, Knapsack Problems (2004).";
     public string sourceLink { get; } = "https://doi.org/10.1007/978-3-540-24777-7";
     public string sourceFile { get; } = SourceFile.Path();
@@ -93,9 +93,10 @@ internal sealed class MaximumValueKnapsackBranchAndBoundSolver : ISolver<MAXIMUM
                 bound += item.Value;
             } else {
                 // Relax the next item to a fraction. Casting BEFORE multiplication
-                // avoids Int64 overflow; ceiling never understates the rational bound.
+                // avoids Int64 overflow. Integer objectives cannot exceed the floor
+                // of the rational relaxation, so rounding down is safe and tighter.
                 BigInteger numerator = (BigInteger)remaining * item.Value;
-                bound += (numerator + item.Weight - 1) / item.Weight;
+                bound += numerator / item.Weight;
                 break;
             }
         }

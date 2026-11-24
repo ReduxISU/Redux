@@ -49,16 +49,16 @@ public class MaximumValueKnapsackBruteForce_Tests {
     }
 
     [Fact]
-    public void TwentyOneItems_StillParseAndVerifyButExhaustiveComponentsRefuse() {
+    public void TwentyOneItems_StillParseAndVerifyButBruteForceRefuses() {
         var problem = new MAXIMUMVALUEKNAPSACK(UnitItems(21));
         Assert.Equal(21, problem.items.Count);
         Assert.True(new MaximumValueKnapsackSolutionVerifier().verify(problem, "({21},1)"));
+        Assert.False(new MaximumValueKnapsackOptimalityVerifier().verify(problem, "({21},1)"));
+        Assert.False(((IVerifier)new MaximumValueKnapsackOptimalityVerifier()).verify(problem.instance, "({21},1)"));
         ISolver solver = new MaximumValueKnapsackBruteForceSolver();
         foreach (Action action in new Action[] {
             () => new MaximumValueKnapsackBruteForceSolver().solve(problem),
-            () => solver.solve(problem.instance),
-            () => new MaximumValueKnapsackOptimalityVerifier().verify(problem, "({21},1)"),
-            () => ((IVerifier)new MaximumValueKnapsackOptimalityVerifier()).verify(problem.instance, "({21},1)") }) {
+            () => solver.solve(problem.instance) }) {
             var error = Assert.Throws<ExactSearchLimitExceededException>(action);
             Assert.Equal("Maximum-Value 0-1 Knapsack", error.ProblemName);
             Assert.Equal(21, error.VariableCount);

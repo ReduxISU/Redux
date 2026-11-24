@@ -23,7 +23,7 @@ internal sealed class MAXIMUMVALUEKNAPSACK : IProblem {
     public const string InstanceGrammar = "{(items,capacity) | items is list, capacity is int}";
     public const string DefaultInstance = "(((10,60),(20,100),(30,120)),50)";
     public string defaultInstance { get; } = DefaultInstance;
-    public string instanceFormat { get; } = $"Format: {InstanceGrammar}. Each item is an ordered (weight,value) pair. Items retain input order and duplicates. All numbers use ASCII decimal digits without signs and must be between 0 and {long.MaxValue}; the sum of all values must also fit this range. Whitespace is allowed between tokens. Empty items: ((),0). Example: {DefaultInstance}";
+    public string instanceFormat { get; } = $"Format: {InstanceGrammar}. Each item is an ordered (weight,value) pair. Items retain input order and duplicates. All numbers use ASCII decimal digits without signs and must be between 0 and {long.MaxValue}; the sum of all values must also fit this range. Whitespace is allowed between tokens. Empty items: ((),0). Single item: (((10,60)),50). Example: {DefaultInstance}";
     public string certificateFormat { get; } = "({i1,i2,...},totalValue): distinct 1-based item indices and their nonnegative signed 64-bit total value. Solvers emit indices in ascending order. Feasibility requires total weight at most capacity; optimality is a separate check. The empty selection is ({},0). Example: ({2,3},220)";
 
     public string instance { get; }

@@ -43,6 +43,17 @@ public class MaximumValueKnapsackBranchAndBound_Tests {
     }
 
     [Fact]
+    public void FractionalBound_RoundsDownToPruneAnIntegerIncumbent() {
+        // Greedy takes one item for 1; the fractional bound is 4/3. Its floor
+        // proves the incumbent at the root, while ceiling would require search.
+        var problem = new MAXIMUMVALUEKNAPSACK("(((3,1),(3,1)),4)");
+        var solver = new MaximumValueKnapsackBranchAndBoundSolver();
+        Assert.Equal("({1},1)", solver.solve(problem));
+        Assert.Equal(1, solver.SearchNodes);
+        Assert.Equal(1, solver.PrunedBranches);
+    }
+
+    [Fact]
     public void FractionalBound_ImprovesMisleadingDensitySeedAndPrunes() {
         var problem = new MAXIMUMVALUEKNAPSACK("(((2,3),(3,4),(3,4)),6)");
         // Density greedy takes indices 1,2 for 7. At the root the fractional

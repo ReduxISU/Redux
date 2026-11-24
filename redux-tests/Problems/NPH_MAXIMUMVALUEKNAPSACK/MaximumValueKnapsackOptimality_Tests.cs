@@ -50,13 +50,26 @@ public class MaximumValueKnapsackOptimality_Tests {
     }
 
     [Fact]
-    public void CertificateValidation_PrecedesSearchLimit() {
+    public void CertificateValidation_PrecedesSearch() {
         var problem = new MAXIMUMVALUEKNAPSACK(MaximumValueKnapsackBruteForce_Tests.UnitItems(21));
         var verifier = new MaximumValueKnapsackOptimalityVerifier();
         Assert.False(verifier.verify(problem, "({0},0)"));
         Assert.False(verifier.verify(problem, "({},1)"));
         Assert.Throws<CertificateParseException>(() => verifier.verify(problem, "({1,1},2)"));
         Assert.Throws<ProblemParseException>(() => ((IVerifier)verifier).verify("garbage", "({},0)"));
+    }
+
+    [Theory]
+    [InlineData("({23,24},8)", true)]
+    [InlineData("({22,23},7)", false)]
+    [InlineData("({22,23,24},11)", false)]
+    [InlineData("({25},0)", false)]
+    public void MoreThanTwentyItems_VerifiesExactOptimumBeyondGreedySeed(string certificate, bool expected) {
+        string padding = string.Join(",", Enumerable.Repeat("(0,0)", 21));
+        var problem = new MAXIMUMVALUEKNAPSACK($"(({padding},(2,3),(3,4),(3,4)),6)");
+        var verifier = new MaximumValueKnapsackOptimalityVerifier();
+        Assert.Equal(expected, verifier.verify(problem, certificate));
+        Assert.Equal(expected, ((IVerifier)verifier).verify(problem.instance, certificate));
     }
 
     [Fact]
@@ -67,7 +80,8 @@ public class MaximumValueKnapsackOptimality_Tests {
         IProblem problem = new MAXIMUMVALUEKNAPSACK();
         Assert.IsType<MaximumValueKnapsackSolutionVerifier>(problem.defaultVerifier);
         Assert.Equal("Maximum-Value 0-1 Knapsack Optimality Verifier", verifier.verifierName);
-        Assert.Contains("20-item limit", verifier.verifierDefinition);
+        Assert.Contains("exact branch-and-bound", verifier.verifierDefinition);
+        Assert.Contains("no item-count limit", verifier.verifierDefinition);
         Assert.NotEmpty(verifier.source);
         Assert.NotEmpty(verifier.sourceLink);
         Assert.NotEmpty(verifier.contributors);

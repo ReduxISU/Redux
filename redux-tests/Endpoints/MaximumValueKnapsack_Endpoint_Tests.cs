@@ -214,7 +214,7 @@ public class MaximumValueKnapsack_Endpoint_Tests(AppFactory factory) : IClassFix
     // --- Exact-search limits ---
 
     [Fact]
-    public async Task Exact_ExhaustiveLimits_DoNotAffectParsingOrSolutionVerification() {
+    public async Task Exact_ExhaustiveLimits_DoNotAffectParsingOrVerification() {
         using var client = factory.CreateClient();
         string instance = MaximumValueKnapsackBruteForce_Tests.UnitItems(21);
         using var parsed = await client.PostAsJsonAsync("/ProblemProvider/problemInstance?problem=MAXIMUMVALUEKNAPSACK", instance, TestContext.Current.CancellationToken);
@@ -225,14 +225,19 @@ public class MaximumValueKnapsack_Endpoint_Tests(AppFactory factory) : IClassFix
         Assert.Equal("True", await feasible.Content.ReadFromJsonAsync<string>(TestContext.Current.CancellationToken));
         using var solved = await client.PostAsJsonAsync($"/ProblemProvider/solve?solver={BruteForceSolver}", instance, TestContext.Current.CancellationToken);
         using var optimal = await client.PostAsJsonAsync($"/ProblemProvider/verify?verifier={Optimality}", body, TestContext.Current.CancellationToken);
-        foreach (var response in new[] { solved, optimal }) {
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            var json = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
-            Assert.Equal("exact_search_limit_exceeded", json.GetProperty("error").GetString());
-            Assert.Equal(21, json.GetProperty("variableCount").GetInt32());
-            Assert.Equal(20, json.GetProperty("maxVariables").GetInt32());
-            Assert.Contains("Maximum-Value 0-1 Knapsack", json.GetProperty("detail").GetString());
-        }
+        Assert.Equal(HttpStatusCode.OK, optimal.StatusCode);
+        Assert.Equal("False", await optimal.Content.ReadFromJsonAsync<string>(TestContext.Current.CancellationToken));
+        using var optimum = await client.PostAsJsonAsync($"/ProblemProvider/verify?verifier={Optimality}",
+            new { ProblemInstance = instance, Certificate = $"({{{string.Join(",", Enumerable.Range(1, 21))}}},21)" },
+            TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, optimum.StatusCode);
+        Assert.Equal("True", await optimum.Content.ReadFromJsonAsync<string>(TestContext.Current.CancellationToken));
+        Assert.Equal(HttpStatusCode.BadRequest, solved.StatusCode);
+        var json = await solved.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
+        Assert.Equal("exact_search_limit_exceeded", json.GetProperty("error").GetString());
+        Assert.Equal(21, json.GetProperty("variableCount").GetInt32());
+        Assert.Equal(20, json.GetProperty("maxVariables").GetInt32());
+        Assert.Contains("Maximum-Value 0-1 Knapsack", json.GetProperty("detail").GetString());
     }
 
     [Fact]
@@ -389,7 +394,10 @@ public class MaximumValueKnapsack_Endpoint_Tests(AppFactory factory) : IClassFix
         using var limited = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
             config.AddInMemoryCollection(new Dictionary<string, string?> { [ComputeLimits.TimeLimitKey] = "0.001" })));
         using var client = limited.CreateClient();
-        string instance = MaximumValueKnapsackBruteForce_Tests.UnitItems(20);
+        // Keep the in-process verification search finite: the backstop stops
+        // waiting but does not cancel its work. All-fit items prune immediately.
+        string instance = verify ? MaximumValueKnapsackBranchAndBound_Tests.HardInstance(24)
+            : MaximumValueKnapsackBruteForce_Tests.UnitItems(20);
         using var response = verify
             ? await client.PostAsJsonAsync($"/ProblemProvider/verify?verifier={Optimality}",
                 new { ProblemInstance = instance, Certificate = "({},0)" }, TestContext.Current.CancellationToken)
@@ -416,10 +424,24 @@ public class MaximumValueKnapsack_Endpoint_Tests(AppFactory factory) : IClassFix
         using var limited = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
             config.AddInMemoryCollection(new Dictionary<string, string?> { [ComputeLimits.TimeLimitKey] = "0.001" })));
         using var client = limited.CreateClient();
-        using var response = await client.PostAsJsonAsync($"/ProblemProvider/solve?solver={ModifiedGreedySolver}",
-            MaximumValueKnapsackBruteForce_Tests.UnitItems(20000), TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
-        Assert.Equal("time_limit", json.GetProperty("error").GetString());
+        string instance = MaximumValueKnapsackBruteForce_Tests.UnitItems(100000);
+        var problem = new MAXIMUMVALUEKNAPSACK(instance);
+        // Each request has its own timer. Allow a completed solve when timer
+        // dispatch is delayed, but require a timeout within a bounded retry count.
+        for (int attempt = 0; attempt < 10; attempt++) {
+            using var response = await client.PostAsJsonAsync($"/ProblemProvider/solve?solver={ModifiedGreedySolver}",
+                instance, TestContext.Current.CancellationToken);
+            if (response.StatusCode == HttpStatusCode.OK) {
+                string certificate = (await response.Content.ReadFromJsonAsync<string>(TestContext.Current.CancellationToken))!;
+                Assert.True(new MaximumValueKnapsackSolutionVerifier().verify(problem, certificate));
+                Assert.Equal(problem.totalItemValue, MaximumValueKnapsackSolutionVerifier.ParseCertificate(problem, certificate).Value);
+                continue;
+            }
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
+            Assert.Equal("time_limit", json.GetProperty("error").GetString());
+            return;
+        }
+        Assert.Fail("The time limit was not observed in ten large greedy solve requests.");
     }
 }
