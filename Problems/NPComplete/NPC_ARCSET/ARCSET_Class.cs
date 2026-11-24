@@ -70,4 +70,7 @@ class ARCSET : IGraphProblem<ArcSetBruteForce, ArcSetVerifier, ArcSetDefaultVisu
         graph = new UtilCollectionGraph(arcset["N"], arcset["E"]);
         K = int.Parse(arcset["K"].ToString());
     }
+
+    /// <summary>The sizes of the instance's parts, named as in its grammar, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("N", graph.Nodes.ToList().Count), SizeMeasure.Count("E", graph.Edges.ToList().Count), SizeMeasure.Number("K", K)];
 }

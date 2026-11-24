@@ -129,7 +129,10 @@ public class WeightedMaxCliqueIndependent_Endpoint_Tests(AppFactory factory) : I
     [Fact]
     public async Task ExhaustiveSolveDeadline_ReturnsTimeLimitRatherThanCertificate() {
         using var timed = factory.WithWebHostBuilder(builder => builder.ConfigureAppConfiguration((_, config) =>
-            config.AddInMemoryCollection(new Dictionary<string, string?> { [ComputeLimits.TimeLimitKey] = "0.001" })));
+            config.AddInMemoryCollection(new Dictionary<string, string?> {
+                // The Big-O precheck (#843) is off: against a 1 ms budget it would refuse the solve before the timer runs.
+                [ComputeLimits.TimeLimitKey] = "0.001", [ComputePrecheck.MarginKey] = "0"
+            })));
         using var client = timed.CreateClient();
         string input = IndependentCliqueGraph.Generate(new Random(860), 20, 1, 1).Input();
         using var response = await client.PostAsJsonAsync($"/ProblemProvider/solve?solver={SolverNames[0]}", input, TestContext.Current.CancellationToken);

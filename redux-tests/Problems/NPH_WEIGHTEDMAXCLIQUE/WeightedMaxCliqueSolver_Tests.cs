@@ -240,7 +240,7 @@ public class WeightedMaxCliqueSolver_Tests {
             Assert.NotEmpty(solver.sourceLink);
             Assert.EndsWith(solver.GetType().Name + ".cs", solver.sourceFile);
             Assert.NotNull(solver.spaceComplexity);
-            Assert.True(solver.timeComplexity!.Evaluate(new Dictionary<string, double> { ["n"] = 4 }) > 0);
+            Assert.True(solver.timeComplexity!.Evaluate(new Dictionary<string, double> { ["N"] = 4 }) > 0);
             Assert.Contains(solver.GetType(), ProblemProvider.Solvers.Values);
             Assert.Equal(typeof(WEIGHTEDMAXCLIQUE), ProblemProvider.ProblemTypeOf(solver.GetType(), typeof(ISolver<>)));
         }

@@ -25,7 +25,7 @@ class GreedyVertexCover : ISolver<VERTEXCOVER, NodeSet>, IIncrementalSolver {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("n * (n + m)", ", n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("|N| * (|N| + |E|)", ", |N| = number of nodes, |E| = number of edges");
 
     // --- Methods Including Constructors ---
     public GreedyVertexCover() {

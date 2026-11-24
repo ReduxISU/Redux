@@ -153,6 +153,9 @@ internal sealed class WEIGHTEDMAXCLIQUE : IGraphProblem {
         }
     }
 
+    /// <summary>The sizes of the instance's parts, named as in its grammar, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("N", nodes.Count), SizeMeasure.Count("E", edges.Count)];
+
     private static void RequirePair(UtilCollection value, string description) {
         if (!value.IsOrdered() || value.Count() != 2)
             throw new FormatException($"{description} must be a parenthesized tuple with exactly two components");
