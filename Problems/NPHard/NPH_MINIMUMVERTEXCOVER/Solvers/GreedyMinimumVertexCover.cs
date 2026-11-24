@@ -22,7 +22,7 @@ class GreedyMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet>, IIncremen
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("n * (n + m)", ", n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("|N| * (|N| + |E|)", ", |N| = number of nodes, |E| = number of edges");
     // #935: set by a solver that calls this one (GreedyVertexCover), so it stops at the caller's time limit too.
     internal Func<bool>? stop;
 

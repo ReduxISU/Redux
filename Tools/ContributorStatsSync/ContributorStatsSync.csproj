@@ -10,6 +10,11 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
+  <!-- redux-tests checks the contributors-list parsing (CreditedNames) directly. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="redux-tests" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Octokit" Version="14.0.0" />
   </ItemGroup>

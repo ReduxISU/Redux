@@ -12,6 +12,10 @@ namespace API.Interfaces.JSON_Objects.Graphs;
 [JsonDerivedType(typeof(API_Node_Programmable_Automata))]
 
 class API_Node_Programmable_Small {
+    // Decimal strings preserve full Int64 vertex weights in JavaScript clients.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? weight { get; set; }
+
     private string _name;
     private string _color;
     private string _outline;
