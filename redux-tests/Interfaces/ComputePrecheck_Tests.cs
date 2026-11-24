@@ -266,6 +266,10 @@ public class ComputePrecheck_Tests {
         // refuse them all; SUDOKU reports no measures.
         "SudokuSolver",
         "DummySolver", // the placeholder solver of IProblem
+        // Problems added after this precheck that report no size measures yet.
+        "CircuitSatBruteForceSolver", // CIRCUITSAT
+        "MaximumValueKnapsackBranchAndBoundSolver", "MaximumValueKnapsackBruteForceSolver",
+        "MaximumValueKnapsackModifiedGreedySolver", // MAXIMUMVALUEKNAPSACK
         // Exact solvers with their own size limit (ExactSearchLimit), refused with HTTP 400 exact_search_limit_exceeded
         // before the Big-O could matter.
         "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",

@@ -10,6 +10,8 @@ using Xunit;
 namespace redux_tests;
 #pragma warning disable CS1591
 
+// The verification deadline test needs timer dispatch without competing suite work.
+[Collection(TimingCollection.Name)]
 public class WeightedMaxClique_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly AppFactory _factory;
     private readonly HttpClient _client;
