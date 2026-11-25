@@ -49,7 +49,7 @@ frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption"
 
 | Picture type (`type`) | Problems | Backend interface |
 | --- | --- | --- |
-| [Graph](#graph) (`Graph`) | Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set, Minimum Spanning Tree, Steiner Tree, Cut, Weighted Cut, Max Cut, Minimum Cut, Graph Coloring, Clique Cover, Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson | `IGraphSubsetVisualization`, `IGraphEdgesVisualization`, `IGraphCutVisualization`, `IGraphGroupsVisualization`, `IGraphTourVisualization` |
+| [Graph](#graph) (`Graph`) | Clique, Weighted Max Clique, Vertex Cover, Minimum Vertex Cover, Independent Set, Dominating Set, Minimum Spanning Tree, Steiner Tree, Cut, Weighted Cut, Max Cut, Minimum Cut, Graph Coloring, Clique Cover, Hamiltonian Cycle, Directed Hamiltonian Cycle, Traveling Salesperson, Minimum Traveling Salesperson | `IGraphSubsetVisualization`, `IGraphEdgesVisualization`, `IGraphCutVisualization`, `IGraphGroupsVisualization`, `IGraphTourVisualization` |
 | [Grouped Graph](#grouped-graph-clause-graph) (`GroupedGraph`) | SAT, 3SAT | `IGroupedGraphVisualization` |
 | [Bipartite Graph](#bipartite-graph) (`BipartiteGraph`) | Set Cover, Exact Cover, Hitting Set; SAT and 3SAT as the Factor Graph | `IBipartiteVisualization`, `IFactorGraphVisualization` |
 | [Automaton](#automaton) (`Automaton`) | DFA, NFA | `IAutomatonVisualization` |
@@ -85,7 +85,7 @@ One renderer for every plain graph problem. A visualization hands over its graph
 
 | Shape | Interface, spec, step shape | Problems (`rule`) | Layout | How the answer reads |
 | --- | --- | --- | --- | --- |
-| `subset` | `IGraphSubsetVisualization`, `GraphSubsetSpec(Nodes, Edges, K, SubsetRule)`, `NodeSet` | Clique (`clique`), Vertex Cover (`vertexCover`), Minimum Vertex Cover (`minVertexCover`), Independent Set (`independentSet`), Dominating Set (`dominatingSet`) | force | Chosen nodes green. Vertex Cover: edges with a chosen end `Covered`, others `Rejected` once judged. Clique: a missing edge between chosen nodes is a `Rejected` phantom. Independent Set: an edge inside the set is `Rejected`, unchosen neighbors `Blocked`. Dominating Set: dominated nodes `Covered`. |
+| `subset` | `IGraphSubsetVisualization`, `GraphSubsetSpec(Nodes, Edges, K, SubsetRule) { NodeWeights }`, `NodeSet` | Clique (`clique`), Weighted Max Clique (`clique`, with node weights and no K), Vertex Cover (`vertexCover`), Minimum Vertex Cover (`minVertexCover`), Independent Set (`independentSet`), Dominating Set (`dominatingSet`) | force | Chosen nodes green. Vertex Cover: edges with a chosen end `Covered`, others `Rejected` once judged. Clique: a missing edge between chosen nodes is a `Rejected` phantom. Independent Set: an edge inside the set is `Rejected`, unchosen neighbors `Blocked`. Dominating Set: dominated nodes `Covered`. |
 | `edges` | `IGraphEdgesVisualization`, `GraphEdgeSpec(Nodes, Edges, EdgeRule) { Terminals, K }`, `EdgeSet` | Minimum Spanning Tree (`spanningTree`), Steiner Tree (`steinerTree`) | force | Chosen edges kept, green on the confirmed answer; their ends `Covered`. Steiner terminals carry `terminal: true` (a double outline). |
 | `cut` | `IGraphCutVisualization`, `GraphEdgeSpec` with a cut rule, `Groups` (0 = S side, 1 = T side) | Cut (`cut`), Weighted Cut (`weightedCut`), Max Cut (`maxCut`), Minimum Cut (`minCut`) | force | The two sides come as `groups` (colors). Edges that cross are kept, green on the confirmed answer. |
 | `groups` | `IGraphGroupsVisualization`, `GraphGroupSpec(Nodes, Edges, K, GroupRule)`, `Groups` | Graph Coloring (`coloring`), Clique Cover (`cliqueCover`) | force | Nodes take their group's color, never green. Coloring: an edge inside a group is `Rejected`. Clique Cover: edges inside a group kept (green on the confirmed answer), a missing one a `Rejected` phantom. A group index past K is `Rejected`. |
@@ -98,11 +98,13 @@ Cut and groups are separate shapes. Directed Hamiltonian Cycle is a directed tou
 ```
 { "kind": "graph", "subtype": "undirected" | "directed", "layout": "force" | "circle",
   "shape": "subset" | "edges" | "cut" | "groups" | "tour", "rule": …, "k"?: int,
-  "nodes": [{ "id", "label", "terminal"?: true }],
+  "nodes": [{ "id", "label", "terminal"?: true, "weight"?: int }],
   "edges": [{ "id", "a", "b", "weight"?: number, "label"?: "2,5" }] }
 ```
 
-**Frame:** `event, caption, focus, ok?`, `nodes` and `edges` state maps, `phantoms: [{ a, b, state }]`, `groups: { nodeId: index }` (cut and groups shapes), `order: [ids]` (tour shape).
+**Frame:** `event, caption, focus, ok?`, `nodes` and `edges` state maps, `phantoms: [{ a, b, state }]`, `groups: { nodeId: index }` (cut and groups shapes), `order: [ids]` (tour shape), `selectedWeight?: int` (subset shape with node weights).
+
+**Node weights.** A vertex-weighted problem sets `NodeWeights` on its `GraphSubsetSpec` (Weighted Max Clique, #1058). Every node then carries `weight`, drawn as a tag beside the node that moves with it, and every frame carries `selectedWeight`, the total weight of the nodes its set picks (the clique shown, the best one on the Done). Both are left out when the spec has no node weights, so every other Graph payload and frame is byte for byte as before; a stopped run's blank Done has no `selectedWeight` either. Weighted Max Clique's Graph picture is its own opt-in visualization (`WeightedMaxCliqueGraphVisualization`, listed only with `includePictures=true`); its old list picture stays the default.
 
 **Edges.** Ids are `a-b` (undirected, ends in ordinal order) or `a>b` (directed). A `-` or `>` inside a name is escaped with `\`. Parallel edges become one edge: `weight` is their sum for Weighted Cut, Max Cut and Minimum Cut, and the lightest for every other weighted problem; `label` lists every weight. Exact duplicates are dropped, and so is a reversed identical copy in an undirected graph. Undirected graph problems refuse a loop with a 400 at parse time (#836, #882), and the builder leaves out any loop it is given.
 

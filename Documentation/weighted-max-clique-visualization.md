@@ -17,5 +17,11 @@ feasible suboptimal cliques and the empty clique `({},0)`. Highlighting establis
 feasibility, not optimality. Malformed or infeasible certificates draw the initial
 graph without solution highlights, following the existing weighted SAT fallback.
 
-This implementation provides initial and final pictures only. Native graph frames,
-search-step recording, and extra solution-weight metadata are outside its scope.
+This visualization provides initial and final pictures only. The step-by-step
+picture is `WeightedMaxCliqueGraphVisualization` (#1058): the Graph picture type
+(`format=frames`), opt-in with `includePictures=true`, so Redux_GUI keeps seeing
+only this one. Its list format is exactly this visualization's. In its frames
+payload each node's `weight` is a JSON number, as the Formula picture's clause
+weights are, and every frame carries `selectedWeight`, the chosen nodes' total.
+The brute force and branch and bound solvers record its steps. See the Graph
+section of `Visualizations/PICTURE-TYPES.md`.
