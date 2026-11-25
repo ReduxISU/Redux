@@ -12,8 +12,8 @@ internal sealed class MaximumValueKnapsackBranchAndBoundSolver : ISolver<MAXIMUM
     public string[] contributors { get; } = { "Corbin Hay" };
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("n * 2^n", ", n = original item occurrences; conservative worst case including bounds and incumbent copies, plus O(n log n) preprocessing; BigInteger products involve Int64 inputs");
-    public MathematicalFunction spaceComplexity { get; } = new("n", ", n = original item occurrences; sorted items, merge buffer, DFS stack, and current/best selections");
+    public MathematicalFunction timeComplexity { get; } = new("|i| * 2^|i|", ", |i| = number of items, duplicates counted; conservative worst case including bounds and incumbent copies, plus O(|i| log |i|) preprocessing; BigInteger products involve Int64 inputs");
+    public MathematicalFunction spaceComplexity { get; } = new("|i|", ", |i| = number of items, duplicates counted; sorted items, merge buffer, DFS stack, and current/best selections");
     private volatile bool _timerHasExpired;
     public bool timerHasExpired { get => _timerHasExpired; set => _timerHasExpired = value; }
 

@@ -152,8 +152,8 @@ public class MaximumValueKnapsackBranchAndBound_Tests {
         Assert.IsType<MaximumValueKnapsackBruteForceSolver>(problem.defaultSolver);
         Assert.Equal(SolverType.Backtracking, solver.solverType);
         Assert.Equal(SolverComplexityBucket.Exponential, solver.complexityBucket);
-        Assert.Equal(24, solver.timeComplexity.Evaluate(new Dictionary<string, double> { ["n"] = 3 }));
-        Assert.Equal(3, solver.spaceComplexity.Evaluate(new Dictionary<string, double> { ["n"] = 3 }));
+        Assert.Equal(24, solver.timeComplexity.Evaluate(new Dictionary<string, double> { ["i"] = 3 }));
+        Assert.Equal(3, solver.spaceComplexity.Evaluate(new Dictionary<string, double> { ["i"] = 3 }));
         Assert.NotEmpty(solver.source);
         Assert.NotEmpty(solver.sourceLink);
         Assert.NotEmpty(solver.contributors);

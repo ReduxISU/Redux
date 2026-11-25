@@ -106,8 +106,8 @@ public class MaximumValueKnapsackBruteForce_Tests {
         Assert.Equal(typeof(MAXIMUMVALUEKNAPSACK), ProblemProvider.ProblemTypeOf(typeof(MaximumValueKnapsackBruteForceSolver), typeof(ISolver<>)));
         Assert.Equal(SolverType.BruteForce, solver.solverType);
         Assert.Equal(SolverComplexityBucket.Exponential, solver.complexityBucket);
-        Assert.Equal(24, solver.timeComplexity.Evaluate(new Dictionary<string, double> { ["n"] = 3 }));
-        Assert.Equal(3, solver.spaceComplexity.Evaluate(new Dictionary<string, double> { ["n"] = 3 }));
+        Assert.Equal(24, solver.timeComplexity.Evaluate(new Dictionary<string, double> { ["i"] = 3 }));
+        Assert.Equal(3, solver.spaceComplexity.Evaluate(new Dictionary<string, double> { ["i"] = 3 }));
         Assert.Contains("optimal", solver.solverDefinition);
         Assert.NotEmpty(solver.source);
         Assert.NotEmpty(solver.sourceLink);

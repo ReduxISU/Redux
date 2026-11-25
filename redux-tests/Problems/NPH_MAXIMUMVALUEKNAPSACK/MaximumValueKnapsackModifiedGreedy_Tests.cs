@@ -128,8 +128,8 @@ public class MaximumValueKnapsackModifiedGreedy_Tests(ITestOutputHelper output) 
         Assert.Empty(solver.GetType().GetCustomAttributes(typeof(DefaultForAttribute), false));
         Assert.Equal(SolverType.Greedy | SolverType.Approximation, solver.solverType);
         Assert.Equal(SolverComplexityBucket.Polynomial, solver.complexityBucket);
-        Assert.Equal(10 * Math.Log(10), solver.timeComplexity.Evaluate(("n", 10)), 8);
-        Assert.Equal(10, solver.spaceComplexity.Evaluate(("n", 10)));
+        Assert.Equal(10 * Math.Log(10), solver.timeComplexity.Evaluate(("i", 10)), 8);
+        Assert.Equal(10, solver.spaceComplexity.Evaluate(("i", 10)));
         Assert.Contains("ALG >= OPT / 2", solver.solverDefinition);
         Assert.Contains("not necessarily optimal", solver.solverDefinition);
         Assert.NotEmpty(solver.source);
