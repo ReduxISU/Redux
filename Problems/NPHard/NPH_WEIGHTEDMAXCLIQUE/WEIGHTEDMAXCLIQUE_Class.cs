@@ -42,6 +42,7 @@ internal sealed class WEIGHTEDMAXCLIQUE : IGraphProblem {
     private readonly HashSet<int>[] _adjacency;
     internal int VertexCount => _orderedNodes.Length;
     internal int VertexIndex(string vertex) => Array.BinarySearch(_orderedNodes, vertex, StringComparer.Ordinal);
+    internal string VertexName(int vertex) => _orderedNodes[vertex];
     internal long VertexWeight(int vertex) => weights[_orderedNodes[vertex]];
     internal int Degree(int vertex) => _adjacency[vertex].Count;
     internal bool AreAdjacent(int a, int b) => _adjacency[a].Contains(b);

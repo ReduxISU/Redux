@@ -29,6 +29,8 @@ public class IncrementalSolvers_Tests {
         ["twoapproximationminimumvertexcover"] = true,
         ["dominatingsetforcedvertex"] = true,
         ["dominatingsetnaiveinclusionexclusion"] = true,
+        ["weightedmaxcliquebruteforcesolver"] = false,
+        ["weightedmaxcliquebranchandboundsolver"] = true,
         // EdgeSet (edges pictures) and Groups (cut pictures)
         ["kruskalsolver"] = true,
         ["primsolver"] = true,

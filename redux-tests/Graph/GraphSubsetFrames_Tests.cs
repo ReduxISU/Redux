@@ -38,6 +38,58 @@ public class GraphSubsetFrames_Tests {
         Assert.DoesNotContain("weight", json);
     }
 
+    // ---- node weights (#1058) ----
+
+    private static GraphSubsetSpec Weighted() => Spec(SubsetRule.Clique) with {
+        NodeWeights = new Dictionary<string, long> { ["a"] = 4, ["b"] = 3, ["c"] = 5, ["d"] = 7, ["e"] = 0 },
+    };
+
+    [Fact]
+    public void Payload_WithNodeWeights_WritesEachNodesWeight() {
+        var p = GraphSubsetFrames.Payload(Weighted());
+        Assert.Equal([4L, 3L, 5L, 7L, 0L], p.Nodes.Select(n => n.Weight));
+        string json = JsonSerializer.Serialize(p);
+        Assert.Contains("{\"id\":\"a\",\"label\":\"a\",\"weight\":\"4\"}", json);
+        Assert.Contains("{\"id\":\"e\",\"label\":\"e\",\"weight\":\"0\"}", json);
+    }
+
+    [Fact]
+    public void Frame_WithNodeWeights_CarriesTheChosenNodesTotal() {
+        var frame = GraphSubsetFrames.Frame(Weighted(), Set("a", "b", "c"), StepEvent.Done, [], "done", ok: true);
+        Assert.Equal(12, frame.SelectedWeight);
+        Assert.Contains("\"selectedWeight\":\"12\"", JsonSerializer.Serialize(frame));
+        Assert.Equal(0, GraphSubsetFrames.Frame(Weighted(), Set(), StepEvent.Done, [], "done", ok: true).SelectedWeight);
+        // A node that is not in the graph adds nothing, as it is not drawn.
+        Assert.Equal(7, GraphSubsetFrames.Frame(Weighted(), Set("d", "zz"), StepEvent.Accept, [], "kept").SelectedWeight);
+    }
+
+    [Fact]
+    public void NodeWeights_AreWrittenAsStrings_SoABrowserNeverRoundsThem() {
+        // 2^53 + 1 is the first whole number a JavaScript number cannot hold (#1034).
+        long big = (1L << 53) + 1;
+        var spec = Weighted() with { NodeWeights = new Dictionary<string, long> { ["a"] = big, ["b"] = 1, ["c"] = 0, ["d"] = 0, ["e"] = 0 } };
+        Assert.Contains("\"weight\":\"9007199254740993\"", JsonSerializer.Serialize(GraphSubsetFrames.Payload(spec)));
+        var frame = GraphSubsetFrames.Frame(spec, Set("a", "b"), StepEvent.Accept, [], "kept");
+        Assert.Contains("\"selectedWeight\":\"9007199254740994\"", JsonSerializer.Serialize(frame));
+    }
+
+    [Fact]
+    public void WithoutNodeWeights_NeitherThePayloadNorAFrameWritesAWeight() {
+        var spec = Spec(SubsetRule.Clique);
+        Assert.DoesNotContain("weight", JsonSerializer.Serialize(GraphSubsetFrames.Payload(spec)), StringComparison.OrdinalIgnoreCase);
+        var frame = GraphSubsetFrames.Frame(spec, Set("a", "b"), StepEvent.Done, [], "done", ok: true);
+        Assert.Null(frame.SelectedWeight);
+        Assert.DoesNotContain("weight", JsonSerializer.Serialize(frame), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("weight", JsonSerializer.Serialize(GraphSubsetFrames.StoppedFrame("stopped")), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Validate_NodeWeightsThatMissANode_Throw() {
+        var spec = Spec(SubsetRule.Clique) with { NodeWeights = new Dictionary<string, long> { ["a"] = 1 } };
+        var error = Assert.Throws<InvalidOperationException>(() => spec.Validate("Test"));
+        Assert.Contains("no weight for node b", error.Message);
+    }
+
     [Fact]
     public void Payload_DropsLoopsAndDuplicateEdges() {
         var spec = new GraphSubsetSpec(["a", "b"], [new("a", "b"), new("b", "a"), new("a", "a")], null, SubsetRule.MinVertexCover);
