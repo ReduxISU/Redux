@@ -45,6 +45,11 @@ class CONVEXHULL : IProblem<ConvexHullSolver, ConvexHullVerifier, ConvexHullVisu
 
     // --- Properties ---
     // --- Methods and Constructors ---
+    /// <summary>The point set X of the formal definition (the grammar names only a point's x and y), for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("X", points.Count),
+    ];
+
     public CONVEXHULL() : this(_defaultInstance) {
     }
 

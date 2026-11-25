@@ -53,4 +53,7 @@ class MAXCUT : IGraphProblem<MaxCutSolver, MaxCutVerifier, MaxCutVisualization, 
         }).ToList();
         graph = new UtilCollectionGraph(maxCut["N"], maxCut["E"]);
     }
+
+    /// <summary>The sizes of the instance's parts, named as in its grammar, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("N", nodes.Count), SizeMeasure.Count("E", edges.Count)];
 }

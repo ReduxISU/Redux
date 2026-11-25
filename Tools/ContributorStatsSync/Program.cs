@@ -254,17 +254,20 @@ internal static partial class Program {
         }
     }
 
-    // The strings in a `contributors { get; } = { "A B", "C D" }` declaration, leaving out
-    // anything that isn't one person's full name (placeholders like "TODO").
-    private static IEnumerable<string> CreditedNames(string source) =>
+    // The strings in a `contributors` declaration, leaving out anything that isn't one person's
+    // full name (placeholders like "TODO"). Every way the codebase writes the list is read: an
+    // initializer (`{ get; } = { "A B" }`, `= new string[] { "A B" }`), an expression body
+    // (`=> new[] { "A B" }`), and a collection expression (`= ["A B"]`, `=> ["A B"]`).
+    internal static IEnumerable<string> CreditedNames(string source) =>
         ContributorsDeclaration().Matches(source)
-            .SelectMany(declaration => QuotedString().Matches(declaration.Groups[1].Value))
+            .SelectMany(declaration => QuotedString().Matches(declaration.Groups["names"].Value))
             .Select(quoted => quoted.Groups[1].Value.Trim())
             .Where(name => name != "Author Unknown"
                 && name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 2
                 && !name.Contains(',') && !name.Contains('&'));
 
-    [GeneratedRegex(@"\bcontributors\s*(?:\{[^}]*\}\s*)?=\s*(?:new[^{]*)?\{([^}]*)\}")]
+    // Both groups are named "names"; .NET keeps the captures of the one that matched.
+    [GeneratedRegex(@"\bcontributors\s*(?:\{[^}]*\}\s*)?=>?\s*(?:(?:new[^{]*)?\{(?<names>[^}]*)\}|\[(?<names>[^\]]*)\])")]
     private static partial Regex ContributorsDeclaration();
 
     [GeneratedRegex("\"([^\"]*)\"")]

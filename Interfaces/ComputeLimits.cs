@@ -26,10 +26,19 @@ namespace API.Interfaces;
 /// </para>
 /// </summary>
 static class ComputeLimits {
-    /// <summary>The configuration key for the time limit, in seconds, of every compute request.</summary>
+    /// <summary>
+    /// The configuration key for the time limit, in seconds, of every compute request. Visualize stops at this limit or
+    /// 10 seconds, whichever is shorter, unless its own key is set (<c>ProblemProvider.SolveTimeLimitKey</c>).
+    /// </summary>
     public const string TimeLimitKey = "ComputeLimits:TimeLimitSeconds";
-    /// <summary>The limit used when <see cref="TimeLimitKey"/> is not set.</summary>
-    public const double DefaultTimeLimitSeconds = 10;
+    /// <summary>
+    /// The limit used when <see cref="TimeLimitKey"/> is not set. It was 10 seconds; 30 gives honest slow work, such as a
+    /// quantum solver's call to the quantum service (which stops itself at 25 seconds) or a mid-size exact solve, room to
+    /// finish, and still answers well inside the frontends' 60-second wait. The timer is the backstop: the real guard
+    /// against a job too big to finish is the size and Big-O precheck, step 3 of #915 (<see cref="ComputePrecheck"/>, #843),
+    /// which refuses such a job before it starts.
+    /// </summary>
+    public const double DefaultTimeLimitSeconds = 30;
     /// <summary>
     /// How much longer than the limit the backstop waits on a solve or visualize, whose solvers stop themselves at the
     /// limit: the solver's own stop answers first (for visualize, with the stopped picture), and the backstop only

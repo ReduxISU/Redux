@@ -22,7 +22,7 @@ class DFASolver : ISolver<DFA, ActiveStates> {
     // For each of the up-to-n input characters, solve() does "foreach (var edge in problem.edges)"
     // — a linear scan of all E edges to find the matching transition — instead of an O(1)
     // dictionary/table lookup, so this is O(n * E), not the ideal O(n).
-    public MathematicalFunction timeComplexity { get; } = new("n * E", "");
+    public MathematicalFunction timeComplexity { get; } = new("|I| * |E|", ", |I| = input length, |E| = number of transitions");
 
     // Methods Including Constructors //
     public DFASolver() { }
