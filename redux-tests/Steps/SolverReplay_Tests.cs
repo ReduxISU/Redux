@@ -110,6 +110,10 @@ public class SolverReplay_Tests {
             // Tour answers are "{a,b,c,a}": the order written, the closing repeat of the first node included. "{}" is no answer.
             return API.Interfaces.Graphs.GraphTourFrames.ParseTour(answer);
         }
+        if (lastPartial is Assignment && answer.StartsWith("((")) {
+            // Weighted Max-SAT answers wrap the assignment with its weight, "((x1:True,x2:False),3)": the partial is the assignment.
+            return API.Interfaces.Graphs.GroupedGraphFrames.ParseAssignment(answer[1..answer.LastIndexOf(')', answer.Length - 2)] + ")");
+        }
         if (lastPartial is Assignment) {
             if (problem is API.Problems.NPHard.NPH_ILP.INTEGERLINEARPROGRAMMING) {
                 // Integer Linear Programming answers list the values in order ("(1,0,2)"); "infeasible", "unbounded" or a

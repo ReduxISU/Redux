@@ -159,6 +159,18 @@ One node per literal, grouped into one cluster per clause, with the clusters on 
 
 **Ties to reductions.** Clause and literal ids (`c{i}`, `c{i}-{j}`, `v:{name}`) are the ids gadgets use, so the 3SAT reductions link straight to this picture.
 
+**Formula view (#925).** SAT, 3SAT and Weighted Max-SAT also draw the same spec and steps as a `Formula` picture (`IFormulaVisualization`, `kind: "formula"`, `layout: "cnf"`): this payload's `groups`, `nodes` and `variables` without the edges, and this frame plus `variables` (each variable chip's state). See "The Formula picture (#925)" in [adding-a-visualization](../guides/adding-a-visualization.md).
+
+**Clause weights (#1057, optional).** A weighted problem (Weighted Max-SAT) gives each Formula group a `weight` and each frame a `satisfiedWeight`; both are absent for SAT and 3SAT, whose payloads are unchanged:
+
+```
+"groups": [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"], "weight": "1" },
+           { "id": "c1", "label": "C2", "members": ["c1-0", "c1-1"], "weight": "2" }]
+frame:    { ..., "satisfiedWeight": "3" }   // weight of the clauses with a true literal in this assignment
+```
+
+Both are whole numbers written as strings, so a browser never rounds one above 2^53 (#1034). A frontend writes the weight beside the clause label (`C1 · w 1`) and shows the satisfied total with the frame.
+
 ---
 
 ## Bipartite Graph

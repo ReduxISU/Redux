@@ -89,6 +89,7 @@ public class IncrementalSolvers_Tests {
         ["editdistancedpsolver"] = true,
         ["integerprogrammingbruteforce"] = false,
         ["integerlinearprogrammingsolver"] = false,
+        ["weightedmaxsatbruteforcesolver"] = false,
         // BoardCells (Board pictures)
         ["sudokusolver"] = true,
         ["nqueensbacktracking"] = true,
