@@ -68,10 +68,27 @@ public class WeightedMaxSatFormula_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Rejected", States(first, "groups")["c1"]);
         Assert.Equal(["c1"], first.GetProperty("focus").EnumerateArray().Select(f => f.GetString()));
 
+        // Each candidate's frame totals the weight it satisfies, the figure its caption gives.
+        Assert.Equal(1, first.GetProperty("satisfiedWeight").GetInt64());
+        Assert.Contains("satisfies weight 1", first.GetProperty("caption").GetString());
+        foreach (var frame in frames.Take(16)) {
+            long weight = frame.GetProperty("satisfiedWeight").GetInt64();
+            Assert.Contains($"satisfies weight {weight},", frame.GetProperty("caption").GetString());
+        }
+
         var last = frames[^1];
         Assert.Equal("Done", last.GetProperty("event").GetString());
         Assert.True(last.GetProperty("ok").GetBoolean());
         Assert.Contains("satisfying weight 3 of 3", last.GetProperty("caption").GetString());
+        Assert.Equal(3, last.GetProperty("satisfiedWeight").GetInt64());
+    }
+
+    [Fact]
+    public async Task ThePayload_GivesEachClauseItsWeight() {
+        var run = await Json("visualizeRun", "solver=WeightedMaxSatBruteForceSolver", Instance);
+        var groups = Pictures(run)[Vis].GetProperty("payload").GetProperty("groups").EnumerateArray().ToList();
+        Assert.Equal(["C1", "C2"], groups.Select(g => g.GetProperty("label").GetString()));
+        Assert.Equal([1L, 2L], groups.Select(g => g.GetProperty("weight").GetInt64()));
     }
 
     [Fact]
@@ -82,5 +99,6 @@ public class WeightedMaxSatFormula_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Done", only.GetProperty("event").GetString());
         Assert.True(only.GetProperty("ok").GetBoolean());
         Assert.Equal(JsonValueKind.Null, only.GetProperty("step").ValueKind);
+        Assert.Equal(3, only.GetProperty("satisfiedWeight").GetInt64());
     }
 }

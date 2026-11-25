@@ -64,6 +64,14 @@ sealed record FormulaGroupDto(
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public FormulaExpr? Expr { get; init; }
 
+    /// <summary>
+    /// The clause's weight, for a weighted problem (Weighted Max-SAT, #1057): a frontend writes it beside the clause's label
+    /// (<c>C1 · w 3</c>). Left out of the JSON when unset, so an unweighted clause writes exactly as before.
+    /// </summary>
+    [JsonPropertyName("weight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? Weight { get; init; }
+
     /// <summary>A CNF clause as the Grouped Graph writes it.</summary>
     public static FormulaGroupDto Of(GroupedGraphGroupDto group) => new(group.Id, group.Label) { Members = group.Members };
 }
@@ -116,6 +124,14 @@ sealed record FormulaFrame(
     [JsonPropertyName("ok")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Ok { get; init; }
+
+    /// <summary>
+    /// For a weighted formula only (#1057): the total weight of the clauses this frame's assignment satisfies (a clause with a
+    /// true literal). Left out of the JSON when the formula has no weights, and on a stopped run's blank Done.
+    /// </summary>
+    [JsonPropertyName("satisfiedWeight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? SatisfiedWeight { get; init; }
 }
 
 /// <summary>
@@ -143,19 +159,41 @@ static class FormulaFrames {
 
     // ---- The payload ----
 
-    public static FormulaPayload Payload(GroupedGraphSpec spec) {
+    /// <summary>
+    /// The payload. <paramref name="weights"/>, one per clause in formula order, gives each clause its <c>weight</c> (a
+    /// weighted problem, #1057); without it the payload is exactly the unweighted one.
+    /// </summary>
+    public static FormulaPayload Payload(GroupedGraphSpec spec, IReadOnlyList<long>? weights = null) {
+        CheckWeights(spec, weights);
         var graph = GroupedGraphFrames.Payload(spec);
         return new FormulaPayload(KindName, LayoutName, GroupedGraphFrames.ShapeName, GroupedGraphFrames.RuleName,
-            graph.Groups.Select(FormulaGroupDto.Of).ToList(), graph.Nodes, graph.Variables.Select(FormulaVariableDto.Of).ToList());
+            graph.Groups.Select((g, i) => FormulaGroupDto.Of(g) with { Weight = weights?[i] }).ToList(), graph.Nodes,
+            graph.Variables.Select(FormulaVariableDto.Of).ToList());
+    }
+
+    private static void CheckWeights(GroupedGraphSpec spec, IReadOnlyList<long>? weights) {
+        if (weights is not null && weights.Count != spec.Clauses.Count)
+            throw new ArgumentException($"A weighted formula needs one weight per clause: {spec.Clauses.Count} clauses, {weights.Count} weights.", nameof(weights));
+    }
+
+    /// <summary>The total weight of the clauses that have a true literal under <paramref name="assignment"/> (keyed by variable id).</summary>
+    public static long SatisfiedWeight(GroupedGraphSpec spec, IReadOnlyList<long> weights, IReadOnlyDictionary<string, bool> assignment) {
+        long total = 0;
+        for (int i = 0; i < spec.Clauses.Count; i++)
+            if (spec.Clauses[i].Any(l => assignment.TryGetValue(CnfPieces.VariableId(spec.Variables[Math.Abs(l) - 1]), out bool value) && value == l > 0))
+                total = checked(total + weights[i]);
+        return total;
     }
 
     // ---- Frames ----
 
     /// <summary>
     /// The frame for an assignment at one step: <see cref="GroupedGraphFrames.Frame"/>'s, plus the variables' states.
-    /// <c>incremental</c> and <c>endsRun</c> are as there.
+    /// <c>incremental</c> and <c>endsRun</c> are as there. With <paramref name="weights"/> (one per clause) the frame also
+    /// carries <c>satisfiedWeight</c>.
     /// </summary>
-    public static FormulaFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false) {
+    public static FormulaFrame Frame(GroupedGraphSpec spec, Assignment partial, StepEvent ev, string[] focus, string caption, bool? ok = null, bool incremental = false, bool endsRun = false, IReadOnlyList<long>? weights = null) {
+        CheckWeights(spec, weights);
         var graph = GroupedGraphFrames.Frame(spec, partial, ev, focus, caption, ok, incremental, endsRun);
         var picked = GraphSubsetFrames.Picked(ev, incremental, endsRun, ok == true);
         var variables = new Dictionary<string, PictureState>(StringComparer.Ordinal);
@@ -165,7 +203,10 @@ static class FormulaFrames {
         var known = new HashSet<string>(spec.Variables.Select(CnfPieces.VariableId), StringComparer.Ordinal);
         foreach (var id in focus)
             if (known.Contains(id)) GraphSubsetFrames.Raise(variables, id, PictureState.ElementHighlight);
-        return new FormulaFrame(graph.Event, graph.Caption, graph.Focus, graph.Nodes, graph.Groups, graph.Assignment, GraphSubsetFrames.ToRefs(variables)) { Ok = graph.Ok };
+        return new FormulaFrame(graph.Event, graph.Caption, graph.Focus, graph.Nodes, graph.Groups, graph.Assignment, GraphSubsetFrames.ToRefs(variables)) {
+            Ok = graph.Ok,
+            SatisfiedWeight = weights is null ? null : SatisfiedWeight(spec, weights, graph.Assignment),
+        };
     }
 
     /// <summary>
@@ -183,16 +224,17 @@ static class FormulaFrames {
     /// The whole response, built as <see cref="GroupedGraphFrames.Build"/> builds the Grouped Graph's: the payload, a frame per
     /// kept step, then a solved frame built from the answer unless the last step already is the Done step. A run stopped by the
     /// recording time limit or by the solver's own timer (the answer <see cref="GroupedGraphFrames.SolverTimeoutAnswer"/>) ends
-    /// with <see cref="StoppedFrame"/> instead, and its answer string is never read.
+    /// with <see cref="StoppedFrame"/> instead, and its answer string is never read. <paramref name="weights"/> (one per clause)
+    /// makes it a weighted formula: see <see cref="Payload"/> and <see cref="FormulaFrame.SatisfiedWeight"/>.
     /// </summary>
-    public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer) {
+    public static FramesResponse Build(GroupedGraphSpec spec, SolveRun run, Func<string, Assignment> parseAnswer, Func<string, bool> verifyAnswer, IReadOnlyList<long>? weights = null) {
         bool stopped = run.TimedOut || GroupedGraphFrames.IsSolverTimeout(run.Answer);
         var frames = new List<object>();
         SolverStep<Assignment>? last = null;
         foreach (var (step, endsRun, index) in GraphSubsetFrames.DrawnSteps<Assignment>(run)) {
             frames.Add((stopped && step.Event == StepEvent.Done
                 ? StoppedFrame(step.Caption)
-                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun)) with { Step = index });
+                : Frame(spec, step.Partial, step.Event, step.Focus, step.Caption, step.Ok, run.Incremental, endsRun, weights)) with { Step = index });
             last = step;
         }
         if (stopped) {
@@ -200,9 +242,9 @@ static class FormulaFrames {
                 frames.Add(StoppedFrame(run.TimedOut ? GraphSubsetFrames.StoppedCaption : GroupedGraphFrames.SolverTimeoutCaption));
         } else if (last is not { Event: StepEvent.Done }) {
             Assignment answer = parseAnswer(run.Answer);
-            frames.Add(Frame(spec, answer, StepEvent.Done, [], GroupedGraphFrames.AnswerCaption(run.Answer, answer), verifyAnswer(run.Answer)));
+            frames.Add(Frame(spec, answer, StepEvent.Done, [], GroupedGraphFrames.AnswerCaption(run.Answer, answer), verifyAnswer(run.Answer), weights: weights));
         }
-        return new FramesResponse(nameof(VisualizationType.Formula), Payload(spec), frames);
+        return new FramesResponse(nameof(VisualizationType.Formula), Payload(spec, weights), frames);
     }
 }
 
@@ -222,6 +264,12 @@ interface IFormulaVisualization<TProblem> : IFramesVisualization, IOptInVisualiz
     /// <summary>Reads a solver's answer string as an assignment. The default accepts <c>(x1:True,x2:False)</c>.</summary>
     Assignment ParseAnswer(TProblem problem, string answer) => GroupedGraphFrames.ParseAssignment(answer);
 
+    /// <summary>
+    /// The clauses' weights, one per clause in formula order, for a weighted problem (Weighted Max-SAT, #1057); null (the
+    /// default) for an unweighted one, whose payload and frames then carry no weights at all.
+    /// </summary>
+    IReadOnlyList<long>? Weights(TProblem problem) => null;
+
     FramesResponse IFramesVisualization.BuildFrames(string instance, SolveRun run) {
         TProblem problem = ParseGuard.CreateProblem<TProblem>(instance);
         return FormulaFrames.Build(Describe(problem), run,
@@ -229,6 +277,7 @@ interface IFormulaVisualization<TProblem> : IFramesVisualization, IOptInVisualiz
             answer => {
                 // The problem's own verifier decides; a certificate it cannot read (such as "No Solution") is not correct.
                 try { return problem.defaultVerifier.verify(instance, answer); } catch { return false; }
-            });
+            },
+            Weights(problem));
     }
 }

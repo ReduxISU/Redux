@@ -8,7 +8,7 @@ using API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Verifiers;
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Visualizations;
 
 /// <summary>
-/// Weighted Max-SAT's formula picture: the CNF as it is written, one box per clause, with the assignment in a strip of the
+/// Weighted Max-SAT's formula picture: the CNF as it is written, one box per clause with its weight, with the assignment in a strip of the
 /// variables. It draws the same Formula picture type as SAT's, so it needs no frontend work. The list format, which old
 /// frontends read, is exactly <see cref="WeightedMaxSatVisualization"/>'s.
 /// </summary>
@@ -32,6 +32,10 @@ class WeightedMaxSatFormulaVisualization : IVisualization<WEIGHTEDMAXSAT, API_SA
     // What the problem is: its clauses, written the way SAT's are.
     GroupedGraphSpec IFormulaVisualization<WEIGHTEDMAXSAT>.Describe(WEIGHTEDMAXSAT problem) =>
         GroupedGraphSpec.FromLiterals(problem.weightedClauses.Select(w => w.Clause.Literals.Select(l => l.ToString())));
+
+    // Each clause's weight, so the picture writes it beside the clause and totals what each assignment satisfies.
+    IReadOnlyList<long>? IFormulaVisualization<WEIGHTEDMAXSAT>.Weights(WEIGHTEDMAXSAT problem) =>
+        problem.weightedClauses.Select(w => w.Weight).ToList();
 
     // A Weighted Max-SAT answer is "((x1:False,...),3)": the assignment and its weight. The picture draws the assignment.
     Assignment IFormulaVisualization<WEIGHTEDMAXSAT>.ParseAnswer(WEIGHTEDMAXSAT problem, string answer) {
