@@ -109,13 +109,11 @@ public class MaximumValueKnapsackModifiedGreedy_Tests(ITestOutputHelper output) 
         var problem = new MAXIMUMVALUEKNAPSACK(MaximumValueKnapsackBruteForce_Tests.UnitItems(20000));
         var solver = new MaximumValueKnapsackModifiedGreedySolver();
         using var timer = SolverTimer.Start(solver, TimeSpan.FromMilliseconds(1));
-        // A timer callback can be delayed under load, and this polynomial solver
-        // may finish before it arrives. Keep the SAME timer active across calls,
-        // without resetting it, rather than assuming a particular dispatch time.
-        string answer = "";
-        for (int attempt = 0; attempt < 100 && answer != SolveRun.TimedOutAnswer; attempt++)
-            answer = solver.solve(problem);
-        Assert.Equal(SolveRun.TimedOutAnswer, answer);
+        // The timer's callback runs on the thread pool, so with the suite running in parallel it can arrive seconds late
+        // (in CI it once missed 100 back-to-back solves), and this polynomial solver may finish before it. So wait until
+        // the timer has really fired, then check that the solver honours it on the already-parsed instance.
+        Assert.True(SpinWait.SpinUntil(() => solver.timerHasExpired, TimeSpan.FromSeconds(30)), "the 1 ms solver timer never fired");
+        Assert.Equal(SolveRun.TimedOutAnswer, solver.solve(problem));
         Assert.True(solver.timerHasExpired);
     }
 
