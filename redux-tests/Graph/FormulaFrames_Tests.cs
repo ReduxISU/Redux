@@ -209,4 +209,56 @@ public class FormulaFrames_Tests {
         Assert.False(frame.Ok);
         Assert.Empty(frame.Variables);
     }
+
+    // ---- weights (Weighted Max-SAT, #1057) ----
+
+    private static readonly JsonSerializerOptions Relaxed = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+    [Fact]
+    public void Payload_WithWeights_WritesEachClausesWeight_AndNothingElseChanges() {
+        var spec = GroupedGraphSpec.FromLiterals([["x1", "!x2"], ["x2"]]);
+        string plain = JsonSerializer.Serialize(FormulaFrames.Payload(spec), Relaxed);
+        string weighted = JsonSerializer.Serialize(FormulaFrames.Payload(spec, [3, 1]), Relaxed);
+        Assert.Contains("{\"id\":\"c0\",\"label\":\"C1\",\"members\":[\"c0-0\",\"c0-1\"],\"weight\":\"3\"}", weighted);
+        Assert.Contains("{\"id\":\"c1\",\"label\":\"C2\",\"members\":[\"c1-0\"],\"weight\":\"1\"}", weighted);
+        Assert.Equal(plain, weighted.Replace(",\"weight\":\"3\"", "").Replace(",\"weight\":\"1\"", ""));
+    }
+
+    [Fact]
+    public void Payload_WithoutWeights_WritesNoWeight() {
+        Assert.DoesNotContain("weight", JsonSerializer.Serialize(FormulaFrames.Payload(Spec), Relaxed));
+    }
+
+    [Fact]
+    public void Payload_WeightsMustMatchTheClauses() {
+        Assert.Throws<ArgumentException>(() => FormulaFrames.Payload(Spec, [1, 2]));
+    }
+
+    [Fact]
+    public void Frame_WithWeights_TotalsTheSatisfiedClauses() {
+        long[] weights = [5, 2, 7];
+        // x1 false, x2 false: c0 (!x1) and c1 (!x1) satisfied, c2 (x1 | !x3) open until x3 is set.
+        var partial = FormulaFrames.Frame(Spec, Of(("x1", false), ("x2", false)), StepEvent.Try, [], "", weights: weights);
+        Assert.Equal(7, partial.SatisfiedWeight);
+        // x1 true, x2 true, x3 false: c0 (x2) and c2 (x1) satisfied, c1 (!x1 | !x2 | x4) has x4 unassigned.
+        var whole = FormulaFrames.Frame(Spec, Of(("x1", true), ("x2", true), ("x3", false)), StepEvent.Accept, ["c1"], "", weights: weights);
+        Assert.Equal(12, whole.SatisfiedWeight);
+        Assert.Equal(0, FormulaFrames.Frame(Spec, Of(), StepEvent.Try, [], "", weights: weights).SatisfiedWeight);
+    }
+
+    [Fact]
+    public void Weights_AreWrittenAsStrings_SoABrowserNeverRoundsThem() {
+        // 2^53 + 1 is the first whole number a JavaScript number cannot hold (#1034).
+        long big = (1L << 53) + 1;
+        Assert.Contains("\"weight\":\"9007199254740993\"", JsonSerializer.Serialize(FormulaFrames.Payload(Spec, [big, 1, 1]), Relaxed));
+        var frame = FormulaFrames.Frame(Spec, Of(("x1", false), ("x2", false)), StepEvent.Try, [], "", weights: [big, 1, 1]);
+        Assert.Contains("\"satisfiedWeight\":\"9007199254740994\"", JsonSerializer.Serialize(frame, Relaxed));
+    }
+
+    [Fact]
+    public void Frame_WithoutWeights_WritesNoSatisfiedWeight() {
+        var frame = FormulaFrames.Frame(Spec, Of(("x1", true)), StepEvent.Try, [], "");
+        Assert.Null(frame.SatisfiedWeight);
+        Assert.DoesNotContain("satisfiedWeight", JsonSerializer.Serialize(frame));
+    }
 }
