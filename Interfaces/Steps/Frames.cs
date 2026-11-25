@@ -5,8 +5,8 @@ namespace API.Interfaces.Steps;
 
 /// <summary>
 /// The shared state vocabulary every picture type names its elements with; a frontend maps each name to a
-/// style in one table. Serializes as its name. A missing entry in a frame means <see cref="Background"/>.
-/// <c>False</c> (assigned and false) is deliberately absent while that state is under review.
+/// style in one table. Serializes as its name (<c>"ElementHighlight"</c>, <c>"False"</c>). A missing entry in a frame
+/// means <see cref="Background"/>. New names are added at the end, so the existing ones keep their numbers.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<PictureState>))]
 enum PictureState {
@@ -14,9 +14,13 @@ enum PictureState {
     Background,
     /// <summary>What the solver is looking at or trying right now.</summary>
     ElementHighlight,
-    /// <summary>Part of the answer.</summary>
+    /// <summary>
+    /// Part of the confirmed answer: only in the Done frame with ok = true, or an Accept that ends the run (the next step
+    /// is that Done). What a solver has kept before then is <see cref="Committed"/> (#886). A run that ends without an
+    /// answer (a Done with ok = false) never shows it: what that Done picks is <see cref="Rejected"/>.
+    /// </summary>
     Solution,
-    /// <summary>Failed: uncovered, undominated, or doubled.</summary>
+    /// <summary>Failed: uncovered, undominated, or doubled; and what a Done with ok = false picks (the run found nothing).</summary>
     Rejected,
     /// <summary>Never reached during this run.</summary>
     Untraveled,
@@ -24,6 +28,18 @@ enum PictureState {
     Covered,
     /// <summary>Cannot be chosen without breaking an exactly-once rule.</summary>
     Blocked,
+    /// <summary>
+    /// Assigned, and false under the current assignment (a literal whose variable has the other value). An element
+    /// whose value is not decided yet stays <see cref="Background"/>.
+    /// </summary>
+    False,
+    /// <summary>
+    /// Kept so far but not confirmed: what an incremental solver has committed mid-run (queens or digits placed, finished
+    /// sub-hulls, items packed, tree edges chosen, jobs scheduled), and a best-so-far a solver has accepted but may still
+    /// replace. It becomes <see cref="Solution"/> only once the run ends on it (#886). A whole candidate that is only being
+    /// tried is <see cref="ElementHighlight"/>, never this.
+    /// </summary>
+    Committed,
 }
 
 /// <summary>
@@ -52,7 +68,32 @@ sealed record FramesResponse(
 /// serving old frontends unchanged.
 /// </summary>
 interface IFramesVisualization : IVisualization {
+    /// <summary>
+    /// Whether this picture can draw a run of <paramref name="solverType"/> (a solver of its problem). True by default. A picture
+    /// of a search (the Search Tree) returns false for a solver whose steps carry no search tree (one that is not an
+    /// <see cref="ISearchTreeSolver"/>, #932): it would draw an empty tree, so <c>visualize</c> answers <c>solver_mismatch</c>. A
+    /// method, not a property, so it never appears in /info.
+    /// </summary>
+    bool DrawsSolver(Type solverType) => true;
+
     /// <param name="instance">The problem instance string.</param>
     /// <param name="run">The solver's answer and steps (use <see cref="SolveRun.StepsFor"/> before reading steps).</param>
     FramesResponse BuildFrames(string instance, SolveRun run);
+
+    /// <summary>
+    /// Whether this visualization's list methods (<c>StepsVisualization</c>) draw the solver's typed steps. False (the
+    /// default) means they were written for legacy steps, so the list format gets none of the typed ones. A visualization
+    /// whose list format already drew typed steps before it got a frames hook (DFA) returns true, so its list output stays
+    /// as it was. A method, not a property, so it never appears in /info.
+    /// </summary>
+    bool ListReadsTypedSteps() => false;
+
+    /// <summary>
+    /// The picture type this visualization serves under <c>format=frames</c>: the <c>type</c> of its frames response (a
+    /// <see cref="VisualizationType"/> name such as <c>"Graph"</c>). /info reports it as <c>pictureType</c> (#841), so a
+    /// client need not run the visualization to find out. The default reads it off a frames response for the problem's
+    /// default instance (see <see cref="PictureTypes"/>), so it always matches what <c>format=frames</c> returns. A method,
+    /// not a property, so it never appears in JSON on its own.
+    /// </summary>
+    string? PictureType() => PictureTypes.Probe(this);
 }

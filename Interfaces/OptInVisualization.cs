@@ -47,6 +47,8 @@ sealed class LegacyVisualizationTypeAttribute(VisualizationType type) : Attribut
 /// instead, wherever the problem is serialized (/info, allInfo, problemInstance, reduce) and wherever its default is drawn
 /// (visualizeReduction).</item>
 /// <item>A visualization with a <see cref="LegacyVisualizationTypeAttribute"/> reports that type, in its tag list too.</item>
+/// <item>A visualization has no <c>pictureType</c> (<see cref="Steps.PictureTypes"/>): the field is written only for a client
+/// that opted in, so the /info, allInfo and problemInstance bodies Redux_GUI reads stay as they were.</item>
 /// </list>
 /// </summary>
 static class GuiView {
@@ -81,13 +83,18 @@ static class GuiView {
     /// A type-info modifier for the responses of clients that have not opted in: every visualization reports its legacy type,
     /// and every property that holds a visualization (a problem's <c>defaultVisualization</c>, a reduction's
     /// <c>visualization</c>) holds the placeholder in place of an opt-in one. That includes a property declared as
-    /// <c>object</c>, which is how <see cref="ProblemDefaultsJson"/> writes the default of a plain-IProblem problem.
+    /// <c>object</c>, which is how <see cref="ProblemDefaultsJson"/> writes the default of a plain-IProblem problem. The
+    /// <c>pictureType</c> field (<see cref="Steps.PictureTypes.AddToVisualizations"/>) is left out.
     /// </summary>
     public static void Modify(System.Text.Json.Serialization.Metadata.JsonTypeInfo info) {
         if (info.Kind != System.Text.Json.Serialization.Metadata.JsonTypeInfoKind.Object) return;
         var properties = info.Properties;
         for (int i = 0; i < properties.Count; i++) {
             var property = properties[i];
+            if (typeof(IVisualization).IsAssignableFrom(info.Type) && property.Name == Steps.PictureTypes.JsonName) {
+                properties.RemoveAt(i--);
+                continue;
+            }
             var get = property.Get;
             if (get == null) continue;
             if (typeof(IVisualization).IsAssignableFrom(info.Type) && property.Name == nameof(IVisualization.visualizationType)

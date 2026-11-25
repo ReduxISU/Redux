@@ -301,7 +301,11 @@ public class ProblemProvider : ControllerBase {
     /// (<see cref="TagListJson"/>).
     /// </summary>
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions =
-        TagListJson.Apply(ProblemDefaultsJson.Apply(new() { IncludeFields = true }));
+        TagListJson.Apply(ProblemDefaultsJson.Apply(new() {
+            IncludeFields = true,
+            // Every visualization also says which picture type it serves under format=frames (#841).
+            TypeInfoResolver = PictureTypes.Resolver(),
+        }));
 
     // The reduce endpoint's options, one object so GuiView.Options makes its copy once. No IncludeFields and no
     // ProblemDefaultsJson (the reduction is written through IReduction, as it always was), but the tag lists, as
@@ -710,6 +714,9 @@ public class ProblemProvider : ControllerBase {
     /// be determined, the solver is rejected.
     /// </summary>
     internal static bool SolverMatchesVisualization(Type solverType, IVisualization vis) {
+        // A picture may refuse a solver of its own problem whose run it cannot draw (the Search Tree, #932).
+        if (vis is IFramesVisualization frames && !frames.DrawsSolver(solverType))
+            return false;
         if (solverType == vis.solver.GetType())
             return true;
         Type? solverProblem = ProblemTypeOf(solverType, typeof(ISolver<>));
@@ -786,8 +793,9 @@ public class ProblemProvider : ControllerBase {
             // is left of the limit, so the whole request stays within it (#764).
             TimeSpan? left = limit is { } total ? (total > clock.Elapsed ? total - clock.Elapsed : TimeSpan.Zero) : null;
             // The list format is the old frontends' contract. A visualization with a frames hook declares a typed
-            // step shape for that hook only; its list methods keep getting the (legacy) steps they always did.
-            var steps = run.StepsFor(vis is IFramesVisualization ? null : vis.StepShape);
+            // step shape for that hook only; its list methods keep getting the steps they always did: none of the typed ones,
+            // unless they were already drawing them (ListReadsTypedSteps).
+            var steps = run.StepsFor(vis is IFramesVisualization framesOnly && !framesOnly.ListReadsTypedSteps() ? null : vis.StepShape);
             var solution = run.Answer;
             return SolveOutcome.Answered(asFrames
                 ? getVisualizeFrames(vis, steps, solution, instance, run.TimedOut, left)
