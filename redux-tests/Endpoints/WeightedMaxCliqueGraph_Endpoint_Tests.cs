@@ -72,7 +72,7 @@ public class WeightedMaxCliqueGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = await Json("visualize", $"visualization={Vis}&format=frames&solver=WeightedMaxCliqueBruteForceSolver", Instance);
         Assert.Equal("Graph", frames.GetProperty("type").GetString());
         var nodes = frames.GetProperty("payload").GetProperty("nodes").EnumerateArray()
-            .ToDictionary(n => n.GetProperty("id").GetString()!, n => n.GetProperty("weight").GetInt64());
+            .ToDictionary(n => n.GetProperty("id").GetString()!, n => long.Parse(n.GetProperty("weight").GetString()!));   // strings, so no browser rounds them (#1034)
         Assert.Equal(Weights, nodes);
         Assert.False(frames.GetProperty("payload").TryGetProperty("k", out _));
     }
@@ -94,7 +94,7 @@ public class WeightedMaxCliqueGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.True(frames.Count > 1);
         int named = 0;
         foreach (var frame in frames) {
-            long total = frame.GetProperty("selectedWeight").GetInt64();
+            long total = long.Parse(frame.GetProperty("selectedWeight").GetString()!);
             var states = States(frame, "nodes");
             string caption = frame.GetProperty("caption").GetString()!;
             if (CaptionWeight(caption) is { } weight) {
@@ -110,7 +110,7 @@ public class WeightedMaxCliqueGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.True(done.GetProperty("ok").GetBoolean());
-        Assert.Equal(12, done.GetProperty("selectedWeight").GetInt64());
+        Assert.Equal("12", done.GetProperty("selectedWeight").GetString());
         Assert.Equal(new Dictionary<string, string> { ["a"] = "Solution", ["b"] = "Solution", ["c"] = "Solution" }, States(done, "nodes"));
         Assert.Equal(["a-b", "a-c", "b-c"], States(done, "edges").Where(e => e.Value == "Solution").Select(e => e.Key).Order());
         Assert.Equal("The heaviest clique is {a,b,c}, weight 12.", done.GetProperty("caption").GetString());
@@ -123,7 +123,7 @@ public class WeightedMaxCliqueGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         // {a,d}: a and d aren't joined, so the missing edge is drawn as a Rejected phantom; its weight is still 11.
         var ad = frames.Single(f => f.GetProperty("caption").GetString() == "Try {a,d}: a and d aren't joined.");
         Assert.Equal("Reject", ad.GetProperty("event").GetString());
-        Assert.Equal(11, ad.GetProperty("selectedWeight").GetInt64());
+        Assert.Equal("11", ad.GetProperty("selectedWeight").GetString());
         var phantom = Assert.Single(ad.GetProperty("phantoms").EnumerateArray());
         Assert.Equal("Rejected", phantom.GetProperty("state").GetString());
     }
@@ -134,7 +134,7 @@ public class WeightedMaxCliqueGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         var frames = Picture(run).GetProperty("frames").EnumerateArray().ToList();
         // The greedy takes d (7), then b (3, joined to d); a and c are not joined to d.
         Assert.StartsWith("Start from {b,d}, weight 10", frames[0].GetProperty("caption").GetString());
-        Assert.Equal(10, frames[0].GetProperty("selectedWeight").GetInt64());
+        Assert.Equal("10", frames[0].GetProperty("selectedWeight").GetString());
         Assert.Contains(frames, f => f.GetProperty("event").GetString() == "Reject" && f.GetProperty("caption").GetString()!.StartsWith("Stop:"));
         Assert.Contains(frames, f => f.GetProperty("event").GetString() == "Backtrack");
     }
@@ -146,6 +146,6 @@ public class WeightedMaxCliqueGraph_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Done", only.GetProperty("event").GetString());
         Assert.True(only.GetProperty("ok").GetBoolean());
         Assert.Equal(JsonValueKind.Null, only.GetProperty("step").ValueKind);
-        Assert.Equal(12, only.GetProperty("selectedWeight").GetInt64());
+        Assert.Equal("12", only.GetProperty("selectedWeight").GetString());
     }
 }

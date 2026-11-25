@@ -57,10 +57,12 @@ sealed record GraphNodeDto(
 
     /// <summary>
     /// The node's weight, for a vertex-weighted problem (Weighted Max Clique, #1058): a frontend writes it in a tag beside the
-    /// node. Omitted for every node of an unweighted graph, so those payloads write exactly as before.
+    /// node. Omitted for every node of an unweighted graph, so those payloads write exactly as before. Written as a string
+    /// (<c>"4"</c>) so a browser never rounds a weight above 2^53 (#1034).
     /// </summary>
     [JsonPropertyName("weight")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
     public long? Weight { get; init; }
 }
 
@@ -147,10 +149,11 @@ sealed record GraphFrame(
 
     /// <summary>
     /// For a vertex-weighted graph only (#1058): the total weight of the nodes this frame's set picks. Omitted when the graph
-    /// has no node weights, and on a stopped run's blank Done.
+    /// has no node weights, and on a stopped run's blank Done. Written as a string, like the node weights.
     /// </summary>
     [JsonPropertyName("selectedWeight")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
     public long? SelectedWeight { get; init; }
 }
 

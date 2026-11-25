@@ -21,7 +21,8 @@ This visualization provides initial and final pictures only. The step-by-step
 picture is `WeightedMaxCliqueGraphVisualization` (#1058): the Graph picture type
 (`format=frames`), opt-in with `includePictures=true`, so Redux_GUI keeps seeing
 only this one. Its list format is exactly this visualization's. In its frames
-payload each node's `weight` is a JSON number, as the Formula picture's clause
-weights are, and every frame carries `selectedWeight`, the chosen nodes' total.
+payload each node's `weight` is an invariant integer string, as the Formula
+picture's clause weights are, and every frame carries `selectedWeight`, the
+chosen nodes' total, also as a string (#1034).
 The brute force and branch and bound solvers record its steps. See the Graph
 section of `Visualizations/PICTURE-TYPES.md`.

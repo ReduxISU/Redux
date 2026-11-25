@@ -98,11 +98,11 @@ Cut and groups are separate shapes. Directed Hamiltonian Cycle is a directed tou
 ```
 { "kind": "graph", "subtype": "undirected" | "directed", "layout": "force" | "circle",
   "shape": "subset" | "edges" | "cut" | "groups" | "tour", "rule": …, "k"?: int,
-  "nodes": [{ "id", "label", "terminal"?: true, "weight"?: int }],
+  "nodes": [{ "id", "label", "terminal"?: true, "weight"?: "4" }],
   "edges": [{ "id", "a", "b", "weight"?: number, "label"?: "2,5" }] }
 ```
 
-**Frame:** `event, caption, focus, ok?`, `nodes` and `edges` state maps, `phantoms: [{ a, b, state }]`, `groups: { nodeId: index }` (cut and groups shapes), `order: [ids]` (tour shape), `selectedWeight?: int` (subset shape with node weights).
+**Frame:** `event, caption, focus, ok?`, `nodes` and `edges` state maps, `phantoms: [{ a, b, state }]`, `groups: { nodeId: index }` (cut and groups shapes), `order: [ids]` (tour shape), `selectedWeight?: "12"` (subset shape with node weights; both weights are whole numbers written as strings so a browser never rounds one above 2^53, #1034).
 
 **Node weights.** A vertex-weighted problem sets `NodeWeights` on its `GraphSubsetSpec` (Weighted Max Clique, #1058). Every node then carries `weight`, drawn as a tag beside the node that moves with it, and every frame carries `selectedWeight`, the total weight of the nodes its set picks (the clique shown, the best one on the Done). Both are left out when the spec has no node weights, so every other Graph payload and frame is byte for byte as before; a stopped run's blank Done has no `selectedWeight` either. Weighted Max Clique's Graph picture is its own opt-in visualization (`WeightedMaxCliqueGraphVisualization`, listed only with `includePictures=true`); its old list picture stays the default.
 
