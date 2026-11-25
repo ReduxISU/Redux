@@ -1,0 +1,93 @@
+using System.Runtime.CompilerServices;
+
+namespace API.Interfaces.Steps;
+
+/// <summary>
+/// Records the steps of a solver that does not branch: a brute force trying one candidate after another, a greedy making one
+/// move after another, a local search, a table filled cell by cell, a machine run symbol by symbol. The solver says, once, how to show what a step is about (its <typeparamref name="TState"/>):
+/// the converters given to the constructor turn it into the partial answer and the focus. Each step is then one call that names
+/// the event, what it is about, and why: <c>steps.Reject(candidate, $"Try {...}: clause C2 has no true literal.")</c>.
+/// <para>
+/// The state is whatever the solver has at hand: the candidate it judges, the route so far, or a small tuple of locals
+/// (<c>(assignment, failedClause)</c>) when the picture needs more than one of them. A step that shows its state another way
+/// than the converters do (a closed tour, the clause that failed) gives <c>partial:</c> or <c>focus:</c> as well; those are
+/// called only for a step that is kept.
+/// </para>
+/// <para>
+/// Costs nothing when the recorder is <see cref="StepRecorder{TPartial}.Off"/>: no converter is called, no text formatted. A
+/// <see cref="StepRecorder{TPartial}.DeadlineOnly"/> recorder counts every step (to check the clock) and builds nothing.
+/// Recording, a Try, Reject or Backtrack is built only within the cap; an Accept is built whenever the recorder is recording,
+/// since it keeps the last Accept past the cap (see <see cref="StepRecorder{TPartial}"/>).
+/// </para>
+/// </summary>
+sealed class RunSteps<TState, TPartial> : StepsCore<TPartial> {
+    private readonly Func<TState, TPartial> _partial;
+    private readonly Func<TState, string[]>? _focus;
+    private readonly Func<TState, SearchNode[]>? _tree;
+
+    /// <param name="rec">The recorder the steps go to.</param>
+    /// <param name="partial">A state's partial answer.</param>
+    /// <param name="focus">The ids a step about a state is about; none by default.</param>
+    /// <param name="tree">
+    /// The search-tree nodes a step about a state adds (<see cref="SolverStep{TPartial}.Tree"/>); none by default. For a
+    /// search that keeps its own tree, with node states <see cref="SearchSteps{TState, TChoice, TPartial}"/> does not give;
+    /// a search that does not should use SearchSteps.
+    /// </param>
+    public RunSteps(StepRecorder<TPartial> rec, Func<TState, TPartial> partial, Func<TState, string[]>? focus = null,
+                    Func<TState, SearchNode[]>? tree = null) : base(rec) {
+        _partial = partial;
+        _focus = focus;
+        _tree = tree;
+    }
+
+    /// <summary>A Try: the solver tries <paramref name="state"/>.</summary>
+    public void Try(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
+        if (!Rec.CountsSteps) return;
+        Step(StepEvent.Try, state, why.ToStringAndClear(), focus, partial);
+    }
+
+    /// <summary>
+    /// An Update: the solver changes its working state, and there is nothing to judge yet: a table cell filled, a symbol
+    /// read, a gate applied, the starting distances set. It is recorded as a Try (<see cref="StepEvent.Try"/>), so every
+    /// picture draws it as it draws a Try, and it is kept within the cap as a Try is. Use Try instead when what the step
+    /// looks at can still fail.
+    /// </summary>
+    public void Update(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
+        if (!Rec.CountsSteps) return;
+        Step(StepEvent.Try, state, why.ToStringAndClear(), focus, partial);
+    }
+
+    /// <summary>An Accept: the solver keeps <paramref name="state"/> (a move made, the best so far, the answer).</summary>
+    public void Accept(TState state, [InterpolatedStringHandlerArgument("")] KeptText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
+        if (!Rec.CountsSteps) return;
+        Step(StepEvent.Accept, state, why.ToStringAndClear(), focus, partial);
+    }
+
+    /// <summary>A Reject: <paramref name="state"/> fails.</summary>
+    public void Reject(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
+        if (!Rec.CountsSteps) return;
+        Step(StepEvent.Reject, state, why.ToStringAndClear(), focus, partial);
+    }
+
+    /// <summary>A Backtrack: the solver undoes a move and goes back to <paramref name="state"/>.</summary>
+    public void Backtrack(TState state, [InterpolatedStringHandlerArgument("")] ShownText why, Func<string[]>? focus = null, Func<TPartial>? partial = null) {
+        if (!Rec.CountsSteps) return;
+        Step(StepEvent.Backtrack, state, why.ToStringAndClear(), focus, partial);
+    }
+
+    /// <summary>
+    /// The final step (<see cref="StepRecorder{TPartial}.Done(TPartial, bool, string, Func{SearchNode[]}?)"/>): the answer,
+    /// whether there is one, and why; with <paramref name="tree"/>, the answer's path in a search tree the solver keeps.
+    /// </summary>
+    public void Done(TPartial answer, bool ok, [InterpolatedStringHandlerArgument("")] KeptText why, Func<SearchNode[]>? tree = null) {
+        if (!Recording) return;
+        Rec.Done(answer, ok, why.ToStringAndClear()!, tree);
+    }
+
+    private void Step(StepEvent kind, TState state, string? why, Func<string[]>? focus, Func<TPartial>? partial) {
+        if (Rec.Builds(kind))
+            Add(kind, partial != null ? partial() : _partial(state), why, focus != null ? focus() : _focus != null ? _focus(state) : [], _tree?.Invoke(state));
+        else
+            Skip(kind);
+    }
+}
