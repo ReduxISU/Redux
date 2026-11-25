@@ -301,7 +301,11 @@ public class ProblemProvider : ControllerBase {
     /// (<see cref="TagListJson"/>).
     /// </summary>
     private static readonly JsonSerializerOptions ReflectedObjectJsonOptions =
-        TagListJson.Apply(ProblemDefaultsJson.Apply(new() { IncludeFields = true }));
+        TagListJson.Apply(ProblemDefaultsJson.Apply(new() {
+            IncludeFields = true,
+            // Every visualization also says which picture type it serves under format=frames (#841).
+            TypeInfoResolver = PictureTypes.Resolver(),
+        }));
 
     // The reduce endpoint's options, one object so GuiView.Options makes its copy once. No IncludeFields and no
     // ProblemDefaultsJson (the reduction is written through IReduction, as it always was), but the tag lists, as
