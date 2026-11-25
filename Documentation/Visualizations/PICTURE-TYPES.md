@@ -162,12 +162,12 @@ One node per literal, grouped into one cluster per clause, with the clusters on 
 **Clause weights (#1057, optional).** A weighted problem (Weighted Max-SAT) gives each Formula group a `weight` and each frame a `satisfiedWeight`; both are absent for SAT and 3SAT, whose payloads are unchanged:
 
 ```
-"groups": [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"], "weight": 1 },
-           { "id": "c1", "label": "C2", "members": ["c1-0", "c1-1"], "weight": 2 }]
-frame:    { ..., "satisfiedWeight": 3 }   // weight of the clauses with a true literal in this assignment
+"groups": [{ "id": "c0", "label": "C1", "members": ["c0-0", "c0-1"], "weight": "1" },
+           { "id": "c1", "label": "C2", "members": ["c1-0", "c1-1"], "weight": "2" }]
+frame:    { ..., "satisfiedWeight": "3" }   // weight of the clauses with a true literal in this assignment
 ```
 
-A frontend writes the weight beside the clause label (`C1 · w 1`) and shows the satisfied total with the frame.
+Both are whole numbers written as strings, so a browser never rounds one above 2^53 (#1034). A frontend writes the weight beside the clause label (`C1 · w 1`) and shows the satisfied total with the frame.
 
 ---
 

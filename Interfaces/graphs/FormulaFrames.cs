@@ -66,10 +66,12 @@ sealed record FormulaGroupDto(
 
     /// <summary>
     /// The clause's weight, for a weighted problem (Weighted Max-SAT, #1057): a frontend writes it beside the clause's label
-    /// (<c>C1 · w 3</c>). Left out of the JSON when unset, so an unweighted clause writes exactly as before.
+    /// (<c>C1 · w 3</c>). Left out of the JSON when unset, so an unweighted clause writes exactly as before. Written as a
+    /// string (<c>"3"</c>) so a browser never rounds a weight above 2^53 (#1034).
     /// </summary>
     [JsonPropertyName("weight")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
     public long? Weight { get; init; }
 
     /// <summary>A CNF clause as the Grouped Graph writes it.</summary>
@@ -127,10 +129,12 @@ sealed record FormulaFrame(
 
     /// <summary>
     /// For a weighted formula only (#1057): the total weight of the clauses this frame's assignment satisfies (a clause with a
-    /// true literal). Left out of the JSON when the formula has no weights, and on a stopped run's blank Done.
+    /// true literal). Left out of the JSON when the formula has no weights, and on a stopped run's blank Done. Written as a
+    /// string, like the clause weights.
     /// </summary>
     [JsonPropertyName("satisfiedWeight")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
     public long? SatisfiedWeight { get; init; }
 }
 

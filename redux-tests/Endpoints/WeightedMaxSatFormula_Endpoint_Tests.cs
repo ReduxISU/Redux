@@ -69,10 +69,10 @@ public class WeightedMaxSatFormula_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal(["c1"], first.GetProperty("focus").EnumerateArray().Select(f => f.GetString()));
 
         // Each candidate's frame totals the weight it satisfies, the figure its caption gives.
-        Assert.Equal(1, first.GetProperty("satisfiedWeight").GetInt64());
+        Assert.Equal("1", first.GetProperty("satisfiedWeight").GetString());
         Assert.Contains("satisfies weight 1", first.GetProperty("caption").GetString());
         foreach (var frame in frames.Take(16)) {
-            long weight = frame.GetProperty("satisfiedWeight").GetInt64();
+            string? weight = frame.GetProperty("satisfiedWeight").GetString();
             Assert.Contains($"satisfies weight {weight},", frame.GetProperty("caption").GetString());
         }
 
@@ -80,7 +80,7 @@ public class WeightedMaxSatFormula_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Done", last.GetProperty("event").GetString());
         Assert.True(last.GetProperty("ok").GetBoolean());
         Assert.Contains("satisfying weight 3 of 3", last.GetProperty("caption").GetString());
-        Assert.Equal(3, last.GetProperty("satisfiedWeight").GetInt64());
+        Assert.Equal("3", last.GetProperty("satisfiedWeight").GetString());
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class WeightedMaxSatFormula_Endpoint_Tests : IClassFixture<AppFactory> {
         var run = await Json("visualizeRun", "solver=WeightedMaxSatBruteForceSolver", Instance);
         var groups = Pictures(run)[Vis].GetProperty("payload").GetProperty("groups").EnumerateArray().ToList();
         Assert.Equal(["C1", "C2"], groups.Select(g => g.GetProperty("label").GetString()));
-        Assert.Equal([1L, 2L], groups.Select(g => g.GetProperty("weight").GetInt64()));
+        Assert.Equal(["1", "2"], groups.Select(g => g.GetProperty("weight").GetString()));   // strings, so no browser rounds them (#1034)
     }
 
     [Fact]
@@ -99,6 +99,6 @@ public class WeightedMaxSatFormula_Endpoint_Tests : IClassFixture<AppFactory> {
         Assert.Equal("Done", only.GetProperty("event").GetString());
         Assert.True(only.GetProperty("ok").GetBoolean());
         Assert.Equal(JsonValueKind.Null, only.GetProperty("step").ValueKind);
-        Assert.Equal(3, only.GetProperty("satisfiedWeight").GetInt64());
+        Assert.Equal("3", only.GetProperty("satisfiedWeight").GetString());
     }
 }
