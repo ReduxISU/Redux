@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using API.Interfaces;
+using API.Interfaces.Steps;
 using API.Problems.NPHard.NPH_WEIGHTEDMAXCLIQUE;
 using API.Problems.NPHard.NPH_WEIGHTEDMAXCLIQUE.Solvers;
 using Xunit;
@@ -95,6 +96,30 @@ public class WeightedMaxCliqueSolver_Tests {
             var heuristic = AssertCertificate(problem, new WeightedMaxCliqueGreedyLocalSearchSolver().solve(problem));
             Assert.True(brute.Weight == bound.Weight, $"seed={seed}, trial={trial}, instance={problem.instance}");
             Assert.True(heuristic.Weight <= brute.Weight, $"seed={seed}, trial={trial}");
+        }
+    }
+
+    // Recording steps for the Graph picture (#1058) never changes an answer: with steps on, off, and the plain solve.
+    [Theory]
+    [InlineData(17)]
+    [InlineData(2026)]
+    public void ExactSolvers_GiveTheSameAnswerWithStepsOnAndOff(int seed) {
+        var random = new Random(seed);
+        for (int trial = 0; trial < 30; trial++) {
+            int n = trial % 9;
+            long[] weights = Enumerable.Range(0, n).Select(_ => (long)random.Next(0, 16)).ToArray();
+            var edges = CompleteEdges(n).Where(_ => random.NextDouble() < 0.6).ToArray();
+            var problem = Instance(weights, edges);
+            foreach (ISolver solver in new ISolver[] { new WeightedMaxCliqueBruteForceSolver(), new WeightedMaxCliqueBranchAndBoundSolver() }) {
+                string plain = solver.solve(problem.instance);
+                var on = solver.Run(problem.instance, withSteps: true);
+                Assert.Equal(plain, on.Answer);
+                Assert.Equal(plain, solver.Run(problem.instance, withSteps: false).Answer);
+                var done = Assert.IsType<SolverStep<NodeSet>>(on.Steps[^1]);
+                Assert.Equal(StepEvent.Done, done.Event);
+                Assert.True(done.Ok);
+                Assert.Equal(AssertCertificate(problem, plain).Vertices, done.Partial.Nodes);
+            }
         }
     }
 
@@ -213,7 +238,15 @@ public class WeightedMaxCliqueSolver_Tests {
                 SolveRun run = solver.Run(problem.instance, withSteps, TimeSpan.Zero);
                 Assert.True(run.TimedOut);
                 Assert.Equal(SolveRun.TimedOutAnswer, run.Answer);
-                Assert.Empty(run.Steps);
+                // A solver that records steps (#1058) ends a stopped run with the recorder's own stopped Done, and no answer.
+                if (withSteps && run.StepShape != null) {
+                    var stopped = Assert.IsType<SolverStep<NodeSet>>(Assert.Single(run.Steps));
+                    Assert.Equal(StepEvent.Done, stopped.Event);
+                    Assert.False(stopped.Ok);
+                    Assert.Empty(stopped.Partial.Nodes);
+                } else {
+                    Assert.Empty(run.Steps);
+                }
             }
             solver.ResetTimer();
             AssertCertificate(problem, solver.solve(problem));

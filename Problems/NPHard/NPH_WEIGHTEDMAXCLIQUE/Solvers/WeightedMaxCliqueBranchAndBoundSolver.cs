@@ -1,8 +1,15 @@
 using API.Interfaces;
+using API.Interfaces.Steps;
 
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAXCLIQUE.Solvers;
 
-internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMAXCLIQUE> {
+// The steps it records as it grows a clique one vertex at a time:
+//   - an Accept for the greedy clique it starts from, the first best;
+//   - an Accept for each vertex added, with the clique's weight and whether it is the heaviest so far;
+//   - a Reject when the clique and every candidate left could weigh no more than the best (the candidates are the focus);
+//   - a Backtrack when it backs a vertex out again;
+//   - the Done, with the heaviest clique.
+internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMAXCLIQUE, NodeSet>, IIncrementalSolver {
     public string solverName { get; } = "Weighted Maximum Clique Exact Branch and Bound";
     public string solverDefinition { get; } = "Searches partial cliques by intersecting candidates with neighbors, pruning with the sum of remaining candidate weights. Guarantees optimality on completion; no coloring bound is used.";
     public string source { get; } = "Candidate-intersection search adapted from Carraghan and Pardalos (1990), An Exact Algorithm for the Maximum Clique Problem, with a nonnegative vertex-weight sum bound.";
@@ -19,9 +26,21 @@ internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMA
     internal long SearchNodes { get; private set; }
     internal long PrunedBranches { get; private set; }
 
-    public string solve(WEIGHTEDMAXCLIQUE problem) {
+    // A step of the search: the clique so far and the vertices the step is about (vertex indices).
+    private readonly record struct Move(List<int> Clique, IEnumerable<int> About);
+
+    // How the steps show a move: the clique so far, with the vertices the step is about in focus.
+    private static RunSteps<Move, NodeSet> NewSteps(StepRecorder<NodeSet> rec, WEIGHTEDMAXCLIQUE problem) => new(rec,
+        partial: m => new NodeSet(m.Clique.Select(problem.VertexName)),
+        focus: m => m.About.Select(problem.VertexName).ToArray());
+
+    public string solve(WEIGHTEDMAXCLIQUE problem) => Solve(problem, StepRecorder<NodeSet>.Off);
+
+    public string Solve(WEIGHTEDMAXCLIQUE problem, StepRecorder<NodeSet> rec) {
         SearchNodes = PrunedBranches = 0;
         if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        var steps = NewSteps(rec, problem);
+        string Named(IEnumerable<int> vertices) => Words.Braces(vertices.Order().Select(problem.VertexName));
         int[] priority = Enumerable.Range(0, problem.VertexCount).OrderByDescending(problem.VertexWeight)
             .ThenByDescending(problem.Degree).ThenBy(v => v).ToArray();
         var best = new List<int>();
@@ -30,6 +49,8 @@ internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMA
             if (problem.VertexWeight(vertex) > 0 && problem.CanAdd(vertex, best)) best.Add(vertex);
         }
         long bestWeight = problem.Value(best);
+        if (best.Count > 0)
+            steps.Accept(new(best, best), $"Start from {Named(best)}, weight {bestWeight}: the heaviest vertices first, each joined to all before it. It is the best so far.");
         var clique = new List<int>();
 
         void Search(List<int> candidates, long currentWeight) {
@@ -48,6 +69,12 @@ internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMA
                 if (timerHasExpired) return;
                 if (upperBound <= bestWeight) {
                     if (PrunedBranches < long.MaxValue) PrunedBranches++;
+                    if (clique.Count == 0)
+                        steps.Reject(new(clique, candidates.Skip(i)),
+                            $"Stop: every vertex left to start from weighs at most {upperBound} together, not more than the best, {bestWeight}.");
+                    else
+                        steps.Reject(new(clique, candidates.Skip(i)),
+                            $"Stop: {Named(clique)} and every vertex left to add weigh at most {upperBound}, not more than the best, {bestWeight}.");
                     return;
                 }
                 int vertex = candidates[i];
@@ -59,14 +86,21 @@ internal sealed class WeightedMaxCliqueBranchAndBoundSolver : ISolver<WEIGHTEDMA
                     if (problem.AreAdjacent(vertex, candidates[j])) next.Add(candidates[j]);
                 }
                 clique.Add(vertex);
-                Search(next, checked(currentWeight + problem.VertexWeight(vertex)));
+                long weight = checked(currentWeight + problem.VertexWeight(vertex));
+                if (weight > bestWeight)
+                    steps.Accept(new(clique, [vertex]), $"Add {problem.VertexName(vertex)}: {Named(clique)} weighs {weight}, the heaviest so far.");
+                else
+                    steps.Accept(new(clique, [vertex]), $"Add {problem.VertexName(vertex)}: {Named(clique)} weighs {weight}; the best is {bestWeight}.");
+                Search(next, weight);
                 clique.RemoveAt(clique.Count - 1);
+                steps.Backtrack(new(clique, [vertex]), $"Back out {problem.VertexName(vertex)}.");
                 upperBound = checked(upperBound - problem.VertexWeight(vertex));
             }
         }
 
         Search(priority.ToList(), 0);
-        string certificate = problem.FormatCertificate(best, bestWeight);
-        return timerHasExpired ? SolveRun.TimedOutAnswer : certificate;
+        if (timerHasExpired) return SolveRun.TimedOutAnswer;
+        steps.Done(new NodeSet(best.Select(problem.VertexName)), true, $"The heaviest clique is {Named(best)}, weight {bestWeight}.");
+        return problem.FormatCertificate(best, bestWeight);
     }
 }

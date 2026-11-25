@@ -72,6 +72,10 @@ public class SolverReplay_Tests {
                 : answer.Split('\n').Where(l => l.Trim().Length > 0).Select(l => l.Split(',').Last().Trim());
             return new ActiveStates(ends, last.Position);
         }
+        if (lastPartial is NodeSet && answer.StartsWith("({")) {
+            // Weighted Max Clique answers wrap the clique with its weight, "({a,b,c},12)": the partial is the clique.
+            return new NodeSet(answer[2..answer.IndexOf('}')].Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+        }
         if (lastPartial is NodeSet) {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
