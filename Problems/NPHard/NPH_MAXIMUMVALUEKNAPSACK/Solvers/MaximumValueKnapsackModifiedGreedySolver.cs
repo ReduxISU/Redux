@@ -12,8 +12,8 @@ internal sealed class MaximumValueKnapsackModifiedGreedySolver : ISolver<MAXIMUM
     public string[] contributors { get; } = { "Corbin Hay" };
     public SolverType solverType { get; } = SolverType.Greedy | SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("n * log(n)", ", n = original item occurrences; O(n log n) time under the fixed-width arithmetic model, including certificate formatting; densities use BigInteger products of Int64 inputs");
-    public MathematicalFunction spaceComplexity { get; } = new("n", ", n = original item occurrences; candidates, merge buffer, and selected indices");
+    public MathematicalFunction timeComplexity { get; } = new("|i| * log(|i|)", ", |i| = number of items, duplicates counted; O(|i| log |i|) time under the fixed-width arithmetic model, including certificate formatting; densities use BigInteger products of Int64 inputs");
+    public MathematicalFunction spaceComplexity { get; } = new("|i|", ", |i| = number of items, duplicates counted; candidates, merge buffer, and selected indices");
     private volatile bool _timerHasExpired;
     public bool timerHasExpired { get => _timerHasExpired; set => _timerHasExpired = value; }
 

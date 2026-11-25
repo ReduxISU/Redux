@@ -3,6 +3,7 @@ using API.Interfaces;
 namespace API.Problems.NPHard.NPH_MAXIMUMVALUEKNAPSACK.Solvers;
 
 [DefaultFor(typeof(MAXIMUMVALUEKNAPSACK))]
+[ExactSearchLimit("at most 20 items")] // MaxItems
 internal sealed class MaximumValueKnapsackBruteForceSolver : ISolver<MAXIMUMVALUEKNAPSACK> {
     public string solverName { get; } = "Maximum-Value 0-1 Knapsack Exact Brute Force";
     public string solverDefinition { get; } = "Enumerates every item subset, including empty, and returns an optimal feasible selection only when enumeration completes. Supports at most 20 item occurrences. On ties, retains the first subset in ascending bit-mask order; output indices are ascending. An interrupted search returns no incumbent certificate.";
@@ -12,8 +13,8 @@ internal sealed class MaximumValueKnapsackBruteForceSolver : ISolver<MAXIMUMVALU
     public string[] contributors { get; } = { "Corbin Hay" };
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("n * 2^n", ", n = item occurrences; exhaustive subset feasibility and value evaluation");
-    public MathematicalFunction spaceComplexity { get; } = new("n", ", n = item occurrences; current and best selections and evaluation bookkeeping");
+    public MathematicalFunction timeComplexity { get; } = new("|i| * 2^|i|", ", |i| = number of items, duplicates counted; exhaustive subset feasibility and value evaluation");
+    public MathematicalFunction spaceComplexity { get; } = new("|i|", ", |i| = number of items, duplicates counted; current and best selections and evaluation bookkeeping");
     private volatile bool _timerHasExpired;
     public bool timerHasExpired { get => _timerHasExpired; set => _timerHasExpired = value; }
 

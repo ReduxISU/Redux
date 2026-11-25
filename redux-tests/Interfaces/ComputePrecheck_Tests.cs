@@ -76,7 +76,7 @@ public class ComputePrecheck_Tests {
     // the families whose instance grammar names their parts.
     private static readonly string[] OtherReportingProblems = {
         "binpacking", "changemaking", "convexhull", "dfa", "dm3", "editdistance", "exactcover", "hittingset",
-        "integerlinearprogramming", "intprogramming01", "jobseq", "knapsack", "nqueens", "partition", "primefactor",
+        "integerlinearprogramming", "intprogramming01", "jobseq", "knapsack", "maximumvalueknapsack", "nqueens", "partition", "primefactor",
         "sat", "sat3", "setcover", "subsetsum", "weightedmax3sat", "weightedmaxsat",
     };
 
@@ -88,6 +88,28 @@ public class ComputePrecheck_Tests {
         var covered = GraphProblems().Select(row => row.Data).Concat(OtherReportingProblems).ToHashSet();
         Assert.Subset(reporting, covered); // every covered problem reports its measures
         Assert.Subset(covered, reporting); // and no other problem does yet
+    }
+
+    [Fact]
+    public void MaximumValueKnapsack_ReportsItsItems_CountingDuplicates() {
+        var problem = (IProblem)Activator.CreateInstance(ProblemProvider.Problems["maximumvalueknapsack"], "(((10,60),(10,60),(20,100)),50)")!;
+        Assert.Equal([SizeMeasure.Count("i", 3)], problem.SizeMeasures());
+    }
+
+    // Of Maximum-Value Knapsack's solvers only Modified Greedy is checked: brute force answers past its own 20 items with
+    // 400 exact_search_limit_exceeded, and branch and bound prunes its search (#1049).
+    [Fact]
+    public void MaximumValueKnapsack_ChecksModifiedGreedy_AndLeavesTheExactSolversToTheirOwnLimits() {
+        Assert.Equal("it enforces its own exact-search limit (at most 20 items), refused with HTTP 400 exact_search_limit_exceeded",
+            ComputePrecheck.SkipReason(ProblemProvider.Solvers["maximumvalueknapsackbruteforcesolver"]));
+        Assert.Equal("it prunes its search (SolverType.Backtracking), so its worst-case Big-O says little about its running time",
+            ComputePrecheck.SkipReason(ProblemProvider.Solvers["maximumvalueknapsackbranchandboundsolver"]));
+        var greedy = ProblemProvider.Solvers["maximumvalueknapsackmodifiedgreedysolver"];
+        Assert.Null(ComputePrecheck.SkipReason(greedy));
+        var estimate = ComputePrecheck.Evaluate(greedy, "(((10,60),(20,100),(30,120)),50)", ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.Equal([SizeMeasure.Count("i", 3)], estimate.Measures);
+        Assert.False(estimate.TooLarge);
     }
 
     [Fact]
@@ -247,7 +269,7 @@ public class ComputePrecheck_Tests {
         "CarraghanPardalos", "DominatingSetForcedVertex", "DominatingSetNaiveInclusionExclusion",
         "TSPBranchAndBound", "VertexCoverBoundedSearchTree", "WeightedMaxCliqueBranchAndBoundSolver",
         "DancingLinks", "ExactCoverRecursive", "HeuristicSolver", "IntegerLinearProgrammingSolver", "NQueensBacktracking",
-        "Sat3BacktrackingSolver",
+        "Sat3BacktrackingSolver", "MaximumValueKnapsackBranchAndBoundSolver",
         // Quantum solvers: their work runs on the external quantum service, not the server's processor.
         "BernsteinVaziraniQuantumSolver", "DeutschQuantumSolver", "DeutschJozsaQuantumSolver", "MaxCutQAOASolver",
         "SATGroverSolver",
@@ -268,13 +290,11 @@ public class ComputePrecheck_Tests {
         "DummySolver", // the placeholder solver of IProblem
         // Problems added after this precheck that report no size measures yet.
         "CircuitSatBruteForceSolver", // CIRCUITSAT
-        "MaximumValueKnapsackBranchAndBoundSolver", "MaximumValueKnapsackBruteForceSolver",
-        "MaximumValueKnapsackModifiedGreedySolver", // MAXIMUMVALUEKNAPSACK
         // Exact solvers with their own size limit (ExactSearchLimit), refused with HTTP 400 exact_search_limit_exceeded
         // before the Big-O could matter.
         "WeightedMax3SatBranchAndBoundSolver", "WeightedMaxSatBranchAndBoundSolver",
         "WeightedMax3SatBruteForceSolver", "WeightedMaxSatBruteForceSolver",
-        "ChangeMakingDP", "ChangeMakingMemo",
+        "ChangeMakingDP", "ChangeMakingMemo", "MaximumValueKnapsackBruteForceSolver",
     };
 
     private static Dictionary<string, string> ActualSkipped() =>

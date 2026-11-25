@@ -33,6 +33,9 @@ internal sealed class MAXIMUMVALUEKNAPSACK : IProblem {
 
     public MAXIMUMVALUEKNAPSACK() : this(DefaultInstance) { }
 
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): |i| items, counting duplicates. The same name as 0-1 Knapsack.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("i", items.Count)];
+
     public MAXIMUMVALUEKNAPSACK(string input) {
         try {
             ValidateSyntax(input);
