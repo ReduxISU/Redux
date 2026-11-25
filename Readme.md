@@ -52,6 +52,10 @@ Full instructions, including forking, Docker, and the dev container, are in the 
 
 For automatic reloading while you edit, use `dotnet watch --project API.csproj run`. To run the Docker image, use `docker build -t reduxapi .` and then `docker run -it --rm -p 27000:27000 --name reduxapi reduxapi`.
 
+### Short links (optional database)
+
+Share links (`POST /ShareLinks`, `GET /ShareLinks/{id}`) are kept in PostgreSQL, set with the `ConnectionStrings__ShortLinks` environment variable. You don't need it to run the API: without it those two endpoints answer 503 and everything else works. To work on share links, start the local database in [Tools/short-links-db](Tools/short-links-db/README.md).
+
 ---
 
 ## Architecture

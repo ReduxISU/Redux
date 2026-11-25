@@ -1,0 +1,21 @@
+# A local PostgreSQL for the API's short links (#844), for development only. See README.md in this folder.
+# The password below is a DEV-ONLY password: never use it, or this file, for a real server.
+name: redux-short-links
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: redux
+      POSTGRES_USER: redux
+      POSTGRES_PASSWORD: redux-dev-only # DEV-ONLY password
+    ports:
+      - "127.0.0.1:5432:5432" # this machine only
+    volumes:
+      - short-links-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redux -d redux"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  short-links-data:
