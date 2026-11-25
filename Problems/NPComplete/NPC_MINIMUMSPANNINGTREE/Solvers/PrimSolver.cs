@@ -26,7 +26,7 @@ class PrimSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver {
     // visited.SelectMany(node => adjacency[node]) — up to O(E) edges — and re-sorts that
     // whole list with OrderBy (O(E log E)) just to pick the minimum. That's O(V) iterations
     // times O(E log E) per iteration, not the textbook O(E log V) (heap) or O(V^2) (array).
-    public MathematicalFunction timeComplexity { get; } = new("V * E log E", "");
+    public MathematicalFunction timeComplexity { get; } = new("|N| * |E| log |E|", ", |N| = number of nodes, |E| = number of edges");
 
     // How the steps show a move: the tree so far, and the edge added from a node of the tree to the node it brings in (no
     // edge for the start, which is about the node alone).

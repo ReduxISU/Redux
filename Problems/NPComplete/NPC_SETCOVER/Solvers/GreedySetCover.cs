@@ -29,7 +29,7 @@ class GreedySetCover : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver {
     public SolverType solverType { get; } = SolverType.Greedy;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
-    public MathematicalFunction timeComplexity { get; } = new("n * m", ", n = |universe|, m = |subsets|");
+    public MathematicalFunction timeComplexity { get; } = new("|U| * |S|", ", |U| = size of the universe, |S| = number of subsets");
 
     // --- Methods Including Constructors ---
     public GreedySetCover() {

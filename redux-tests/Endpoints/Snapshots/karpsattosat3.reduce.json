@@ -33,10 +33,10 @@
         "Backtracking"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -443,10 +443,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -491,10 +491,10 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * |phi|",
-          "Description": ", n = number of variables, |phi| = formula size",
+          "Function": "2^|variables| * |phi|",
+          "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
           "VariableNames": [
-            "n",
+            "variables",
             "phi"
           ]
         },
@@ -542,10 +542,10 @@
         "Backtracking"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -589,10 +589,10 @@
           "Backtracking"
         ],
         "timeComplexity": {
-          "Function": "2^n * |phi|",
-          "Description": ", n = number of variables, |phi| = formula size",
+          "Function": "2^|variables| * |phi|",
+          "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
           "VariableNames": [
-            "n",
+            "variables",
             "phi"
           ]
         },

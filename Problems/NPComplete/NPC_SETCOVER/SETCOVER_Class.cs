@@ -69,6 +69,13 @@ class SETCOVER : IProblem<SetCoverBruteForce, SetCoverVerifier, SetCoverDefaultV
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the universe U, the subsets S and the cover size K.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("U", universal.Count),
+        SizeMeasure.Count("S", subsets.Count),
+        SizeMeasure.Number("K", K),
+    ];
+
     public SETCOVER() : this(_defaultInstance) {
     }
     public SETCOVER(string GInput) {

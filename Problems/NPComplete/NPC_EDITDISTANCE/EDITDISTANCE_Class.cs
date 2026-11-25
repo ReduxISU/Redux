@@ -46,6 +46,12 @@ class EDITDISTANCE : IProblem<EditDistanceDPSolver, EditDistanceVerifier, EditDi
     public string sourceString = "";
     public string targetString = "";
 
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the lengths |x| and |y| of the two strings.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("x", sourceString.Length),
+        SizeMeasure.Count("y", targetString.Length),
+    ];
+
     public EDITDISTANCE() : this(_defaultInstance) { }
 
     public EDITDISTANCE(string instanceString) {

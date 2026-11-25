@@ -23,6 +23,10 @@ namespace redux_tests;
 // - Fields only added (pictureType, #841) and text (definitions) are not compared.
 // - Weighted Max-SAT (#941) merged into CSharpAPI after the capture, with its own visualization (not opt-in), so Redux_GUI
 //   sees it there too. Its entries were added to the snapshot by hand when CSharpAPI was merged in (Nov 2026).
+// - Integer Linear Programming (#985) and Weighted Max-3SAT (#995) are the same: they merged into CSharpAPI on Nov 9 2026 with
+//   their own visualizations, and their entries were added by hand then.
+// - Weighted Max Clique (#1008) and Max Cut's QAOA circuit (#1026) are the same: they merged into CSharpAPI in Nov 2026 with
+//   their own visualizations, and their entries were added by hand when CSharpAPI was merged in for #1052.
 public class GuiSnapshot_Endpoint_Tests : IClassFixture<AppFactory> {
     private readonly HttpClient _client;
 

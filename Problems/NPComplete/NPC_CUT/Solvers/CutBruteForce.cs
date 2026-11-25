@@ -22,8 +22,9 @@ class CutBruteForce : ISolver<CUT, Groups> {
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Enumerates the S sides of size 1..n/2 (every split of the
     // nodes, up to swapping the sides); each candidate costs O(n^2) to build
-    // (certificateToEdges) plus O(m) to verify.
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
+    // (certificateToEdges) plus O(m) to verify. K bounds the edges that cross, not the size
+    // of a side, so the Big-O (#843) has no K bound; |E| + 1 keeps it above zero with no edges.
+    public MathematicalFunction timeComplexity { get; } = new("2^|N| * |N|^2 * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges");
 
     public CutBruteForce() {
 

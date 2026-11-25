@@ -14,8 +14,10 @@ namespace API.Interfaces;
 /// syntax (NCalc is the expression-evaluation library this class evaluates through,
 /// entirely internally): <c>^</c> is exponentiation (NCalc's own <c>^</c> is bitwise
 /// XOR), <c>n!</c> is a postfix factorial, <c>|S|</c> is cardinality/absolute-value,
-/// adjacent tokens like <c>2n</c> or a bare <c>n log n</c> multiply implicitly, and
-/// <c>C(m, n)</c> is the binomial coefficient. <see cref="Evaluate(IReadOnlyDictionary{string, double})"/>
+/// adjacent tokens like <c>2n</c> or a bare <c>n log n</c> (also <c>|E| log |E|</c>) multiply implicitly,
+/// <c>C(m, n)</c> is the binomial coefficient, and <c>min(a, b)</c>/<c>max(a, b)</c> are the smaller/larger of two.
+/// A cardinality <c>|N|</c> reads the variable <c>N</c>: the Big-O precheck (#843) gives it the number of elements of
+/// the instance's part N (see <see cref="SizeMeasure"/>), so <c>|N|</c> is that count. <see cref="Evaluate(IReadOnlyDictionary{string, double})"/>
 /// rewrites all of that into NCalc's grammar internally; nothing about that rewrite is
 /// visible outside this class.
 /// </para>
@@ -99,7 +101,9 @@ public sealed class MathematicalFunction {
             expression.Functions["Factorial"] = args => {
                 double n = Convert.ToDouble(args.Evaluate(0));
                 double result = 1;
-                for (int i = 2; i <= (int)Math.Round(n); i++) result *= i;
+                // Stops once the product is infinite (past 170!), so a huge n answers at once instead of looping n
+                // times: the Big-O precheck (#843) evaluates factorials of instance sizes the server never ran.
+                for (double i = 2; i <= Math.Round(n) && !double.IsInfinity(result); i++) result *= i;
                 return result;
             };
             expression.Functions["Abs"] = args => Math.Abs(Convert.ToDouble(args.Evaluate(0)));
@@ -107,14 +111,29 @@ public sealed class MathematicalFunction {
             // so contributors write bare "log n" rather than picking one.
             expression.Functions["Log"] = args => Math.Log(Convert.ToDouble(args.Evaluate(0)));
             expression.Functions["Sqrt"] = args => Math.Sqrt(Convert.ToDouble(args.Evaluate(0)));
-            // Binomial coefficient — "choose", used as e.g. "C(m, n)".
-            expression.Functions["C"] = args => {
-                double n = Convert.ToDouble(args.Evaluate(0));
-                double k = Convert.ToDouble(args.Evaluate(1));
-                double result = 1;
-                for (int i = 0; i < (int)Math.Round(k); i++) result = result * (n - i) / (i + 1);
-                return result;
-            };
+            // Binomial coefficient — "choose", used as e.g. "C(m, n)" — of counts, so both arguments are rounded to
+            // whole numbers, as in the factorial.
+            expression.Functions["C"] = args => Binomial(Convert.ToDouble(args.Evaluate(0)), Convert.ToDouble(args.Evaluate(1)));
+        }
+
+        /// <summary>
+        /// C(n, k), the ways to choose k of n things, with n and k rounded to whole numbers. The Big-O precheck (#843)
+        /// evaluates it on instance values the server never checked (a graph's K need not be at most its node count),
+        /// so it answers at once whatever the size: 0 when k is below 0 or above n, NaN when n is below 0 (not a count),
+        /// and otherwise at most about 1,100 steps, because it takes the smaller of k and n - k (C(n, k) = C(n, n - k))
+        /// and stops once the product is infinite (C(n, k) is at least 2^k when k is at most n / 2).
+        /// </summary>
+        private static double Binomial(double n, double k) {
+            if (double.IsNaN(n) || double.IsNaN(k)) return double.NaN;
+            n = Math.Round(n);
+            k = Math.Round(k);
+            if (n < 0) return double.NaN;
+            if (k < 0 || k > n) return 0;
+            if (double.IsPositiveInfinity(n)) return k == 0 ? 1 : double.PositiveInfinity;
+            k = Math.Min(k, n - k);
+            double result = 1;
+            for (double i = 0; i < k && !double.IsInfinity(result); i++) result = result * (n - i) / (i + 1);
+            return result;
         }
 
         public static Parsed Parse(string bigOExpression) {
@@ -210,6 +229,9 @@ public sealed class MathematicalFunction {
         private static string CanonicalFunctionName(string name) => name.ToLowerInvariant() switch {
             "sqrt" => "Sqrt",
             "log" or "ln" => "Log",
+            // NCalc's own Min and Max, so "min(K, |N|)" reads as written.
+            "min" => "Min",
+            "max" => "Max",
             _ => name,
         };
 
@@ -379,8 +401,9 @@ public sealed class MathematicalFunction {
                     tk.Expect(")");
                     return new CallNode { Name = token.Text, Args = args };
                 }
-                if (BareFunctionNames.Contains(token.Text) && tk.PeekStartsPrimary()) {
-                    // Bare "log n" / "ln n" — no parens, single implicit argument.
+                if (BareFunctionNames.Contains(token.Text) && (tk.PeekStartsPrimary() || tk.PeekIsOp("|"))) {
+                    // Bare "log n" / "ln n" — no parens, single implicit argument. A '|' after a bare log can only open
+                    // its argument, so "log |E|" works too.
                     var arg = ParsePostfix(tk);
                     return new CallNode { Name = token.Text, Args = new List<Node> { arg } };
                 }

@@ -32,11 +32,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "2^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -498,10 +498,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n^2 * 2^n",
-        "Description": ", n = |S|",
+        "Function": "|N|^2 * 2^|N|",
+        "Description": ", |N| = number of integers",
         "VariableNames": [
-          "n"
+          "N"
         ]
       },
       "spaceComplexity": null,
@@ -544,10 +544,10 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "n^2 * 2^n",
-          "Description": ", n = |S|",
+          "Function": "|N|^2 * 2^|N|",
+          "Description": ", |N| = number of integers",
           "VariableNames": [
-            "n"
+            "N"
           ]
         },
         "spaceComplexity": null,
@@ -593,11 +593,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "2^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -639,11 +639,11 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "2^|N| * |N|^2 * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,

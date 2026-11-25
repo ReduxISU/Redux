@@ -72,6 +72,12 @@ class HITTINGSET : IProblem<HittingSetBruteForce, HittingSetVerifier, HittingSet
     }
     #endregion
 
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the universe U and the subsets S.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("U", universalSet.ToList().Count),
+        SizeMeasure.Count("S", subSets.ToList().Count),
+    ];
+
     public HITTINGSET() : this(_defaultInstance) {
 
     }

@@ -26,7 +26,7 @@ class KahnsAlgorithm : ISolver<TOPOLOGICALSORT, Tour>, IIncrementalSolver {
     // "foreach (var edge in problem.edges)" — a full linear scan of all E edges to find those
     // leaving `current` — instead of an O(1)-per-neighbor adjacency lookup. That's O(V * E),
     // not the textbook O(V + E).
-    public MathematicalFunction timeComplexity { get; } = new("V * E", "");
+    public MathematicalFunction timeComplexity { get; } = new("|N| * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges");
 
     // --- Constructors ---
     public KahnsAlgorithm() { }

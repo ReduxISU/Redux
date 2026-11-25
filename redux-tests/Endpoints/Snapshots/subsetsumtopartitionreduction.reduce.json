@@ -33,10 +33,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n^2 * 2^n",
-        "Description": ", n = |S|",
+        "Function": "|N|^2 * 2^|N|",
+        "Description": ", |N| = number of integers",
         "VariableNames": [
-          "n"
+          "N"
         ]
       },
       "spaceComplexity": null,
@@ -206,10 +206,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n * 2^n",
-        "Description": ", n = |S|",
+        "Function": "|S| * 2^|S|",
+        "Description": ", |S| = number of integers",
         "VariableNames": [
-          "n"
+          "S"
         ]
       },
       "spaceComplexity": null,
@@ -252,10 +252,10 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "n * 2^n",
-          "Description": ", n = |S|",
+          "Function": "|S| * 2^|S|",
+          "Description": ", |S| = number of integers",
           "VariableNames": [
-            "n"
+            "S"
           ]
         },
         "spaceComplexity": null,
@@ -301,10 +301,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n^2 * 2^n",
-        "Description": ", n = |S|",
+        "Function": "|N|^2 * 2^|N|",
+        "Description": ", |N| = number of integers",
         "VariableNames": [
-          "n"
+          "N"
         ]
       },
       "spaceComplexity": null,
@@ -347,10 +347,10 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "n^2 * 2^n",
-          "Description": ", n = |S|",
+          "Function": "|N|^2 * 2^|N|",
+          "Description": ", |N| = number of integers",
           "VariableNames": [
-            "n"
+            "N"
           ]
         },
         "spaceComplexity": null,

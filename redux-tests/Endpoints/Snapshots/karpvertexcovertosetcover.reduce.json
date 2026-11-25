@@ -33,11 +33,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^m * u^2",
-        "Description": ", m = |subsets|, u = |universal|",
+        "Function": "min(2^|S|, K * C(|S|, min(K, |S|/2))) * K * |U|^2",
+        "Description": ", |S| = number of subsets, |U| = size of the universe, K = cover size; it tries the covers of 1 to K subsets",
         "VariableNames": [
-          "m",
-          "u"
+          "S",
+          "K",
+          "U"
         ]
       },
       "spaceComplexity": null,
@@ -262,11 +263,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n * (n \u002B m)",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "C(|N|, K) * K * (|N| \u002B |E|)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = cover size",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "K",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -309,11 +311,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * n * (n \u002B m)",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "C(|N|, K) * K * (|N| \u002B |E|)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = cover size",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "K",
+            "E"
           ]
         },
         "spaceComplexity": null,
@@ -359,11 +362,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^m * u^2",
-        "Description": ", m = |subsets|, u = |universal|",
+        "Function": "min(2^|S|, K * C(|S|, min(K, |S|/2))) * K * |U|^2",
+        "Description": ", |S| = number of subsets, |U| = size of the universe, K = cover size; it tries the covers of 1 to K subsets",
         "VariableNames": [
-          "m",
-          "u"
+          "S",
+          "K",
+          "U"
         ]
       },
       "spaceComplexity": null,
@@ -406,11 +410,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^m * u^2",
-          "Description": ", m = |subsets|, u = |universal|",
+          "Function": "min(2^|S|, K * C(|S|, min(K, |S|/2))) * K * |U|^2",
+          "Description": ", |S| = number of subsets, |U| = size of the universe, K = cover size; it tries the covers of 1 to K subsets",
           "VariableNames": [
-            "m",
-            "u"
+            "S",
+            "K",
+            "U"
           ]
         },
         "spaceComplexity": null,

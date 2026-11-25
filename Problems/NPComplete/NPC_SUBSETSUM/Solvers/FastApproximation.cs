@@ -34,7 +34,7 @@ class FastApproximation : ISolver<SUBSETSUM, Placement>, IIncrementalSolver {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Approximation;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("n^2 * 1/e", ", n = |S|, e = error tolerance");
+    public MathematicalFunction timeComplexity { get; } = new("|S|^2 / 0.05", ", |S| = number of integers, 0.05 = the error tolerance ε it uses");
 
     // Defining a standard 5% default error tolerance layer for the approximation scheme
     private readonly double _epsilon = 0.05;

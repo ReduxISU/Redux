@@ -2,6 +2,7 @@ using API.Interfaces;
 
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Solvers;
 
+[ExactSearchLimit("at most 20 variables")] // WeightedMaxSatExactSearchLimit.MaxVariables
 class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT> {
     // --- Fields ---
     public string solverName { get; } = "Weighted Max-SAT Exact Brute Force";
@@ -11,7 +12,7 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.BruteForce;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", n = variables, |Φ| = weighted formula size");
+    public MathematicalFunction timeComplexity { get; } = new("2^|variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ (the weighted formula size)");
     public MathematicalFunction spaceComplexity { get; } = new("n", ", n = variables");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
@@ -28,8 +29,8 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT> {
         "((" + string.Join(",", variables.Select(v => $"{v}:{assignment[v]}")) + $"),{value})";
 
     internal static (Dictionary<string, bool> Assignment, long Value) Optimize(
-        WEIGHTEDMAXSAT problem, Func<bool>? expired = null) {
-        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count);
+        WEIGHTEDMAXSAT problem, Func<bool>? expired = null, string problemName = "Weighted Max-SAT") {
+        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count, problemName);
         var assignment = new Dictionary<string, bool>(StringComparer.Ordinal);
         var best = new Dictionary<string, bool>(StringComparer.Ordinal);
         long bestValue = -1;

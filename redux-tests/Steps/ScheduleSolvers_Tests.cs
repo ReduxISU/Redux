@@ -320,7 +320,7 @@ public class ScheduleSolvers_Tests {
             var sw = Stopwatch.StartNew();
             var run = Run(solver, instance);
             Assert.False(run.TimedOut);
-            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(ProblemProvider.DefaultSolveTimeLimitSeconds / 2), $"took {sw.Elapsed}");
+            Assert.True(sw.Elapsed < TimeSpan.FromSeconds(ProblemProvider.MaxDefaultSolveTimeLimitSeconds / 2), $"took {sw.Elapsed}");
         }
     }
 

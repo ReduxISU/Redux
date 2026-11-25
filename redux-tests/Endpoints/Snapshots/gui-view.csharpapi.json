@@ -50,7 +50,11 @@
   "UnstructuredSearchVisualization": "QuantumCircuitQjs",
   "VertexCoverDefaultVisualization": "GraphD3",
   "WeightedCutDefaultVisualization": "GraphD3",
-  "WeightedMaxSatVisualization": "BooleanSatisfiability"
+  "WeightedMaxSatVisualization": "BooleanSatisfiability",
+  "IntegerLinearProgrammingDefaultVisualization": "DynamicTable",
+  "WeightedMax3SatVisualization": "BooleanSatisfiability",
+  "MaxCutQAOAVisualization": "QuantumCircuitD3",
+  "WeightedMaxCliqueVisualization": "GraphD3"
  },
  "allVisualizations": {
   "ARCSET": [
@@ -113,6 +117,7 @@
    "LosslessDataCompressionVisualization"
   ],
   "MAXCUT": [
+   "MaxCutQAOAVisualization",
    "MaxCutVisualization"
   ],
   "MINCUT": [
@@ -187,6 +192,15 @@
   ],
   "WEIGHTEDMAXSAT": [
    "WeightedMaxSatVisualization"
+  ],
+  "INTEGERLINEARPROGRAMMING": [
+   "IntegerLinearProgrammingDefaultVisualization"
+  ],
+  "WEIGHTEDMAX3SAT": [
+   "WeightedMax3SatVisualization"
+  ],
+  "WEIGHTEDMAXCLIQUE": [
+   "WeightedMaxCliqueVisualization"
   ]
  },
  "defaults": {
@@ -444,6 +458,21 @@
    "sourceFile": "Problems/NPHard/NPH_WEIGHTEDMAXSAT/Visualizations/WeightedMaxSatVisualization.cs",
    "visualizationName": "Weighted Max-SAT Visualization",
    "visualizationType": "BooleanSatisfiability"
+  },
+  "INTEGERLINEARPROGRAMMING": {
+   "sourceFile": "Problems/NPHard/NPH_ILP/Visualizations/IntegerLinearProgrammingDefaultVisualization.cs",
+   "visualizationName": "Integer Linear Programming Table",
+   "visualizationType": "DynamicTable"
+  },
+  "WEIGHTEDMAX3SAT": {
+   "sourceFile": "Problems/NPHard/NPH_WEIGHTEDMAX3SAT/Visualizations/WeightedMax3SatVisualization.cs",
+   "visualizationName": "Weighted Max-3SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
+  },
+  "WEIGHTEDMAXCLIQUE": {
+   "sourceFile": "Problems/NPHard/NPH_WEIGHTEDMAXCLIQUE/Visualizations/WeightedMaxCliqueVisualization.cs",
+   "visualizationName": "Weighted Maximum Clique Visualization",
+   "visualizationType": "GraphD3"
   }
  },
  "reductionDefaults": {
@@ -853,6 +882,22 @@
   "WeightedMaxSatVisualization": {
    "visualizationName": "Weighted Max-SAT Visualization",
    "visualizationType": "BooleanSatisfiability"
+  },
+  "IntegerLinearProgrammingDefaultVisualization": {
+   "visualizationName": "Integer Linear Programming Table",
+   "visualizationType": "DynamicTable"
+  },
+  "WeightedMax3SatVisualization": {
+   "visualizationName": "Weighted Max-3SAT Visualization",
+   "visualizationType": "BooleanSatisfiability"
+  },
+  "MaxCutQAOAVisualization": {
+   "visualizationName": "Max Cut QAOA Quantum Circuit (D3)",
+   "visualizationType": "QuantumCircuitD3"
+  },
+  "WeightedMaxCliqueVisualization": {
+   "visualizationName": "Weighted Maximum Clique Visualization",
+   "visualizationType": "GraphD3"
   }
  },
  "visualizationsCreated": {
@@ -901,7 +946,9 @@
   "Cole%20Campbell": [],
   "Collin%20M%20Kress": [],
   "Corbin%20Hay": [
-   "Weighted Max-SAT Visualization"
+   "Weighted Max-3SAT Visualization",
+   "Weighted Max-SAT Visualization",
+   "Weighted Maximum Clique Visualization"
   ],
   "Courtney%20Bodily": [
    "Bernstein-Vazirani Quantum Circuit (D3)",
@@ -941,6 +988,7 @@
   "Janita%20Aamir": [],
   "Jason%20L.%20Wright": [
    "Deutsch Quantum Circuit (Q)",
+   "Max Cut QAOA Quantum Circuit (D3)",
    "SAT Grover Quantum Circuit (Q)",
    "Shor's Algorithm Quantum Visualization",
    "Unstructured Search Quantum Circuit"
@@ -989,7 +1037,9 @@
   "Porter%20Glines": [],
   "Pramesh%20Shah": [],
   "Prashant%20Aguragai": [],
-  "Prashant%20Pant": [],
+  "Prashant%20Pant": [
+   "Integer Linear Programming Table"
+  ],
   "Pratham%20Khanal": [],
   "Pravesh%20Aryal": [
    "Topological Sort Visualization"

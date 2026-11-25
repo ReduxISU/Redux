@@ -32,11 +32,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n! * n * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "|N|! * |N| * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -307,11 +307,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n! * n * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "|N|! * |N| * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -353,11 +353,11 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "n! * n * m",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "|N|! * |N| * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,
@@ -403,11 +403,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "n! * n * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "|N|! * |N| * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -449,11 +449,11 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "n! * n * m",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "|N|! * |N| * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,

@@ -56,6 +56,12 @@ class INTPROGRAMMING01 : IProblem<IntegerProgrammingBruteForce, GenericVerifier0
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's numbers, for the Big-O precheck (#843): n coefficients in each row (the variables) and m rows (the constraints).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Number("n", C.Count == 0 ? 0 : C[0].Count),
+        SizeMeasure.Number("m", C.Count),
+    ];
+
     public INTPROGRAMMING01() : this(_defaultInstance) {
 
     }

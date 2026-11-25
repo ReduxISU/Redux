@@ -79,6 +79,14 @@ class DM3 : IProblem<ThreeDimensionalMatchingBruteForce, GenericVerifierDM3, DM3
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the sets X, Y and Z and the triples M.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("X", X.Count),
+        SizeMeasure.Count("Y", Y.Count),
+        SizeMeasure.Count("Z", Z.Count),
+        SizeMeasure.Count("M", M.Count),
+    ];
+
     public DM3() : this(_defaultInstance) {
     }
     public DM3(string instanceInput) {

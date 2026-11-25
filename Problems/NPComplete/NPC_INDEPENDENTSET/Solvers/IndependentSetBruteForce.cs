@@ -24,7 +24,8 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
     // Declared, not derived. Enumerates all C(n,K) size-K node combinations (worst case
     // Theta(2^n) at K ~ n/2 via nextComb); each candidate costs O(K^2 * m) to verify
     // (IndependentSetVerifier checks every pair in the K-set against the edge list).
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2 * m", ", n = |nodes|, m = |edges|");
+    // Written with the K bound, so the Big-O precheck (#843) does not refuse a small K for what a large K costs.
+    public MathematicalFunction timeComplexity { get; } = new("C(|N|, K) * K^2 * (|E| + 1)", ", |N| = number of nodes, |E| = number of edges, K = independent-set size");
 
     // --- Methods Including Constructors ---
     public IndependentSetBruteForce() {

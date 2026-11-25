@@ -81,6 +81,14 @@ class JOBSEQ : IProblem<JobSeqBruteForce, JobSeqVerifier, JobSeqVisualization> {
     }
 
     // --- Methods Including Constructors ---
+    /// <summary>The grammar's parts, for the Big-O precheck (#843): the lists T, D and P (one entry a job) and the bound K.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("T", T.Count),
+        SizeMeasure.Count("D", D.Count),
+        SizeMeasure.Count("P", P.Count),
+        SizeMeasure.Number("K", K),
+    ];
+
     public JOBSEQ() : this(_defaultInstance) {
 
     }

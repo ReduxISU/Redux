@@ -36,7 +36,7 @@ class KosarajuSolver : ISolver<STRONGLYCONNECTEDCOMPONENTS, Components>, IIncrem
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // Builds proper adjacency and reverse-adjacency dictionaries (O(V + E)) and runs two DFS
     // passes over them, each O(V + E) — the standard bound, no linear edge-list rescans.
-    public MathematicalFunction timeComplexity { get; } = new("V + E", "");
+    public MathematicalFunction timeComplexity { get; } = new("|N| + |E|", ", |N| = number of nodes, |E| = number of edges");
 
     // How the steps show a node: the passes so far, and the node, with the edge it was reached along in pass 2 (Via, the
     // node it leads to; null for none).

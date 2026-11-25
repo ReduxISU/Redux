@@ -54,6 +54,8 @@ public class IncrementalSolvers_Tests {
         ["satbruteforcesolver"] = false,
         ["sat3backtrackingsolver"] = true,
         ["walksat"] = false,   // randomized: each step tries a whole assignment (#932)
+        ["integerlinearprogrammingbruteforcesolver"] = false,   // each step judges a whole assignment of the variables
+        ["integerlinearprogrammingheuristicsolver"] = false,    // each step moves to a whole new assignment
         ["schoning"] = false,  // randomized: each step tries a whole assignment (#932)
         ["ppz"] = true,        // randomized, but each try sets the variables one at a time (#932)
         // ChosenSets and NodeSet (Bipartite pictures)
@@ -84,6 +86,7 @@ public class IncrementalSolvers_Tests {
         // TableCells and Assignment (Table pictures)
         ["editdistancedpsolver"] = true,
         ["integerprogrammingbruteforce"] = false,
+        ["integerlinearprogrammingsolver"] = false,
         // BoardCells (Board pictures)
         ["sudokusolver"] = true,
         ["nqueensbacktracking"] = true,

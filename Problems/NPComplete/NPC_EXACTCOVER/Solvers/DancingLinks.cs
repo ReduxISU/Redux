@@ -35,7 +35,7 @@ class DancingLinks : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver, ISearc
     // the standard O(2^s) exact-cover worst case. Each node's select/deselect walks, for every column a
     // row covers (<= x = |X|), every row covering that column (<= s), every column that row covers
     // (<= x), doing an O(s) List<int>.Remove -- O(s^2 * x^2) per node in the worst (densest) case.
-    public MathematicalFunction timeComplexity { get; } = new("2^s * s^2 * x^2", ", s = |S| (rows/subsets), x = |X| (columns/universe)");
+    public MathematicalFunction timeComplexity { get; } = new("2^|S| * |S|^2 * |U|^2", ", |S| = number of subsets (rows), |U| = size of the universe (columns)");
 
     // --- Methods Including Constructors ---
     public DancingLinks() {

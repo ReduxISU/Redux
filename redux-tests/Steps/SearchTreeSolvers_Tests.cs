@@ -15,7 +15,8 @@ namespace redux_tests;
 public class SearchTreeSolvers_Tests {
     // Solvers that need an outside service to run (the quantum ones) are left out.
     private static bool Runnable(Type solver) => !solver.Name.Contains("Quantum", StringComparison.OrdinalIgnoreCase)
-        && !solver.Name.Contains("Grover", StringComparison.OrdinalIgnoreCase);
+        && !solver.Name.Contains("Grover", StringComparison.OrdinalIgnoreCase)
+        && !solver.Name.Contains("QAOA", StringComparison.Ordinal);
 
     // The problem a solver solves (its ISolver<P>), when it can be made.
     private static Type? ProblemOf(Type solver) => solver.GetInterfaces()

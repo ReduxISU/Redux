@@ -33,7 +33,7 @@ class VertexCoverBoundedSearchTree : ISolver<VERTEXCOVER, NodeSet>, IIncremental
     // of an uncovered edge, abandoning a branch once the budget runs out, which is Backtracking.
     public SolverType solverType { get; } = SolverType.Backtracking | SolverType.Parameterized;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("2^K * (n + m)", ", K = target cover size, n = |nodes|, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("2^K * (|N| + |E|)", ", K = target cover size, |N| = number of nodes, |E| = number of edges");
 
     // --- Methods Including Constructors ---
     public VertexCoverBoundedSearchTree() {

@@ -119,14 +119,25 @@ public class MapSolutionBack_Tests : IClassFixture<AppFactory> {
         Assert.Equal("{a,c}", red.mapSolutionBack(red.mapSolutions("{a,c}")));
     }
 
+    // Shipped reductions that do not map answers back yet, each with its reason. Remove an entry when its reduction does
+    // (ReductionsWithoutABackwardMap_ReportNoneAndDoNotMap then fails on the stale entry).
+    internal static readonly Dictionary<string, string> NoBackwardMapYet = new(StringComparer.Ordinal) {
+        // The CircuitSAT reductions (#1036) came from CSharpAPI without a backward map.
+        ["SatToCircuitSatReduction"] = "came from CSharpAPI without one",
+        ["Sat3ToCircuitSatReduction"] = "came from CSharpAPI without one",
+        ["CircuitSatToSatReduction"] = "came from CSharpAPI without one",
+    };
+
     [Fact]
     public void ReductionsWithoutABackwardMap_ReportNoneAndDoNotMap() {
-        // Every shipped reduction maps answers back since #695 (Karp's Exact Cover to Subset Sum was the last example), so a
-        // test-only one stands in.
+        // Every shipped reduction maps answers back since #695 (Karp's Exact Cover to Subset Sum was the last example),
+        // except the ones NoBackwardMapYet names, so a test-only one stands in.
         Assert.All(ProblemProvider.Reductions.Values.Where(t => t.Assembly == typeof(ProblemProvider).Assembly), t => {
             IReduction? shipped = null;
             try { shipped = Activator.CreateInstance(t) as IReduction; } catch { }
-            if (shipped != null) Assert.True(shipped.hasBackwardMap(), $"{t.Name} has no backward map");
+            if (shipped != null)
+                Assert.True(shipped.hasBackwardMap() != NoBackwardMapYet.ContainsKey(t.Name),
+                    shipped.hasBackwardMap() ? $"{t.Name} maps answers back now: remove it from NoBackwardMapYet" : $"{t.Name} has no backward map");
         });
         IReduction red = new TestOnlyReductionWithoutSteps("({1,2},3)");
         Assert.False(red.hasBackwardMap());

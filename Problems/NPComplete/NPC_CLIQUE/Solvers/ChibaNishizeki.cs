@@ -37,7 +37,7 @@ class ChibaNishizeki : ISolver<CLIQUE, NodeSet>, IIncrementalSolver, ISearchTree
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("k * a^(k-2) * m", ", k = clique size, a = arboricity, m = |edges|");
+    public MathematicalFunction timeComplexity { get; } = new("K * a^(K-2) * |E|", ", K = clique size, a = arboricity, |E| = number of edges");
 
     // --- Methods Including Constructors ---
     public ChibaNishizeki() {
