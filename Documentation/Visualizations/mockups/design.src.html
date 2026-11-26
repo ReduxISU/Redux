@@ -105,6 +105,9 @@
 .sw.stfold { background: var(--surface); border: 1.4px dashed var(--s-bg-stroke); border-radius: 5px; width: 30px; display: grid; place-items: center; font: 10px var(--mono); color: var(--muted); }
 .sw.cov { background: var(--s-sol-fill); border-color: var(--s-sol); }
 .sw.com { background: var(--s-com-fill); border-color: var(--s-com); border-style: dashed; border-width: 2.2px; }
+.sw.pkbound { border: 0; border-radius: 0; height: 0; border-top: 2px dashed var(--s-hl); align-self: center; }
+.sw.pkbadge { background: var(--ink); color: var(--surface); border: 0; border-radius: 9px; height: 17px; width: 26px; display: grid; place-items: center; font: 700 10.5px var(--mono); }
+.sw.pkread { background: var(--s-bg); border: 2px dashed var(--s-hl); border-radius: 4px; }
 .sw.blk { background: transparent; border-style: dashed; border-color: var(--s-bg-stroke); }
 .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .checks li { display: flex; gap: 8px; align-items: baseline; }
@@ -275,7 +278,7 @@ pre .k { color: var(--accent); }
     <button role="tab" id="t-flow" aria-selected="false" aria-controls="tab-flow">Flow Network <small>Minimum S-T Cut</small></button>
     <button role="tab" id="t-bip" aria-selected="false" aria-controls="tab-bip">Bipartite Graph <small>Set Cover, Exact Cover, Exact Hitting Set</small></button>
     <button role="tab" id="t-layered" aria-selected="false" aria-controls="tab-layered">Layered Graph <small>Topological Sort, Shortest Paths, +5</small></button>
-    <button role="tab" id="t-packing" aria-selected="false" aria-controls="tab-packing">Packing <small>Partition, Subset Sum, Knapsack, +2</small></button>
+    <button role="tab" id="t-packing" aria-selected="false" aria-controls="tab-packing">Packing <small>Partition, Subset Sum, Knapsack, +4</small></button>
     <button role="tab" id="t-schedule" aria-selected="false" aria-controls="tab-schedule">Schedule <small>Job Sequencing, Pump Scheduling</small></button>
     <button role="tab" id="t-quantum" aria-selected="false" aria-controls="tab-quantum">Quantum Circuit <small>Bernstein-Vazirani, Grover, Shor, +3</small></button>
     <button role="tab" id="t-board" aria-selected="false" aria-controls="tab-board">Board <small>Sudoku, N-Queens</small></button>
@@ -911,9 +914,9 @@ frames: { order? | removed? | groups? | dist + pred?, current?, caption }[]</pre
 
   <div class="tab" id="tab-packing" role="tabpanel" aria-labelledby="t-packing" hidden>
     <header>
-      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Packing</b> · 5 number problems on one renderer</div>
+      <div class="eyebrow">REDUX VISUALIZATION MOCKUP · <b>Packing</b> · 7 number problems on one renderer</div>
       <div class="title-row"><h1>Packing</h1><span class="chip">approved</span></div>
-      <p class="lede">Every number problem here is the same question in a different container: which items go where so a total hits its mark. The items sit in a pool at the top. Below, each container is drawn to scale with its line: the half-way mark for Partition, a target for Subset Sum and Subset Product, a weight limit and a value goal for Knapsack, a capacity for each bin. Anything that runs past a limit turns red.</p>
+      <p class="lede">Every number problem here is the same question in a different container: which items go where so a total hits its mark. The items sit in a pool at the top. Below, each container is drawn to scale with its line: the half-way mark for Partition, a target for Subset Sum and Subset Product, a weight limit and a value goal for Knapsack, a capacity for each bin. Anything that runs past a limit turns red. Two shapes are drafts for review: Maximum-Value 0-1 Knapsack has no value line, only the best total found so far, and Change-Making reuses its coins, with a count on each and a table of the fewest coins for every amount.</p>
     </header>
 
     <div class="instbox" id="pk-box">
@@ -968,8 +971,12 @@ frames: { order? | removed? | groups? | dist + pred?, current?, caption }[]</pre
           <div class="row"><span class="sw hl"></span><div>ElementHighlight<small>The item or set the solver is trying now</small></div></div>
           <div class="row"><span class="sw rej"></span><div>Rejected<small>Doesn't fit, or runs past a limit</small></div></div>
           <div class="row"><span class="sw blk"></span><div>Left out<small>Not part of the final answer</small></div></div>
-          <div class="row"><span class="sw grp"></span><div>Groups<small>The two sides of a Partition, or which bin an item is in</small></div></div>
+          <div class="row" data-pk-not="maxknapsack changemaking"><span class="sw grp"></span><div>Groups<small>The two sides of a Partition, or which bin an item is in</small></div></div>
           <div class="row"><span class="sw tline"></span><div>Target or limit<small>The line a container must hit or stay under</small></div></div>
+          <div class="row" data-pk-only="maxknapsack" hidden><span class="sw com"></span><div>Best so far<small>The dashed bar behind Value: the most a set that fits has been worth so far. Not the answer until the run ends</small></div></div>
+          <div class="row" data-pk-only="maxknapsack" hidden><span class="sw pkbound"></span><div>At most<small>Branch and Bound: the most this branch could still reach. Below the best so far, the branch stops</small></div></div>
+          <div class="row" data-pk-only="changemaking" hidden><span class="sw pkbadge">×2</span><div>Count<small>How many of that coin are in the change</small></div></div>
+          <div class="row" data-pk-only="changemaking" hidden><span class="sw pkread"></span><div>Amount read<small>A table cell the step looks back at; the solid ring is the one it keeps</small></div></div>
         </div>
       </aside>
     </div>
@@ -983,12 +990,23 @@ items:       { size, value? }[]          <span class="c">// value only for Knaps
 containers:  { label, target? | limit? | atLeast? }[]
 rule:        "partition" | "subsetSum" | "subsetProduct"
            | "knapsack" | "binPacking"
+           | "maxValueKnapsack" | "changeMaking"     <span class="c">// drafts, #1059 and #1014</span>
 
 <span class="c">// Solved view: where each item ends up (-1 = left out)</span>
 assign:      int[]
 
 <span class="c">// Steps view: the selected solver's frames</span>
-frames: { assign, trying?, rejected?, caption }[]</pre>
+frames: { assign, trying?, rejected?, caption }[]
+
+<span class="c">// Maximum-Value Knapsack adds, per frame (no atLeast line: it maximizes)</span>
+best?:       int[]        <span class="c">// the best set so far, same shape as assign</span>
+bestValue?:  int
+bound?:      int          <span class="c">// Branch and Bound: the most this branch can reach</span>
+
+<span class="c">// Change-Making: items are the coin values, each drawn once</span>
+counts:      int[]        <span class="c">// how many of each coin are in the change</span>
+table?:      { best: (int | null | "inf")[],   <span class="c">// fewest coins per amount 0..X</span>
+               cur?, reads?: int[], pick?, path?: int[], bad? }</pre>
         <p>Subset Product uses the same picture on a log scale. A factor's length is its logarithm, so multiplying numbers becomes adding lengths, and the target is still one line to hit.</p>
       </section>
 
@@ -998,6 +1016,8 @@ frames: { assign, trying?, rejected?, caption }[]</pre>
           <li><b>Subset Product can't say yes today.</b> Its verifier starts the running product at 0 instead of 1, so every check computes 0 and the solver never finds an answer. The mockup follows the problem's definition. The verifier needs a one-line fix.</li>
           <li><b>Knapsack's wording.</b> The definition says "greater than V" and "under W", but the verifier, the output description and both solvers use at least V and at most W. The mockup follows the verifier. Change the definition to match?</li>
           <li><b>Log scale for products.</b> Is the log scale clear with the note under it, or should Subset Product use a different picture, such as factor tiles?</li>
+          <li><b>Maximum-Value 0-1 Knapsack (#1059).</b> Value has no line to reach. A dashed bar behind it holds the best total found so far, and the set being tried is drawn in amber on top. Branch and Bound also draws its bound, "at most N". Optimality is a separate check, as in Redux: the Solution Verifier accepts any set that fits. Is the bar clear enough, or should "best so far" be a second row?</li>
+          <li><b>Change-Making (#1014).</b> Each coin value is drawn once, with a count badge. The amount must hit X exactly, and the coins row is limited to K. The DP table is drawn in the same picture, as a strip of amounts 0 to X, rather than as a second Table picture. The trace back drops coins into the change as it walks the strip. Keep it in one picture, or split the table out?</li>
           <li><b>Solvers not in Redux.</b> Partition's largest-first greedy is a labeled stand-in, added to show a heuristic missing an equal split. Subset Sum's Fast Approximation and Bin Packing's First Fit Decreasing are real, and each has an example where it misses an answer brute force finds.</li>
         </ol>
       </section>
@@ -2805,7 +2825,7 @@ lProblem("TOPOSORT");
 /* ---- Packing tab ---- */
 const PKV = PackingView.create({ svg: $("pk-g") });
 const PKS = { prob: "PARTITION", solver: null, mode: "instance", step: 0, playing: null, run: null };
-const PK_SHAPE = { partition: "· a split into two sides", sum: "· a set of numbers", product: "· a set of factors", knapsack: "· a set of items", binpacking: "· a bin for every item" };
+const PK_SHAPE = { partition: "· a split into two sides", sum: "· a set of numbers", product: "· a set of factors", knapsack: "· a set of items", binpacking: "· a bin for every item", maxknapsack: "· item numbers and their total value", changemaking: "· each coin and how many" };
 function pkStop() { if (PKS.playing) { clearInterval(PKS.playing); PKS.playing = null; } }
 function pkLoad(str) {
   try {
@@ -2860,7 +2880,9 @@ $("pk-play").onclick = () => {
 for (const [k, p] of Object.entries(PackingView.PROBLEMS)) { const o = document.createElement("option"); o.value = k; o.textContent = p.label; $("pk-prob").appendChild(o); }
 function pkProblem(k) {
   PKS.prob = k; const p = PackingView.PROBLEMS[k];
-  $("pk-fmt").innerHTML = `Redux format: <code>${p.fmt}</code>. ${p.def}`;
+  $("pk-fmt").innerHTML = `Redux format: <code>${p.fmt}</code>. ${p.cert ? `Certificate: <code>${p.cert}</code>. ` : ""}${p.def}`;
+  document.querySelectorAll("#tab-packing [data-pk-only]").forEach(r => { r.hidden = !r.dataset.pkOnly.split(" ").includes(p.rule); });
+  document.querySelectorAll("#tab-packing [data-pk-not]").forEach(r => { r.hidden = r.dataset.pkNot.split(" ").includes(p.rule); });
   $("pk-shape").textContent = PK_SHAPE[p.rule];
   const sv = $("pk-solver-sel"); sv.innerHTML = "";
   p.solvers.forEach(([v, name]) => { const o = document.createElement("option"); o.value = v; o.textContent = name; sv.appendChild(o); });

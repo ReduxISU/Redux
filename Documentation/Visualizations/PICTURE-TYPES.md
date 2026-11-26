@@ -55,7 +55,7 @@ frame = { "event": "Try" | "Accept" | "Reject" | "Backtrack" | "Done", "caption"
 | [Automaton](#automaton) (`Automaton`) | DFA, NFA | `IAutomatonVisualization` |
 | [Layered Graph](#layered-graph) (`LayeredGraph`) | Topological Sort, Feedback Arc Set, Feedback Node Set, Strongly Connected Components, Single-Source and Single-Pair Shortest Path | `ILayeredVisualization` |
 | [Flow Network](#flow-network) (`FlowNetwork`) | Minimum S-T Cut | `IFlowVisualization` |
-| [Packing](#packing) (`Packing`) | Partition, Subset Sum, Knapsack, Bin Packing | `IPackingVisualization` |
+| [Packing](#packing) (`Packing`) | Partition, Subset Sum, Knapsack, Bin Packing; drafts for Maximum-Value 0-1 Knapsack and Change-Making | `IPackingVisualization` |
 | [Schedule](#schedule) (`Schedule`) | Job Sequencing, both Pump Scheduling problems | `IJobScheduleVisualization`, `IPumpScheduleVisualization` |
 | [Quantum Circuit](#quantum-circuit) (`QuantumCircuit`) | Deutsch, Deutsch-Jozsa, Bernstein-Vazirani, Simon's Problem, Unstructured Search, Prime Factorization | `IQuantumCircuitVisualization` |
 | [Board](#board) (`Board`) | Sudoku, N-Queens | `IBoardVisualization` |
@@ -367,6 +367,59 @@ Every number problem here is the same question in a different container: which i
 <img src="images/packing--subset-sum-solved.png" alt="Subset Sum" width="640">
 
 The mockup also shows Subset Product on a log scale. That problem lives only on a demo branch, not in Redux.
+</details>
+
+### Draft: Maximum-Value 0-1 Knapsack and Change-Making (#1059, #1014)
+
+*Mockup only, for review. Neither has backend code yet; both use `DummyVisualization` today.* Two new shapes on the Packing picture. The four shapes above are unchanged.
+
+<table><tr>
+<td><img src="images/packing--maximum-value-knapsack-solved.png" alt="Maximum-Value 0-1 Knapsack, solved" width="420"></td>
+<td><img src="images/packing--maximum-value-knapsack-steps.png" alt="Maximum-Value 0-1 Knapsack, brute force steps" width="420"></td>
+</tr><tr><td>Maximum-Value 0-1 Knapsack, Solved: no value line, and optimality is its own check</td><td>Brute Force: the set being tried in amber, the best so far as the dashed bar behind Value</td></tr>
+<tr>
+<td><img src="images/packing--change-making-solved.png" alt="Change-Making, solved" width="420"></td>
+<td><img src="images/packing--change-making-steps.png" alt="Change-Making, DP trace back" width="420"></td>
+</tr><tr><td>Change-Making, Solved: each coin once with a count badge, and the path back through the table in green</td><td>Dynamic Programming, trace back: each step drops one coin into the change</td></tr></table>
+
+| Problem (`rule`) | Containers |
+| --- | --- |
+| Maximum-Value 0-1 Knapsack (`maxValueKnapsack`) | "Knapsack", with weight limit W and no value line: value is maximized, so the row shows the current total and the best total so far |
+| Change-Making (`changeMaking`) | "Change": the amount must equal X (`target`), and the number of coins is at most K (`limit` on a count row). Items are the coin values, each drawn once |
+
+**Payload, added fields.** Maximum-Value Knapsack: items carry `index` (1-based, the certificate names items by it). Change-Making: `items` are the distinct coin values in input order, `containers` get `measure: "amount" | "count"`, and the payload adds `table: { amounts: X + 1 }`.
+
+**Frame, added fields.**
+
+```
+// Maximum-Value 0-1 Knapsack
+assign                     // the set being looked at now (0 = in, -1 = out)
+best?:      int[]          // the best set so far, same shape as assign
+bestValue?: int
+bound?:     int            // Branch and Bound: the most this branch could still reach (fractional bound, rounded down)
+
+// Change-Making
+counts:     int[]          // how many of each coin are in the change
+table?: { best: (int | null | "inf")[],   // fewest coins for each amount 0..X; null = not worked out yet
+          cur?: int, reads?: [int], pick?: int, path?: [int], bad?: int }
+```
+
+**States.**
+
+- *Maximum-Value Knapsack.* The set being tried (brute force) or the current branch (Branch and Bound) is `ElementHighlight`. The best set so far is `Committed`, and a dashed `Committed` bar behind Value shows its total. An item in both keeps the amber ring on the `Committed` fill. Modified Greedy draws the items it has taken `Committed` and the item it is testing `ElementHighlight`. The first item that doesn't fit is `Rejected`, and the closing comparison highlights the single most valuable item against the kept greedy set. Branch and Bound adds an "at most N" marker for its bound. A branch whose bound can't beat the best so far is cut, and its caption is red. The Done frame's set is `Solution`; the rest are `Untraveled`. A weight over W is `Rejected`, as for Knapsack.
+- *Checks.* Weight within W, and value equal to the certificate's total: this is what the Solution Verifier checks. Optimality is a separate check, as Redux's Optimality Verifier is. For Modified Greedy the check can fail ("Not optimal: the best is 220"), which is how the default instance shows the 1/2-approximation falling short.
+- *Change-Making.* Badges (×2) are annotations, not states. While the table fills, the amount being worked out is `ElementHighlight`, the amounts it reads (one per coin) get a dashed amber ring, and the one it keeps gets a solid ring. The coin it ends with is highlighted in the pool. During the trace back, visited cells and the coins in the change are `Committed`, and the current cell and the coin just added are `ElementHighlight`. On a correct Done the path and the coins are `Solution`. On a "no" (more than K coins needed, or X can't be made) the X cell is `Rejected` and nothing is green. Memoization fills only the amounts reachable from X; the rest stay blank.
+
+**Why the DP table sits in the same picture.** It is drawn as a strip of amounts 0 to X, 20 to a line, under the change. It is not a second `Table` picture, for three reasons. The table is one-dimensional, so a Table grid would be a single row X + 1 wide. The trace back is the link between the table and the change: each step lights a cell and drops a coin. And Memoization's blank cells only make sense next to the amount being made. The cost is a new step shape for Packing (fewest coins per amount, plus the coin chosen at each), rather than reusing `TableCells`. If the team prefers a separate Table picture, the same frames fit a one-row `grid`, with the Packing picture getting only the trace back.
+
+<details><summary>More steps</summary>
+
+<table><tr>
+<td><img src="images/packing--maximum-value-knapsack-steps-bnb.png" alt="Branch and Bound cutting a branch" width="420"></td>
+<td><img src="images/packing--maximum-value-knapsack-greedy-solved.png" alt="Modified Greedy, solved, not optimal" width="420"></td>
+</tr><tr><td>Branch and Bound: "at most 120" is below the best so far, 220, so the branch stops</td><td>Modified Greedy: 160, the optimality check fails (the best is 220)</td></tr>
+<tr><td><img src="images/packing--change-making-steps-table.png" alt="Change-Making, filling the table" width="420"></td><td></td></tr>
+<tr><td>Filling amount 39: it reads 38, 32, 29 and 14 and keeps 32 (+ a 7)</td><td></td></tr></table>
 </details>
 
 ---
