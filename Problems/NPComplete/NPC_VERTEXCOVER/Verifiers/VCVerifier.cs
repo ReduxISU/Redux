@@ -61,6 +61,11 @@ class VCVerifier : IVerifier<VERTEXCOVER> {
             }
         }
 
+        // Vertex Cover asks for a cover of at most K nodes, so a larger one is no answer, however many edges it covers (#747).
+        if (certificateNodes.Distinct().Count() > problem.K) {
+            return false; //reject
+        }
+
         //Step two of the verify method. Test whether the set of all edges incident to nodes in c equals the set of edges in G
         //A node being incident to an edge means that that edge has the node as one of its two endpoints.
 

@@ -86,7 +86,7 @@ public class VERTEXCOVER_Tests {
 
     [Theory] //tests with default graph string Certificates of this test represent junk or empty data.
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{a}")] //four node graph dependent on a with a in cert
-    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c,d}")] //four node graph dependent on a with all nodes except a in cert
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),3)", "{b,c,d}")] //four node graph dependent on a with all nodes except a in cert, K = 3: exactly K nodes
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{a,b,c,d}}")] //five node connected graph, test four nodes
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{e,b,c,d}}")] //five node connected graph, test four nodes
     public void VERTEXCOVER_verify_theory_true(string VERTEXCOVER_Instance, string testCertificate) {
@@ -98,6 +98,8 @@ public class VERTEXCOVER_Tests {
 
     [Theory] //tests with default graph string and various certificates, this shows that certificates can be accepted in many formats. (false case)
     [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c}")] //four node graph dependent on a without a, or all other nodes in cert
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),1)", "{b,c,d}")] //covers every edge, but with 3 nodes where K = 1 allows one (#747)
+    [InlineData("(({a,b,c,d},{{a,b},{a,c},{a,d}}),2)", "{b,c,d}")] //one node more than K = 2
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{a,b}}")] //five node connected graph, test two nodes (ideal solution is 3 nodes, two is impossible)
     [InlineData("(({a,b,c,d,e},{{a,b},{a,c},{a,d},{a,e},{b,c},{b,d},{b,e},{c,e},{c,d},{d,e}}),5)", "{e,b}}")] //five node connected graph, test two nodes
     public void VERTEXCOVER_verify_theory_false(string VERTEXCOVER_Instance, string testCertificate) {
