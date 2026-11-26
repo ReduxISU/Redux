@@ -27,12 +27,12 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
     public IndependentSetBruteForce() {
 
     }
-    private long factorial(long x) {
-        long y = 1;
-        for (long i = 1; i <= x; i++) {
-            y *= i;
-        }
-        return y;
+    // The number of ways to choose k of n, as n/1 * (n-1)/2 * ...: each partial product is itself a binomial, so it divides
+    // exactly. Written so in place of n! / (k! (n-k)!), whose factorials overflow a long past 20 items and gave a wrong count.
+    private static long Binomial(long n, long k) {
+        long r = 1;
+        for (long j = 1; j <= k; j++) r = checked(r * (n - k + j)) / j;
+        return r;
     }
     private string indexListToCertificate(List<int> indecies, List<string> nodes) {
         string certificate = "";
@@ -62,7 +62,7 @@ class IndependentSetBruteForce : ISolver<INDEPENDENTSET, NodeSet> {
         for (int i = 0; i < independentSet.K; i++) {
             combination.Add(i);
         }
-        long reps = factorial(independentSet.nodes.Count) / (factorial(independentSet.K) * factorial(independentSet.nodes.Count - independentSet.K));
+        long reps = Binomial(independentSet.nodes.Count, independentSet.K);
         int tried = 0;
         string[] Candidate() => combination.Select(i => independentSet.nodes[i]).ToArray();
         for (int i = 0; i < reps; i++) {
