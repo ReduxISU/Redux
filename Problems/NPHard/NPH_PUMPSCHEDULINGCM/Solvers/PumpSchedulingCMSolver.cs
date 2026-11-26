@@ -21,7 +21,8 @@ class PumpSchedulingCMSolver : ISolver<PUMPSCHEDULINGCM> {
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Memo table + optimal-substructure recurrence.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
-    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Exponential: the 4^n pump-state pairs per hour outgrow the polynomial H * B part as pumps are added (#1013).
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Pseudo-polynomial, same nuance as KnapsackDP's "O(n * W)":
     // polynomial in the hour count H and tank-bucket count B, but the per-hour transition
     // enumerates prevMask x mask over nMasks = 2^n pump-on/off states (n = pump count),
