@@ -1,0 +1,49 @@
+name: ghcr-prune
+
+# Prunes old versions of ghcr.io/reduxisu/redux (#881). docker.yml did this after each publish until the rbs cutover
+# (#879) removed it, and rbs push never deletes anything, so every merge to CSharpAPI adds an image that stays.
+#
+# rbs push publishes each tag as an image index with two untagged children (the image and its attestation). A plain
+# "delete untagged versions" step would delete those children and leave latest pointing at nothing, so this uses a
+# cleanup action that knows which untagged versions belong to an image it keeps.
+#
+# Scheduled runs are dry runs: they only list what they would delete, in the run's summary. Run it by hand with
+# "delete" ticked to delete for real; once a few dry runs look right, scheduled runs can be switched to delete.
+
+on:
+  schedule:
+    - cron: '17 9 * * 1' # Mondays, 09:17 UTC
+  workflow_dispatch:
+    inputs:
+      delete:
+        description: 'Delete for real (unticked: a dry run that only lists what it would delete)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ghcr-prune
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Prune ghcr.io/reduxisu/redux
+        # dataaxiom/ghcr-cleanup-action v1.2.2, pinned by commit: a third-party action with packages: write.
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f
+        with:
+          package: redux
+          # latest is what the servers pull; preview is the director's build on redux.thought.net. Never deleted.
+          exclude-tags: latest,preview
+          # The 10 newest tagged images (each merge tags its short commit), with their children.
+          keep-n-tagged: 10
+          # Untagged versions no kept image uses: children of images deleted above, and leftovers.
+          delete-untagged: true
+          # After cleanup, check every kept image still has all its children.
+          validate: true
+          dry-run: ${{ !(github.event_name == 'workflow_dispatch' && inputs.delete) }}
