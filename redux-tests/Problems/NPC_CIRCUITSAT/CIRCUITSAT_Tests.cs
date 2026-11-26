@@ -149,8 +149,6 @@ public class CIRCUITSAT_Tests {
     [InlineData("({x1},((g1,not,x1)),g1)", "(x1=False)")]
     // Inputs the certificate omits are read as False (SAT-family convention):
     [InlineData("({x1,x2,x3},((g1,and,x1,x2),(g2,not,x3),(g3,or,g1,g2)),g3)", "(x1:True,x2:True)")]
-    // Names that are not wires of the circuit are ignored, as in SAT:
-    [InlineData("({x1},((g1,not,x1)),g1)", "(x1:False,z9:True)")]
     public void CIRCUITSAT_Verifier_Accepts_SAT_Family_Certificate_Spellings(string instance, string certificate) {
         CIRCUITSAT circuitSat = new CIRCUITSAT(instance);
         Assert.True(new CircuitSatVerifier().verify(circuitSat, certificate));
@@ -185,12 +183,22 @@ public class CIRCUITSAT_Tests {
     // Verifier — malformed certificates
     // -------------------------------------------------------------------------
 
+    [Fact] // #1040: a name that isn't an input wire is named back, with the circuit's inputs listed
+    public void CIRCUITSAT_Verifier_Names_The_Unknown_Wire_And_Lists_The_Inputs() {
+        CIRCUITSAT circuitSat = new CIRCUITSAT("({x1,x2},((g1,and,x1,x2)),g1)");
+        var e = Assert.Throws<CertificateParseException>(() => new CircuitSatVerifier().verify(circuitSat, "(X1:True,x2:True)"));
+        Assert.Equal("'X1' is not an input wire of this circuit; its input wires are x1, x2", e.Message);
+    }
+
     [Theory]
     [InlineData("")]          // empty
     [InlineData("()")]        // empty parentheses
     [InlineData("(x1)")]      // no ':' or '=' separator
     [InlineData("(x1:maybe)")] // value is not True/False/T/F
     [InlineData("(x1:True,x2)")] // second assignment malformed
+    [InlineData("(x1:True,z9:True)")] // z9 is not a wire of the circuit (#1040)
+    [InlineData("(X1:True)")]   // a typo for x1: names are case-sensitive
+    [InlineData("(g1:True)")]   // a gate's wire, which the circuit computes, not an input
     public void CIRCUITSAT_Verifier_Throws_On_Malformed_Certificate(string certificate) {
         CIRCUITSAT circuitSat = new CIRCUITSAT("({x1,x2},((g1,and,x1,x2)),g1)");
         CircuitSatVerifier verifier = new CircuitSatVerifier();
@@ -332,6 +340,7 @@ public class CIRCUITSAT_Tests {
     [InlineData("")]
     [InlineData("(x1)")]           // missing separator
     [InlineData("(x1:perhaps)")]   // bad boolean
+    [InlineData("(x1:True,z9:True)")] // z9 is not an input wire (#1040)
     public void CIRCUITSAT_To_SAT_MapSolutions_Throws_On_Malformed_Certificate(string certificate) {
         CircuitSatToSatReduction reduction = new CircuitSatToSatReduction(new CIRCUITSAT());
         Assert.Throws<ReductionInputException>(() => reduction.mapSolutions(certificate));

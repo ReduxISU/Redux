@@ -109,6 +109,10 @@ class CircuitSatToSatReduction : IReduction<CIRCUITSAT, SAT> {
         }
 
         BooleanCircuit circuit = reductionFrom.circuit;
+        string? notInputs = circuit.NotInputsMessage(assignment.Keys);
+        if (notInputs != null) {
+            throw new ReductionInputException(this, problemFromSolution, reductionFrom.certificateFormat, notInputs);
+        }
         var inputs = new Dictionary<string, bool>(StringComparer.Ordinal);
         foreach (string wire in circuit.Inputs) {
             inputs[wire] = assignment.TryGetValue(wire, out bool value) && value;
