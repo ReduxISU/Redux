@@ -20,15 +20,16 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
 
     public MathematicalFunction timeComplexity { get; } = new("2^|i| * |i|", ", |i| = number of items; each of the 2^|i| subsets is built and checked");
 
-    public IEnumerable<List<int>> possibleSolutions(int len) {
-        for (int i = 0; i < Math.Pow(2, len); i++) {
-            List<int> solution = new List<int>();
-            for (int solBin = i + (int)Math.Pow(2, len); solBin != 1; solBin >>= 1) {
-                if ((solBin & 1) == 0)
-                    solution.Add(0);
-                else
-                    solution.Add(1);
-            }
+    private const int MaxItems = 62;
+
+    // Every 0/1 choice of len items, item b taken when bit b of i is set. A long mask holds at most 62 items
+    // (1L << 63 is negative); the int mask this replaced went wrong past 30 (#1028).
+    public IEnumerable<List<int>> possibleSolutions(int len, string problemName) {
+        if (len > MaxItems) throw new ExactSearchLimitExceededException(problemName, len, MaxItems);
+        for (long i = 0; i < (1L << len); i++) {
+            List<int> solution = new List<int>(len);
+            for (int b = 0; b < len; b++)
+                solution.Add((int)((i >> b) & 1));
             yield return solution;
         }
     }
@@ -36,7 +37,7 @@ class KnapsackBruteForce : ISolver<KNAPSACK> {
     //solver for 0-1 knapsack problem
     public string solve(KNAPSACK knapsack) {
         List<UtilCollection> items = knapsack.items.ToList();
-        foreach (List<int> possibleSolution in possibleSolutions(items.Count())) {
+        foreach (List<int> possibleSolution in possibleSolutions(items.Count(), knapsack.problemName)) {
             if (timerHasExpired) return SolveRun.TimedOutAnswer; // #935: stop at the time limit
             UtilCollection certificate = new UtilCollection("{}");
             for (int i = 0; i < knapsack.items.Count(); i++) {

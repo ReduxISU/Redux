@@ -25,10 +25,12 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
 
     }
 
-    private static string SubsetToCertificate(int mask, List<string> S) {
+    private const int MaxItems = 62;
+
+    private static string SubsetToCertificate(long mask, List<string> S) {
         UtilCollection certificate = new UtilCollection("{}");
         for (int i = 0; i < S.Count; i++) {
-            if ((mask & (1 << i)) != 0)
+            if ((mask & (1L << i)) != 0)
                 certificate.Add(new UtilCollection(S[i]));
         }
         return certificate.ToString();
@@ -36,12 +38,14 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM> {
 
     public string solve(SUBSETSUM subsetSum) {
         int n = subsetSum.S.Count;
+        // A long bit mask holds at most 62 items (1L << 63 is negative); an int mask stopped at 30 (#1028).
+        if (n > MaxItems) throw new ExactSearchLimitExceededException(subsetSum.problemName, n, MaxItems);
 
         // Enumerate every subset by its bitmask so that all 2^n subsets -- including
         // the singleton {S[0]} -- are tested exactly once. Mask 0 (the empty subset)
         // is skipped: with positive integers and T > 0 it is never a witness, and
         // "{}" doubles as the no-solution sentinel.
-        for (int mask = 1; mask < (1 << n); mask++) {
+        for (long mask = 1; mask < (1L << n); mask++) {
             if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             string certificate = SubsetToCertificate(mask, subsetSum.S);
