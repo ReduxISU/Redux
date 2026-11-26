@@ -23,7 +23,8 @@ class PumpSchedulingEMSolver : ISolver<PUMPSCHEDULINGEM> {
     public bool timerHasExpired { get; set; }
     // Declared, not derived. Memo table + optimal-substructure recurrence.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
-    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
+    // Exponential: the 4^n pump-state pairs per hour outgrow the polynomial H * B part as pumps are added (#1013).
+    public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
     // Declared, not derived. Same pseudo-polynomial nuance as PumpSchedulingCMSolver: the
     // optional cost-minimization pre-solve and the emergency-resilience solve each run the
     // same H x B x nMasks x nMasks DP transition (nMasks = 2^n pump-on/off states), so the

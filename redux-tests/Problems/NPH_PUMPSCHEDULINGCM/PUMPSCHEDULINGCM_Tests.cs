@@ -288,4 +288,9 @@ public class PUMPSCHEDULINGCM_Tests {
         PUMPSCHEDULINGCM p = new();
         Assert.True(new PumpSchedulingCMVerifier().verify(p, PumpSchedulingCMVerifier.CertificateExample));
     }
+
+    [Fact] // 4^n pump-state pairs per hour: exponential in the pumps, not polynomial (#1013)
+    public void PumpSchedulingCMSolver_IsBucketedExponential() {
+        Assert.Equal(SolverComplexityBucket.Exponential, new PumpSchedulingCMSolver().complexityBucket);
+    }
 }
