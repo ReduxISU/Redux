@@ -26,6 +26,9 @@ namespace redux_tests;
 /// and reductions treat two equal numbers as two numbers.
 /// </summary>
 public class RepeatedNumbers_Tests {
+    // Partition's default before #938: 12 is written twice, so the numbers sum to 150 only if both are kept.
+    private const string TwoTwelves = "{1,7,12,15,33,12,11,5,6,9,21,18}";
+
 
     // -------------------------------------------------------------------------
     // RepeatedElements
@@ -67,8 +70,8 @@ public class RepeatedNumbers_Tests {
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Partition_Default_Instance_Keeps_Both_12s() {
-        PARTITION problem = new PARTITION();
+    public void Partition_Instance_With_Two_12s_Keeps_Both() {
+        PARTITION problem = new PARTITION(TwoTwelves);
         Assert.Equal(12, problem.S.Count);
         Assert.Equal(2, problem.S.Count(x => x == "12"));
         Assert.Equal(150, problem.S.Sum(int.Parse));
@@ -81,8 +84,8 @@ public class RepeatedNumbers_Tests {
 
     [Fact]
     public void Partition_Old_Certificate_Example_Using_One_12_Is_No_Longer_Valid() {
-        // It leaves out the second 12 of the default instance.
-        Assert.False(new PartitionVerifier().verify(new PARTITION(), "(33,21,15),(1,7,12,11,5,6,9,18)"));
+        // It leaves out the second 12.
+        Assert.False(new PartitionVerifier().verify(new PARTITION(TwoTwelves), "(33,21,15),(1,7,12,11,5,6,9,18)"));
     }
 
     [Theory]
@@ -122,13 +125,21 @@ public class RepeatedNumbers_Tests {
 
     [Fact]
     public void Partition_Picture_Gives_Each_Copy_Its_Own_Position_Id() {
-        PARTITION problem = new PARTITION();
+        PARTITION problem = new PARTITION(TwoTwelves);
         var list = new PartitionDefaultVisualization().visualize(problem).data.list!;
         Assert.Equal(problem.S, list.Select(e => e.value));
         Assert.Equal(list.Count, list.Select(e => e.id).Distinct().Count());
         Assert.Equal("r-12", list[2].id);      // the first 12 keeps the id it always had
         Assert.Equal("r-12-5", list[5].id);    // the second, at position 5, adds its position
         Assert.Equal("r-1", list[0].id);
+    }
+
+    [Fact] // with no repeated number the picture is the one drawn before #628: the same numbers with the same ids
+    public void Partition_Picture_Without_Repeats_Is_Unchanged() {
+        PARTITION problem = new PARTITION();
+        var before = new API.Interfaces.JSON_Objects.API_SET(new UtilCollection(problem.instance)).data.list!;
+        var now = new PartitionDefaultVisualization().visualize(problem).data.list!;
+        Assert.Equal(before.Select(e => (e.id, e.value)), now.Select(e => (e.id, e.value)));
     }
 
     [Fact]
