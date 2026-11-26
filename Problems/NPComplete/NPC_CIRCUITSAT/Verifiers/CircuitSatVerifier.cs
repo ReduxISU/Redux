@@ -28,14 +28,18 @@ class CircuitSatVerifier : IVerifier<CIRCUITSAT> {
     // Certificate format: (x1:True,x2:False,...) — ':' or '=' separator, True/False/T/F
     // values, the same accepted spellings as the SAT and 3SAT verifiers. Inputs the
     // certificate leaves out are read as False (matching the SAT-family convention that
-    // an unassigned variable contributes no true literal); names that are not wires of
-    // this circuit are ignored, again as in SAT.
+    // an unassigned variable contributes no true literal). A name that is not an input
+    // wire of this circuit is refused with a message listing the inputs (#1040).
     public bool verify(CIRCUITSAT problem, string certificate) {
         Dictionary<string, bool> assignment;
         try {
             assignment = TruthAssignment.Parse(certificate);
         } catch (FormatException e) {
             throw new CertificateParseException(problem, certificate, e.Message, e);
+        }
+        string? notInputs = problem.circuit.NotInputsMessage(assignment.Keys);
+        if (notInputs != null) {
+            throw new CertificateParseException(problem, certificate, notInputs);
         }
 
         var inputs = new Dictionary<string, bool>(StringComparer.Ordinal);

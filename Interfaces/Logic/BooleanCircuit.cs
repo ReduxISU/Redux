@@ -58,6 +58,19 @@ internal sealed class BooleanCircuit {
         Wires = inputs.Concat(gates.Select(g => g.Output)).ToList();
     }
 
+    /// <summary>
+    /// Why an assignment can't be read against this circuit: the names in <paramref name="names"/> that are not input
+    /// wires, with the circuit's inputs listed, or null when every name is an input. A certificate assigns the inputs
+    /// only, so a typo such as <c>X1</c> for <c>x1</c>, or a gate's wire, is reported, not quietly ignored (#1040).
+    /// </summary>
+    public string? NotInputsMessage(IEnumerable<string> names) {
+        List<string> unknown = names.Where(n => !Inputs.Contains(n)).Distinct().ToList();
+        if (unknown.Count == 0) return null;
+        string quoted = string.Join(", ", unknown.Select(n => $"'{n}'"));
+        string verb = unknown.Count == 1 ? "is not an input wire" : "are not input wires";
+        return $"{quoted} {verb} of this circuit; its input wires are {string.Join(", ", Inputs)}";
+    }
+
     /// <summary>True when some assignment of the inputs makes the output wire True.</summary>
     public bool Evaluate(IReadOnlyDictionary<string, bool> inputs) =>
         WireValues(inputs)[Output];

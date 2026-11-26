@@ -31,7 +31,7 @@ class CIRCUITSAT : IProblem<CircuitSatBruteForceSolver, CircuitSatVerifier, Dumm
     public static string _defaultInstance { get; } = "({x1,x2,x3},((g1,and,x1,x2),(g2,not,x3),(g3,or,g1,g2)),g3)";
     public string defaultInstance { get; } = _defaultInstance;
     public string instanceFormat { get; } = "Boolean circuit as the tuple ({input wires},(gates),output wire). The inputs are a comma-separated set in braces. Each gate is a tuple (output wire,operator,input wires), where the operator is 'and', 'or' or 'not' — 'not' takes one input wire, 'and' and 'or' take two — and every input wire must already be a declared input or the output of an earlier gate. The output wire may be any declared wire, including an input. Example: ({x1,x2,x3},((g1,and,x1,x2),(g2,not,x3),(g3,or,g1,g2)),g3)";
-    public string certificateFormat { get; } = "Comma-separated variable: Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. List every input wire you are assigning; unassigned inputs are read as False. Example: (x1:True,x2:True,x3:False)";
+    public string certificateFormat { get; } = "Comma-separated variable: Boolean pairs, optionally wrapped in parentheses. Booleans must be capitalized True/False (T/F also accepted); ':' or '=' may be used as the separator. Name input wires only (a gate's wire is computed, not assigned); unassigned inputs are read as False. Example: (x1:True,x2:True,x3:False)";
     public CircuitSatBruteForceSolver defaultSolver { get; } = new CircuitSatBruteForceSolver();
     public CircuitSatVerifier defaultVerifier { get; } = new CircuitSatVerifier();
     public DummyVisualization defaultVisualization { get; } = new DummyVisualization();
