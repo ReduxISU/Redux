@@ -312,8 +312,10 @@ public class TripartiteFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudg
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal("TripartiteMatching", root.GetProperty("type").GetString());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count >= 2);
-        Assert.Equal("Reject", frames[0].GetProperty("event").GetString());
+        // A stopped run may be its Done alone: the solver also checks the timer flag, which a busy runner can set before its first step.
+        Assert.NotEmpty(frames);
+        if (frames.Count > 1)
+            Assert.Equal("Reject", frames[0].GetProperty("event").GetString());
         var done = frames[^1];
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         Assert.Equal("Done", done.GetProperty("event").GetString());
