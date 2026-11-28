@@ -1,7 +1,9 @@
 #!/bin/sh
 # rbs runs this right before `docker build` ([build] pre-command in rbs.toml). It does what docker.yml's
 # "Fill contributor counts" step did before rbs replaced that workflow (#880): wwwroot/contributorInfo.json is
-# committed with zero counts (#613), and this fills them in so the published image shows them.
+# committed with zero counts (#613), and this fills them in so the published image shows them. The same run writes
+# each contributor's otherContributions (merged PRs in every ReduxISU repo, grouped by area), which is never
+# committed either.
 #
 # Only on CSharpAPI, the branch rbs publishes from. Other branches build the image they test, with the committed
 # zeros, and don't spend time on GitHub API calls.
