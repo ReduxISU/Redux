@@ -196,14 +196,16 @@ public class SearchTreeQueens_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudg
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(20), $"took {sw.Elapsed}");
         var frames = SearchTreeJson.Check(body, "N-Queens", "30");
-        Assert.True(frames.Count >= 2);
+        // A stopped run may be its Done alone: the solver also checks the timer flag, which a busy runner can set before its first step.
+        Assert.NotEmpty(frames);
         var done = frames[^1];
         Assert.False(done.GetProperty("ok").GetBoolean());
         Assert.Matches(@"^Stopped after 0\.05 s and [\d,]+ steps?; the solver had not finished( \(\d+ not shown\))?\.", done.GetProperty("caption").GetString());
         // The tree so far, with nothing claimed: no answer path, nothing highlighted.
         var nodes = done.GetProperty("nodes").EnumerateArray().ToList();
-        Assert.NotEmpty(nodes);
-        Assert.Equal(frames[^2].GetProperty("total").GetInt32(), done.GetProperty("total").GetInt32());
+        Assert.Equal(frames.Count > 1, nodes.Count > 0); // empty only when it stopped before its first step
+        if (frames.Count > 1)
+            Assert.Equal(frames[^2].GetProperty("total").GetInt32(), done.GetProperty("total").GetInt32());
         Assert.DoesNotContain(nodes, n => SearchTreeJson.State(n) is "Solution" or "ElementHighlight");
     }
 }
