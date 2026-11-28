@@ -29,7 +29,7 @@ class DominatingSetForcedVertex : ISolver<DOMINATINGSET, NodeSet>, IIncrementalS
     // bounded by n; each recursive call does O(n) work (AllDominated/forced-vertex scan/
     // ApplyPick). That's O(n^K) leaves at O(n) work apiece. The branch-and-reduce pruning
     // (Akiba & Iwata) makes this far faster in practice -- this bound is worst-case only.
-    public MathematicalFunction timeComplexity { get; } = new("n^(K+1)", ", n = |nodes|, K = target dominating-set size");
+    public MathematicalFunction timeComplexity { get; } = new("|N|^(K+1)", ", |N| = number of nodes, K = target dominating-set size");
 
     // --- Methods Including Constructors ---
     public DominatingSetForcedVertex() { }

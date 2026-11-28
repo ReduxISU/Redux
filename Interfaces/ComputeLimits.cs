@@ -26,10 +26,19 @@ namespace API.Interfaces;
 /// </para>
 /// </summary>
 static class ComputeLimits {
-    /// <summary>The configuration key for the time limit, in seconds, of every compute request.</summary>
+    /// <summary>
+    /// The configuration key for the time limit, in seconds, of every compute request. Visualize stops at this limit or
+    /// 10 seconds, whichever is shorter, unless its own key is set (<c>ProblemProvider.SolveTimeLimitKey</c>).
+    /// </summary>
     public const string TimeLimitKey = "ComputeLimits:TimeLimitSeconds";
-    /// <summary>The limit used when <see cref="TimeLimitKey"/> is not set.</summary>
-    public const double DefaultTimeLimitSeconds = 10;
+    /// <summary>
+    /// The limit used when <see cref="TimeLimitKey"/> is not set. It was 10 seconds; 30 gives honest slow work, such as a
+    /// quantum solver's call to the quantum service (which stops itself at 25 seconds) or a mid-size exact solve, room to
+    /// finish, and still answers well inside the frontends' 60-second wait. The timer is the backstop: the real guard
+    /// against a job too big to finish is the size and Big-O precheck, step 3 of #915 (<see cref="ComputePrecheck"/>, #843),
+    /// which refuses such a job before it starts.
+    /// </summary>
+    public const double DefaultTimeLimitSeconds = 30;
     /// <summary>
     /// How much longer than the limit the backstop waits on a solve or visualize, whose solvers stop themselves at the
     /// limit: the solver's own stop answers first (for visualize, with the stopped picture), and the backstop only
@@ -50,24 +59,35 @@ static class ComputeLimits {
     /// the backstop ran out first. Then the work is NOT cancelled: it keeps running in the background until it finishes
     /// or reaches a checkpoint of its own (see the class remarks). With no backstop the work runs inline, as before.
     /// <para>
+    /// Work that finishes after the backstop also counts as out of time, measured with a stopwatch. The backstop's timer
+    /// fires on the thread pool, so on a busy server its callback can queue behind the work it should stop; without the
+    /// stopwatch, work that ran far past the limit could then answer as if it had finished in time. With it, the answer
+    /// depends only on how long the work took, as it does for a job in a worker process.
+    /// </para>
+    /// <para>
     /// <paramref name="job"/> is the request's slot in the cap on jobs running at once (#936). Work the backstop gives up
     /// on keeps that slot until it finishes, so abandoned work still counts toward the cap.
     /// </para>
+    /// <paramref name="time"/> is the clock for the timer and the stopwatch (the system clock by default), so a test can
+    /// hold the timer back.
     /// </summary>
-    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop, ComputeJob? job = null) {
+    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop, ComputeJob? job = null,
+                                                                       TimeProvider? time = null) {
         if (backstop is not { } wait)
             return (true, work());
+        time ??= TimeProvider.System;
+        long started = time.GetTimestamp();
         var task = Task.Run(work);
         using var stopWaiting = new CancellationTokenSource();
-        var first = await Task.WhenAny(task, Task.Delay(wait, stopWaiting.Token)).ConfigureAwait(false);
-        if (first != task) {
+        var first = await Task.WhenAny(task, Task.Delay(wait, time, stopWaiting.Token)).ConfigureAwait(false);
+        stopWaiting.Cancel();
+        if (first != task || time.GetElapsedTime(started) > wait) {
             job?.FinishWhen(task);
-            // Observe a later failure of the abandoned work, so it is not reported as an unobserved task exception.
+            // Observe a failure of the work, now or later, so it is not reported as an unobserved task exception.
             _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return (false, default);
         }
-        stopWaiting.Cancel();
         return (true, await task.ConfigureAwait(false));
     }
 

@@ -4,6 +4,7 @@ using API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Solvers;
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAX3SAT.Solvers;
 
 [DefaultFor(typeof(WEIGHTEDMAX3SAT))]
+[ExactSearchLimit("at most 20 variables")] // WeightedMaxSatExactSearchLimit.MaxVariables
 class WeightedMax3SatBruteForceSolver : ISolver<WEIGHTEDMAX3SAT> {
     // --- Fields ---
     public string solverName { get; } = "Weighted Max-3SAT Exact Brute Force";
@@ -13,7 +14,7 @@ class WeightedMax3SatBruteForceSolver : ISolver<WEIGHTEDMAX3SAT> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.BruteForce;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", n = variables, |Φ| = weighted formula size");
+    public MathematicalFunction timeComplexity { get; } = new("2^|variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ (the weighted formula size)");
     public MathematicalFunction spaceComplexity { get; } = new("n", ", assignment storage and recursion depth");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 

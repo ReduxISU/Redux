@@ -18,7 +18,7 @@ class NQueensBacktracking : ISolver<NQUEENS> {
     public SolverType solverType { get; } = SolverType.Backtracking | SolverType.DepthFirstSearch;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
-    public MathematicalFunction timeComplexity { get; } = new("N!", "");
+    public MathematicalFunction timeComplexity { get; } = new("n!", ", n = board size");
 
     // --- Solver ---
     public string solve(NQUEENS problem) {

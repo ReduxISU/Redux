@@ -17,6 +17,10 @@ using API.Problems.NPComplete.NPC_DM3.Verifiers;
 using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_INTPROGRAMMING01;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01;
 using API.Problems.NPComplete.NPC_INTPROGRAMMING01.Verifiers;
+using API.Problems.NPComplete.NPC_SAT3.ReduceTo.NPC_CIRCUITSAT;
+using API.Problems.NPComplete.NPC_CIRCUITSAT;
+using API.Problems.NPComplete.NPC_CIRCUITSAT.Solvers;
+using API.Problems.NPComplete.NPC_CIRCUITSAT.Verifiers;
 
 namespace redux_tests;
 #pragma warning disable CS1591
@@ -710,5 +714,64 @@ public class SAT3_Tests {
         Assert.Equal(new List<List<string>> { new() { "x1", "!x2" }, new() { "x3" } }, sat3.clauses);
         Assert.Equal(new[] { "x1", "!x2", "x3" }, sat3.literals);
         Assert.Equal(new[] { "x1", "x2", "x3" }, sat3.formula.Variables);
+    }
+
+    // -------------------------------------------------------------------------
+    // SAT3 -> CircuitSAT reduction (3-CNF formulas are circuits)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void SAT3_To_CIRCUITSAT_Output_Instance_Reparses() {
+        var reduction = new Sat3ToCircuitSatReduction();
+        CIRCUITSAT reparsed = new CIRCUITSAT(reduction.reductionTo.instance);
+        Assert.Equal(reduction.reductionTo.gates, reparsed.gates);
+    }
+
+    [Fact]
+    public void SAT3_To_CIRCUITSAT_Embeds_Default_Instance() {
+        // Default formula (x1 | x2 | x3) & (!x1 | !x2 | !x3) & (!x1 | x2 | x3) & (x1 | !x2 | x3):
+        // one shared NOT gate per negated variable (x1, x2, x3), two OR gates per
+        // 3-literal clause, and three AND gates joining the four clause outputs.
+        var reduction = new Sat3ToCircuitSatReduction();
+        CIRCUITSAT circuit = reduction.reductionTo;
+        Assert.Equal(new[] { "x1", "x2", "x3" }, circuit.inputs);
+        Assert.Equal(3 + 8 + 3, circuit.gates.Count);
+        Assert.NotNull(circuit.output);
+        Assert.Contains(circuit.output, circuit.wires);
+    }
+
+    [Fact]
+    public void SAT3_To_CIRCUITSAT_Solution_Maps_To_Verifiable_Circuit_Certificate() {
+        SAT3 sat3 = new SAT3();
+        string sat3Solution = new Sat3BacktrackingSolver().solve(sat3);
+        Assert.NotEqual("No Solution", sat3Solution);
+
+        var reduction = new Sat3ToCircuitSatReduction(sat3);
+        Assert.True(new CircuitSatVerifier().verify(reduction.reductionTo, reduction.mapSolutions(sat3Solution)));
+    }
+
+    [Fact]
+    public void SAT3_To_CIRCUITSAT_Circuit_Solution_Verifies_Original_Formula() {
+        SAT3 sat3 = new SAT3("(x1 | !x2 | x3) & (!x1 | x2 | x3)");
+        var reduction = new Sat3ToCircuitSatReduction(sat3);
+        string circuitCertificate = new CircuitSatBruteForceSolver().solve(reduction.reductionTo);
+        Assert.NotEqual("No solution exists", circuitCertificate);
+        Assert.True(new SAT3Verifier().verify(sat3, circuitCertificate));
+    }
+
+    [Fact]
+    public void SAT3_To_CIRCUITSAT_Preserves_Unsatisfiability() {
+        // (x1) & (!x1) is UNSAT; its circuit ({x1},((n,not,x1),(a,and,x1,n)),a) must be too.
+        var reduction = new Sat3ToCircuitSatReduction("(x1) & (!x1)");
+        Assert.Equal("No solution exists", new CircuitSatBruteForceSolver().solve(reduction.reductionTo));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("(x1)")]         // missing separator
+    [InlineData("(x1:perhaps)")] // bad boolean
+    public void SAT3_To_CIRCUITSAT_MapSolutions_Throws_On_Malformed_Certificate(string certificate) {
+        var reduction = new Sat3ToCircuitSatReduction();
+        Assert.Throws<ReductionInputException>(() => reduction.mapSolutions(certificate));
     }
 }

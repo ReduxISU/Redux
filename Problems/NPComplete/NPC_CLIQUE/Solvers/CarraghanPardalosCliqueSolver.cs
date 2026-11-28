@@ -25,7 +25,7 @@ class CarraghanPardalos : ISolver<CLIQUE, NodeSet>, IIncrementalSolver {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("2^n", ", n = |nodes|");
+    public MathematicalFunction timeComplexity { get; } = new("2^|N|", ", |N| = number of nodes");
 
     // --- Methods Including Constructors ---
     public CarraghanPardalos() {

@@ -28,6 +28,9 @@ class WEIGHTEDMAX3SAT : IProblem {
 
     internal WEIGHTEDMAXSAT weightedMaxSat { get; }
 
+    /// <summary>The sizes of the formula Φ, for the Big-O precheck (#843); see <see cref="API.Interfaces.Logic.CnfFormula.SizeMeasures"/>.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => weightedMaxSat.SizeMeasures();
+
     // --- Methods Including Constructors ---
     public WEIGHTEDMAX3SAT() : this(_defaultInstance) { }
 

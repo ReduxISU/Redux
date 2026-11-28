@@ -86,13 +86,15 @@ interface ISolver {
     /// its recorder at the next step it reports, recording or not. On this legacy default the limit starts the
     /// cooperative <see cref="timerHasExpired"/> flag (<see cref="SolverTimer"/>), which the solver checks in its main
     /// loops; a run during which the flag was set is stopped whatever the solver returned, so a half-finished search is
-    /// never passed off as an answer. A stopped legacy run has no steps.
+    /// never passed off as an answer. The timer's callback runs on the thread pool and can arrive late under load, so a
+    /// run that took longer than the limit is stopped too, whatever the timer did. A stopped legacy run has no steps.
     /// </param>
     SolveRun Run(string instance, bool withSteps, TimeSpan? timeLimit = null) {
+        long started = System.Diagnostics.Stopwatch.GetTimestamp();
         using (SolverTimer.Start(this, timeLimit)) {
             var steps = withSteps ? GetSteps(instance).ToList() : new List<Object>();
             string answer = solve(instance);
-            if (timeLimit != null && timerHasExpired)
+            if (timeLimit is { } limit && (timerHasExpired || System.Diagnostics.Stopwatch.GetElapsedTime(started) > limit))
                 return SolveRun.Stopped(null);
             return new SolveRun(answer, steps, null);
         }

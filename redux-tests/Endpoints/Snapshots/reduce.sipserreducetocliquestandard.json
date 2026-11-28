@@ -38,11 +38,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "K",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -375,10 +376,10 @@
         "Backtracking"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -422,10 +423,10 @@
           "Backtracking"
         ],
         "timeComplexity": {
-          "Function": "2^n * |phi|",
-          "Description": ", n = number of variables, |phi| = formula size",
+          "Function": "2^|variables| * |phi|",
+          "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
           "VariableNames": [
-            "n",
+            "variables",
             "phi"
           ]
         },
@@ -474,11 +475,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|",
+        "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
         "VariableNames": [
-          "n",
-          "m"
+          "N",
+          "K",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -524,11 +526,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|",
+          "Function": "C(|N|, K) * K^2 * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = clique size",
           "VariableNames": [
-            "n",
-            "m"
+            "N",
+            "K",
+            "E"
           ]
         },
         "spaceComplexity": null,
