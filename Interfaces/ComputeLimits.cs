@@ -59,24 +59,35 @@ static class ComputeLimits {
     /// the backstop ran out first. Then the work is NOT cancelled: it keeps running in the background until it finishes
     /// or reaches a checkpoint of its own (see the class remarks). With no backstop the work runs inline, as before.
     /// <para>
+    /// Work that finishes after the backstop also counts as out of time, measured with a stopwatch. The backstop's timer
+    /// fires on the thread pool, so on a busy server its callback can queue behind the work it should stop; without the
+    /// stopwatch, work that ran far past the limit could then answer as if it had finished in time. With it, the answer
+    /// depends only on how long the work took, as it does for a job in a worker process.
+    /// </para>
+    /// <para>
     /// <paramref name="job"/> is the request's slot in the cap on jobs running at once (#936). Work the backstop gives up
     /// on keeps that slot until it finishes, so abandoned work still counts toward the cap.
     /// </para>
+    /// <paramref name="time"/> is the clock for the timer and the stopwatch (the system clock by default), so a test can
+    /// hold the timer back.
     /// </summary>
-    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop, ComputeJob? job = null) {
+    public static async Task<(bool Finished, T? Result)> WithBackstop<T>(Func<T> work, TimeSpan? backstop, ComputeJob? job = null,
+                                                                       TimeProvider? time = null) {
         if (backstop is not { } wait)
             return (true, work());
+        time ??= TimeProvider.System;
+        long started = time.GetTimestamp();
         var task = Task.Run(work);
         using var stopWaiting = new CancellationTokenSource();
-        var first = await Task.WhenAny(task, Task.Delay(wait, stopWaiting.Token)).ConfigureAwait(false);
-        if (first != task) {
+        var first = await Task.WhenAny(task, Task.Delay(wait, time, stopWaiting.Token)).ConfigureAwait(false);
+        stopWaiting.Cancel();
+        if (first != task || time.GetElapsedTime(started) > wait) {
             job?.FinishWhen(task);
-            // Observe a later failure of the abandoned work, so it is not reported as an unobserved task exception.
+            // Observe a failure of the work, now or later, so it is not reported as an unobserved task exception.
             _ = task.ContinueWith(t => _ = t.Exception, CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return (false, default);
         }
-        stopWaiting.Cancel();
         return (true, await task.ConfigureAwait(false));
     }
 
