@@ -14,7 +14,8 @@ namespace redux_tests;
 public class VisualizeRun_Shape_Tests {
     // Solvers that need an outside service to run (the quantum ones) are left out; their pictures are checked elsewhere.
     private static bool Runnable(Type solver) => !solver.Name.Contains("Quantum", StringComparison.OrdinalIgnoreCase)
-        && !solver.Name.Contains("Grover", StringComparison.OrdinalIgnoreCase);
+        && !solver.Name.Contains("Grover", StringComparison.OrdinalIgnoreCase)
+        && !solver.Name.Contains("QAOA", StringComparison.Ordinal);
 
     /// <summary>
     /// The TPartial a solver records, or null for untyped steps: its <c>ISolver&lt;T, TPartial&gt;</c>, or, for a solver that

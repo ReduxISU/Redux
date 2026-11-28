@@ -436,6 +436,18 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
         Assert.Equal("The clique graph has no nodes, so the new graph has none either.", emptyVc[0].Caption);
     }
 
+    // Shipped reductions that do not record construction steps yet, each with its reason. Remove an entry when its reduction
+    // records them (ReductionsWithoutBuildSteps_SayNoAndReturnNull then fails on the stale entry).
+    internal static readonly Dictionary<string, string> NoBuildStepsYet = new(StringComparer.Ordinal) {
+        // Exact Cover to Change-Making came from CSharpAPI after the steps were written for every other reduction, and
+        // Change-Making has no picture yet for its construction to be drawn in.
+        ["KozenZaksExactCoverToChangeMaking"] = "Change-Making has no picture yet",
+        // The CircuitSAT reductions (#1036) came from CSharpAPI the same way, and CircuitSAT has no picture yet.
+        ["SatToCircuitSatReduction"] = "CircuitSAT has no picture yet",
+        ["Sat3ToCircuitSatReduction"] = "CircuitSAT has no picture yet",
+        ["CircuitSatToSatReduction"] = "CircuitSAT has no picture yet",
+    };
+
     [Fact]
     public void ReductionsWithoutBuildSteps_SayNoAndReturnNull() {
         int checkedCount = 0;
@@ -447,8 +459,10 @@ public class BuildSteps_Tests : IClassFixture<AppFactory> {
             bool expected = new[] { Sat, Vc, Is, "KarpReduceGRAPHCOLORING", "GareyJohnson", "KarpIntProgStandard", "KarpSATToSAT3", "SipserReduceToSAT3", "LawlerKarp", "KarpVertexCoverToNodeSet", "KarpVertexCoverToSetCover", "KarpDirectedHamiltonianToUndirectedHamiltonian", "GraphColoringToCliqueCover", "KarpGraphColorToExactCover", "KarpReduceSAT", "FengReduction", "SubsetSumToPartitionReduction", "WEIGHTEDCUTReduction", "reduceToEXACTCOVER", "KarpExactCoverToSubsetSum" }.Contains(type.Name);
             Assert.Equal(expected, red.hasBuildSteps());
             Assert.Equal(expected, red.BuildRun(true) != null);
-            // Every shipped reduction records them since #695.
-            if (type.Assembly == typeof(ProblemProvider).Assembly) Assert.True(expected, $"{type.Name} has no construction steps");
+            // Every shipped reduction records them since #695, except the ones NoBuildStepsYet names.
+            if (type.Assembly == typeof(ProblemProvider).Assembly)
+                Assert.True(expected != NoBuildStepsYet.ContainsKey(type.Name),
+                    expected ? $"{type.Name} records construction steps now: remove it from NoBuildStepsYet" : $"{type.Name} has no construction steps");
             checkedCount++;
         }
         Assert.True(checkedCount > 3);

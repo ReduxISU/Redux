@@ -5,6 +5,7 @@ using static API.Interfaces.Logic.CnfPieces;
 
 namespace API.Problems.NPHard.NPH_WEIGHTEDMAXSAT.Solvers;
 
+[ExactSearchLimit("at most 20 variables")] // WeightedMaxSatExactSearchLimit.MaxVariables
 class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT, Assignment> {
     // --- Fields ---
     public string solverName { get; } = "Weighted Max-SAT Exact Brute Force";
@@ -14,7 +15,7 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT, Assignment> {
     public string[] contributors { get; } = { "Corbin Hay" };
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.BruteForce;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * |phi|", ", n = variables, |Φ| = weighted formula size");
+    public MathematicalFunction timeComplexity { get; } = new("2^|variables| * |phi|", ", |variables| = number of variables, |phi| = number of literal occurrences in Φ (the weighted formula size)");
     public MathematicalFunction spaceComplexity { get; } = new("n", ", n = variables");
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
 
@@ -30,7 +31,7 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT, Assignment> {
 
     public string Solve(WEIGHTEDMAXSAT problem, StepRecorder<Assignment> rec) {
         var steps = NewSteps(rec);
-        var result = Optimize(problem, () => timerHasExpired, (assignment, value, best) => {
+        var result = Optimize(problem, () => timerHasExpired, onCandidate: (assignment, value, best) => {
             if (best < 0)
                 steps.Accept((problem, assignment), $"Try {Assigned(assignment)}: it satisfies weight {value}, the first to compare against.");
             else if (value > best)
@@ -57,9 +58,9 @@ class WeightedMaxSatBruteForceSolver : ISolver<WEIGHTEDMAXSAT, Assignment> {
         "((" + string.Join(",", variables.Select(v => $"{v}:{assignment[v]}")) + $"),{value})";
 
     internal static (Dictionary<string, bool> Assignment, long Value) Optimize(
-        WEIGHTEDMAXSAT problem, Func<bool>? expired = null,
+        WEIGHTEDMAXSAT problem, Func<bool>? expired = null, string problemName = "Weighted Max-SAT",
         Action<Dictionary<string, bool>, long, long>? onCandidate = null) {
-        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count);
+        WeightedMaxSatExactSearchLimit.ThrowIfExceeded(problem.variables.Count, problemName);
         var assignment = new Dictionary<string, bool>(StringComparer.Ordinal);
         var best = new Dictionary<string, bool>(StringComparer.Ordinal);
         long bestValue = -1;

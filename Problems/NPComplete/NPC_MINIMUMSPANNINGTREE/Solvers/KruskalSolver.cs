@@ -26,7 +26,7 @@ class KruskalSolver : ISolver<MINIMUMSPANNINGTREE, EdgeSet>, IIncrementalSolver 
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
     // OrderBy sorts all E edges (O(E log E)); Union-Find uses path compression + union by
     // rank, near-O(1) amortized per operation, so the sort dominates.
-    public MathematicalFunction timeComplexity { get; } = new("E log E", "");
+    public MathematicalFunction timeComplexity { get; } = new("|E| log |E|", ", |E| = number of edges");
 
     // How the steps show an edge looked at: the tree so far, and the edge (none for an edge from a node to itself).
     private static RunSteps<(string u, string v, int weight), EdgeSet> NewSteps(StepRecorder<EdgeSet> rec, List<(string u, string v, int weight)> selected) => new(rec,

@@ -245,7 +245,7 @@ public class BoardSolvers_Tests {
         [InlineData("empty")]
         public void Sudoku_LargeSearches_FinishWellWithinTheDefaultBudget(string which) {
             string instance = which switch { "default" => SudokuDefault, "hard" => HardSudoku, _ => Empty9 };
-            var budget = TimeSpan.FromSeconds(ProblemProvider.DefaultSolveTimeLimitSeconds);
+            var budget = TimeSpan.FromSeconds(ProblemProvider.MaxDefaultSolveTimeLimitSeconds);
             var clock = Stopwatch.StartNew();
             var run = ((ISolver)new API.Problems.NPComplete.NPC_SUDOKU.Solvers.SudokuSolver()).Run(instance, withSteps: true, budget);
             Assert.False(run.TimedOut);

@@ -24,9 +24,9 @@ class GraphColoringBacktracking : ISolver<GRAPHCOLORING, Groups>, IIncrementalSo
     // Declared, not derived. Exact depth-first search WITH pruning: a color a neighbour already uses is never tried.
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    // Declared, not derived. At most K choices per node over n levels; picking the next node scans every node and its
-    // neighbours, O(n + m) per level.
-    public MathematicalFunction timeComplexity { get; } = new("K^n * (n + m)", ", n = |nodes|, m = |edges|, K = number of colors");
+    // Declared, not derived. At most K choices per node over n levels. Picking the next node checks each of up to K colors
+    // against every uncolored node's neighbours, O(K * (n + m)) per level (#1061 review).
+    public MathematicalFunction timeComplexity { get; } = new("K^|N| * K * (|N| + |E|)", ", |N| = number of nodes, |E| = number of edges, K = number of colors");
 
     public GraphColoringBacktracking() { }
 

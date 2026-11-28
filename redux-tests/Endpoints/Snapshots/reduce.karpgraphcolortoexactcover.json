@@ -35,11 +35,11 @@
         "Backtracking"
       ],
       "timeComplexity": {
-        "Function": "2^s * s^2 * x^2",
-        "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
+        "Function": "2^|S| * |S|^2 * |U|^2",
+        "Description": ", |S| = number of subsets (rows), |U| = size of the universe (columns)",
         "VariableNames": [
-          "s",
-          "x"
+          "S",
+          "U"
         ]
       },
       "spaceComplexity": null,
@@ -591,12 +591,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "(numColors\u002B1)^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+        "Function": "(min(K, |N|)\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = number of colors",
         "VariableNames": [
-          "numColors",
-          "n",
-          "m"
+          "K",
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -639,12 +639,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "(numColors\u002B1)^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+          "Function": "(min(K, |N|)\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = number of colors",
           "VariableNames": [
-            "numColors",
-            "n",
-            "m"
+            "K",
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,
@@ -692,11 +692,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^s * s^2 * n",
-        "Description": ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)",
+        "Function": "2^|S| * |S|^2 * |U|",
+        "Description": ", |S| = number of candidate subsets, |U| = size of the universe (bounds subset-comparison cost)",
         "VariableNames": [
-          "s",
-          "n"
+          "S",
+          "U"
         ]
       },
       "spaceComplexity": null,
@@ -741,11 +741,11 @@
           "Backtracking"
         ],
         "timeComplexity": {
-          "Function": "2^s * s^2 * x^2",
-          "Description": ", s = |S| (rows/subsets), x = |X| (columns/universe)",
+          "Function": "2^|S| * |S|^2 * |U|^2",
+          "Description": ", |S| = number of subsets (rows), |U| = size of the universe (columns)",
           "VariableNames": [
-            "s",
-            "x"
+            "S",
+            "U"
           ]
         },
         "spaceComplexity": null,

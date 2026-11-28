@@ -127,4 +127,7 @@ class MINIMUMTSP : IGraphProblem<BruteForceMinimumTSP, MinimumTSPVerifier, Minim
     /// <summary>The weight of the edge between two different cities, or null if no edge joins them.</summary>
     public int? Weight(string a, string b) =>
         a != b && _weights.TryGetValue(Key(a, b), out int weight) ? weight : null;
+
+    /// <summary>The sizes of the instance's parts, named as in its grammar, for the Big-O precheck (#843).</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [SizeMeasure.Count("N", nodes.Count), SizeMeasure.Count("E", edges.Count)];
 }

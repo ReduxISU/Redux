@@ -32,11 +32,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "C(m, n) * n^2",
-        "Description": ", m = |M| (candidate triples), n = |X| = |Y| = |Z|",
+        "Function": "C(|M|, |X|) * |X|^2",
+        "Description": ", |M| = number of candidate triples, |X| = |Y| = |Z|",
         "VariableNames": [
-          "m",
-          "n"
+          "M",
+          "X"
         ]
       },
       "spaceComplexity": null,
@@ -765,10 +765,10 @@
         "Backtracking"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -812,10 +812,10 @@
           "Backtracking"
         ],
         "timeComplexity": {
-          "Function": "2^n * |phi|",
-          "Description": ", n = number of variables, |phi| = formula size",
+          "Function": "2^|variables| * |phi|",
+          "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
           "VariableNames": [
-            "n",
+            "variables",
             "phi"
           ]
         },
@@ -862,11 +862,11 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "C(m, n) * n^2",
-        "Description": ", m = |M| (candidate triples), n = |X| = |Y| = |Z|",
+        "Function": "C(|M|, |X|) * |X|^2",
+        "Description": ", |M| = number of candidate triples, |X| = |Y| = |Z|",
         "VariableNames": [
-          "m",
-          "n"
+          "M",
+          "X"
         ]
       },
       "spaceComplexity": null,
@@ -908,11 +908,11 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "C(m, n) * n^2",
-          "Description": ", m = |M| (candidate triples), n = |X| = |Y| = |Z|",
+          "Function": "C(|M|, |X|) * |X|^2",
+          "Description": ", |M| = number of candidate triples, |X| = |Y| = |Z|",
           "VariableNames": [
-            "m",
-            "n"
+            "M",
+            "X"
           ]
         },
         "spaceComplexity": null,

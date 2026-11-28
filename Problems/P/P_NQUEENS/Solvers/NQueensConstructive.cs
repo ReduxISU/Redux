@@ -41,7 +41,7 @@ class NQueensConstructive : ISolver<NQUEENS, BoardCells>, IIncrementalSolver {
     public SolverType solverType { get; } = SolverType.Constructive;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
 
-    public MathematicalFunction timeComplexity { get; } = new("n", "");
+    public MathematicalFunction timeComplexity { get; } = new("n", ", n = board size");
 
     // How the steps show the queens placed so far, given by the last row that has one (-1: none yet).
     private static RunSteps<int, BoardCells> NewSteps(StepRecorder<BoardCells> rec, int[] columns) => new(rec,

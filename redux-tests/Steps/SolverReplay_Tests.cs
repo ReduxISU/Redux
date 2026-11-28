@@ -72,6 +72,10 @@ public class SolverReplay_Tests {
                 : answer.Split('\n').Where(l => l.Trim().Length > 0).Select(l => l.Split(',').Last().Trim());
             return new ActiveStates(ends, last.Position);
         }
+        if (lastPartial is NodeSet && answer.StartsWith("({")) {
+            // Weighted Max Clique answers wrap the clique with its weight, "({a,b,c},12)": the partial is the clique.
+            return new NodeSet(answer[2..answer.IndexOf('}')].Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+        }
         if (lastPartial is NodeSet) {
             // Node-set answers are "{a,b,c}"; "{}" is no answer. Order does not matter (NodeSet sorts).
             return new NodeSet(answer.Replace("{", "").Replace("}", "").Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
@@ -83,9 +87,10 @@ public class SolverReplay_Tests {
             return lastPartial;
         }
         if (lastPartial is Assignment && !answer.Contains(':')) {
-            // 0-1 ILP answers are "(0 1 0)": x1, x2, ... in order, with no names (SAT answers name theirs, "x1:True"); "{}" is
-            // no answer.
-            var bits = answer == "{}" ? [] : answer.Trim('(', ')').Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            // 0-1 ILP answers are "(0 1 0)" and ILP answers "(2,2)": x1, x2, ... in order, with no names (SAT answers name
+            // theirs, "x1:True"); "{}", "infeasible", "unbounded" and the timed-out text are no answer.
+            var bits = answer is "{}" or "infeasible" or "unbounded" || answer == API.Interfaces.SolveRun.TimedOutAnswer ? []
+                : answer.Trim().Trim('(', ')').Split([' ', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             return new Assignment(bits.Select((b, j) => new KeyValuePair<string, string>($"x{j + 1}", b)));
         }
         if (lastPartial is EdgeSet) {
@@ -110,6 +115,26 @@ public class SolverReplay_Tests {
             return API.Interfaces.Graphs.GroupedGraphFrames.ParseAssignment(answer[1..answer.LastIndexOf(')', answer.Length - 2)] + ")");
         }
         if (lastPartial is Assignment) {
+            if (problem is API.Problems.NPHard.NPH_ILP.INTEGERLINEARPROGRAMMING) {
+                // Integer Linear Programming answers list the values in order ("(1,0,2)"); "infeasible", "unbounded" or a
+                // stopped run is no answer.
+                if (answer is "infeasible" or "unbounded" || answer == SolveRun.TimedOutAnswer)
+                    return new Assignment(
+                        Array.Empty<KeyValuePair<string, string>>()
+                    );
+
+                string[] values = answer.Trim()
+                    .Trim('(', ')')
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                return new Assignment(
+                    values.Select((value, index) =>
+                        new KeyValuePair<string, string>(
+                            $"x{index + 1}",
+                            value.Trim()
+                        ))
+                );
+            }
             // SAT answers are "(x1:True,x2:False)"; "No Solution" is no answer. Order does not matter (Assignment sorts).
             return API.Interfaces.Graphs.GroupedGraphFrames.ParseAssignment(answer);
         }
@@ -210,6 +235,13 @@ public class SolverReplay_Tests {
             default:
                 return null;
         }
+    }
+
+    [Fact]
+    public void TimedOutAssignmentHasEmptyFinalPartial() {
+        var partial = new Assignment(Array.Empty<KeyValuePair<string, string>>());
+        Assert.Equal(partial, ExpectedFinalPartial(partial, SolveRun.TimedOutAnswer, "integerlinearprogrammingbruteforcesolver",
+            new API.Problems.NPHard.NPH_ILP.INTEGERLINEARPROGRAMMING()));
     }
 
     [Fact]

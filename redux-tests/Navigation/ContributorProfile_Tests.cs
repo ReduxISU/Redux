@@ -97,6 +97,25 @@ public class ContributorProfile_Tests {
     }
 
     [Fact]
+    public void ContributorInfoJson_OtherContributionsAreEmptyInSource() {
+        string content = File.ReadAllText(_jsonFilePath);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var contributors = JsonSerializer.Deserialize<Dictionary<string, ContributorInfo>>(content, options);
+        Assert.NotNull(contributors);
+
+        var offenders = contributors
+            .Where(kvp => kvp.Value.OtherContributions is { Count: > 0 })
+            .Select(kvp => $"{kvp.Key}: {kvp.Value.OtherContributions!.Count} area(s)")
+            .ToList();
+
+        Assert.True(offenders.Count == 0,
+            "contributorInfo.json must not contain filled otherContributions. Like the PR counts, they are "
+            + "filled in at release time by Tools/ContributorStatsSync --counts-only (Tools/fill-contributor-counts.sh), "
+            + "so don't commit them; remove the otherContributions entries. Offending entries:\n  "
+            + string.Join("\n  ", offenders));
+    }
+
+    [Fact]
     public void ContributorInfoJson_NoGithubAccountBelongsToTwoContributors() {
         string content = File.ReadAllText(_jsonFilePath);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -277,6 +296,53 @@ public class ContributorProfile_Tests {
         Assert.NotNull(portfolio.ReductionsCreated);
         Assert.NotNull(portfolio.VerifiersContributed);
         Assert.NotNull(portfolio.VisualizationsCreated);
+    }
+
+    [Fact]
+    public void GetContributorProfile_NoOtherContributions_IsEmptyList() {
+        var ok = _controller.GetContributorProfile("Nonexistent Person") as OkObjectResult;
+        var portfolio = ok?.Value as ContributorPortfolio;
+        Assert.NotNull(portfolio);
+        Assert.NotNull(portfolio.OtherContributions);
+        Assert.Empty(portfolio.OtherContributions);
+    }
+
+    // The wire format the frontends read. Serialized with the options MVC itself uses for responses
+    // (Program.cs adds no JSON options, so MVC's defaults), since a green build says nothing about
+    // what actually goes over the wire.
+    [Fact]
+    public void GetContributorProfile_OtherContributions_SerializeInTheDocumentedShape() {
+        var fixture = Path.Combine(Path.GetTempPath(), $"contributorInfo-{Guid.NewGuid():N}.json");
+        File.WriteAllText(fixture, """
+            {
+              "Ada Lovelace": {
+                "email": "", "education": "", "major": "", "bio": "", "githubUsername": "ada",
+                "otherContributions": [
+                  { "area": "CI and build tooling",
+                    "pullRequests": [ { "repo": "Redux", "number": 880, "title": "Run rbs", "url": "https://github.com/ReduxISU/Redux/pull/880" } ] }
+                ]
+              }
+            }
+            """);
+        try {
+            var controller = new ContributorProfileController { InfoFilePath = fixture };
+            var ok = controller.GetContributorProfile("Ada Lovelace") as OkObjectResult;
+            Assert.NotNull(ok);
+
+            var mvcOptions = new Microsoft.AspNetCore.Mvc.JsonOptions().JsonSerializerOptions;
+            using var json = JsonDocument.Parse(JsonSerializer.Serialize(ok.Value, ok.Value!.GetType(), mvcOptions));
+            var area = json.RootElement.GetProperty("otherContributions")[0];
+            Assert.Equal("CI and build tooling", area.GetProperty("area").GetString());
+            var pr = area.GetProperty("pullRequests")[0];
+            Assert.Equal("Redux", pr.GetProperty("repo").GetString());
+            Assert.Equal(880, pr.GetProperty("number").GetInt32());
+            Assert.Equal("Run rbs", pr.GetProperty("title").GetString());
+            Assert.Equal("https://github.com/ReduxISU/Redux/pull/880", pr.GetProperty("url").GetString());
+            Assert.Equal(new[] { "area", "pullRequests" }, area.EnumerateObject().Select(p => p.Name));
+            Assert.Equal(new[] { "repo", "number", "title", "url" }, pr.EnumerateObject().Select(p => p.Name));
+        } finally {
+            File.Delete(fixture);
+        }
     }
 
     [Fact]

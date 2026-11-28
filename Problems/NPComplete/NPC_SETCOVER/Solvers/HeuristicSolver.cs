@@ -44,7 +44,7 @@ class HeuristicSolver : ISolver<SETCOVER, ChosenSets>, IIncrementalSolver, ISear
     // by the number of subsets s covering the current minimum column, and recursion is cut off
     // once the partial solution exceeds K sets. Per-node cost is dominated by the X.OrderBy scan
     // over remaining columns (O(u log u), u = |universal|).
-    public MathematicalFunction timeComplexity { get; } = new("s^K * u log u", ", s = |subsets|, u = |universal|, K = target cover size");
+    public MathematicalFunction timeComplexity { get; } = new("|S|^K * |U| * log |U|", ", |S| = number of subsets, |U| = size of the universe, K = target cover size");
 
     // --- Methods Including Constructors ---
     public HeuristicSolver() {

@@ -36,7 +36,7 @@ class ExactCoverRecursive : ISolver<EXACTCOVER, ChosenSets>, IIncrementalSolver,
     // Per node: building possibleSubsets scans up to s remaining subsets, each checked via
     // shareElememnts against up to s chosen subsets, O(n^2) per pairwise check (n = |X|, bounding
     // subset size) -- O(s^2 * n^2) per node. Combined with the O(s!) node count above.
-    public MathematicalFunction timeComplexity { get; } = new("s! * s^2 * n^2", ", s = |S| (candidate subsets), n = |X| (bounds subset-comparison cost)");
+    public MathematicalFunction timeComplexity { get; } = new("|S|! * |S|^2 * |U|^2", ", |S| = number of candidate subsets, |U| = size of the universe (bounds subset-comparison cost)");
 
     // --- Methods Including Constructors ---
     public ExactCoverRecursive() {

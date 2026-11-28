@@ -20,9 +20,17 @@ sealed record GraphSubsetSpec(
     int? K,
     SubsetRule Rule) {
     /// <summary>
+    /// Each node's weight, for a vertex-weighted problem (Weighted Max Clique, #1058): the payload writes it on the node and
+    /// every frame the total of its chosen nodes (<see cref="GraphFrame.SelectedWeight"/>). Null (the default) for an
+    /// unweighted problem, whose payload and frames then carry no weights at all. When set, every node needs one.
+    /// </summary>
+    public IReadOnlyDictionary<string, long>? NodeWeights { get; init; }
+
+    /// <summary>
     /// Throws a plain error naming <paramref name="describedBy"/>'s Describe when this spec cannot be right: a null list, node
-    /// or edge end, a K below zero, or a rule that is not a <see cref="SubsetRule"/>. An edge to a node that is not listed is
-    /// allowed (it is drawn as a phantom). The builder calls it; it changes nothing for a valid spec.
+    /// or edge end, a K below zero, a rule that is not a <see cref="SubsetRule"/>, or node weights that leave a node out. An
+    /// edge to a node that is not listed is allowed (it is drawn as a phantom). The builder calls it; it changes nothing for a
+    /// valid spec.
     /// </summary>
     public void Validate(string? describedBy = null) {
         var problems = new List<string>();
@@ -30,6 +38,8 @@ sealed record GraphSubsetSpec(
         if (Edges == null) problems.Add("Edges is null");
         else if (Edges.Any(e => e.Key is null || e.Value is null)) problems.Add("an edge has a null end");
         SpecCheck.NotNegative(problems, "K", K);
+        if (NodeWeights != null && Nodes != null && Nodes.FirstOrDefault(n => n is not null && !NodeWeights.ContainsKey(n)) is { } unweighted)
+            problems.Add($"NodeWeights has no weight for node {unweighted}");
         SpecCheck.Defined(problems, "Rule", Rule);
         SpecCheck.ThrowIfAny(nameof(GraphSubsetSpec), describedBy, problems);
     }
@@ -44,6 +54,16 @@ sealed record GraphNodeDto(
     [JsonPropertyName("terminal")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Terminal { get; init; }
+
+    /// <summary>
+    /// The node's weight, for a vertex-weighted problem (Weighted Max Clique, #1058): a frontend writes it in a tag beside the
+    /// node. Omitted for every node of an unweighted graph, so those payloads write exactly as before. Written as a string
+    /// (<c>"4"</c>) so a browser never rounds a weight above 2^53 (#1034).
+    /// </summary>
+    [JsonPropertyName("weight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
+    public long? Weight { get; init; }
 }
 
 sealed record GraphEdgeDto(
@@ -126,6 +146,15 @@ sealed record GraphFrame(
     [JsonPropertyName("order")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? Order { get; init; }
+
+    /// <summary>
+    /// For a vertex-weighted graph only (#1058): the total weight of the nodes this frame's set picks. Omitted when the graph
+    /// has no node weights, and on a stopped run's blank Done. Written as a string, like the node weights.
+    /// </summary>
+    [JsonPropertyName("selectedWeight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonNumberHandling(JsonNumberHandling.WriteAsString)]
+    public long? SelectedWeight { get; init; }
 }
 
 /// <summary>
@@ -270,7 +299,7 @@ static class GraphSubsetFrames {
 
     public static GraphPayload Payload(GraphSubsetSpec spec) =>
         new("graph", "undirected", "force",
-            spec.Nodes.Select(n => new GraphNodeDto(n, n)).ToList(),
+            spec.Nodes.Select(n => new GraphNodeDto(n, n) { Weight = spec.NodeWeights?[n] }).ToList(),
             CanonicalEdges(spec).Select(e => new GraphEdgeDto(e.Id, e.A, e.B)).ToList(),
             "subset", RuleName(spec.Rule)) { K = spec.K };
 
@@ -360,7 +389,10 @@ static class GraphSubsetFrames {
             else if (edgeIds.Contains(id)) Raise(edgeStates, id, focusMark);
         }
 
-        return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) { Ok = ok };
+        return new GraphFrame(ev, caption, focus, ToRefs(nodes), ToRefs(edgeStates), phantoms) {
+            Ok = ok,
+            SelectedWeight = spec.NodeWeights is { } weights ? chosen.Aggregate(0L, (total, n) => checked(total + weights[n])) : null,
+        };
     }
 
     internal static SortedDictionary<string, StateRef> ToRefs(Dictionary<string, PictureState> map) {

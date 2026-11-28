@@ -31,6 +31,7 @@ public class SolverUnavailable_Endpoint_Tests : IClassFixture<AppFactory> {
         { "DeutschJozsaQuantumSolver", "(1, 1, 1, 1)" },
         { "BernsteinVaziraniQuantumSolver", "(0,1,0,1,1,0,1,0)" },
         { "UnstructuredGroverSolver", "(0, 1, 0, 0)" },
+        { "MaxCutQAOASolver", "({1,2,3},{({1,2},4),({2,3},2),({1,3},3)})" },
     };
 
     [Fact]

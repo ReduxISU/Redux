@@ -24,7 +24,7 @@ class SubsetSumBruteForce : ISolver<SUBSETSUM, Placement> {
     // Declared, not derived. Enumerates all 2^n subset bitmasks; each candidate does O(n)
     // certificate building and an O(n) dictionary-based verify() -- no per-candidate factor
     // beyond linear.
-    public MathematicalFunction timeComplexity { get; } = new("n * 2^n", ", n = |S|");
+    public MathematicalFunction timeComplexity { get; } = new("|S| * 2^|S|", ", |S| = number of integers");
 
     // --- Methods Including Constructors ---
     public SubsetSumBruteForce() {

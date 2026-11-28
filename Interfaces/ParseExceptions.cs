@@ -56,6 +56,8 @@ internal class ExactSearchLimitExceededException : Exception {
     public string ProblemName { get; }
     public int VariableCount { get; }
     public int MaxVariables { get; }
+    public System.Numerics.BigInteger? SearchSpaceSize { get; }
+    public int? MaxAssignments { get; }
 
     public ExactSearchLimitExceededException(string problemName, int variableCount, int maxVariables)
         : base($"{problemName} exact search supports at most {maxVariables} variables; received {variableCount}.") {
@@ -63,6 +65,24 @@ internal class ExactSearchLimitExceededException : Exception {
         VariableCount = variableCount;
         MaxVariables = maxVariables;
     }
+
+    public ExactSearchLimitExceededException(string problemName, System.Numerics.BigInteger searchSpaceSize, int maxAssignments)
+        : base($"{problemName} exact search supports at most {maxAssignments} assignments in its search box; received {searchSpaceSize}.") {
+        ProblemName = problemName;
+        SearchSpaceSize = searchSpaceSize;
+        MaxAssignments = maxAssignments;
+    }
+}
+
+/// <summary>
+/// Marks a solver that refuses instances past a fixed size of its own with <see cref="ExactSearchLimitExceededException"/>
+/// (HTTP 400 <c>exact_search_limit_exceeded</c>). The Big-O precheck (#843) leaves such a solver to that limit, so every
+/// solver that shares it answers an instance past it the same way, whichever of them prunes its search.
+/// </summary>
+/// <param name="limit">The limit in words, e.g. "at most 20 variables".</param>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+internal sealed class ExactSearchLimitAttribute(string limit) : Attribute {
+    public string Limit { get; } = limit;
 }
 
 // Shared chokepoints that turn failures while parsing caller-supplied input into the parse

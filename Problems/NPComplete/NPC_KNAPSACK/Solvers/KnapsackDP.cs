@@ -30,7 +30,7 @@ class KnapsackDP : ISolver<KNAPSACK, Placement>, IIncrementalSolver {
     // nuance.
     public SolverType solverType { get; } = SolverType.DynamicProgramming;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Polynomial;
-    public MathematicalFunction timeComplexity { get; } = new("n * W", "");
+    public MathematicalFunction timeComplexity { get; } = new("|i| * w", ", |i| = number of items, w = capacity");
 
     // How the steps show the table's work, given by the position of the item a step is about. taken holds the items the
     // trace-back has taken so far (0: in the knapsack, -1: not), so it is empty while the table is filled.

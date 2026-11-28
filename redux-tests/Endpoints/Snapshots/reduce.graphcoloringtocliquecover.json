@@ -33,12 +33,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "(K\u002B1)^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|, K = target clique count",
+        "Function": "(K\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = target clique count",
         "VariableNames": [
           "K",
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -255,12 +255,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "(numColors\u002B1)^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+        "Function": "(min(K, |N|)\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = number of colors",
         "VariableNames": [
-          "numColors",
-          "n",
-          "m"
+          "K",
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -303,12 +303,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "(numColors\u002B1)^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+          "Function": "(min(K, |N|)\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = number of colors",
           "VariableNames": [
-            "numColors",
-            "n",
-            "m"
+            "K",
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,
@@ -354,12 +354,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "(K\u002B1)^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|, K = target clique count",
+        "Function": "(K\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = target clique count",
         "VariableNames": [
           "K",
-          "n",
-          "m"
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -402,12 +402,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "(K\u002B1)^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|, K = target clique count",
+          "Function": "(K\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = target clique count",
           "VariableNames": [
             "K",
-            "n",
-            "m"
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,

@@ -155,4 +155,7 @@ class SAT : IProblem<SATBruteForceSolver, SATVerifier, SatDefaultVisualization> 
 
     #endregion
 
+
+    /// <summary>The sizes of the formula Φ, for the Big-O precheck (#843); see <see cref="CnfFormula.SizeMeasures"/>.</summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => formula.SizeMeasures();
 }

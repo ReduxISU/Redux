@@ -33,10 +33,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -1459,12 +1459,12 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "(numColors\u002B1)^n * n^2 * m",
-        "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+        "Function": "(min(K, |N|)\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+        "Description": ", |N| = number of nodes, |E| = number of edges, K = number of colors",
         "VariableNames": [
-          "numColors",
-          "n",
-          "m"
+          "K",
+          "N",
+          "E"
         ]
       },
       "spaceComplexity": null,
@@ -1507,12 +1507,12 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "(numColors\u002B1)^n * n^2 * m",
-          "Description": ", n = |nodes|, m = |edges|, numColors = min(K, n)",
+          "Function": "(min(K, |N|)\u002B1)^|N| * |N|^2 * (|E| \u002B 1)",
+          "Description": ", |N| = number of nodes, |E| = number of edges, K = number of colors",
           "VariableNames": [
-            "numColors",
-            "n",
-            "m"
+            "K",
+            "N",
+            "E"
           ]
         },
         "spaceComplexity": null,
@@ -1559,10 +1559,10 @@
         "BruteForce"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -1607,10 +1607,10 @@
           "BruteForce"
         ],
         "timeComplexity": {
-          "Function": "2^n * |phi|",
-          "Description": ", n = number of variables, |phi| = formula size",
+          "Function": "2^|variables| * |phi|",
+          "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
           "VariableNames": [
-            "n",
+            "variables",
             "phi"
           ]
         },

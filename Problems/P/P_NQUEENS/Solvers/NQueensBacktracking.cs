@@ -28,7 +28,7 @@ class NQueensBacktracking : ISolver<NQUEENS, BoardCells>, IIncrementalSolver, IS
     public SolverType solverType { get; } = SolverType.Backtracking | SolverType.DepthFirstSearch;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Factorial;
 
-    public MathematicalFunction timeComplexity { get; } = new("N!", "");
+    public MathematicalFunction timeComplexity { get; } = new("n!", ", n = board size");
 
     // A step about row Row: the queen placed at column Col (Placed), or the row given up (not Placed). Skipped is the
     // squares skipped in the row since its last queen, each with the row of the queen attacking it and its search-tree node.

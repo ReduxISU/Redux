@@ -61,6 +61,17 @@ internal sealed class CnfFormula {
     public static List<string> VariablesOf(IEnumerable<IEnumerable<string>> clauses) =>
         clauses.SelectMany(c => c).Select(VariableOf).Distinct(StringComparer.Ordinal).ToList();
 
+    /// <summary>
+    /// The formula's sizes for the Big-O precheck (#843). Φ is the only part the SAT family's definitions name, so it is
+    /// measured three ways, written in a Big-O as <c>|phi|</c> (literal occurrences, the formula's size),
+    /// <c>|variables|</c> and <c>|clauses|</c>.
+    /// </summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("phi", Clauses.Sum(c => c.Literals.Count)),
+        SizeMeasure.Count("variables", Variables.Count),
+        SizeMeasure.Count("clauses", Clauses.Count),
+    ];
+
     /// <summary>Canonical text form; parses back to the same formula.</summary>
     public override string ToString() => string.Join(" & ", Clauses);
 }

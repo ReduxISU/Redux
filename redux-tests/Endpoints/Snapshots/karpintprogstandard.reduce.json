@@ -33,7 +33,7 @@
       ],
       "timeComplexity": {
         "Function": "2^n * m * n",
-        "Description": ", n = number of variables, m = number of constraints",
+        "Description": ", n = number of variables (coefficients in a row), m = number of constraints (rows)",
         "VariableNames": [
           "n",
           "m"
@@ -429,10 +429,10 @@
         "Backtracking"
       ],
       "timeComplexity": {
-        "Function": "2^n * |phi|",
-        "Description": ", n = number of variables, |phi| = formula size",
+        "Function": "2^|variables| * |phi|",
+        "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
         "VariableNames": [
-          "n",
+          "variables",
           "phi"
         ]
       },
@@ -476,10 +476,10 @@
           "Backtracking"
         ],
         "timeComplexity": {
-          "Function": "2^n * |phi|",
-          "Description": ", n = number of variables, |phi| = formula size",
+          "Function": "2^|variables| * |phi|",
+          "Description": ", |variables| = number of variables, |phi| = number of literal occurrences in \u03A6",
           "VariableNames": [
-            "n",
+            "variables",
             "phi"
           ]
         },
@@ -528,7 +528,7 @@
       ],
       "timeComplexity": {
         "Function": "2^n * m * n",
-        "Description": ", n = number of variables, m = number of constraints",
+        "Description": ", n = number of variables (coefficients in a row), m = number of constraints (rows)",
         "VariableNames": [
           "n",
           "m"
@@ -574,7 +574,7 @@
         ],
         "timeComplexity": {
           "Function": "2^n * m * n",
-          "Description": ", n = number of variables, m = number of constraints",
+          "Description": ", n = number of variables (coefficients in a row), m = number of constraints (rows)",
           "VariableNames": [
             "n",
             "m"

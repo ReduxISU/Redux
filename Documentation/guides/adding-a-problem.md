@@ -170,7 +170,7 @@ The generated solver, verifier, and visualization each start with `[DefaultFor(t
 
 **The generated files are starting points, not finished code.** The template spells out every member you must decide. Tests fail until you replace each `Unclassified` or empty value and each `NotImplementedException`, and that is intentional. Look for the `TODO` comments:
 
-1. In the class, `complexityClass`, `problemType` and `problemVariant` are declared as `Unclassified` (Step 2).
+1. In the class, `complexityClass` and `problemType` are declared as `Unclassified`, and `problemVariant` starts as `Decision`. Check all three (Step 2).
 2. The generated solver and verifier throw `NotImplementedException` until you write them, and the solver's `solverType`, `complexityBucket`, and `timeComplexity` are left for you to fill in. The verifier is already named `"<Problem Name> Solution Verifier"`; change it to the optimality form only if its implemented behavior proves optimality. See [adding-a-solver.md](adding-a-solver.md) and [adding-a-verifier.md](adding-a-verifier.md).
 3. The generated visualization has `VisualizationType.Unimplemented`. A test rejects new classes that stay `Unimplemented`. Either finish it ([adding-a-visualization.md](adding-a-visualization.md)) or delete the generated visualization and use `DummyVisualization`.
 
@@ -206,7 +206,7 @@ Every problem implements the members in [Interfaces/ProblemInterface.cs](../../I
 
 Your class also needs the **fields that hold the parsed instance** (here a list `S` and a number `T`) and **two constructors** (see Step 3).
 
-**The three declared metadata members** are the ones people forget. The template declares them as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5):
+**The three declared metadata members** are the ones people forget. The template declares the first two as `Unclassified` with a `TODO` comment, and tests fail if you leave them that way (section 5). It starts `problemVariant` at `Decision`, because an NP-complete problem is a decision problem; change it if yours asks for the best value. A hand-written class that leaves it `Unclassified` fails the same way:
 
 - `complexityClass`: pick from [Interfaces/ComplexityClass.cs](../../Interfaces/ComplexityClass.cs): `P`, `NPComplete`, `NPHard`, `NP`, or one of the quantum classes. It is a public correctness claim the API serves to callers, so check the literature.
 - `problemType`: pick the subject area from [Interfaces/ProblemType.cs](../../Interfaces/ProblemType.cs) (for example `GraphTheory`, `SetsAndPartitions`, `Logic`). Use `Miscellaneous` only when nothing else fits. If several fit, declare each, joined with `|`: `ProblemType.GraphTheory | ProblemType.NetworkDesign`. There is no main one, and the order you write them in doesn't matter.
@@ -474,7 +474,7 @@ A new problem is done when:
 
 - **Running `dotnet build` with no file name.** It fails with `MSB1011`. Always add `Redux.slnx`.
 - **Skipping `dotnet format`.** Bad formatting fails the Release build itself, not only a separate check.
-- **Leaving `complexityClass`, `problemType` or `problemVariant` as `Unclassified`.** The generated template declares them as `Unclassified` on purpose. Tests fail with a message naming your class until you pick real values.
+- **Leaving `complexityClass`, `problemType` or `problemVariant` as `Unclassified`.** The generated template declares the first two as `Unclassified` on purpose, and starts `problemVariant` at `Decision`. Tests fail with a message naming your class until you pick real values.
 - **Committing half-finished generated files.** A solver, verifier or visualization left with `TODO`s, `Unclassified` values or `NotImplementedException` fails the tests. Finish it, or delete the file and let the placeholder stand in.
 - **A class name with a prefix** such as `NPC_MYPROBLEM`. The folder gets the prefix, the class does not.
 - **Reusing a class name**, even with different capitals. Names are keys, ignoring case. A duplicate crashes startup.

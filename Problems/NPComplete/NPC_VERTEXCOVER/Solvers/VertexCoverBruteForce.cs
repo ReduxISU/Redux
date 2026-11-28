@@ -28,7 +28,8 @@ class VertexCoverBruteForce : ISolver<VERTEXCOVER, NodeSet> {
     // Theta(2^n) at K ~ n/2 via nextComb); each candidate costs O(K*n) to check certificate
     // nodes belong to G plus O(K*m) to check every edge is incident to the set (VCVerifier),
     // i.e. O(K*(n+m)) per candidate.
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n * (n + m)", ", n = |nodes|, m = |edges|");
+    // Written with the K bound, so the Big-O precheck (#843) does not refuse a small K for what a large K costs.
+    public MathematicalFunction timeComplexity { get; } = new("C(|N|, K) * K * (|N| + |E|)", ", |N| = number of nodes, |E| = number of edges, K = cover size");
 
     // --- Methods Including Constructors ---
     public VertexCoverBruteForce() {

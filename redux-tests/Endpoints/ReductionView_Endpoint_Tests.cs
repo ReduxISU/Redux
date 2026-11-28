@@ -700,11 +700,12 @@ public class ReductionView_Endpoint_Tests : IClassFixture<AppFactory> {
             .Select(t => { try { return (IReduction?)Activator.CreateInstance(t); } catch { return null; } })
             .Where(r => r != null && keep(r!)).Select(r => r!.GetType().Name);
 
-    // Every shipped reduction has both since #695 (checked below), so test-only reductions stand in for one without construction
+    // Every shipped reduction has both since #695 (checked below; BuildSteps_Tests.NoBuildStepsYet names the ones still without
+    // construction steps), so test-only reductions stand in for one without construction
     // steps and one with steps but no backward map (TestOnlyReductions.cs).
     [Fact]
     public async Task ReductionWithoutBuildSteps_Is400_NoBuildSteps() {
-        Assert.Empty(ReductionsWhere(r => !r.hasBuildSteps()));
+        Assert.Equal(BuildSteps_Tests.NoBuildStepsYet.Keys.Order(), ReductionsWhere(r => !r.hasBuildSteps()).Order());
         string name = nameof(TestOnlyReductionWithoutSteps);
         var error = await Error(name, "({1,2},3)");
         Assert.Equal("no_build_steps", error.GetProperty("error").GetString());

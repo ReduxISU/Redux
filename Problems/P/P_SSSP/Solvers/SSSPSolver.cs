@@ -30,7 +30,7 @@ class SSSPSolver : ISolver<SSSP, Distances>, IIncrementalSolver {
     // Uses .NET's built-in PriorityQueue<T> (real binary heap, O(log n) enqueue/dequeue) with
     // lazy re-insertion on relaxation and a `visited` check to skip stale entries — the
     // standard binary-heap Dijkstra bound.
-    public MathematicalFunction timeComplexity { get; } = new("(V + E) log V", "");
+    public MathematicalFunction timeComplexity { get; } = new("(|N| + |E|) log |N|", ", |N| = number of nodes, |E| = number of edges");
     PriorityQueue<string, int>? pq;
 
     // How the steps show the search: every node's distance and predecessor as they are now, and which nodes are settled. A

@@ -38,10 +38,11 @@ class {NAME_UPPERCASE} : IProblem {
     // TODO: replace Unclassified. A test in redux-tests/Metadata fails until you do, on purpose. See Interfaces/ProblemType.cs for what each value means.
     // Declare every category that fits, joined with |, e.g. ProblemType.GraphTheory | ProblemType.NetworkDesign.
     public ProblemType problemType { get; } = ProblemType.Unclassified;
-    // TODO: replace Unclassified with Decision (the instance carries a bound like K and the answer is yes/no),
-    // Optimization (it asks for the best value), or ProblemVariant.Decision | ProblemVariant.Optimization if
-    // this class supports both. A test in redux-tests/Metadata fails until you do. See Interfaces/ProblemVariant.cs.
-    public ProblemVariant problemVariant { get; } = ProblemVariant.Unclassified;
+    // An NP-complete problem is a decision problem (the instance carries a bound like K and the answer is
+    // yes/no), so this starts as Decision. If your class asks for the best value instead, use
+    // ProblemVariant.Optimization, or ProblemVariant.Decision | ProblemVariant.Optimization if it supports
+    // both. See Interfaces/ProblemVariant.cs.
+    public ProblemVariant problemVariant { get; } = ProblemVariant.Decision;
 
     // --- Properties ---
 

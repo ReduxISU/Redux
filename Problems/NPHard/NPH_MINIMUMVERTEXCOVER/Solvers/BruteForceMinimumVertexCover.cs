@@ -22,7 +22,7 @@ class BruteForceMinimumVertexCover : ISolver<MINIMUMVERTEXCOVER, NodeSet> {
     public bool timerHasExpired { get; set; }
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    public MathematicalFunction timeComplexity { get; } = new("2^n * n^2", ", n = |nodes|");
+    public MathematicalFunction timeComplexity { get; } = new("2^|N| * |N|^2", ", |N| = number of nodes");
 
     // --- Methods Including Constructors ---
     public BruteForceMinimumVertexCover() {
