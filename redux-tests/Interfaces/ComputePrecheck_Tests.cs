@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using API.Interfaces;
+using API.Problems.NPComplete.NPC_CIRCUITSAT;
 using API.Problems.NPComplete.NPC_CLIQUE.Solvers;
 using API.Problems.NPComplete.NPC_EDITDISTANCE;
 using API.Problems.NPComplete.NPC_KNAPSACK;
@@ -75,7 +76,7 @@ public class ComputePrecheck_Tests {
     // The problems outside the graph problems that report their size measures (#843): the SAT family's formulas and
     // the families whose instance grammar names their parts.
     private static readonly string[] OtherReportingProblems = {
-        "binpacking", "changemaking", "convexhull", "dfa", "dm3", "editdistance", "exactcover", "hittingset",
+        "binpacking", "changemaking", "circuitsat", "convexhull", "dfa", "dm3", "editdistance", "exactcover", "hittingset",
         "integerlinearprogramming", "intprogramming01", "jobseq", "knapsack", "nqueens", "partition", "primefactor",
         "sat", "sat3", "setcover", "subsetsum", "weightedmax3sat", "weightedmaxsat",
     };
@@ -142,6 +143,28 @@ public class ComputePrecheck_Tests {
         var dfa = new DFA().SizeMeasures().ToDictionary(m => m.Part);
         Assert.Equal(SizeMeasure.Count("E", 6), dfa["E"]);
         Assert.Equal(SizeMeasure.Count("I", 3), dfa["I"]);
+    }
+
+    // CircuitSAT measures its grammar's parts {(I,G,o) | ...}: |I| input wires and |G| gates.
+    [Fact]
+    public void CircuitSat_ReportsItsInputsAndGates() {
+        // The default circuit: inputs x1, x2, x3 and gates g1, g2, g3.
+        Assert.Equal([SizeMeasure.Count("I", 3), SizeMeasure.Count("G", 3)], new CIRCUITSAT().SizeMeasures());
+        // A circuit whose output is one of its inputs has no gates.
+        Assert.Equal([SizeMeasure.Count("I", 2), SizeMeasure.Count("G", 0)], new CIRCUITSAT("({a,b},(),a)").SizeMeasures());
+    }
+
+    [Fact]
+    public void CircuitSatBruteForce_HopelessCircuit_IsRefused_AndASmallOneIsNot() {
+        // 60 inputs ANDed in a chain of 59 gates: 2^60 * (60 + 59), about 1.4e20 steps.
+        var gates = Enumerable.Range(1, 59)
+            .Select(i => $"(g{i},and,{(i == 1 ? "x0" : $"g{i - 1}")},x{i})");
+        string circuit = $"({{{string.Join(",", Enumerable.Range(0, 60).Select(i => $"x{i}"))}}},({string.Join(",", gates)}),g59)";
+        var estimate = ComputePrecheck.Refusal(ProblemProvider.Solvers["circuitsatbruteforcesolver"], circuit, ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.Equal(Math.Pow(2, 60) * 119, estimate.Steps, 1e-9 * estimate.Steps);
+        Assert.Null(ComputePrecheck.Refusal(
+            ProblemProvider.Solvers["circuitsatbruteforcesolver"], CIRCUITSAT._defaultInstance, ThirtySeconds, null));
     }
 
     [Fact]
@@ -268,7 +291,6 @@ public class ComputePrecheck_Tests {
         "SudokuSolver",
         "DummySolver", // the placeholder solver of IProblem
         // Problems added after this precheck that report no size measures yet.
-        "CircuitSatBruteForceSolver", // CIRCUITSAT
         "MaximumValueKnapsackBranchAndBoundSolver", "MaximumValueKnapsackBruteForceSolver",
         "MaximumValueKnapsackModifiedGreedySolver", // MAXIMUMVALUEKNAPSACK
         // Exact solvers with their own size limit (ExactSearchLimit), refused with HTTP 400 exact_search_limit_exceeded
