@@ -73,6 +73,46 @@ public class ComputeJobLimiter_Tests {
         Assert.Equal(0, limiter.Running);
     }
 
+    // On a busy server the backstop's timer callback can queue behind the work it should stop (both use the thread pool),
+    // so the work finishes first even though it ran far past the limit. This clock's timer never fires, and the work
+    // moves the clock past the limit: the answer must still be "out of time", or the slow work would answer as if it had
+    // finished in time (the CI flake in the Knapsack and Weighted Max-Clique verify time-limit tests).
+    [Fact]
+    public async Task WithBackstop_WorkThatFinishesPastTheLimit_IsOutOfTime_EvenWhenTheTimerIsLate() {
+        var clock = new StalledTimerClock();
+        var limiter = Limiter("1");
+        var job = limiter.TryStart()!;
+        var (finished, result) = await ComputeLimits.WithBackstop(() => { clock.Advance(TimeSpan.FromSeconds(3)); return 7; },
+            TimeSpan.FromMilliseconds(1), job, clock);
+        Assert.False(finished);
+        Assert.Equal(0, result);
+        job.Dispose();
+        Assert.Equal(0, limiter.Running); // the work already finished, so its slot is free
+    }
+
+    [Fact]
+    public async Task WithBackstop_WorkThatFinishesWithinTheLimit_AnswersEvenWhenTheTimerIsLate() {
+        var clock = new StalledTimerClock();
+        var (finished, result) = await ComputeLimits.WithBackstop(() => { clock.Advance(TimeSpan.FromSeconds(1)); return 7; },
+            TimeSpan.FromSeconds(2), null, clock);
+        Assert.True(finished);
+        Assert.Equal(7, result);
+    }
+
+    // A clock moved by hand whose timers never fire, like a backstop timer stuck behind busy thread-pool threads.
+    private sealed class StalledTimerClock : TimeProvider {
+        private long _ticks;
+        public void Advance(TimeSpan by) => Interlocked.Add(ref _ticks, by.Ticks);
+        public override long GetTimestamp() => Interlocked.Read(ref _ticks);
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) => new NeverFires();
+        private sealed class NeverFires : ITimer {
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+            public void Dispose() { }
+            public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        }
+    }
+
     [Fact]
     public async Task WithBackstop_WorkThatFinishesInTime_LeavesTheSlotToTheRequest() {
         var limiter = Limiter("1");
