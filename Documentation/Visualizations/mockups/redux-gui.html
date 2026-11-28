@@ -4923,6 +4923,25 @@ const PackingView = (() => {
 .pk-note { font-size: 11px; fill: var(--av-muted); }
 .pk-beam { stroke: var(--av-ink); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); transition: transform .35s; }
 .pk-fulcrum { fill: var(--av-stroke); }
+.pk-seg.Committed text { fill: var(--av-com-ink); }
+.pk-tile.Active.kept rect { fill: var(--av-com-fill); } .pk-tile.Active.kept text { fill: var(--av-com-ink); font-weight: 600; }
+.pk-best { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2; stroke-dasharray: 5 3; }
+.pk-best-label { font-size: 11px; fill: var(--av-com-ink); font-weight: 600; text-anchor: middle; }
+.pk-bound { stroke: var(--av-hl); stroke-width: 2.4; stroke-dasharray: 3 3; filter: drop-shadow(0 0 1.2px var(--av-surface)) drop-shadow(0 0 1.2px var(--av-surface)); }
+.pk-bound-label { font-size: 11px; fill: var(--av-hl-ink); font-weight: 600; text-anchor: middle; }
+.pk-tile g.pk-badge rect { fill: var(--av-ink); stroke: none; }
+.pk-tile g.pk-badge text { font-size: 10.5px; font-weight: 700; fill: var(--av-surface); text-anchor: middle; dominant-baseline: central; }
+.pk-cell rect { fill: var(--av-bg); stroke: var(--av-stroke); stroke-width: 1.2; transition: fill .2s, stroke .2s; }
+.pk-cell text { text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.pk-cell .amt { font-size: 9.5px; fill: var(--av-muted); }
+.pk-cell .val { font-size: 13px; font-weight: 600; fill: var(--av-ink); }
+.pk-cell .val.inf { fill: var(--av-muted); font-weight: 400; }
+.pk-cell.read rect { stroke: var(--av-hl); stroke-width: 2; stroke-dasharray: 3 2; }
+.pk-cell.pick rect { stroke: var(--av-hl); stroke-width: 3; stroke-dasharray: none; }
+.pk-cell.Active rect { fill: var(--av-hl-fill); stroke: var(--av-hl); stroke-width: 3; } .pk-cell.Active .amt { fill: var(--av-ink); }
+.pk-cell.Committed rect { fill: var(--av-com-fill); stroke: var(--av-com); stroke-width: 2.4; stroke-dasharray: 5 3; } .pk-cell.Committed text { fill: var(--av-com-ink); }
+.pk-cell.Solution rect { fill: var(--av-sol); stroke: var(--av-sol); } .pk-cell.Solution text { fill: var(--av-on-sol); }
+.pk-cell.Rejected rect { fill: var(--av-rej-fill); stroke: var(--av-rej); stroke-width: 3; } .pk-cell.Rejected text { fill: var(--av-rej-ink); }
 @media (prefers-reduced-motion: reduce) { .pk-tile, .pk-tile rect, .pk-seg rect, .pk-beam { transition: none; } }`;
 
   /* ---------- parsing ---------- */
@@ -4992,10 +5011,30 @@ const PackingView = (() => {
       I.C = int(top.items[1], "C"); I.K = int(top.items[2], "K");
       if (I.K < 1) throw new Error("K must be at least 1.");
       if (I.K > 6) throw new Error("This mockup draws up to 6 bins.");
+    } else if (P.rule === "maxknapsack") {
+      // Redux: (items,capacity), items an ordered list of (weight,value); zeros are allowed, indices are 1-based positions.
+      if (top.t !== "tup" || top.items.length !== 2) throw new Error("Expected ((items),W), like (((10,60),(20,100)),50).");
+      const raw = top.items[0];
+      if (!raw || raw.t !== "tup") throw new Error("Items must be a list in round brackets, like ((10,60),(20,100)).");
+      I.pairs = raw.items.map(p => {
+        if (!p || p.t !== "tup" || p.items.length !== 2) throw new Error("Each item must be (weight,value).");
+        return [int(p.items[0], "A weight"), int(p.items[1], "A value")];
+      });
+      items = I.pairs.map(p => p[0]);
+      I.W = int(top.items[1], "W");
+      if (I.W < 0 || I.pairs.some(p => p[0] < 0 || p[1] < 0)) throw new Error("Weights, values and W can't be negative.");
+    } else if (P.rule === "changemaking") {
+      // Redux: (C,X,K), C a set of positive coin values (repeats count once), X >= 1, K >= 0.
+      if (top.t !== "tup" || top.items.length !== 3 || !top.items[0] || top.items[0].t !== "set") throw new Error("Expected ({C},X,K), like ({1,7,10,25},39,3).");
+      items = [...new Set(numbers(top.items[0], "C"))];
+      I.X = int(top.items[1], "X"); I.K = int(top.items[2], "K");
+      if (I.X < 1) throw new Error("X must be at least 1.");
+      if (I.K < 0) throw new Error("K can't be negative.");
+      if (I.X > 99) throw new Error("This mockup draws amounts up to 99.");
     }
     if (!items.length) throw new Error("There must be at least one item.");
     if (items.length > 16) throw new Error("This mockup draws up to 16 items.");
-    if (items.some(x => x <= 0)) throw new Error("Every number must be positive.");
+    if (P.rule !== "maxknapsack" && items.some(x => x <= 0)) throw new Error("Every number must be positive.");
     I.items = items.map((w, i) => ({ i, w, v: I.pairs ? I.pairs[i][1] : null, label: I.pairs ? `${w}` : `${w}` }));
     I.n = items.length;
     return I;
@@ -5172,6 +5211,211 @@ const PackingView = (() => {
     return frames;
   }
 
+  /* ---------- Maximum-Value 0-1 Knapsack: no target V, it maximizes ----------
+     A frame's assign is the set being looked at now; best is the best set found so far (Committed), bestValue its value,
+     bound (Branch and Bound only) the most the current branch could still reach. Items are named by their 1-based index. */
+  const pickIdx = assign => assign.map((a, k) => (a === 0 ? k : -1)).filter(k => k >= 0);
+  const itemsText = idx => (idx.length ? (idx.length === 1 ? `item ${idx[0] + 1}` : `items ${idx.slice(0, -1).map(k => k + 1).join(", ")} and ${idx[idx.length - 1] + 1}`) : "no items");
+  const wOf = (I, idx) => sumOf(idx.map(k => I.items[k].w)), vOf = (I, idx) => sumOf(idx.map(k => I.items[k].v));
+  const asAssign = (n, idx) => { const a = none(n); idx.forEach(k => (a[k] = 0)); return a; };
+  const itemName = t => `item ${t.i + 1} (${t.w}, ${t.v})`;
+  const perUnit = t => { const d = t.v / t.w; return Number.isInteger(d) ? String(d) : d.toFixed(2).replace(/0$/, ""); };
+  // Density order as Redux sorts it: value/weight descending (compared by cross-multiplying), ties by index.
+  const byDensity = (a, b) => b.v * a.w - a.v * b.w || a.i - b.i;
+  // Redux's pre-pass (Branch and Bound and Modified Greedy): zero-value items are never taken, zero-weight ones are free,
+  // and an item heavier than W on its own is dropped.
+  function mvkPrepass(I) {
+    const free = [], cand = [], dropped = [];
+    for (const t of I.items) {
+      if (t.v === 0) continue;
+      if (t.w === 0) free.push(t.i); else if (t.w <= I.W) cand.push(t); else dropped.push(t.i);
+    }
+    return { free, cand: cand.slice().sort(byDensity), dropped };
+  }
+  function mvkSortCaption(pre) {
+    let s = pre.cand.length ? `Sort by value per unit of weight: ${pre.cand.map(t => `item ${t.i + 1} (${perUnit(t)})`).join(", ")}.` : "No item both fits and is worth something.";
+    if (pre.free.length) s += ` ${itemsText(pre.free)[0].toUpperCase() + itemsText(pre.free).slice(1)} weigh${pre.free.length === 1 ? "s" : ""} nothing, so ${pre.free.length === 1 ? "it is" : "they are"} always taken.`;
+    if (pre.dropped.length) s += ` ${itemsText(pre.dropped)[0].toUpperCase() + itemsText(pre.dropped).slice(1)} ${pre.dropped.length === 1 ? "is" : "are"} heavier than ${pre.dropped.length === 1 ? "the whole knapsack" : "the whole knapsack on their own"}.`;
+    return s;
+  }
+  // Exact Brute Force: masks 0, 1, 2, … (bit k = item k+1); a feasible set replaces the best only if worth strictly more.
+  function mvkBrute(I) {
+    const n = I.n, frames = [];
+    let best = [], bestValue = 0, tried = 0;
+    for (let m = 0; m < 2 ** n; m++) {
+      const idx = I.items.map((_, k) => k).filter(k => m & (1 << k)), w = wOf(I, idx), v = vOf(I, idx), fits = w <= I.W;
+      const better = fits && v > bestValue;
+      if (better) { best = idx; bestValue = v; }
+      tried++;
+      let caption;
+      if (m === 0) caption = "Try no items: value 0. The best so far starts here.";
+      else if (!fits) caption = `Try ${itemsText(idx)}: weight ${w} is over ${I.W}. Skip it.`;
+      else if (better) caption = `Try ${itemsText(idx)}: weight ${w}, value ${v}. That beats the best so far, so keep it.`;
+      else caption = `Try ${itemsText(idx)}: weight ${w}, value ${v}. No better than the best so far, ${bestValue}.`;
+      if (tried <= SHOW) frames.push({ assign: asAssign(n, idx), best: asAssign(n, best), bestValue, trial: !fits, newBest: better || m === 0, caption });
+    }
+    frames.push({ assign: asAssign(n, best), done: true, ok: true, bestValue,
+      caption: best.length ? `Checked all ${tried} sets${hidden(tried)}. ${itemsText(best)[0].toUpperCase() + itemsText(best).slice(1)}: weight ${wOf(I, best)}, value ${bestValue}, the most any set within ${I.W} is worth.`
+        : `Checked all ${tried} sets${hidden(tried)}. Nothing worth anything fits in ${I.W}, so the answer is no items, value 0.` });
+    return frames;
+  }
+  // Exact Branch and Bound, as Redux runs it: start from a greedy guess, then depth-first, "take it" before "leave it",
+  // in density order; cut a branch when its fractional bound (rounded down) can't beat the best so far.
+  function mvkBnB(I) {
+    const n = I.n, frames = [], pre = mvkPrepass(I), pr = pre.cand;
+    let count = 0;
+    const push = f => { if (++count <= SHOW) frames.push(f); };
+    const freeV = vOf(I, pre.free);
+    push({ assign: asAssign(n, pre.free), caption: mvkSortCaption(pre) });
+    let best = pre.free.slice(), bestValue = freeV, room = I.W;
+    for (const t of pr) if (t.w <= room) { room -= t.w; best.push(t.i); bestValue += t.v; }
+    push({ assign: asAssign(n, pre.free), best: asAssign(n, best), bestValue, newBest: true,
+      caption: `A quick first guess: go down that order and take every item that still fits: ${itemsText(best.slice().sort((a, b) => a - b))}, value ${bestValue}. That's the best so far.` });
+    const bound = (next, rem, val) => {
+      let b = val;
+      for (let k = next; k < pr.length && rem > 0; k++) { const t = pr[k]; if (t.w <= rem) { rem -= t.w; b += t.v; } else { b += Math.floor((rem * t.v) / t.w); break; } }
+      return b;
+    };
+    let nodes = 0, cuts = 0;
+    const stack = [{ next: 0, rem: I.W, val: freeV, path: pre.free.slice(), add: null }];
+    while (stack.length) {
+      const nd = stack.pop(); nodes++;
+      let caption;
+      if (nd.next === 0) caption = `Start the search with ${pre.free.length ? itemsText(pre.free) : "nothing"} taken: value ${nd.val}, room ${nd.rem}.`;
+      else if (nd.add !== null) caption = `Take ${itemName(I.items[nd.add])}: value ${nd.val}, room left ${nd.rem}.`;
+      else caption = `Leave out ${itemName(pr[nd.next - 1])}: value ${nd.val}, room left ${nd.rem}.`;
+      const better = nd.val > bestValue;
+      if (better) { bestValue = nd.val; best = nd.path.slice(); caption += " That beats the best so far, so keep it."; }
+      const b = bound(nd.next, nd.rem, nd.val);
+      const cut = b <= bestValue, leaf = nd.next === pr.length;
+      if (cut && !leaf) cuts++;
+      if (leaf) caption += " Every item is decided.";
+      else if (cut) caption += ` At most ${b} is reachable from here${better ? "" : `, not more than the best so far, ${bestValue}`}, so stop this branch.`;
+      else caption += ` Up to ${b} may be reachable from here, so keep going.`;
+      push({ assign: asAssign(n, nd.path), best: asAssign(n, best), bestValue, bound: b, trying: nd.add === null ? undefined : nd.add, trial: cut && !leaf, newBest: better, caption });
+      if (cut || nd.next === pr.length) continue;
+      const t = pr[nd.next];
+      stack.push({ next: nd.next + 1, rem: nd.rem, val: nd.val, path: nd.path.slice(), add: null });
+      if (t.w <= nd.rem) stack.push({ next: nd.next + 1, rem: nd.rem - t.w, val: nd.val + t.v, path: [...nd.path, t.i], add: t.i });
+    }
+    best.sort((a, b) => a - b);
+    frames.push({ assign: asAssign(n, best), done: true, ok: true, bestValue,
+      caption: `Search done: ${nodes} branch${nodes === 1 ? "" : "es"} looked at, ${cuts} stopped early${hidden(count)}. ${itemsText(best)[0].toUpperCase() + itemsText(best).slice(1)}, value ${bestValue}, is the best.` });
+    return frames;
+  }
+  // Modified Greedy (a 1/2-approximation): the density-order prefix, stopping at the first item that doesn't fit,
+  // against the single most valuable item; the better of the two wins (the prefix on a tie).
+  function mvkGreedy(I) {
+    const n = I.n, frames = [], pre = mvkPrepass(I);
+    frames.push({ assign: asAssign(n, pre.free), best: asAssign(n, pre.free), caption: mvkSortCaption(pre) });
+    const prefix = [];
+    let room = I.W, pv = 0, stopped = null;
+    for (const t of pre.cand) {
+      if (t.w > room) { stopped = t; break; }
+      room -= t.w; pv += t.v; prefix.push(t.i);
+      const kept = [...pre.free, ...prefix];
+      frames.push({ assign: asAssign(n, kept), best: asAssign(n, kept), bestValue: vOf(I, kept), trying: t.i, caption: `Take ${itemName(t)}: it fits, room left ${room}. The greedy set is worth ${pv}.` });
+    }
+    const kept = [...pre.free, ...prefix], keptV = vOf(I, kept);
+    if (stopped) frames.push({ assign: asAssign(n, kept), best: asAssign(n, kept), bestValue: keptV, trying: stopped.i, bad: stopped.i,
+      caption: `${itemName(stopped)[0].toUpperCase() + itemName(stopped).slice(1)} doesn't fit in the ${room} left. Stop: the greedy set is worth ${pv}.` });
+    let single = null;
+    for (const t of I.items) if (pre.cand.includes(t) && (!single || t.v > single.v)) single = t;
+    let pick = kept;
+    if (single) {
+      const wins = single.v > pv;
+      frames.push({ assign: asAssign(n, [...pre.free, single.i]), best: asAssign(n, kept), bestValue: keptV, trying: single.i,
+        caption: `Now the most valuable single item, ${itemName(single)}: ${single.v} against the greedy set's ${pv}. ${wins ? "The single item is worth more, so take it alone." : "The greedy set is worth at least as much, so keep it."}` });
+      if (wins) pick = [...pre.free, single.i];
+    }
+    pick = pick.slice().sort((a, b) => a - b);
+    frames.push({ assign: asAssign(n, pick), done: true, ok: true, bestValue: vOf(I, pick),
+      caption: `Answer: ${itemsText(pick)}, value ${vOf(I, pick)}. Greedy promises at least half the best value, not the best itself.` });
+    return frames;
+  }
+  // The true best value, for the optimality check (the Optimality Verifier's job in Redux).
+  function mvkOptimum(I) {
+    let best = 0;
+    for (let m = 0; m < 2 ** I.n; m++) { const idx = I.items.map((_, k) => k).filter(k => m & (1 << k)); if (wOf(I, idx) <= I.W) best = Math.max(best, vOf(I, idx)); }
+    return best;
+  }
+
+  /* ---------- Change-Making: coins reused, one container that must hit X exactly ----------
+     A frame carries counts[k] (how many of coin k are in the container) and table: { best: fewest coins per amount
+     (undefined = not worked out, Infinity = can't be made), cur, reads, pick, path, bad }. */
+  const coinsIn = (I, counts) => I.items.flatMap((t, k) => Array(counts[k] || 0).fill(t.w));
+  const coinCert = (I, counts) => "{" + I.items.filter((_, k) => counts[k] > 0).map(t => `(${t.w},${counts[t.i]})`).join(",") + "}";
+  const coinWord = n => (n === 1 ? "1 coin" : `${n} coins`);
+  function cmOptions(I, best, v) {
+    return I.items.filter(t => t.w <= v).map(t => ({ t, from: v - t.w, n: best[v - t.w] }));
+  }
+  // Redux's choice at one amount: coins in input order, strictly fewer wins, so the first coin reaching the minimum is kept.
+  function cmChoose(I, best, v) {
+    let n = Infinity, c = null;
+    for (const o of cmOptions(I, best, v)) if (o.n !== undefined && o.n !== Infinity && o.n + 1 < n) { n = o.n + 1; c = o.t; }
+    return { n, c };
+  }
+  function cmCaption(I, best, v, ch) {
+    const opts = cmOptions(I, best, v);
+    if (!opts.length) return `Amount ${v}: every coin is bigger, so ${v} can't be made.`;
+    const parts = opts.map(o => `${o.from} + ${o.t.w} → ${o.n === Infinity || o.n === undefined ? "can't" : coinWord(o.n + 1)}`);
+    return `Amount ${v}: ${parts.join(", ")}. ${ch.c ? `Fewest: ${coinWord(ch.n)}, ending with a ${ch.c.w}.` : `None works, so ${v} can't be made.`}`;
+  }
+  // Follow the coin chosen at each amount back from X; shared by both solvers, as in Redux.
+  function cmTrace(I, frames, best, last, extra) {
+    const counts = Array(I.n).fill(0), path = [];
+    const tbl = o => ({ best: best.slice(), ...o });
+    if (!(best[I.X] <= I.K)) {
+      frames.push({ assign: none(I.n), counts, table: tbl({ bad: I.X }), done: true, ok: false,
+        caption: best[I.X] === Infinity ? `${I.X} can't be made from these coins. No.` : `Making ${I.X} takes at least ${coinWord(best[I.X])}, more than K = ${I.K}. No.` });
+      return frames;
+    }
+    frames.push({ assign: none(I.n), counts: counts.slice(), table: tbl({ cur: I.X, path: [] }),
+      caption: `${I.X} takes ${coinWord(best[I.X])}, within K = ${I.K}. Follow the table back from ${I.X} to find them.` });
+    for (let v = I.X; v > 0; v -= last[v].w) {
+      counts[last[v].i]++; path.push(v);
+      frames.push({ assign: none(I.n), counts: counts.slice(), trying: last[v].i, table: tbl({ cur: v, path: path.slice(0, -1), pick: v - last[v].w }),
+        caption: `At ${v} the table's last coin was a ${last[v].w}: put it in. ${v - last[v].w} left${v - last[v].w ? `, which takes ${coinWord(best[v - last[v].w])}` : ""}.` });
+    }
+    path.push(0);
+    const coins = coinsIn(I, counts).sort((a, b) => b - a);
+    frames.push({ assign: none(I.n), counts, table: tbl({ path }), done: true, ok: true,
+      caption: `${I.X} = ${coins.join(" + ")}: ${coinWord(coins.length)}, within K = ${I.K}.${extra || ""}` });
+    return frames;
+  }
+  // Change-Making Dynamic Programming: fill the table left to right, then trace back.
+  function cmDP(I) {
+    const frames = [], X = I.X, best = Array(X + 1).fill(undefined), last = [];
+    best[0] = 0;
+    frames.push({ assign: none(I.n), counts: Array(I.n).fill(0), table: { best: best.slice(), cur: 0 }, caption: "Amount 0 takes no coins. Each amount after it is one coin more than an amount already worked out." });
+    for (let v = 1; v <= X; v++) {
+      const ch = cmChoose(I, best, v), cap = cmCaption(I, best, v, ch);
+      best[v] = ch.n; last[v] = ch.c;
+      frames.push({ assign: none(I.n), counts: Array(I.n).fill(0), trying: ch.c ? ch.c.i : undefined,
+        table: { best: best.slice(), cur: v, reads: cmOptions(I, best, v).map(o => o.from), pick: ch.c ? v - ch.c.w : undefined }, caption: cap });
+    }
+    return cmTrace(I, frames, best, last);
+  }
+  // Change-Making Memoization: start at X, work out an amount once every amount a coin below it is done; only amounts
+  // reachable from X are ever worked out. Redux's explicit stack visits coins in input order.
+  function cmMemo(I) {
+    const frames = [], X = I.X, best = Array(X + 1).fill(undefined), last = [];
+    best[0] = 0;
+    frames.push({ assign: none(I.n), counts: Array(I.n).fill(0), table: { best: best.slice(), cur: X },
+      caption: `Start at ${X} and work down: an amount is worked out once every amount a coin below it is done. 0 takes no coins.` });
+    const stack = [[X, 0]];
+    let done = 1;
+    while (stack.length) {
+      const [v, k] = stack.pop();
+      if (k < I.n) { stack.push([v, k + 1]); const c = I.items[k].w; if (c <= v && best[v - c] === undefined) stack.push([v - c, 0]); continue; }
+      const ch = cmChoose(I, best, v), cap = cmCaption(I, best, v, ch);
+      best[v] = ch.n; last[v] = ch.c; done++;
+      frames.push({ assign: none(I.n), counts: Array(I.n).fill(0), trying: ch.c ? ch.c.i : undefined,
+        table: { best: best.slice(), cur: v, reads: cmOptions(I, best, v).map(o => o.from), pick: ch.c ? v - ch.c.w : undefined }, caption: cap });
+    }
+    return cmTrace(I, frames, best, last, done < X + 1 ? ` Only ${done} of the ${X + 1} amounts were needed.` : "");
+  }
+
   /* ---------- rows: what each problem draws below the pool ---------- */
   function rowsFor(I) {
     const total = sumOf(I.items.map(t => t.w));
@@ -5183,6 +5427,12 @@ const PackingView = (() => {
     if (I.rule === "knapsack") return [
       { label: "Weight", sub: `at most ${I.W}`, src: 0, measure: "w", cap: I.W },
       { label: "Value", sub: `at least ${I.V}`, src: 0, measure: "v", atLeast: I.V }];
+    if (I.rule === "maxknapsack") return [
+      { label: "Weight", sub: `at most ${I.W}`, src: 0, measure: "w", cap: I.W, lineLabel: `W = ${I.W}` },
+      { label: "Value", sub: "as much as fits", src: 0, measure: "v", most: true }];
+    if (I.rule === "changemaking") return [
+      { label: "Amount", sub: `exactly ${I.X}`, src: 0, measure: "w", target: I.X, lineLabel: `X = ${I.X}` },
+      { label: "Coins", sub: `at most ${I.K}`, src: 0, measure: "count", cap: I.K, lineLabel: `K = ${I.K}` }];
     return Array.from({ length: I.K }, (_, b) => ({ label: `Bin ${b + 1}`, sub: `holds ${I.C}`, src: b, measure: "w", cap: I.C, color: b }));
   }
 
@@ -5194,6 +5444,7 @@ const PackingView = (() => {
     let I, P, frames, rows, frame = null, hover = null, els, scales;
 
     const len = (row, x) => (row.log ? Math.log(Math.max(1, x)) : x);
+    const cmTotal = (row, counts) => (counts ? sumOf(I.items.map((t, k) => (counts[k] || 0) * (row.measure === "count" ? 1 : t.w))) : 0);
     function rowTotal(row, assign) {
       const vals = I.items.filter((_, k) => assign && assign[k] === row.src).map(t => (row.measure === "v" ? t.v : t.w));
       return row.log ? (vals.length ? prodOf(vals) : 0) : sumOf(vals);
@@ -5204,10 +5455,16 @@ const PackingView = (() => {
       rows = rowsFor(I);
       // one scale per row, wide enough for its line and anything any frame ever puts in it
       scales = rows.map(row => {
+        if (I.rule === "changemaking") {
+          let max = Math.max(1, row.target !== undefined ? row.target : row.cap);
+          for (const f of frames) max = Math.max(max, cmTotal(row, f.counts));
+          return TW / (max * 1.08);
+        }
         let max = len(row, row.target || row.cap || row.atLeast || 1);
         for (const f of frames) {
           const vals = I.items.filter((_, k) => f.assign[k] === row.src).map(t => len(row, row.measure === "v" ? t.v : t.w));
           max = Math.max(max, sumOf(vals));
+          if (row.most) max = Math.max(max, f.bound || 0, f.bestValue || 0);
         }
         return TW / Math.max(1e-9, max * 1.08);
       });
@@ -5215,22 +5472,31 @@ const PackingView = (() => {
       if (P.rule === "binpacking") { const s = Math.min(...scales); scales = scales.map(() => s); }
 
       // pool of item tiles, wrapping
-      mk("text", { x: 24, y: 26, class: "pk-head" }, svg).textContent = I.rule === "knapsack" ? "ITEMS · (WEIGHT, VALUE)" : "ITEMS";
-      const tileW = t => (I.rule === "knapsack" ? 74 : Math.max(38, String(t.w).length * 9 + 22));
+      mk("text", { x: 24, y: 26, class: "pk-head" }, svg).textContent = I.rule === "knapsack" || I.rule === "maxknapsack" ? "ITEMS · (WEIGHT, VALUE)" : I.rule === "changemaking" ? "COINS · EACH CAN BE USED AGAIN AND AGAIN" : "ITEMS";
+      const tileW = t => (I.rule === "knapsack" ? 74 : I.rule === "maxknapsack" ? 70 + String(t.i + 1).length * 7 + Math.max(0, `${t.w}, ${t.v}`.length - 6) * 7.5 : Math.max(38, String(t.w).length * 9 + 22));
+      const gap = I.rule === "changemaking" ? 22 : 8;
       let x = 24, y = 40;
       const tiles = [];
       I.items.forEach(t => {
         const w = tileW(t);
         if (x + w > W - 24) { x = 24; y += 40; }
-        tiles.push({ t, x, y, w }); x += w + 8;
+        tiles.push({ t, x, y, w }); x += w + gap;
       });
       const poolBottom = y + 30;
-      els = { tiles: [], segs: [], reads: [], beam: null, rowY: [], tracks: [], labels: [] };
+      els = { tiles: [], segs: [], reads: [], beam: null, rowY: [], tracks: [], labels: [], badges: [], under: [], over: [], cells: [] };
       const gT = mk("g", {}, svg);
       tiles.forEach(({ t, x: tx, y: ty, w }) => {
-        const g = mk("g", { class: "pk-tile", tabindex: "0", role: "button", "aria-label": I.rule === "knapsack" ? `Item weight ${t.w} value ${t.v}` : `Item ${t.w}` }, gT);
+        const g = mk("g", { class: "pk-tile", tabindex: "0", role: "button", "aria-label": I.rule === "knapsack" ? `Item weight ${t.w} value ${t.v}` : I.rule === "maxknapsack" ? `Item ${t.i + 1}, weight ${t.w}, value ${t.v}` : I.rule === "changemaking" ? `Coin ${t.w}` : `Item ${t.w}` }, gT);
         mk("rect", { x: tx, y: ty, width: w, height: 30, rx: 7 }, g);
-        if (I.rule === "knapsack") {
+        if (I.rule === "maxknapsack") {
+          // the item's 1-based index (the certificate names items by it), then (weight, value)
+          const iw = String(t.i + 1).length * 7 + 12;
+          mk("text", { x: tx + 4 + iw / 2, y: ty + 15, class: "sub" }, g).textContent = `#${t.i + 1}`;
+          mk("text", { x: tx + iw + (w - iw) / 2, y: ty + 15 }, g).textContent = `${t.w}, ${t.v}`;
+        } else if (I.rule === "changemaking") {
+          mk("text", { x: tx + w / 2, y: ty + 15 }, g).textContent = t.w;
+          els.badges.push({ i: t.i, g: mk("g", { class: "pk-badge" }, g), x: tx + w, y: ty });
+        } else if (I.rule === "knapsack") {
           mk("text", { x: tx + w / 2, y: ty + 15 }, g).textContent = `${t.w}, ${t.v}`;
         } else mk("text", { x: tx + w / 2, y: ty + 15 }, g).textContent = t.w;
         hook(g, t.i);
@@ -5240,27 +5506,45 @@ const PackingView = (() => {
       // container rows
       let ry = poolBottom + 44;
       mk("text", { x: 24, y: ry - 18, class: "pk-head" }, svg).textContent =
-        I.rule === "binpacking" ? `BINS · CAPACITY ${I.C}, AT MOST ${I.K}` : I.rule === "knapsack" ? "THE KNAPSACK" : I.rule === "partition" ? "TWO SIDES THAT MUST MATCH" : "CHOSEN ITEMS";
+        I.rule === "binpacking" ? `BINS · CAPACITY ${I.C}, AT MOST ${I.K}` : I.rule === "knapsack" || I.rule === "maxknapsack" ? "THE KNAPSACK" : I.rule === "changemaking" ? "THE CHANGE" : I.rule === "partition" ? "TWO SIDES THAT MUST MATCH" : "CHOSEN ITEMS";
       rows.forEach((row, r) => {
         const cy = ry + 16;
         els.rowY.push(cy);
         els.labels.push(mk("text", { x: 24, y: cy - 3, class: "pk-row-label" }, svg));
         els.labels[r].textContent = row.label;
         mk("text", { x: 24, y: cy + 13, class: "pk-row-sub" }, svg).textContent = row.sub;
-        const lineAt = row.target || row.cap || row.atLeast;
-        const trackLen = row.cap ? len(row, row.cap) * scales[r] : TW;
-        els.tracks.push(mk("rect", { x: X0, y: cy - 15, width: trackLen, height: 30, rx: 6, class: "pk-track" }, svg));
+        const lineAt = row.lineLabel ? (row.target !== undefined ? row.target : row.cap) : row.target || row.cap || row.atLeast;
+        const trackLen = row.cap !== undefined && (row.cap || row.lineLabel) ? len(row, row.cap) * scales[r] : TW;
+        els.tracks.push(mk("rect", { x: X0, y: cy - 15, width: Math.max(trackLen, row.lineLabel ? 6 : 0), height: 30, rx: 6, class: "pk-track" }, svg));
+        if (row.most) els.under[r] = mk("g", {}, svg); // the best-so-far bar sits behind this row's items
         const g = mk("g", {}, svg);
         els.segs.push({ r, g });
-        if (lineAt) {
+        if (row.most) els.over[r] = mk("g", {}, svg); // and the bound marker in front
+        if (lineAt || (row.lineLabel && lineAt !== undefined)) {
           const lx = X0 + len(row, lineAt) * scales[r];
           mk("line", { x1: lx, x2: lx, y1: cy - 22, y2: cy + 22, class: "pk-line" }, svg);
-          mk("text", { x: lx, y: cy - 26, class: "pk-line-label" }, svg).textContent = row.cap ? `${row.measure === "v" ? "V" : I.rule === "binpacking" ? "C" : "W"} = ${lineAt}` : row.atLeast ? `V = ${lineAt}` : `${row.log ? "T" : I.rule === "partition" ? "half" : "T"} = ${lineAt}`;
+          mk("text", { x: lx, y: cy - 26, class: "pk-line-label" }, svg).textContent = row.lineLabel ? row.lineLabel : row.cap ? `${row.measure === "v" ? "V" : I.rule === "binpacking" ? "C" : "W"} = ${lineAt}` : row.atLeast ? `V = ${lineAt}` : `${row.log ? "T" : I.rule === "partition" ? "half" : "T"} = ${lineAt}`;
         }
         els.reads.push(mk("text", { x: X0 + TW + 14, y: cy + 4, class: "pk-read" }, svg));
         ry += 64;
       });
       if (P.rule === "product") mk("text", { x: X0, y: ry - 14, class: "pk-note" }, svg).textContent = "Log scale: multiplying factors adds their lengths.";
+      if (I.rule === "changemaking") {
+        // The DP table as a strip of amounts 0..X, 20 to a line: each cell holds the fewest coins that make its amount.
+        mk("text", { x: 24, y: ry + 4, class: "pk-head" }, svg).textContent = "FEWEST COINS FOR EACH AMOUNT";
+        const per = 20, step = (W - 48) / per, cw = step - 3;
+        const y0 = ry + 16;
+        for (let v = 0; v <= I.X; v++) {
+          const cx = 24 + (v % per) * step, cyy = y0 + Math.floor(v / per) * 42;
+          const g = mk("g", { class: "pk-cell" }, svg);
+          mk("rect", { x: cx, y: cyy, width: cw, height: 36, rx: 4 }, g);
+          mk("text", { x: cx + cw / 2, y: cyy + 9, class: "amt" }, g).textContent = v;
+          const val = mk("text", { x: cx + cw / 2, y: cyy + 24, class: "val" }, g);
+          const tip = mk("title", {}, g);
+          els.cells.push({ v, g, val, tip });
+        }
+        ry = y0 + Math.ceil((I.X + 1) / per) * 42 + 4;
+      }
       if (P.rule === "partition") {
         const bx = X0 + TW / 2, by = ry + 30;
         mk("polygon", { points: `${bx - 12},${by + 22} ${bx + 12},${by + 22} ${bx},${by}`, class: "pk-fulcrum" }, svg);
@@ -5284,12 +5568,34 @@ const PackingView = (() => {
       if (!f) return "";
       // Viewer hook (local/viz-viewer): a frame may carry each item's state already decided (`itemStates`), e.g. from the backend.
       if (f.itemStates) return f.itemStates[i] || "";
+      if (I.rule === "maxknapsack") return mvkState(f, i);
+      if (I.rule === "changemaking") return cmState(f, i);
       if (i === f.bad) return "Rejected";
       const a = f.assign[i];
       if (i === f.trying && !f.done) return "Active";
       if (a < 0) return f.done && f.ok ? "Unused" : "";
       if (f.trial) return P.rule === "partition" || P.rule === "binpacking" ? "" : "Active";
       return "Solution";
+    }
+    // Maximum-Value Knapsack: the set looked at now is ElementHighlight, the best set so far Committed; an item in both
+    // (when they differ) keeps the amber ring on the Committed fill.
+    function mvkState(f, i) {
+      if (i === f.bad) return "Rejected";
+      const cur = f.assign[i] === 0, kept = !!(f.best && f.best[i] === 0);
+      if (f.done) return cur ? (f.ok ? "Solution" : "Rejected") : f.ok ? "Unused" : "";
+      if (i === f.trying) return "Active";
+      const same = f.best && f.assign.every((a, k) => (a === 0) === (f.best[k] === 0));
+      if (same) return cur ? "Committed" : "";
+      if (cur) return kept ? "Active kept" : "Active";
+      return kept ? "Committed" : "";
+    }
+    // Change-Making: a coin in the change is Committed while the trace back runs, green on the answer; the coin the step
+    // looks at is ElementHighlight.
+    function cmState(f, i) {
+      const c = f.counts ? f.counts[i] : 0;
+      if (f.done) return c ? (f.ok ? "Solution" : "Rejected") : f.ok ? "Unused" : "";
+      if (i === f.trying) return "Active";
+      return c ? "Committed" : "";
     }
     const groupOf = (f, i) => (f && f.assign[i] >= 0 && (P.rule === "partition" || P.rule === "binpacking") ? f.assign[i] : null);
 
@@ -5310,9 +5616,11 @@ const PackingView = (() => {
         els.tracks[r].setAttribute("class", "pk-track" + (rs ? " " + rs : ""));
         els.labels[r].setAttribute("class", "pk-row-label" + (rs ? " " + rs : ""));
       });
+      if (I.rule === "changemaking") { paintChange(f); return; }
       els.segs.forEach(({ r, g }) => {
         g.innerHTML = "";
         const row = rows[r], sc = scales[r];
+        if (row.most) paintBest(f, r);
         if (!f) { els.reads[r].textContent = ""; return; }
         let x = X0, acc = 0;
         const limit = row.cap !== undefined ? len(row, row.cap) : Infinity;
@@ -5349,6 +5657,78 @@ const PackingView = (() => {
       }
     }
 
+    // The best-so-far bar (behind the value row) and the bound marker (in front), Maximum-Value Knapsack only.
+    function paintBest(f, r) {
+      const under = els.under[r], over = els.over[r], cy = els.rowY[r], sc = scales[r];
+      under.innerHTML = ""; over.innerHTML = "";
+      if (!f || f.done) return;
+      if (f.best) {
+        const bv = f.bestValue !== undefined ? f.bestValue : sumOf(I.items.filter((_, k) => f.best[k] === 0).map(t => t.v));
+        const bx = X0 + bv * sc;
+        if (bv > 0) mk("rect", { x: X0, y: cy - 15, width: bv * sc, height: 30, rx: 5, class: "pk-best" }, under);
+        mk("text", { x: Math.max(X0 + 40, bx), y: cy + 28, class: "pk-best-label" }, under).textContent = `best so far ${bv}`;
+      }
+      if (f.bound !== undefined) {
+        const lx = X0 + f.bound * sc;
+        mk("line", { x1: lx, x2: lx, y1: cy - 22, y2: cy + 20, class: "pk-bound" }, over);
+        mk("text", { x: lx, y: cy - 26, class: "pk-bound-label" }, over).textContent = `at most ${f.bound}`;
+      }
+    }
+    // Change-Making: count badges on the coins, one segment per coin used, and the table strip.
+    function paintChange(f) {
+      const counts = f && f.counts ? f.counts : Array(I.n).fill(0);
+      els.badges.forEach(({ i, g, x, y }) => {
+        g.innerHTML = "";
+        if (!counts[i]) return;
+        const label = `×${counts[i]}`, bw = label.length * 7 + 10;
+        mk("rect", { x: x - bw / 2 - 2, y: y - 9, width: bw, height: 17, rx: 8.5 }, g);
+        mk("text", { x: x - 2, y: y - 0.5 }, g).textContent = label;
+      });
+      els.segs.forEach(({ r, g }) => {
+        g.innerHTML = "";
+        const row = rows[r], sc = scales[r], rd = els.reads[r];
+        if (!f) { rd.textContent = ""; return; }
+        let x = X0, acc = 0;
+        I.items.forEach((t, k) => {
+          for (let j = 0; j < (counts[k] || 0); j++) {
+            const val = row.measure === "count" ? 1 : t.w, L = Math.max(2, val * sc);
+            acc += val;
+            let cls = "pk-seg";
+            if (f.done) cls += f.ok ? " Solution" : " Rejected";
+            else cls += k === f.trying && j === counts[k] - 1 ? " Active" : " Committed";
+            if (row.cap !== undefined && acc > row.cap) cls += " over";
+            if (hover !== null) cls += k === hover ? " trace" : " faint";
+            const sg = mk("g", { class: cls }, g);
+            mk("rect", { x, y: els.rowY[r] - 13, width: L, height: 26, rx: 4 }, sg);
+            if (L >= String(t.w).length * 7.5 + 6) mk("text", { x: x + L / 2, y: els.rowY[r] }, sg).textContent = t.w;
+            mk("title", {}, sg).textContent = `coin ${t.w}`;
+            x += L;
+          }
+        });
+        const tot = cmTotal(row, counts), ok = row.target !== undefined ? tot === row.target : tot <= row.cap;
+        rd.textContent = `${tot}${ok ? " ✓" : " ✗"}`;
+        rd.setAttribute("class", "pk-read" + (ok ? " ok" : " bad"));
+      });
+      const tb = f && f.table;
+      els.cells.forEach(({ v, g, val, tip }) => {
+        const b = tb ? tb.best[v] : undefined;
+        val.textContent = b === undefined ? "" : b === Infinity ? "∞" : String(b);
+        val.setAttribute("class", "val" + (b === Infinity ? " inf" : ""));
+        tip.textContent = b === undefined ? `amount ${v}: not worked out` : b === Infinity ? `amount ${v}: can't be made` : `amount ${v}: ${coinWord(b)}`;
+        let cls = "pk-cell";
+        if (tb) {
+          const onPath = tb.path && tb.path.includes(v);
+          if (tb.bad === v) cls += " Rejected";
+          else if (f.done && f.ok && onPath) cls += " Solution";
+          else if (tb.cur === v) cls += " Active";
+          else if (onPath) cls += " Committed";
+          if (tb.pick === v) cls += " pick";
+          else if (tb.reads && tb.reads.includes(v)) cls += " read";
+        }
+        g.setAttribute("class", cls);
+      });
+    }
+
     function checks(f) {
       if (!f) return [];
       const out = [], placedCount = f.assign.filter(a => a >= 0).length;
@@ -5363,6 +5743,21 @@ const PackingView = (() => {
         const w = rowTotal(rows[0], f.assign), v = rowTotal(rows[1], f.assign);
         out.push({ label: `Weight: ${w} (at most ${I.W})`, ok: w <= I.W });
         out.push({ label: `Value: ${v} (at least ${I.V})`, ok: v >= I.V });
+      } else if (I.rule === "maxknapsack") {
+        const w = rowTotal(rows[0], f.assign), v = rowTotal(rows[1], f.assign);
+        out.push({ label: `Weight: ${w} (at most ${I.W})`, ok: w <= I.W });
+        out.push({ label: f.done ? `Value: ${v}, the total the certificate claims` : `Value: ${v}`, ok: f.done ? true : null });
+        // Optimality is a separate check (Redux's Optimality Verifier): the Solution Verifier accepts any set that fits.
+        if (f.done) {
+          const opt = mvkOptimum(I);
+          out.push(v === opt ? { label: `Optimal: no set that fits is worth more than ${opt} (separate check)`, ok: true }
+            : { label: `Not optimal: the best is ${opt} (separate check). Greedy promises at least half, ${Math.ceil(opt / 2)}.`, ok: false });
+        }
+        return out;
+      } else if (I.rule === "changemaking") {
+        const counts = f.counts || [], tot = cmTotal(rows[0], counts), used = cmTotal(rows[1], counts);
+        out.push({ label: `Total: ${tot} (exactly ${I.X})`, ok: tot === I.X });
+        out.push({ label: `Coins used: ${used} (at most ${I.K})`, ok: used <= I.K });
       } else {
         const sums = rows.map(row => rowTotal(row, f.assign)), used = sums.filter(s => s > 0).length;
         out.push({ label: `Items packed: ${placedCount} / ${I.n}`, ok: placedCount === I.n });
@@ -5378,7 +5773,16 @@ const PackingView = (() => {
       const pick = r => I.items.filter((_, k) => f.assign[k] === r);
       if (I.rule === "partition") return f.assign.some(a => a >= 0) ? [0, 1].map(r => ({ text: `S${r + 1} ${fmt(pick(r).map(t => t.w))} = ${sumOf(pick(r).map(t => t.w))}`, color: r })) : [];
       if (I.rule === "binpacking") return rows.map((row, b) => ({ b, items: pick(b) })).filter(x => x.items.length).map(x => ({ text: `Bin ${x.b + 1}: ${fmt(x.items.map(t => t.w))}`, color: x.b }));
+      if (I.rule === "changemaking") {
+        const counts = f.counts || [], cs = coinsIn(I, counts);
+        return cs.length ? [{ text: `${coinCert(I, counts)} · ${cs.slice().sort((a, b) => b - a).join(" + ")} = ${sumOf(cs)}` }] : [];
+      }
       const p = pick(0);
+      if (I.rule === "maxknapsack") {
+        const idx = pickIdx(f.assign);
+        if (!f.done && !idx.length) return [];
+        return [{ text: `({${idx.map(k => k + 1).join(",")}},${vOf(I, idx)}) · weight ${wOf(I, idx)}` }];
+      }
       if (!p.length) return [];
       if (I.rule === "knapsack") return [{ text: `${pairsText(I, f.assign)} · weight ${sumOf(p.map(t => t.w))}, value ${sumOf(p.map(t => t.v))}` }];
       if (I.rule === "product") return [{ text: `${p.map(t => t.w).join(" × ")} = ${prodOf(p.map(t => t.w))}` }];
@@ -5412,6 +5816,8 @@ const PackingView = (() => {
     product: { brute: I => subsetBrute(I, true) },
     knapsack: { brute: knapsackBrute, dp: knapsackDP },
     binpacking: { ffd: binFFD, brute: binBrute },
+    maxknapsack: { brute: mvkBrute, bnb: mvkBnB, greedy: mvkGreedy },
+    changemaking: { dp: cmDP, memo: cmMemo },
   };
 
   /* Catalog shared by both mockups. Names, definitions, defaults and solver names are copied from Redux. */
@@ -5436,6 +5842,15 @@ const PackingView = (() => {
       def: "The Bin Packing decision problem asks: given a multiset of item sizes, a bin capacity C, and a bin limit K, can all items be packed into at most K bins such that the total size in each bin does not exceed C? Bin Packing is NP-Complete; the optimization variant (minimize the number of bins) is NP-Hard.",
       solvers: [["ffd", "Bin Packing First Fit Decreasing"], ["brute", "Bin Packing Brute Force"]],
       examples: [["Redux default", "((4,7,3,6,2,8),10,3)"], ["First Fit Decreasing falls short", "((3,3,3,3,2,2,2,2),10,2)"], ["Too much to fit", "((6,6,6),10,2)"]] },
+    // Design mockup only (gui: false): not in the Redux_GUI mockup until the team approves the pictures (#1059, #1014).
+    MAXIMUMVALUEKNAPSACK: { label: "Maximum-Value 0-1 Knapsack", rule: "maxknapsack", fmt: "((items),W)", gui: false, cert: "({i1,i2,…},totalValue)",
+      def: "Choose each item at most once to maximize total value without exceeding capacity. Identical weight/value pairs are distinct item occurrences. The empty selection is allowed.",
+      solvers: [["brute", "Maximum-Value 0-1 Knapsack Exact Brute Force"], ["bnb", "Maximum-Value 0-1 Knapsack Exact Branch and Bound"], ["greedy", "Maximum-Value 0-1 Knapsack Modified Greedy Approximation"]],
+      examples: [["Redux default (greedy falls short)", "(((10,60),(20,100),(30,120)),50)"], ["One big item beats the greedy set", "(((1,2),(10,10)),10)"], ["Five items", "(((12,4),(2,2),(1,1),(4,10),(1,2)),15)"], ["Nothing fits", "(((60,10),(70,5)),50)"]] },
+    CHANGEMAKING: { label: "Change-Making", rule: "changemaking", fmt: "({C},X,K)", gui: false, cert: "{(c,n),…}",
+      def: "Given coin values c_1, ..., c_m (each usable any number of times), a target amount X, and a number K, can you make exactly X using at most K coins?",
+      solvers: [["dp", "Change-Making Dynamic Programming"], ["memo", "Change-Making Memoization"]],
+      examples: [["Redux default", "({1,7,10,25},39,3)"], ["K too small", "({1,7,10,25},39,2)"], ["Big coins only", "({10,25},65,5)"], ["Can't be made", "({4,6},23,10)"]] },
   };
 
   return { create, parse, PROBLEMS, SOLVE };
@@ -7046,6 +7461,7 @@ for (const [k, g] of Object.entries(LayeredView.PROBLEMS)) {
 }
 let LR = null;
 for (const [k, g] of Object.entries(PackingView.PROBLEMS)) {
+  if (g.gui === false) continue; // design-mockup drafts, not in Redux_GUI yet
   PROBLEMS[k] = {
     label: g.label, cls: "NP-Complete", clsTag: "npc", type: "Numbers", packing: true, def: g.def,
     input: g.fmt, inst: g.examples[0][1], example: g.examples[0][1],
@@ -11336,7 +11752,7 @@ function setProblem(key) {
   loadInstance(p.inst);
 }
 const menuEl = $("probMenu"), pickEl = $("probPick");
-for (const [grp, keys] of [["NP-Complete · logic and sets", ["SAT3", "SETCOVER", "EXACTCOVER", "HITTINGSET", "DM3"]], ["NP-Complete · graphs", Object.keys(GraphView.PROBLEMS).filter(k => !GraphView.PROBLEMS[k].cls)], ["NP-Complete · numbers", [...Object.keys(PackingView.PROBLEMS), "INTPROGRAMMING01"]], ["NP-Complete · scheduling and puzzles", ["JOBSEQ", "SUDOKU"]], ["NP-Hard", [...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "NP-Hard"), "PUMPCM", "PUMPEM"]], ["Directed graphs · P and NP-Complete", Object.keys(LayeredView.PROBLEMS)], ["P", ["DFA", "NFA", "EDITDISTANCE", "CONVEXHULL", "LDC", "NQUEENS", "MINSTCUT", ...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "P")]], ["Quantum algorithms", Object.keys(QuantumView.PROBLEMS)], ["Not in Redux yet", ["PCP", "GRAPHISO", "SUBGRAPHISO", ...(["CVP", "CIRCUITSAT", "CFGMEMBER"]), ...Object.keys(MachineView.PROBLEMS)]]]) {
+for (const [grp, keys] of [["NP-Complete · logic and sets", ["SAT3", "SETCOVER", "EXACTCOVER", "HITTINGSET", "DM3"]], ["NP-Complete · graphs", Object.keys(GraphView.PROBLEMS).filter(k => !GraphView.PROBLEMS[k].cls)], ["NP-Complete · numbers", [...Object.keys(PackingView.PROBLEMS).filter(k => PackingView.PROBLEMS[k].gui !== false), "INTPROGRAMMING01"]], ["NP-Complete · scheduling and puzzles", ["JOBSEQ", "SUDOKU"]], ["NP-Hard", [...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "NP-Hard"), "PUMPCM", "PUMPEM"]], ["Directed graphs · P and NP-Complete", Object.keys(LayeredView.PROBLEMS)], ["P", ["DFA", "NFA", "EDITDISTANCE", "CONVEXHULL", "LDC", "NQUEENS", "MINSTCUT", ...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "P")]], ["Quantum algorithms", Object.keys(QuantumView.PROBLEMS)], ["Not in Redux yet", ["PCP", "GRAPHISO", "SUBGRAPHISO", ...(["CVP", "CIRCUITSAT", "CFGMEMBER"]), ...Object.keys(MachineView.PROBLEMS)]]]) {
   const h = document.createElement("li"); h.className = "grp"; h.textContent = grp; h.setAttribute("role", "presentation"); menuEl.appendChild(h);
   keys.forEach(k => {
     const li = document.createElement("li");

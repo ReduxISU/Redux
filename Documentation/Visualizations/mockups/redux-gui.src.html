@@ -1186,6 +1186,7 @@ for (const [k, g] of Object.entries(LayeredView.PROBLEMS)) {
 }
 let LR = null;
 for (const [k, g] of Object.entries(PackingView.PROBLEMS)) {
+  if (g.gui === false) continue; // design-mockup drafts, not in Redux_GUI yet
   PROBLEMS[k] = {
     label: g.label, cls: "NP-Complete", clsTag: "npc", type: "Numbers", packing: true, def: g.def,
     input: g.fmt, inst: g.examples[0][1], example: g.examples[0][1],
@@ -1828,7 +1829,7 @@ function setProblem(key) {
   loadInstance(p.inst);
 }
 const menuEl = $("probMenu"), pickEl = $("probPick");
-for (const [grp, keys] of [["NP-Complete · logic and sets", ["SAT3", "SETCOVER", "EXACTCOVER", "HITTINGSET", "DM3"]], ["NP-Complete · graphs", Object.keys(GraphView.PROBLEMS).filter(k => !GraphView.PROBLEMS[k].cls)], ["NP-Complete · numbers", [...Object.keys(PackingView.PROBLEMS), "INTPROGRAMMING01"]], ["NP-Complete · scheduling and puzzles", ["JOBSEQ", "SUDOKU"]], ["NP-Hard", [...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "NP-Hard"), "PUMPCM", "PUMPEM"]], ["Directed graphs · P and NP-Complete", Object.keys(LayeredView.PROBLEMS)], ["P", ["DFA", "NFA", "EDITDISTANCE", "CONVEXHULL", "LDC", "NQUEENS", "MINSTCUT", ...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "P")]], ["Quantum algorithms", Object.keys(QuantumView.PROBLEMS)], ["Not in Redux yet", ["PCP", "GRAPHISO", "SUBGRAPHISO", ...(["CVP", "CIRCUITSAT", "CFGMEMBER"]), ...Object.keys(MachineView.PROBLEMS)]]]) {
+for (const [grp, keys] of [["NP-Complete · logic and sets", ["SAT3", "SETCOVER", "EXACTCOVER", "HITTINGSET", "DM3"]], ["NP-Complete · graphs", Object.keys(GraphView.PROBLEMS).filter(k => !GraphView.PROBLEMS[k].cls)], ["NP-Complete · numbers", [...Object.keys(PackingView.PROBLEMS).filter(k => PackingView.PROBLEMS[k].gui !== false), "INTPROGRAMMING01"]], ["NP-Complete · scheduling and puzzles", ["JOBSEQ", "SUDOKU"]], ["NP-Hard", [...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "NP-Hard"), "PUMPCM", "PUMPEM"]], ["Directed graphs · P and NP-Complete", Object.keys(LayeredView.PROBLEMS)], ["P", ["DFA", "NFA", "EDITDISTANCE", "CONVEXHULL", "LDC", "NQUEENS", "MINSTCUT", ...Object.keys(GraphView.PROBLEMS).filter(k => GraphView.PROBLEMS[k].cls === "P")]], ["Quantum algorithms", Object.keys(QuantumView.PROBLEMS)], ["Not in Redux yet", ["PCP", "GRAPHISO", "SUBGRAPHISO", ...(["CVP", "CIRCUITSAT", "CFGMEMBER"]), ...Object.keys(MachineView.PROBLEMS)]]]) {
   const h = document.createElement("li"); h.className = "grp"; h.textContent = grp; h.setAttribute("role", "presentation"); menuEl.appendChild(h);
   keys.forEach(k => {
     const li = document.createElement("li");
