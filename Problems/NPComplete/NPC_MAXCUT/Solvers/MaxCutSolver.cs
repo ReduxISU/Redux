@@ -19,16 +19,20 @@ class MaxCutSolver : ISolver<MAXCUT> {
 
     public MaxCutSolver() { }
 
+    private const int MaxItems = 62;
+
     public string solve(MAXCUT problem) {
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
         if (n < 2) return "{}";
+        // A long bit mask holds at most 62 items (1L << 63 is negative); an int mask stopped at 30 (#1028).
+        if (n > MaxItems) throw new ExactSearchLimitExceededException(problem.problemName, n, MaxItems);
 
         int bestWeight = -1;
         HashSet<string> bestS = new();
 
-        int limit = 1 << n;
-        for (int mask = 1; mask < limit - 1; mask++) {
+        long limit = 1L << n;
+        for (long mask = 1; mask < limit - 1; mask++) {
             if (timerHasExpired) return SolveRun.TimedOutAnswer;
 
             HashSet<string> S = new();
@@ -50,10 +54,12 @@ class MaxCutSolver : ISolver<MAXCUT> {
         List<string> nodes = problem.nodes;
         int n = nodes.Count;
         if (n < 2) return 0;
+        // A long bit mask holds at most 62 items (1L << 63 is negative); an int mask stopped at 30 (#1028).
+        if (n > MaxItems) throw new ExactSearchLimitExceededException(problem.problemName, n, MaxItems);
 
         int bestWeight = 0;
-        int limit = 1 << n;
-        for (int mask = 1; mask < limit - 1; mask++) {
+        long limit = 1L << n;
+        for (long mask = 1; mask < limit - 1; mask++) {
             HashSet<string> S = new();
             for (int i = 0; i < n; i++)
                 if ((mask >> i & 1) == 1) S.Add(nodes[i]);
