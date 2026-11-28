@@ -29,7 +29,7 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
     // way down count too, so at most the sum of C(m, d) for d <= n, which is below both 2^m and (m + 1)^n (#1061 review).
     // Choosing the next element scans every element's triples, O(m) per node.
     public MathematicalFunction timeComplexity { get; } = new("min(2^|M|, (|M| + 1)^|X|) * |M|",
-        ", |M| = number of candidate triples, |X| = number of elements of X (a matching chooses |X| triples; Y and Z need not be the same size)");
+        ", |M| = number of candidate triples, |X| = number of elements of X (a matching chooses |X| triples, and exists only when |X| = |Y| = |Z|)");
 
     public ThreeDimensionalMatchingBacktracking() { }
 
@@ -55,7 +55,8 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
         }
         if (search.Run()) {
             var chosen = search.Chosen().Order().ToList();
-            // With |X| = |Y| = |Z| the matching uses every element of all three; otherwise only X has to be covered.
+            // The verifier accepts only a perfect matching (every element of X, Y and Z), so Run succeeds only when
+            // |X| = |Y| = |Z|; the second Done is kept for safety.
             if (search.EqualSizes)
                 steps.Done(TripartiteFrames.Chosen(chosen), true,
                     $"{Words.List(chosen.Select(i => TripartiteFrames.TripleLabel(search.Spec, i)).ToList())} {(chosen.Count == 1 ? "uses" : "use")} every element of X, Y and Z exactly once. Found after {search.Placed:N0} {(search.Placed == 1 ? "choice" : "choices")}.",
@@ -127,7 +128,8 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
             _triplesOf = triplesOf.Select(l => l.ToArray()).ToArray();
             _usedBy = Enumerable.Repeat(-1, elements).ToArray();
             // With |X| = |Y| = |Z|, |X| triples that use no element twice use every element, so any element can be branched
-            // on. Otherwise only X has to be covered (the verifier asks for nothing more).
+            // on. Otherwise the search branches on X only, and finds nothing: the verifier asks for every element of X, Y
+            // and Z, which |X| triples cannot all use when the sizes differ.
             _branch = Enumerable.Range(0, elements).Select(e => EqualSizes || e < _n).ToArray();
         }
 
