@@ -427,7 +427,8 @@ public class BoardFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetApp
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal("Board", root.GetProperty("type").GetString());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count >= 2);
+        // A stopped run may be its Done alone: the solver also checks the timer flag, which a busy runner can set before its first step.
+        Assert.NotEmpty(frames);
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
@@ -448,7 +449,8 @@ public class BoardFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetApp
         Assert.Equal(clues.Select(x => $"{x.Id}={x.V}").Order(StringComparer.Ordinal),
             done.GetProperty("values").EnumerateObject().Select(p => $"{p.Name}={p.Value.GetString()}"));
         // The steps before it are the solver's tries.
-        Assert.Equal("Try", frames[0].GetProperty("event").GetString());
+        if (frames.Count > 1)
+            Assert.Equal("Try", frames[0].GetProperty("event").GetString());
     }
 
     [Fact]

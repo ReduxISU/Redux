@@ -447,7 +447,9 @@ public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal("Schedule", root.GetProperty("type").GetString());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count >= 2);
+        // Not >= 2: the solver also checks the timer flag between steps, and on a busy runner the budget can run out
+        // before its first step (the CM table's first hour, say), so a correctly stopped run may be its Done alone.
+        Assert.NotEmpty(frames);
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());
@@ -465,7 +467,8 @@ public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         Assert.Empty(done.GetProperty("runs").EnumerateArray());
         Assert.Empty(done.GetProperty("jobs").EnumerateObject());
         Assert.Equal(0, done.GetProperty("penalty").GetInt32());
-        Assert.Equal("Reject", frames[0].GetProperty("event").GetString());
+        if (frames.Count > 1)
+            Assert.Equal("Reject", frames[0].GetProperty("event").GetString());
     }
 
     [Theory]
@@ -480,6 +483,7 @@ public class ScheduleFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         Assert.Empty(done.GetProperty("hours").EnumerateObject());
         Assert.Empty(done.GetProperty("cells").EnumerateObject());
         Assert.False(done.TryGetProperty("budget", out _));
-        Assert.Equal("Try", frames[0].GetProperty("event").GetString());
+        if (frames.Count > 1)
+            Assert.Equal("Try", frames[0].GetProperty("event").GetString());
     }
 }
