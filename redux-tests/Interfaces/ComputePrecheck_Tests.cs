@@ -190,6 +190,39 @@ public class ComputePrecheck_Tests {
             ThirtySeconds, null));
     }
 
+    // 40 nodes: a search over 2^40 sides would be refused, but Cut Brute Force searches only when 1 <= K <= |E|; any other
+    // K it answers at once (#1061 review).
+    [Theory]
+    [InlineData(0, 0)]   // isolated nodes, K = 0: one verify of "{}"
+    [InlineData(39, 0)]  // a path, K = 0: one verify of "{}", which fails
+    [InlineData(39, -1)] // no cut has fewer than 0 edges
+    [InlineData(1, 2)]   // K over the edge count
+    [InlineData(39, 40)]
+    public void CutBruteForce_KThatNeedsNoSearch_IsNotRefused_AndAnsweredAtOnce(int edges, int k) {
+        string instance = CutInstance(40, edges, k);
+        var estimate = ComputePrecheck.Evaluate(ProblemProvider.Solvers["cutbruteforce"], instance, ThirtySeconds, null);
+        Assert.NotNull(estimate); // checked, not skipped
+        Assert.Equal(40 + edges, estimate.Steps);
+        Assert.False(estimate.TooLarge);
+        var solver = (ISolver)Activator.CreateInstance(ProblemProvider.Solvers["cutbruteforce"])!;
+        var sw = Stopwatch.StartNew();
+        Assert.Equal("{}", solver.solve(instance));
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5), $"took {sw.Elapsed}");
+    }
+
+    [Theory]
+    [InlineData(39, 1)]
+    [InlineData(39, 39)]
+    public void CutBruteForce_KThatNeedsTheSearch_IsStillRefused(int edges, int k) {
+        var estimate = ComputePrecheck.Refusal(ProblemProvider.Solvers["cutbruteforce"], CutInstance(40, edges, k), ThirtySeconds, null);
+        Assert.NotNull(estimate);
+        Assert.Equal(Math.Pow(2, 40) * 1600 * (edges + 1) + 40 + edges, estimate.Steps, 1e-9 * estimate.Steps);
+    }
+
+    // n nodes v0..v(n-1), the first `edges` edges of the path v0 - v1 - ... (at most n - 1), and cut size k.
+    private static string CutInstance(int n, int edges, int k) =>
+        $"(({PrecheckInputs.Nodes(n)},{{{string.Join(",", Enumerable.Range(0, edges).Select(i => $"{{v{i},v{i + 1}}}"))}}}),{k})";
+
     [Theory]
     [InlineData(60)]
     [InlineData(59)]
