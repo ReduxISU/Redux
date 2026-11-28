@@ -19,6 +19,9 @@ builder.Services.AddSingleton<API.Interfaces.ComputeJobLimiter>();
 // reads the setting when it starts, so it is registered either way and starts no process when the setting is off.
 builder.Services.AddSingleton<API.Interfaces.SolveWorkerPool>();
 builder.Services.AddHostedService<API.Interfaces.SolveWorkerPoolService>();
+// Short links to shared views (#844), kept in PostgreSQL when ConnectionStrings:ShortLinks is set; without it the share
+// endpoints answer 503 and nothing else changes. Also adds the rate limit on making links; see API.Interfaces.ShortLinks.
+API.Interfaces.ShortLinks.ShortLinkServices.AddShortLinks(builder.Services);
 
 // A solver whose outside service fails answers 503 solver_unavailable on every endpoint (#625).
 builder.Services.AddControllers(options => options.Filters.Add(new API.Interfaces.SolverUnavailableFilter()));
@@ -72,6 +75,8 @@ app.UseCors(x => x
                 .AllowCredentials()); // allow credentials
 
 app.UseAuthorization();
+// Only endpoints that name a rate-limiting policy are limited: today just POST /ShareLinks (#844).
+app.UseRateLimiter();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
