@@ -201,7 +201,8 @@ public class StepTimeLimit_Endpoint_Tests : IClassFixture<TinyBudgetAppFactory> 
             f.GetProperty("nodes").EnumerateObject().Concat(f.GetProperty("edges").EnumerateObject()),
             p => p.Value.GetProperty("state").GetString() == "Solution"));
         // The frame has exactly the fields every other frame has.
-        Assert.Equal(frames[0].EnumerateObject().Select(p => p.Name).Append("ok"), done.EnumerateObject().Select(p => p.Name));
+        if (frames.Count > 1)
+            Assert.Equal(frames[0].EnumerateObject().Select(p => p.Name).Append("ok"), done.EnumerateObject().Select(p => p.Name));
     }
 
     [Fact]

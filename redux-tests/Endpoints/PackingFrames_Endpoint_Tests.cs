@@ -378,7 +378,8 @@ public class PackingFrames_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudgetA
         var root = JsonDocument.Parse(body).RootElement;
         Assert.Equal("Packing", root.GetProperty("type").GetString());
         var frames = root.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count >= 2);
+        // A stopped run may be its Done alone: the solver also checks the timer flag, which a busy runner can set before its first step.
+        Assert.NotEmpty(frames);
         var done = frames[^1];
         Assert.Equal("Done", done.GetProperty("event").GetString());
         Assert.False(done.GetProperty("ok").GetBoolean());

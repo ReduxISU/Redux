@@ -152,7 +152,8 @@ public class SearchTreeSat3_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(20), $"took {sw.Elapsed}");
         var frames = JsonDocument.Parse(body).RootElement.GetProperty("frames").EnumerateArray().ToList();
-        Assert.True(frames.Count >= 2);
+        // A stopped run may be its Done alone: the solver also checks the timer flag, which a busy runner can set before its first step.
+        Assert.NotEmpty(frames);
         var done = frames[^1];
         Assert.Single(frames, f => f.GetProperty("event").GetString() == "Done");
         Assert.False(done.GetProperty("ok").GetBoolean());
@@ -160,8 +161,9 @@ public class SearchTreeSat3_StoppedRun_Endpoint_Tests : IClassFixture<TinyBudget
         Assert.Empty(done.GetProperty("focus").EnumerateArray());
         // The tree so far, with nothing claimed: no answer path, nothing highlighted.
         var nodes = done.GetProperty("nodes").EnumerateArray().ToList();
-        Assert.Equal(frames[^2].GetProperty("nodes").EnumerateArray().Select(n => n.GetProperty("id").GetString()), nodes.Select(n => n.GetProperty("id").GetString()));
-        Assert.NotEmpty(nodes);
+        if (frames.Count > 1)
+            Assert.Equal(frames[^2].GetProperty("nodes").EnumerateArray().Select(n => n.GetProperty("id").GetString()), nodes.Select(n => n.GetProperty("id").GetString()));
+        Assert.Equal(frames.Count > 1, nodes.Count > 0); // empty only when it stopped before its first step
         Assert.DoesNotContain(nodes, n => n.GetProperty("state").GetString() is "Solution" or "ElementHighlight");
     }
 }
