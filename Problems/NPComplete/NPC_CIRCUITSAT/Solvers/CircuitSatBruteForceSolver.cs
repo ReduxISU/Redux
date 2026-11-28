@@ -19,9 +19,10 @@ class CircuitSatBruteForceSolver : ISolver<CIRCUITSAT> {
     // Declared, not derived. Unpruned exhaustive enumeration of all 2^n assignments.
     public SolverType solverType { get; } = SolverType.BruteForce;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    // Declared, not derived. Enumerates all 2^n input assignments (n = number of input
-    // wires); each is evaluated against every gate, |C| in total.
-    public MathematicalFunction timeComplexity { get; } = new("2^n * |C|", ", n = number of input wires, |C| = number of gates");
+    // Declared, not derived. Enumerates all 2^|I| input assignments; for each it copies the
+    // |I| input values and evaluates the |G| gates. The names are CIRCUITSAT's size measures,
+    // so the Big-O precheck (#843) can check it.
+    public MathematicalFunction timeComplexity { get; } = new("2^|I| * (|I| + |G|)", ", |I| = number of input wires, |G| = number of gates");
     public string[] contributors { get; } = { "Andrija Sevaljevic" };
 
     // --- Methods Including Constructors ---

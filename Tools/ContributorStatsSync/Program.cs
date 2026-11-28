@@ -19,10 +19,17 @@ namespace ContributorStatsSync;
 //                  a githubUsername, by scanning every PR of each repo once through the GraphQL
 //                  API -- a handful of requests total. (Per-contributor Search API calls took
 //                  ~9 minutes because of Search's rate limit, far too slow for a release build.)
+//                  The same pass also writes "otherContributions": the person's merged PRs in
+//                  every non-fork, non-archived ReduxISU repo, grouped by the area each PR mostly
+//                  touched (API/core code, each frontend, other repos' code, tests, CI, docs).
+//                  Problem work is left out, since the profile already lists it from code
+//                  `contributors` lists. Rules are in OtherContributions.cs. The counts stay
+//                  Redux + Redux_GUI only.
 //
 // Counts are kept at zero in the committed file on purpose: they go stale the moment they're
 // written and would make the weekly PR noisy, so they are only filled in at release time by the
-// docker workflow, and a test fails if non-zero counts get committed. Commit counts and
+// docker workflow, and a test fails if non-zero counts get committed. otherContributions is
+// handled the same way: never in the committed file, a test fails if it is. Commit counts and
 // PRs-opened counts are deliberately not tracked -- PRs merged and PRs reviewed are what the
 // About Us page displays.
 //
@@ -30,8 +37,8 @@ namespace ContributorStatsSync;
 // merges two GitHub logins into one contributor on its own -- a person who has used more than
 // one account gets the extras listed by hand in "otherGithubUsernames", which the scan then
 // treats as already known and the counts combine -- and it never overwrites an existing entry's
-// name, email, education, major, or bio -- only its stats objects, plus githubUsername for a
-// brand new entry. Updates are applied node-by-node on the parsed JSON tree (not by
+// name, email, education, major, or bio -- only its stats objects and otherContributions, plus
+// githubUsername for a brand new entry. Updates are applied node-by-node on the parsed JSON tree (not by
 // round-tripping the whole file through a POCO) specifically so untouched entries keep their
 // exact original key order and formatting -- a run that only changes a handful of contributors
 // produces a diff touching only those contributors, not a full-file reformat.
@@ -39,6 +46,7 @@ internal static partial class Program {
     private const string Owner = "ReduxISU";
     private const string ReduxRepo = "Redux";
     private const string GuiRepo = "Redux_GUI";
+    private const string FrontendRepo = "Redux_Frontend";
 
     // Bots and the bulk-import/admin account from repo setup -- not real contributors to track.
     private static readonly HashSet<string> ExcludedLogins = new(StringComparer.OrdinalIgnoreCase) {
@@ -189,11 +197,18 @@ internal static partial class Program {
         }
 
         Console.WriteLine($"Computing stats for {namesToProcess.Count} contributor(s)...");
-        // Both scans finish before any entry is touched, so a failed scan throws here and
-        // never leaves a half-filled file behind.
-        var reduxScan = await ScanRepoAsync(http, ReduxRepo);
-        var guiScan = await ScanRepoAsync(http, GuiRepo);
-        Console.WriteLine($"  Scanned {reduxScan.PullRequestCount + guiScan.PullRequestCount} pull request(s) "
+        // Every scan finishes before any entry is touched, so a failed scan throws here and
+        // never leaves a half-filled file behind. Redux and Redux_GUI give the counts; every org
+        // repo (those two included) gives otherContributions.
+        var repos = await OrgReposAsync(github);
+        Console.WriteLine($"  Repos: {string.Join(", ", repos)}");
+        var scans = new Dictionary<string, RepoScan>();
+        foreach (var repo in repos) {
+            scans[repo] = await ScanRepoAsync(http, repo);
+        }
+        var reduxScan = scans.GetValueOrDefault(ReduxRepo) ?? new RepoScan();
+        var guiScan = scans.GetValueOrDefault(GuiRepo) ?? new RepoScan();
+        Console.WriteLine($"  Scanned {scans.Values.Sum(scan => scan.PullRequestCount)} pull request(s) "
             + $"in {GraphQlRequestCount} GraphQL request(s).");
 
         foreach (var name in namesToProcess) {
@@ -202,6 +217,9 @@ internal static partial class Program {
             Console.WriteLine($"  {name} ({string.Join(", ", logins)})");
             entry["reduxStats"] = StatsToNode(reduxScan.StatsFor(logins));
             entry["reduxGuiStats"] = StatsToNode(guiScan.StatsFor(logins));
+            entry["otherContributions"] = OtherContributionsNode(scans.Values
+                .SelectMany(scan => scan.Merged)
+                .Where(pr => logins.Contains(pr.Author, StringComparer.OrdinalIgnoreCase)));
         }
 
         return await FinishAsync(jsonPath, root, newEntryNames, dryRun);
@@ -270,6 +288,16 @@ internal static partial class Program {
         return 0;
     }
 
+    // Every repo of the org the token can see, minus forks (someone else's code, e.g.
+    // quantumsolver) and archived repos, sorted so runs are repeatable.
+    private static async Task<List<string>> OrgReposAsync(GitHubClient github) {
+        var repos = await github.Repository.GetAllForOrg(Owner);
+        return repos.Where(repo => !repo.Fork && !repo.Archived)
+            .Select(repo => repo.Name)
+            .Order(StringComparer.Ordinal)
+            .ToList();
+    }
+
     private static async IAsyncEnumerable<GitHubCommit> EnumerateCommitsAsync(GitHubClient github, string repo) {
         const int pageSize = 100;
         var page = 1;
@@ -324,6 +352,8 @@ internal static partial class Program {
 
     private sealed class RepoScan {
         public int PullRequestCount { get; set; }
+        // Every merged PR with a known author that isn't problem work, for otherContributions.
+        public List<MergedPullRequest> Merged { get; } = [];
         public Dictionary<string, int> PrsMerged { get; } = new(StringComparer.OrdinalIgnoreCase);
         // PR numbers each login reviewed, kept as sets so a PR reviewed from two accounts of the
         // same person still counts once.
@@ -351,8 +381,15 @@ internal static partial class Program {
               pageInfo { hasNextPage endCursor }
               nodes {
                 number
+                title
+                url
                 merged
+                mergedAt
                 author { login }
+                files(first: 100) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes { path }
+                }
                 reviews(first: 100) {
                   pageInfo { hasNextPage endCursor }
                   nodes { author { login } }
@@ -376,6 +413,35 @@ internal static partial class Program {
         }
         """;
 
+    private const string MoreFilesQuery = """
+        query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
+          repository(owner: $owner, name: $repo) {
+            pullRequest(number: $number) {
+              files(first: 100, after: $cursor) {
+                pageInfo { hasNextPage endCursor }
+                nodes { path }
+              }
+            }
+          }
+        }
+        """;
+
+    // Every changed file of a PR: the first page (from the PR query), then each further page that
+    // nextPage fetches from the cursor before it, until GitHub says there are no more. A PR past
+    // 100 files (Redux #945 has 158) would otherwise be sorted by its first 100 only. files is null
+    // on the rare PR whose diff GitHub can't load; that, or a null later page, ends the list.
+    internal static async Task<List<string>> AllFilePathsAsync(JsonNode? files, Func<string?, Task<JsonNode?>> nextPage) {
+        var paths = new List<string>();
+        while (files is not null) {
+            paths.AddRange(files["nodes"]?.AsArray().Select(file => file!["path"]!.GetValue<string>()) ?? []);
+            if (files["pageInfo"]?["hasNextPage"]?.GetValue<bool>() != true) {
+                break;
+            }
+            files = await nextPage(files["pageInfo"]!["endCursor"]?.GetValue<string>());
+        }
+        return paths;
+    }
+
     // One pass over every PR of the repo. A PR counts as "reviewed" by a login once, no matter how
     // many reviews that login left on it -- same as the Search API's reviewed-by: qualifier, which
     // returns PRs rather than individual reviews.
@@ -397,6 +463,19 @@ internal static partial class Program {
 
                 if (author is not null && pr["merged"]!.GetValue<bool>()) {
                     scan.PrsMerged[author] = scan.PrsMerged.GetValueOrDefault(author) + 1;
+
+                    var paths = await AllFilePathsAsync(pr["files"], async filesCursor =>
+                        (await PostGraphQlAsync(http, MoreFilesQuery, new JsonObject {
+                            ["owner"] = Owner,
+                            ["repo"] = repo,
+                            ["number"] = number,
+                            ["cursor"] = filesCursor,
+                        }))["repository"]?["pullRequest"]?["files"]);
+                    var area = AreaOfPullRequest(repo, paths);
+                    if (area is not null) {
+                        scan.Merged.Add(new MergedPullRequest(repo, number, pr["title"]!.GetValue<string>(),
+                            pr["url"]!.GetValue<string>(), pr["mergedAt"]!.GetValue<DateTimeOffset>(), author, area));
+                    }
                 }
 
                 var reviewers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

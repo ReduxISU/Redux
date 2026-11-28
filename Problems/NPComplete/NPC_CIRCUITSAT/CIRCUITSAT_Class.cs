@@ -113,4 +113,13 @@ class CIRCUITSAT : IProblem<CircuitSatBruteForceSolver, CircuitSatVerifier, Dumm
     public string getOutputWire(string instance) {
         return parseInstance(instance).Output;
     }
+
+    /// <summary>
+    /// The sizes of the circuit, for the Big-O precheck (#843), named as in the grammar {(I,G,o) | ...}: |I| input
+    /// wires and |G| gates. The output wire o is one name, so it has no size.
+    /// </summary>
+    public IReadOnlyList<SizeMeasure> SizeMeasures() => [
+        SizeMeasure.Count("I", circuit.Inputs.Count),
+        SizeMeasure.Count("G", circuit.Gates.Count),
+    ];
 }
