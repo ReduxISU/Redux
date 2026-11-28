@@ -25,9 +25,11 @@ class ThreeDimensionalMatchingBacktracking : ISolver<DM3, ChosenTriples>, IIncre
     // Declared, not derived. Exact depth-first search WITH pruning: a triple that reuses an element is never chosen.
     public SolverType solverType { get; } = SolverType.Backtracking;
     public SolverComplexityBucket complexityBucket { get; } = SolverComplexityBucket.Exponential;
-    // Declared, not derived. At most C(m, n) sets of triples are reached, and choosing the next element scans every
-    // element's triples, O(m) per level.
-    public MathematicalFunction timeComplexity { get; } = new("C(|M|, |X|) * |M|", ", |M| = number of candidate triples, |X| = |Y| = |Z|");
+    // Declared, not derived. Every node of the search is a set of at most n triples, reached once: the partial ones on the
+    // way down count too, so at most the sum of C(m, d) for d <= n, which is below both 2^m and (m + 1)^n (#1061 review).
+    // Choosing the next element scans every element's triples, O(m) per node.
+    public MathematicalFunction timeComplexity { get; } = new("min(2^|M|, (|M| + 1)^|X|) * |M|",
+        ", |M| = number of candidate triples, |X| = number of elements of X (a matching chooses |X| triples; Y and Z need not be the same size)");
 
     public ThreeDimensionalMatchingBacktracking() { }
 

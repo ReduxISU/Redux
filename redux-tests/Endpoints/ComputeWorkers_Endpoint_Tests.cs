@@ -281,6 +281,23 @@ public class ComputeWorkers_SameAnswers_Tests : IClassFixture<ComputeWorkersAppF
         await AssertReaches(ComputeWorkerChecks.Verify("SAT3Verifier", Malformed, "{}"), HttpStatusCode.BadRequest);
     }
 
+    // A randomized solver given a seed, in both formats: the worker must run it with that seed (WorkerJob.Seed), so its
+    // tries, its answer and the seed it reports are the server's. A worker that chose its own seed would differ.
+    [Fact]
+    public async Task SeededVisualizations_AnswerExactlyAsInTheServer() {
+        const string formula = "(x1 | x2 | !x3) & (!x1 | x4 | x5) & (!x2 | !x4 | x6) & (x3 | !x5 | !x6) & (!x1 | !x2 | !x6)";
+        var requests = new List<ComputeRequest>();
+        foreach (int seed in new[] { 7, 42 })
+            foreach (string vis in new[] { "Sat3FormulaVisualization", "Sat3DefaultVisualization" })
+                foreach (string format in new[] { "&format=frames", "" })
+                    requests.Add(new ComputeRequest($"/ProblemProvider/visualize?visualization={vis}&solver=WalkSAT{format}&seed={seed}",
+                        ComputeWorkerChecks.Json(formula)));
+        await AssertSameAnswers(requests);
+        var frames = await ComputeWorkerChecks.Post(_isolated, requests[0]);
+        Assert.Equal(HttpStatusCode.OK, frames.Status);
+        Assert.Equal(7, JsonDocument.Parse(frames.Body).RootElement.GetProperty("seed").GetInt32());
+    }
+
     [Fact]
     public async Task ALargeVisualization_TravelsWhole() {
         // A 15-clause formula over 12 variables (the first half of the time-limit tests' formula), reduced to a 45-node
